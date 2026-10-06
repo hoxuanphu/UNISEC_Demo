@@ -94,7 +94,7 @@ export const CommunityListView: React.FC<Props> = ({
 
         {filtered.length === 0 ? (
           <p className="small" style={{ padding: '20px 0', color: 'var(--ws-muted)' }}>
-            {t('Không tìm thấy địa điểm phù hợp.', 'No matching communities found.')}
+            {t('Không tìm thấy địa bàn.', 'No matching communities found.')}
           </p>
         ) : (
           filtered.map((c) => (

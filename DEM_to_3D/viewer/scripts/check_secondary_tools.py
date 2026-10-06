@@ -52,10 +52,10 @@ def run(url, chrome, captures):
         page.get_by_role('button', name='Tất cả thông báo', exact=True).click()
         expect(page.locator('.notification-history > li')).to_have_count(7)
         page.locator('.notification-history summary').first.click()
-        expect(page.locator('.notification-record').first).to_contain_text('Quan sát')
+        expect(page.locator('.notification-record').first).to_contain_text('Ghi nhận')
         if captures:
             page.screenshot(path=str(captures / 'workspace-notification-history.png'))
-        page.get_by_role('button', name='Mở tin hiện trường', exact=True).click()
+        page.get_by_role('button', name='Xem báo cáo', exact=True).click()
         page.get_by_role('button', name='Cập nhật bản đồ', exact=True).click()
         expect(page.locator('.decision-overview')).to_contain_text('Các tuyến đã biết đều bị chặn')
         page.locator('.header-revision').click()

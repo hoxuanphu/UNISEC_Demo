@@ -43,7 +43,7 @@ export function assessCommunity(pair: ScenarioRoutePair | undefined, hazards: Ha
   const nextAction: ResponseAssessment['nextAction'] = access === 'blocked'
     ? ['Xác minh phương án tiếp cận khác', 'Verify another access option']
     : access === 'unmapped'
-    ? ['Bổ sung tuyến đường và tin hiện trường', 'Obtain road geometry and field observations']
+    ? ['Bổ sung dữ liệu đường và báo cáo tình trạng đường', 'Obtain road geometry and field observations']
     : access === 'uncertain'
     ? routeNextAction(pair?.candidate?.status !== 'blocked' ? pair?.candidate ?? pair?.direct ?? null : pair?.direct ?? null, hazards)
     : ['Xác minh khả năng đi qua toàn tuyến', 'Verify full-route passability'];

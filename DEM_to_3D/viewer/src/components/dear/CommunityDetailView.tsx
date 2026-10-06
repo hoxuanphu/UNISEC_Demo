@@ -116,8 +116,8 @@ export const CommunityDetailView: React.FC<Props> = ({
                 <div><dt>{assessment.priority === 1 ? t('Lý do ưu tiên', 'Priority basis') : t('Lý do theo dõi', 'Monitoring basis')}</dt><dd>{t(...assessment.reason)}</dd></div>
               </dl>
               {activeRoute?.eta && <dl className="community-reference estimate-method">
-                <div><dt>{t('Phương tiện ước tính', 'Estimated travel mode')}</dt><dd>{activeRoute.eta.mode === 'foot' ? t('Đi bộ', 'On foot') : t('Xe 4x4', '4WD')}</dd></div>
-                <div><dt>{t('Điều kiện', 'Conditions')}</dt><dd>{t('Thông tuyến. Chưa tính dừng kiểm tra hoặc thông đường.', 'Assumes passage. Inspection and road clearance are excluded.')}</dd></div>
+                <div><dt>{t('Phương tiện', 'Estimated travel mode')}</dt><dd>{activeRoute.eta.mode === 'foot' ? t('Đi bộ', 'On foot') : t('Xe 4x4', '4WD')}</dd></div>
+                <div><dt>{t('Giả định tính thời gian', 'Travel time assumptions')}</dt><dd>{t('Giả định đi qua được. Chưa tính thời gian kiểm tra và dọn đường.', 'Assumes passage. Inspection and road clearance are excluded.')}</dd></div>
               </dl>}
               <button className="text-button" onClick={onOpenSources}>{t('Phương pháp và nguồn dữ liệu', 'Method and data sources')}</button>
             </section>

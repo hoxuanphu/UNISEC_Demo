@@ -47,10 +47,10 @@ export function IncidentView({ incident, locale, updated, communities, routes, a
       <section className="workflow-section incident-data-summary">
         <dl>
           <div><dt>{t('Kích hoạt', 'Triggered')}</dt><dd><time dateTime={incident.triggeredAt}>{localClock(incident.triggeredAt)}</time></dd></div>
-          <div><dt>{t('Dữ liệu đến', 'Data as of')}</dt><dd><time dateTime={asOf}>{localClock(asOf)}</time> <small>UTC+7</small></dd></div>
+          <div><dt>{t('Tổng hợp lúc', 'Data as of')}</dt><dd><time dateTime={asOf}>{localClock(asOf)}</time> <small>UTC+7</small></dd></div>
         </dl>
         <div className="incident-detail-actions">
-          <button className="text-button" onClick={onOpenTimeline}>{t('Diễn biến phân tích', 'Analysis timeline')}</button>
+          <button className="text-button" onClick={onOpenTimeline}>{t('Diễn biến sự kiện', 'Analysis timeline')}</button>
           <button className="text-button" onClick={onOpenData}>{t('Nguồn dữ liệu', 'Data sources')}</button>
         </div>
       </section>

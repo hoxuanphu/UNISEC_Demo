@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Locale, RoadSegment } from '../../types/dear';
 import type { IncidentPacket } from '../../data/incidentPacket';
-import { observationTime } from '../../features/incident/sourceTime';
+import { EvidenceMetadata } from '../../features/incident/EvidenceMetadata';
 import { UiIcon } from './UiIcon';
 
 type Props = {
@@ -31,7 +31,7 @@ export const NotificationDialog: React.FC<Props> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="notification-dialog-title" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
-          <h2 id="notification-dialog-title">{t('Tin hiện trường', 'Field report')}</h2>
+          <h2 id="notification-dialog-title">{t('Báo cáo hiện trường', 'Field report')}</h2>
           <button className="icon-button" onClick={onClose} aria-label={t('Đóng', 'Close')}>
             <UiIcon name="close" />
           </button>
@@ -49,11 +49,7 @@ export const NotificationDialog: React.FC<Props> = ({
                 </strong>
                 {road && <p className="notification-road-name">{t(...road.name)}</p>}
                 <p className="notification-finding">{t(...report.evidence.finding)}</p>
-                <dl className="evidence-metadata">
-                  <div><dt>{t('Nguồn', 'Source')}</dt><dd>{t(...report.evidence.source)}</dd></div>
-                  <div><dt>{t('Quan sát', 'Observed')}</dt><dd><time dateTime={report.evidence.observedAt}>{observationTime(report.evidence.observedAt, locale)}</time></dd></div>
-                  <div><dt>{t('Nhận tin', 'Received')}</dt><dd><time dateTime={report.evidence.receivedAt}>{observationTime(report.evidence.receivedAt, locale)}</time></dd></div>
-                </dl>
+                <EvidenceMetadata evidence={report.evidence} locale={locale}/>
                 {!updated && <small className="notification-pending">{t('Chưa áp dụng vào bản đồ', 'Not yet applied to the map')}</small>}
                 <div className="notification-actions">
                   {!updated && <button className="button primary" onClick={() => { onApplyReport(); onClose(); }}>{t('Cập nhật bản đồ', 'Update map')}</button>}

@@ -141,7 +141,7 @@ def run(url, chrome, captures, prepared=False):
         page.locator('.impact-row').click()
         expect(page.locator('.sidebar')).to_contain_text('Kiểm tra mực nước')
         expect(page.locator('.sidebar')).not_to_contain_text('Thông tin tham chiếu')
-        page.get_by_role('button', name='Xem bản ghi', exact=True).click()
+        page.get_by_role('button', name='Xem báo cáo', exact=True).click()
         expect(page.locator('.evidence-metadata')).to_contain_text('03:55')
         expect(page.locator('.evidence-metadata')).to_contain_text('04:10')
         expect(page.locator('.evidence-road')).to_contain_text('Khau Mang')

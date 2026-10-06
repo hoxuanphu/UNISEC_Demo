@@ -36,8 +36,8 @@ export function ProfileDrawer({ locale, name, profile, onHoverDistance, onClose 
     <dl className="profile-stats">
       <div><dt>{t('Thấp nhất', 'Lowest')}</dt><dd>{value(metrics.min, 'm')}</dd></div>
       <div><dt>{t('Cao nhất', 'Highest')}</dt><dd>{value(metrics.max, 'm')}</dd></div>
-      {metrics.complete && <><div><dt>{t('Tổng lên cao', 'Elevation gain')}</dt><dd>{value(metrics.ascent, 'm')}</dd></div><div><dt>{t('Tổng xuống thấp', 'Elevation loss')}</dt><dd>{value(metrics.descent, 'm')}</dd></div></>}
-      {!metrics.complete && <div className="profile-coverage"><dt>{t('DEM phủ tuyến', 'DEM coverage')}</dt><dd>{Math.round(metrics.coverage * 100)}%</dd></div>}
+      {metrics.complete && <><div><dt>{t('Độ cao tăng', 'Elevation gain')}</dt><dd>{value(metrics.ascent, 'm')}</dd></div><div><dt>{t('Độ cao giảm', 'Elevation loss')}</dt><dd>{value(metrics.descent, 'm')}</dd></div></>}
+      {!metrics.complete && <div className="profile-coverage"><dt>{t('Tỷ lệ tuyến có DEM', 'DEM coverage')}</dt><dd>{Math.round(metrics.coverage * 100)}%</dd></div>}
     </dl>
     <div className="profile-body">
       <div className="profile-chart-container"><ProfileChart compact locale={locale} profile={profile} selectedDistance={current.distance} onHoverDistance={selectDistance} /></div>
@@ -47,7 +47,7 @@ export function ProfileDrawer({ locale, name, profile, onHoverDistance, onClose 
         <dl className="profile-readout">
           <div><dt>{t('Khoảng cách', 'Distance')}</dt><dd>{(current.distance / 1000).toFixed(2)} km</dd></div>
           <div><dt>{t('Độ cao', 'Elevation')}</dt><dd>{value(current.elevation, 'm')}</dd></div>
-          <div><dt>{t('Độ dốc dọc DEM', 'DEM path slope')}</dt><dd>{grade === undefined ? t('Không có dữ liệu', 'No data') : `${grade > 0 ? '+' : ''}${grade.toFixed(1)}%`}</dd></div>
+          <div><dt>{t('Độ dốc địa hình', 'DEM path slope')}</dt><dd>{grade === undefined ? t('Không có dữ liệu', 'No data') : `${grade > 0 ? '+' : ''}${grade.toFixed(1)}%`}</dd></div>
         </dl>
         <p className="profile-method-note" title={t('Khoảng cách giữa các mẫu độ cao theo lưới DEM', 'Elevation sample spacing from the DEM grid')}>DEM · {Math.round(profile.sampleInterval)} m</p>
       </div>

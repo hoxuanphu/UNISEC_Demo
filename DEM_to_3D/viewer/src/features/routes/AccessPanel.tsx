@@ -38,7 +38,7 @@ export function AccessPanel({ locale, hazards, evidence, candidate, direct, sele
   const roadRows = (roads: ScenarioRoute['segs']) => roads.map(road => <button key={road.id} className="object-row impact-row" onClick={() => inspect(road.id)}>
     <span><strong>{t(...road.name)}</strong><small>{road.len} km</small></span>
     <StatusText tone={road.status === 'blocked' ? 'critical' : road.status === 'uncertain' ? 'warning' : 'neutral'} icon={road.status === 'blocked' ? 'blocked' : road.status === 'uncertain' ? 'uncertain' : undefined}>
-      {road.status === 'blocked' ? t('Bị chặn', 'Blocked') : road.status === 'uncertain' ? t('Chưa rõ', 'Uncertain') : t('Chưa ghi nhận chặn', 'No blockage reported')}
+      {road.status === 'blocked' ? t('Bị chặn', 'Blocked') : road.status === 'uncertain' ? t('Cần xác minh', 'Uncertain') : t('Chưa ghi nhận chặn', 'No blockage reported')}
     </StatusText>
   </button>);
   return <>
@@ -69,7 +69,7 @@ export function AccessPanel({ locale, hazards, evidence, candidate, direct, sele
       {active.eta && <button className="access-disclosure" onClick={onFindings}>{t('Căn cứ ước tính thời gian', 'Travel estimate basis')}<UiIcon name="info" size={16}/></button>}
     </div>}
     <div className="route-tools access-tools">
-      {active && <button className="button" onClick={onProfile} disabled={!hasProfile} title={!hasProfile ? t('Chưa có DEM cho tuyến này', 'DEM unavailable for this route') : undefined}><UiIcon name="profile" size={16}/>{t('Mặt cắt địa hình', 'Terrain section')}</button>}
+      {active && <button className="button" onClick={onProfile} disabled={!hasProfile} title={!hasProfile ? t('Chưa có DEM cho tuyến này', 'DEM unavailable for this route') : undefined}><UiIcon name="profile" size={16}/>{t('Mặt cắt địa hình', 'Elevation profile')}</button>}
       <button className="button decision-save" onClick={onExport}><UiIcon name="download" size={16}/>{t('Lưu đánh giá', 'Save assessment')}</button>
     </div>
   </>;

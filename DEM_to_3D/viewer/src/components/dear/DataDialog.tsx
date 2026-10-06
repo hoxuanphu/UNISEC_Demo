@@ -16,6 +16,10 @@ type Props = {
 export function DataDialog({ incident, locale, updated, manifest, terrainMetadata, onClose }: Props): JSX.Element {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const snapshot = updated ? incident.asOfUpdated : incident.asOf;
+  const sourceRow = (source: IncidentModel['sources'][number]) => <div className="data-source-row" key={source.id}>
+    <div><strong>{t(...source.name)}</strong><small>{t(...source.note)}</small></div>
+    <time dateTime={sourceObservedAt(source, updated)}>{localClock(sourceObservedAt(source, updated))}</time>
+  </div>;
   return <div className="modal-overlay" onClick={onClose}>
     <section className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="data-title" onClick={event => event.stopPropagation()}>
       <div className="modal-head">
@@ -37,13 +41,11 @@ export function DataDialog({ incident, locale, updated, manifest, terrainMetadat
         {manifest?.dataKind === 'synthetic' && <p className="data-context">
           {t('NR-18, PR-7 và T-5 là mã đường nội bộ.', 'NR-18, PR-7 and T-5 are internal road codes.')}
         </p>}
-        <h3 className="data-section-title">{t('Nguồn dữ liệu', 'Data sources')}</h3>
+        <h3 className="data-section-title">{t('Dữ liệu và báo cáo', 'Data and reports')}</h3>
         <div className="data-source-list">
-          {incident.sources.map(source => <div className="data-source-row" key={source.id}>
-            <div><strong>{t(source.name[0], source.name[1])}</strong><small>{t(source.note[0], source.note[1])}</small></div>
-            <time dateTime={sourceObservedAt(source, updated)}>{localClock(sourceObservedAt(source, updated))}</time>
-          </div>)}
+          {incident.sources.filter(source => source.id !== 'route').map(sourceRow)}
         </div>
+        {incident.sources.some(source => source.id === 'route') && <><h3 className="data-section-title">{t('Kết quả tính tuyến', 'Routing results')}</h3><div className="data-source-list">{incident.sources.filter(source => source.id === 'route').map(sourceRow)}</div></>}
         <h3 className="data-section-title">{t('Mô hình địa hình', 'Terrain model')}</h3>
         <p className="data-context">{manifest
           ? t('Chế Tạo: EPSG:32648, bước lưới 28,8 m. Metadata ghi ảnh Sentinel-2. Chưa có nguồn DEM.', 'Chế Tạo: EPSG:32648, 28.8 m grid. Metadata lists Sentinel-2 imagery. DEM source unavailable.')

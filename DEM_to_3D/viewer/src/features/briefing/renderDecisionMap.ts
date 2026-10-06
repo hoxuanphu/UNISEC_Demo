@@ -49,7 +49,7 @@ export async function renderDecisionMap(snapshot: DecisionSnapshot, terrain: Ter
   text('DEAR', 24, 48, 26, '#166553', true);
   text(t('Đánh giá tiếp cận', 'Access assessment') + ': ' + snapshot.community.name, 146, 48, 26, '#223238', true);
   const date = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(snapshot.asOf));
-  text(`${snapshot.incidentId}   ${t('Dữ liệu đến', 'Data as of')} ${localClock(snapshot.asOf)} ${date} UTC+7`, 24, 83, 16, '#617177');
+  text(`${snapshot.incidentId}   ${t('Tổng hợp lúc', 'Data as of')} ${localClock(snapshot.asOf)} ${date} UTC+7`, 24, 83, 16, '#617177');
   ctx.fillStyle = '#e7eeef'; ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
   ctx.save(); ctx.beginPath(); ctx.rect(frame.x, frame.y, frame.w, frame.h); ctx.clip();
   const [sw, ne] = raster.bounds;
@@ -113,7 +113,7 @@ export async function renderDecisionMap(snapshot: DecisionSnapshot, terrain: Ter
   const constraints = snapshot.route?.segs.filter(s => s.status !== 'open') ?? [];
   for (const road of constraints.slice(0, 3)) {
     y = wrap(t(...road.name), sx, y, width, 15);
-    y = wrap(road.status === 'blocked' ? t('Bị chặn', 'Blocked') : t('Chưa rõ khả năng đi qua', 'Passability unknown'), sx, y, width, 14, road.status === 'blocked' ? '#b91c1c' : '#92400e'); y += 12;
+    y = wrap(road.status === 'blocked' ? t('Bị chặn', 'Blocked') : t('Chưa xác minh khả năng đi qua', 'Passability unknown'), sx, y, width, 14, road.status === 'blocked' ? '#b91c1c' : '#92400e'); y += 12;
   }
   if (constraints.length > 3) text(`${constraints.length - 3} ${t('đoạn khác: xem dữ liệu JSON', 'more sections: see JSON')}`, sx, y, 14, '#617177');
   const legend = [[roadColors.blocked, t('Đường bị chặn', 'Blocked road')], [roadColors.uncertain, t('Đường cần xác minh', 'Road to verify')], [roadColors.selected, t('Tuyến đang xem', 'Selected route')], [roadColors.networkImagery, t('Chưa ghi nhận chặn', 'No blockage reported')]];

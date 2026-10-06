@@ -32,7 +32,7 @@ export function MapMeasurement({ mapRef, enabled, locale, session, dispatch, sou
   const canComplete = canFinish(session.mode, session.points);
   const copy = async () => {
     const report = [t(...modeNames[session.mode]), ...finalResults.map(([label, value]) => `${label}: ${value}`),
-      ...(session.source ? [t('Nguồn hình học: ', 'Geometry source: ') + session.source] : []), 'EPSG:32648 (UTM 48N), WGS84',
+      ...(session.source ? [t('Đối tượng đo: ', 'Measured feature: ') + session.source] : []), 'EPSG:32648 (UTM 48N), WGS84',
       ...session.points.map((point, i) => `${i + 1}: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)} | E ${point.x.toFixed(1)} m, N ${point.y.toFixed(1)} m`)].join('\n');
     try { await navigator.clipboard.writeText(report); setCopyState('copied'); } catch { setCopyState('error'); }
   };

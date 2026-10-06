@@ -19,9 +19,8 @@ export function LayerDetails({ id, locale, packet, updated, evidence, terrain, r
   const add = (vi: string, en: string, value: ReactNode) => rows.push([t(vi, en), value]);
   const snapshot = updated ? packet.incident.asOfUpdated : packet.incident.asOf;
   if (['imagery', 'terrain', 'hillshade'].includes(id)) {
-    add('Nguồn', 'Source', t('Mô hình địa hình đang mở', 'Current terrain model'));
     if (terrain) {
-      add('Mô hình', 'Model', terrain.asset_id);
+      add('Tệp dữ liệu', 'Dataset', terrain.asset_id);
       add('Hệ tọa độ', 'Coordinate system', `${terrain.crs.authority}:${terrain.crs.code}`);
       const cell = Math.max(Math.hypot(terrain.grid_transform.a, terrain.grid_transform.d), Math.hypot(terrain.grid_transform.b, terrain.grid_transform.e));
       add('Bước lưới DEM', 'DEM cell spacing', `${cell.toFixed(1)} m`);
@@ -34,11 +33,11 @@ export function LayerDetails({ id, locale, packet, updated, evidence, terrain, r
   } else if (id === 'context') {
     add('Nguồn', 'Source', <a href="https://maps.eox.at/" target="_blank" rel="noreferrer">{imagery ? 'EOX Sentinel-2 cloudless' : 'EOX Terrain Light'}</a>);
     if (imagery) {
-      add('Niên đại nền', 'Basemap vintage', '2016');
+      add('Năm ảnh nền', 'Basemap vintage', '2016');
       add('Giấy phép', 'License', 'CC BY 4.0');
     } else {
       add('Dữ liệu nền', 'Basemap data', <a href="https://maps.eox.at/#data" target="_blank" rel="noreferrer">OpenStreetMap, Natural Earth, ASTER GDEM, GTOPO30, GEBCO</a>);
-      add('Ghi nguồn', 'Credits', 'Data © OpenStreetMap contributors & others. Rendering © EOX.');
+      add('Ghi công', 'Credits', 'Data © OpenStreetMap contributors & others. Rendering © EOX.');
     }
     note = t('Nền khu vực tải qua Internet. Không dùng để xác định tình trạng thiên tai hiện tại.', 'Regional basemap requires Internet. It does not describe current disaster conditions.');
   } else if (id === 'aoi') {
@@ -54,22 +53,22 @@ export function LayerDetails({ id, locale, packet, updated, evidence, terrain, r
     const ids = new Set(packet.hazards.filter(h => id === 'status' || h.kind === id).map(h => h.id));
     const records = evidence.filter(item => ids.has(item.hazardId));
     const times = records.map(item => item.observedAt).sort((a, b) => Date.parse(a) - Date.parse(b));
-    add('Dữ liệu đến', 'Data as of', date(snapshot));
+    add('Tổng hợp lúc', 'Data as of', date(snapshot));
     if (times.length) {
       add('Quan sát đầu tiên', 'First observation', date(times[0]));
       if (times.at(-1) !== times[0]) add('Quan sát gần nhất', 'Latest observation', date(times.at(-1)!));
     }
-    add('Nguồn', 'Source', [...new Set(records.map(item => t(...item.source)))].join('\n') || t('Chưa có bản ghi', 'No records'));
+    add('Báo cáo và phân tích', 'Reports and analyses', [...new Set(records.map(item => t(...item.source)))].join('\n') || t('Chưa có báo cáo hoặc phân tích', 'No reports or analyses'));
     note = id === 'status' ? t('Tình trạng từng đoạn lấy từ bản ghi ảnh hưởng. Chưa ghi nhận chặn không có nghĩa đã xác nhận đi được.', 'Segment conditions use impact records. No reported blockage does not mean confirmed passability.')
       : t('Chỉ có vị trí điểm trong gói. Không suy ra diện tích hay phạm vi sạt lở/ngập từ ký hiệu điểm.', 'The packet contains point locations. Point symbols do not establish landslide or flood extent.');
   } else if (id === 'route') {
     add('Phương pháp', 'Method', t('Tính trên mạng đường của bộ dữ liệu', 'Computed on the dataset road network'));
     if (route) add('Tuyến', 'Route', t(...route.name));
-    add('Dữ liệu đến', 'Data as of', date(snapshot));
+    add('Tổng hợp lúc', 'Data as of', date(snapshot));
     note = t('Loại đoạn bị chặn khi tìm tuyến, tăng chi phí đoạn chưa rõ. Phương án vẫn cần kiểm tra hiện trường.', 'Routing excludes blocked segments and penalises uncertain ones. Field verification is still required.');
   } else {
-    add('Nguồn', 'Source', packet.datasetVersion);
-    add('Dữ liệu đến', 'Data as of', date(snapshot));
+    add('Phiên bản dữ liệu', 'Dataset version', packet.datasetVersion);
+    add('Tổng hợp lúc', 'Data as of', date(snapshot));
     add('Phạm vi', 'Coverage', t(...packet.aoi.name));
     note = id === 'communities' ? t('Chưa ghi nguồn gốc dân số và số hộ trong gói.', 'Population and household provenance is not recorded in the packet.')
       : t('Mạng đường chưa đầy đủ cho mọi địa bàn. Chưa xác nhận nguồn hình tuyến và số hiệu thực địa.', 'The road network is incomplete. Geometry provenance and real-world route numbers are unconfirmed.');

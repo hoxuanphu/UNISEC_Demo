@@ -2,6 +2,7 @@ import type { IncidentPacket } from '../../data/incidentPacket';
 import type { Locale } from '../../types/dear';
 import { UiIcon } from '../../shared/ui/UiIcon';
 import { localClock } from './sourceTime';
+import { EvidenceMetadata } from './EvidenceMetadata';
 
 export function NotificationCenter({ packet, applied, locale, onClose, onOpenReport, onInspect }: {
   packet: IncidentPacket; applied: boolean; locale: Locale; onClose: () => void;
@@ -17,8 +18,8 @@ export function NotificationCenter({ packet, applied, locale, onClose, onOpenRep
         const hazard = pending ? packet.report.hazard : packet.hazards.find(item => item.id === record.hazardId);
         const road = packet.roads.find(item => item.hz === record.hazardId);
         return <li key={record.id}><details><summary><time dateTime={record.receivedAt}>{localClock(record.receivedAt)}</time><span><strong>{hazard ? t(...hazard.name) : t(...record.source)}</strong><small>{t(...record.source)}{pending && !applied ? t(' (chờ cập nhật)', ' (pending update)') : ''}</small></span></summary>
-          <div className="notification-record"><p>{t(...record.finding)}</p><dl><div><dt>{t('Quan sát', 'Observed')}</dt><dd>{localClock(record.observedAt)}</dd></div><div><dt>{t('Nhận tin', 'Received')}</dt><dd>{localClock(record.receivedAt)}</dd></div></dl><p className="small">{t(...record.limitation)}</p>
-            {pending ? <button className="text-button" onClick={onOpenReport}>{t('Mở tin hiện trường', 'Open field update')}</button> : road && <button className="text-button" onClick={() => onInspect(`road:${road.id}`)}>{t('Xem đoạn đường', 'View road segment')}</button>}
+          <div className="notification-record"><p>{t(...record.finding)}</p><EvidenceMetadata evidence={record} locale={locale} showSource={false}/><p className="small">{t(...record.limitation)}</p>
+            {pending ? <button className="text-button" onClick={onOpenReport}>{t('Xem báo cáo', 'View report')}</button> : road && <button className="text-button" onClick={() => onInspect(`road:${road.id}`)}>{t('Xem đoạn đường', 'View road segment')}</button>}
           </div></details></li>;
       })}<li className="notification-trigger"><time dateTime={packet.incident.triggeredAt}>{localClock(packet.incident.triggeredAt)}</time><strong>{t('Kích hoạt đánh giá', 'Assessment triggered')}: {t(...packet.aoi.name)}</strong></li></ol>
     </div>

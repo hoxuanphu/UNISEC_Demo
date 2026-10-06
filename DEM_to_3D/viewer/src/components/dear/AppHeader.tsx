@@ -86,7 +86,7 @@ export const AppHeader: React.FC<Props> = ({
       <div className="header-actions">
         <div className="header-data">
           <button className="update-label header-revision" disabled={!dataAvailable} onClick={onOpenTimeline} title={t('Xem bản đồ theo thời điểm dữ liệu', 'View map revisions')}>
-            {t('Dữ liệu đến', 'Data as of')}{' '}
+            {t('Tổng hợp lúc', 'Data as of')}{' '}
             {dataAvailable && <strong><time dateTime={snapshot}>
               {new Date(snapshot).toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-GB', { timeZone: 'Asia/Bangkok', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </time></strong>}

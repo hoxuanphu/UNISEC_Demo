@@ -78,7 +78,7 @@ export const ImpactView: React.FC<Props> = ({
             onClick={() => { onChangeQuery(''); onChangeTab('roads'); onChangeRoadFilter(tab === 'roads' && roadFilter === 'uncertain' ? 'all' : 'uncertain'); }}
           >
             <strong>{uncertainCount}</strong>
-            <span>{t('Chưa rõ', 'Uncertain')}</span>
+            <span>{t('Cần xác minh', 'Uncertain')}</span>
           </button>
 
           <button
@@ -142,7 +142,7 @@ export const ImpactView: React.FC<Props> = ({
                     {road.status === 'blocked'
                       ? t('Bị chặn', 'Blocked')
                       : road.status === 'uncertain'
-                      ? t('Chưa rõ', 'Uncertain')
+                      ? t('Cần xác minh', 'Uncertain')
                       : t('Chưa ghi nhận chặn', 'No blockage reported')}
                   </StatusText>
                 </button>
@@ -167,7 +167,7 @@ export const ImpactView: React.FC<Props> = ({
                     <small>{t(hz.src[0], hz.src[1])}</small>
                   </span>
                   <StatusText>
-                    {hz.area != null ? `${hz.area} ha` : hz.kind === 'bridge' ? t('Cầu', 'Bridge') : hz.kind === 'crossing' ? t('Điểm vượt khe', 'Gully crossing') : t('Chưa rõ', 'Uncertain')}
+                    {hz.area != null ? `${hz.area} ha` : hz.kind === 'bridge' ? t('Cầu', 'Bridge') : hz.kind === 'crossing' ? t('Điểm vượt khe', 'Gully crossing') : hz.observation === 'reported' ? t('Có báo cáo', 'Reported') : t('Chưa xác minh', 'Unverified')}
                   </StatusText>
                 </button>
               ))

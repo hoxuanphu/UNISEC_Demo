@@ -13,6 +13,8 @@ import { UiIcon } from './UiIcon';
 import { StatusText } from '../../shared/ui/StatusText';
 import { areaM2, withinArea } from '../../terrain/areaGeometry';
 import { observationTime } from '../../features/incident/sourceTime';
+import { EvidenceMetadata } from '../../features/incident/EvidenceMetadata';
+import { evidencePresentation } from '../../features/incident/evidencePresentation';
 
 type Props = {
   objectId: string;
@@ -115,9 +117,9 @@ export const ObjectDetailView: React.FC<Props> = ({
               </button>)}
             </section>
             {relatedHazard && <section className="workflow-section object-source-section">
-              <h3>{t('Nguồn ghi nhận', 'Observation source')}</h3>
-              {roadRecord ? <dl className="finding-source"><div><dt>{t('Nguồn', 'Source')}</dt><dd>{t(...roadRecord.source)}</dd></div><div><dt>{t('Nhận tin', 'Received')}</dt><dd><time dateTime={roadRecord.receivedAt}>{observationTime(roadRecord.receivedAt, locale)}</time></dd></div></dl> : <p>{t(...relatedHazard.src)}</p>}
-              {road.hz && <button className="text-button" onClick={() => onOpenEvidence(road.hz!)}>{t('Xem bản ghi', 'View source record')}</button>}
+              <h3>{roadRecord ? evidencePresentation(roadRecord.type, locale).kind : t('Thông tin ghi nhận', 'Observation details')}</h3>
+              {roadRecord ? <EvidenceMetadata evidence={roadRecord} locale={locale} className="finding-source" showObserved={false}/> : <p>{t(...relatedHazard.src)}</p>}
+              {road.hz && <button className="text-button" onClick={() => onOpenEvidence(road.hz!)}>{roadRecord ? evidencePresentation(roadRecord.type, locale).action : t('Xem chi tiết', 'View details')}</button>}
             </section>}
           </>
         )}
@@ -126,7 +128,7 @@ export const ObjectDetailView: React.FC<Props> = ({
           <section className="workflow-section" style={{ borderTop: 0 }}>
             <StatusText tone={affectedRoads.some(item => item.status === 'blocked') ? 'critical' : 'warning'} icon={affectedRoads.some(item => item.status === 'blocked') ? 'blocked' : 'uncertain'}>
               {affectedRoads.some(item => item.status === 'blocked') ? t('Có đoạn đường bị chặn', 'Related road section blocked') : hazard.kind === 'landslide'
-                ? hazard.observation === 'reported' ? t('Sạt lở được báo từ hiện trường', 'Landslide reported from field') : t('Nghi sạt lở, cần xác minh', 'Suspected landslide, verification needed')
+                ? hazard.observation === 'reported' ? t('Có báo cáo sạt lở', 'Landslide reported from field') : t('Nghi sạt lở, cần xác minh', 'Suspected landslide, verification needed')
                 : hazard.kind === 'bridge' ? t('Cầu cần xác minh', 'Bridge to verify')
                 : hazard.kind === 'crossing' ? t('Điểm vượt khe cần xác minh', 'Gully crossing to verify')
                 : t('Nghi ngập', 'Flood indication')}
@@ -139,24 +141,21 @@ export const ObjectDetailView: React.FC<Props> = ({
                 <dd>{hazard.area} ha</dd>
               </div>}
               <div>
-                <dt>{t('Ghi nhận ảnh hưởng', 'Impact recorded')}</dt>
+                <dt>{t('Ghi nhận lúc', 'Impact recorded')}</dt>
                 <dd>{hazard.detected}</dd>
               </div>
             </dl>
 
-            {affectedRoads.length > 0 && <section className="workflow-section"><h3>{t('Đoạn đường liên quan', 'Related road sections')}</h3>{affectedRoads.map(item => <button className="object-row impact-row" key={item.id} onClick={() => onSelectObject(`road:${item.id}`)}><span><strong>{t(...item.name)}</strong><small>{item.len} km</small></span><StatusText tone={item.status === 'blocked' ? 'critical' : item.status === 'uncertain' ? 'warning' : 'neutral'} icon={item.status === 'blocked' ? 'blocked' : item.status === 'uncertain' ? 'uncertain' : undefined}>{item.status === 'blocked' ? t('Bị chặn', 'Blocked') : item.status === 'uncertain' ? t('Chưa rõ', 'Uncertain') : t('Chưa ghi nhận chặn', 'No blockage reported')}</StatusText></button>)}</section>}
+            {affectedRoads.length > 0 && <section className="workflow-section"><h3>{t('Đoạn đường liên quan', 'Related road sections')}</h3>{affectedRoads.map(item => <button className="object-row impact-row" key={item.id} onClick={() => onSelectObject(`road:${item.id}`)}><span><strong>{t(...item.name)}</strong><small>{item.len} km</small></span><StatusText tone={item.status === 'blocked' ? 'critical' : item.status === 'uncertain' ? 'warning' : 'neutral'} icon={item.status === 'blocked' ? 'blocked' : item.status === 'uncertain' ? 'uncertain' : undefined}>{item.status === 'blocked' ? t('Bị chặn', 'Blocked') : item.status === 'uncertain' ? t('Cần xác minh', 'Uncertain') : t('Chưa ghi nhận chặn', 'No blockage reported')}</StatusText></button>)}</section>}
 
-            <p className="object-source">
-              {t('Nguồn: ', 'Source: ')}
-              <strong>{t(hazard.src[0], hazard.src[1])}</strong>
-            </p>
+            <p className="object-source"><strong>{hazardRecord ? evidencePresentation(hazardRecord.type, locale).kind : t(...hazard.src)}</strong></p>
 
             <button
               className="button soft"
               style={{ width: '100%', marginTop: '14px' }}
               onClick={() => onOpenEvidence(hazard.id)}
             >
-              {t('Xem bản ghi', 'View source record')}
+              {hazardRecord ? evidencePresentation(hazardRecord.type, locale).action : t('Xem chi tiết', 'View details')}
             </button>
           </section>
         )}

@@ -34,7 +34,7 @@ export function MapControls({ locale, mapMode, onToggleMapMode, onZoomIn, onZoom
   if (layers.aoi) legend.push({ kind: 'aoi', label: t('Vùng đánh giá', 'Assessment area') });
   if ((layers.roads || routeVisible) && layers.status) legend.push({ kind: 'blocked', label: t('Đường bị chặn', 'Blocked road') }, { kind: 'uncertain', label: t('Đường cần xác minh', 'Road to verify') });
   if (routeVisible) legend.push({ kind: 'selected', label: t('Tuyến đang xem', 'Selected route') });
-  if (layers.communities) legend.push({ kind: 'community', symbol: 'community', label: t('Cộng đồng', 'Community') }, { kind: 'priority', symbol: 'community', label: t('Ưu tiên cứu hộ', 'Rescue priority') });
+  if (layers.communities) legend.push({ kind: 'community', symbol: 'community', label: t('Thôn, bản', 'Community') }, { kind: 'priority', symbol: 'community', label: t('Ưu tiên cứu hộ', 'Rescue priority') });
   if (layers.landslide && hazards.some(h => h.kind === 'landslide' && h.observation === 'reported')) legend.push({ kind: 'landslide', symbol: 'landslide', label: t('Điểm sạt lở', 'Reported landslide') });
   if (layers.landslide && hazards.some(h => h.kind === 'landslide' && h.observation === 'suspected')) legend.push({ kind: 'suspected', symbol: 'landslide', label: t('Nghi sạt lở', 'Suspected landslide') });
   if (layers.status && hazards.some(h => h.kind === 'bridge')) legend.push({ kind: 'bridge', symbol: 'bridge', label: t('Cầu cần xác minh', 'Bridge to verify') });
@@ -42,12 +42,12 @@ export function MapControls({ locale, mapMode, onToggleMapMode, onZoomIn, onZoom
   if (layers.flood && hazards.some(h => h.kind === 'flood')) legend.push({ kind: 'flood', symbol: 'flood', label: t('Điểm nghi ngập', 'Possible flood site') });
   if (layers.staging) legend.push({ kind: 'staging', symbol: 'staging', label: t('Điểm tập kết', 'Staging point') });
   if (layers.hlz && hasHLZData) legend.push({ kind: 'hlz', symbol: 'hlz', label: t('Vị trí hạ cánh đề xuất', 'Proposed landing site') });
-  if (layers.communities || layers.landslide || layers.status) legend.push({ kind: 'overlap', uiSymbol: 'layers', label: t('Điểm chồng nhau', 'Overlapping points') });
+  if (layers.communities || layers.landslide || layers.status) legend.push({ kind: 'overlap', uiSymbol: 'layers', label: t('Nhóm đối tượng', 'Overlapping points') });
   const visibleLegend = legendExpanded ? legend : legend.filter(item => ['network', 'blocked', 'uncertain', 'selected'].includes(item.kind));
 
   return <>
     <div className="map-toolbar">
-      <button className="icon-button map-panel-toggle" aria-controls="response-panel" aria-expanded={!panelCollapsed} onClick={onTogglePanel} aria-label={panelCollapsed ? t('Mở panel thông tin', 'Show information panel') : t('Ẩn panel thông tin', 'Hide information panel')} title={panelCollapsed ? t('Mở panel thông tin', 'Show information panel') : t('Ẩn panel thông tin', 'Hide information panel')}><UiIcon name={panelCollapsed ? 'panelOpen' : 'panelClose'}/></button>
+      <button className="icon-button map-panel-toggle" aria-controls="response-panel" aria-expanded={!panelCollapsed} onClick={onTogglePanel} aria-label={panelCollapsed ? t('Mở bảng thông tin', 'Show information panel') : t('Ẩn bảng thông tin', 'Hide information panel')} title={panelCollapsed ? t('Mở bảng thông tin', 'Show information panel') : t('Ẩn bảng thông tin', 'Hide information panel')}><UiIcon name={panelCollapsed ? 'panelOpen' : 'panelClose'}/></button>
       {children}
       <button className="icon-button map-layer-trigger map-layer-launcher" data-map-layers-trigger aria-label={t('Lớp bản đồ', 'Layers')} title={t('Lớp bản đồ', 'Layers')} aria-expanded={layersOpen} aria-controls="map-layers-panel" onClick={onOpenLayers}><UiIcon name="layers"/></button>
       <button className="icon-button map-measure-trigger" aria-label={t('Đo trên bản đồ 2D', 'Measure on 2D map')} title={t('Đo trên bản đồ 2D', 'Measure on 2D map')} aria-pressed={measuring} onClick={onMeasure}><UiIcon name="ruler"/></button>
