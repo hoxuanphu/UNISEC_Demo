@@ -102,11 +102,14 @@ def run(url, chrome, captures):
         toolbar.get_by_role('button', name='Show information panel', exact=True).click()
         expect(page.locator('.sidebar')).to_be_visible()
         legend = page.locator('.map-bottom-bar')
+        assert legend.bounding_box()['width'] <= 342, 'Compact legend should not stretch across the map'
+        assert legend.evaluate('node => node.scrollWidth <= node.clientWidth')
         legend.get_by_role('button', name='Minimize legend', exact=True).click()
         expect(legend.locator('.legend-item')).to_have_count(0)
         assert legend.bounding_box()['height'] <= 42
         legend.get_by_role('button', name='Legend', exact=True).click()
         assert legend.locator('.legend-item').count() >= 5
+        assert legend.evaluate('node => node.scrollWidth <= node.clientWidth')
 
         def drag(handle, dx, dy):
             box = handle.bounding_box()

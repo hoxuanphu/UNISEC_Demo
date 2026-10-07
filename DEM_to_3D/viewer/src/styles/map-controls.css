@@ -73,18 +73,6 @@
 .map-area .map-measure-actions { background: var(--map-chrome); }
 .map-area .map-measure-compact { padding: 10px 12px; }
 
-.map-area .map-bottom-bar { padding: 5px 10px 8px; max-width: min(420px, calc(100% - 88px)); border-radius: var(--radius-control); box-shadow: var(--shadow-float); }
-.map-area .map-legend-heading { gap: 12px; }
-.map-area .legend-toggle { font-size: 11px; font-weight: 600; gap: 5px; }
-.map-area .map-legend-heading .legend-minimize { width: 24px; height: 24px; min-height: 24px; color: var(--ws-muted); }
-.map-area .map-bottom-bar[data-expanded="false"] .map-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 4px 0 0; }
-.map-area .map-bottom-bar[data-expanded="true"] { width: 340px; padding-bottom: 10px; }
-.map-area .map-bottom-bar[data-expanded="true"] .map-legend { gap: 9px 16px; }
-.map-area .map-bottom-bar[data-minimized="true"] { width: auto; padding: 4px 10px; }
-.map-area .map-legend { font-size: 11px; line-height: 1.4; }
-.map-area .legend-item { gap: 7px; }
-.map-area .legend-item > .line { width: 20px; border-top-width: 2px; }
-.map-area .legend-symbol { width: 19px; height: 19px; }
 .map-area .map-source-popover, .map-area .map-object-chooser { border-radius: var(--radius-control); box-shadow: var(--shadow-float); }
 
 @container (max-width: 850px) {
@@ -103,8 +91,6 @@
   @container (max-width: 600px) {
     .map-area :is(.layers-panel, .map-location-panel, .map-measure-panel, .basemap-status, .revision-notice) { top: 100px; }
     .map-area :is(.layers-panel, .map-location-panel, .map-measure-panel) { max-height: min(calc(100% - 132px), var(--floating-panel-height, 100%)); }
-    .map-area .map-bottom-bar { max-width: calc(100% - 168px); }
-    .map-area:has(.map-overview[data-expanded="true"]) .map-bottom-bar { max-width: calc(100% - 224px); }
   }
 }
 @media (max-width: 900px) {
@@ -117,9 +103,4 @@
   .map-area .map-search-results { max-width: calc(100vw - 16px); }
   .map-area .map-north { right: 12px; top: 12px; }
   .map-area :is(.layers-panel, .basemap-status, .revision-notice) { top: 100px; }
-  .map-area .map-bottom-bar { max-width: calc(100% - 24px); }
-  .map-area .map-bottom-bar[data-expanded="true"] { width: min(340px, calc(100% - 24px)); }
-  .map-area .map-bottom-bar[data-minimized="true"] { width: auto; }
-  .map-area .map-bottom-bar[data-expanded="false"] .map-legend { gap: 6px 12px; }
-  .map-area .legend-item { font-size: 10px; }
 }

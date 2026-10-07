@@ -14,7 +14,7 @@ Code đã có `features/`, TypeScript strict, kiểm tra schema/checksum, quy t�
 | `terrain/` chứa cả toán địa lý và renderer; `types/terrain.ts` chứa dữ liệu lẫn mô hình Three.js | Khó dùng lại thuật toán ngoài web hoặc đổi engine | Tách dần `geo/` và adapter renderer theo từng chức năng, giữ lớp tương thích trong thời gian chuyển |
 | `TerrainViewer.tsx` khoảng 600 dòng, ghép camera, scene, overlay, picking và cleanup | Sửa một tương tác có thể ảnh hưởng vòng đời tài nguyên | Tách runtime scene/camera/overlay, giữ kiểm tra fallback, lựa chọn và giải phóng tài nguyên |
 | `components/dear/` giữ panel của nhiều tính năng, `shared/` còn wrapper cũ | Chưa rõ chủ sở hữu khi sửa UI | Chuyển panel về feature sở hữu. `shared/ui` chỉ giữ thành phần không hiểu nghiệp vụ |
-| `workspace.css` khoảng 930 dòng, `incident-workspace.css` khoảng 560 dòng | Dễ sửa một nơi ảnh hưởng màn khác | Panel tiếp cận đã sở hữu `features/routes/access-panel.css`, bỏ các rule cũ trùng nhau. Control bản đồ có `styles/map-controls.css`. Tiếp tục tách từng phần theo chủ sở hữu, giữ token chung |
+| CSS workspace còn lớn và một số control có rule ghi đè | Dễ sửa một nơi ảnh hưởng màn khác | Panel tiếp cận sở hữu `features/routes/access-panel.css`. Chú giải đã gom vào `features/map/map-legend.css`, bỏ rule rải ở ba stylesheet và CSS `map-actions` không còn dùng. Toolbar sở hữu `styles/map-controls.css`. Tiếp tục tách theo thành phần, giữ token chung |
 | Trước đây loader chọn đường dẫn Chế Tạo cố định; hook địa hình import dữ liệu mẫu | Không thay bộ dữ liệu độc lập | Đã chọn manifest qua `workspace-config.json`, bỏ packet mẫu khỏi khởi tạo. Tên sự kiện/AOI và mô hình lấy từ bộ đã kiểm tra. Fixture thứ hai kiểm AOI, đường, panel và bản xuất; dùng lại địa hình cục bộ, chưa phải khu vực thực thứ hai |
 | Packet v1 dùng EPSG:32648 và một report trước/sau | Không đại diện catalog viễn thám hoặc lịch sử công bố | Giữ adapter v1 cho SIC. Thiết kế v2 với dataset/assets/layers/revisions riêng |
 | Kế hoạch có metadata khoa học, nhưng gói thực còn thiếu nguồn DEM, chứng cứ gốc và duyệt | Có màn hình không đồng nghĩa với kết quả khoa học được kiểm chứng | Duyệt dữ liệu, phương pháp và quyền dùng theo [nghiệm thu](../quality/acceptance.md) |
@@ -87,3 +87,14 @@ Hiện giữ web tại `DEM_to_3D/viewer` để không đổi đường dẫn bu
 Backend NestJS, PostGIS và worker Python vẫn ở mức kế hoạch. Chưa tạo service, DB hoặc thay engine map trong lần rà soát này.
 
 Kết quả build, kiểm thử và giới hạn ở [kết quả kiểm tra](../quality/workspace-review.md). Quy tắc phụ thuộc trong tài liệu chưa được lint tự động toàn bộ.
+
+## Khi đổi giao diện hoặc thêm tính năng
+
+| Loại thay đổi | Nơi sửa | Giới hạn |
+|---|---|---|
+| Màu, font, bán kính, kích thước dùng chung | `styles/tokens.css` | Giữ đủ sáng/tối. Màu ký hiệu chuyên môn theo renderer và chú giải |
+| Bố cục một thành phần | CSS của thành phần/feature | Không thêm rule ghi đè vào cuối `workspace.css`. Quy tắc responsive nằm cùng file sở hữu |
+| Công cụ hoặc panel mới | Feature + composition trong `app/` | Dùng lại focus, popover và floating panel. Công cụ nhận pointer qua reducer tương tác |
+| Thuật toán hoặc nguồn dữ liệu | Domain/geo và repository/contracts | Không tính kết quả nghiệp vụ trong JSX hoặc từ câu chữ hiển thị |
+
+Ưu tiên tách tiếp: phần ghép panel/dialog của `ResponseWorkspace`, sau đó vòng đời scene/camera của `TerrainViewer`. Mỗi đợt giữ nguyên API renderer và chạy kiểm tra tương tác, fallback và tài nguyên. Chưa có số đo hiệu năng để kết luận toàn bộ source đã tối ưu.

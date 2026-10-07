@@ -6,6 +6,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 
 | Vấn đề | Thay đổi |
 |---|---|
+| Chú giải thu gọn trải ngang, CSS rải nhiều nơi | Giữ bề mặt nhẹ như panel hiện tại. Bố trí hai cột trong khung tối đa 340 px, co lại khi map hẹp. Gom style chú giải vào một file, kiểm tra cả thu gọn/mở đầy đủ với tổng quan đang mở |
 | Nhãn đường cụt, thông tin và trạng thái lặp | Dùng “Chưa ghi nhận tắc đường” thống nhất. Tuyến duy nhất không lặp trạng thái. Ẩn mô tả trống, giữ yêu cầu kiểm tra. Giờ liên lạc nằm trong hàng thời gian. Không lặp nhận định đã có ở tiêu đề. Tắt lớp tình trạng thì chú giải chỉ ghi “Mạng đường” |
 | Hộp thoại và cài đặt khác đường nét với bộ công cụ | Góc 3 px cho điều khiển/cửa sổ nhỏ, 5 px cho hộp thoại. Chung màu thanh tiêu đề và viền. Font chuyển thành danh sách có dấu chọn, thêm nút đóng cài đặt |
 | Thông báo bị toolbar che tiêu đề | Tách thứ tự hiển thị của workspace và header. Cửa sổ thông báo có nút đóng, giờ và tên không chèn nhau |

@@ -7,6 +7,7 @@ import { MapSymbol } from '../../shared/ui/MapSymbol';
 import type { MapSymbolName } from '../../terrain/mapSymbols';
 import { useDismissiblePopover } from '../../shared/hooks/useDismissiblePopover';
 import '../../styles/map-controls.css';
+import '../../features/map/map-legend.css';
 
 const swatchColors: Record<string, string> = { selected: roadColors.selected, blocked: roadColors.blocked, uncertain: roadColors.uncertain };
 

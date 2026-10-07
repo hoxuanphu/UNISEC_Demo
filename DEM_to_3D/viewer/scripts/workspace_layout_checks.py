@@ -45,8 +45,17 @@ def check_workspace_layout(browser, url, captures=None):
         expect(overview).to_be_visible()
         for expanded in [False, True]:
             if expanded: overview.get_by_role('button', name='Mở bản đồ tổng quan', exact=True).click()
-            a, b = legend.bounding_box(), overview.bounding_box()
-            assert a['x'] + a['width'] + 8 <= b['x'], (a, b)
+            for full_legend in [False, True]:
+                if full_legend: legend.get_by_role('button', name='Chú giải', exact=True).click()
+                a, b = legend.bounding_box(), overview.bounding_box()
+                assert a['x'] + a['width'] + 8 <= b['x'], (a, b)
+                assert a['width'] <= 342, 'Legend uses more map width than needed'
+                assert legend.evaluate('node => node.scrollWidth <= node.clientWidth'), 'Legend content is clipped horizontally'
+                check_front(legend.get_by_role('button', name='Chú giải', exact=True))
+            legend.get_by_role('button', name='Thu gọn chú giải', exact=True).click()
+            assert legend.bounding_box()['height'] <= 42
+            legend.get_by_role('button', name='Chú giải', exact=True).click()
+            legend.get_by_role('button', name='Chú giải', exact=True).click()
         # Header overlays stay above both toolbar rows in all supported views.
         for width in [1366, 1024, 390, 320]:
             page.set_viewport_size({'width': width, 'height': 768})

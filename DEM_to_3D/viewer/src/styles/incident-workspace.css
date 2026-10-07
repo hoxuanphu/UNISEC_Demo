@@ -75,7 +75,6 @@
 .route-travel-estimate { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; margin-top: 10px; font-size: 14px; font-weight: 600; }
 .route-travel-estimate small { font-weight: 400; color: var(--ws-muted); font-size: 12px; }
 .route-estimate-basis { margin: 12px 0 16px; color: var(--ws-muted); font-size: 12px; line-height: 1.6; }
-.map-legend .line.aoi { border-color: #85aa9d; border-top-style: dashed; }
 .notification-incident { padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--ws-line); }
 .notification-finding { margin: 20px 0 0; font-size: 14px; line-height: 1.65; }
 .notification-critical-title { color: var(--critical-ink); }
