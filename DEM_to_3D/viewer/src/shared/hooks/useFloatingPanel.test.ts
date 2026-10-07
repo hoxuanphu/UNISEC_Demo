@@ -13,4 +13,7 @@ describe('floating map panels', () => {
   it('repositions a tool when the viewport becomes smaller', () => {
     expect(constrainPanel({ x: 600, y: 250 }, 640, 600, 280, 400)).toEqual({ x: 296, y: 168 });
   });
+  it('keeps a restored heading below a toolbar that now occupies two rows', () => {
+    expect(anchoredPanel({ x: 16, y: 64 }, 480, 700, 304, 100)).toEqual({ x: 16, y: 100, maxHeight: 568 });
+  });
 });

@@ -43,7 +43,7 @@ Hướng dẫn dân tới nơi an toàn cần nơi trú được xác nhận và
 
 Panel bên trái chỉnh độ rộng hoặc thu gọn bằng nút đầu toolbar. Giữ tab, đối tượng và tuyến khi thu gọn. Chọn đối tượng sẽ mở lại panel. Ba tab **Sự kiện / Đường sá / Địa bàn** nằm trên panel, cùng hàng với thanh công cụ bản đồ. Mobile chuyển giữa **Thông tin** và **Bản đồ**.
 
-Toolbar cố định: tìm kiếm và **Lớp / Đo / Vị trí** bên trái, điều hướng và **2D / 3D** bên phải. Canvas ở bên dưới. Các cửa sổ công cụ nằm trong workspace để không dịch theo canvas khi mở mặt cắt.
+Toolbar cố định: tìm kiếm và **Lớp / Đo / Vị trí** bên trái, điều hướng và **2D / 3D** bên phải. Khi vùng bản đồ hẹp còn 600 px, hai nhóm chuyển thành hai hàng. Canvas và cửa sổ công cụ ở bên dưới. Nút panel trung tính ở đầu toolbar, giữ vị trí khi thu/mở panel. Thông báo và cài đặt nằm trên toolbar khi mở.
 
 ## Hành vi
 

@@ -109,7 +109,7 @@ export const AppHeader: React.FC<Props> = ({
           <UiIcon name="bell"/>
           {!alertRead && <span className="unread-indicator" />}
         </button>
-        {notificationsOpen && <NotificationPopover locale={locale} incident={incident} report={report} road={reportRoad} updated={reportApplied} onOpenAll={() => { setNotificationsOpen(false); onOpenNotifications(); }} onOpenIncident={() => { setNotificationsOpen(false); onOpenIncident(); }} onOpenDetails={() => { notificationsRef.current?.querySelector<HTMLButtonElement>('button')?.focus(); setNotificationsOpen(false); onOpenAlerts(); }} />}
+        {notificationsOpen && <NotificationPopover locale={locale} incident={incident} report={report} road={reportRoad} updated={reportApplied} onClose={() => setNotificationsOpen(false)} onOpenAll={() => { setNotificationsOpen(false); onOpenNotifications(); }} onOpenIncident={() => { setNotificationsOpen(false); onOpenIncident(); }} onOpenDetails={() => { notificationsRef.current?.querySelector<HTMLButtonElement>('button')?.focus(); setNotificationsOpen(false); onOpenAlerts(); }} />}
         </div>
 
         <button

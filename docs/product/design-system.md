@@ -11,7 +11,7 @@ Hiện hành, cập nhật 2026-10-07. Web React là bản triển khai chuẩn.
 | Khoảng cách | Thang 4, 8, 12, 16, 20, 24, 32 px. Căn theo khối nội dung, không chèn khoảng trắng để căn nút |
 | Màu | Mặc định tối: nền xanh than, panel xanh xám, nút chính xanh sáng. Chế độ sáng: panel trắng, header xám ấm, nút chính xanh đậm. Toolbar và cửa sổ công cụ theo cùng theme. Ưu tiên màu đồng, cần xác minh vàng đất, bị chặn màu đỏ. Dùng chữ và ký hiệu để phân biệt trạng thái |
 | Icon và nút | [Lucide](https://lucide.dev/guide/react), qua `shared/ui/UiIcon`: lưới 24 px, hiển thị 18 px, nét 1,75 px. Nút toolbar 32 px, nút công cụ mobile 36 px. Lớp xanh lá, đo nâu đất, tra vị trí xanh lam, điều hướng trung tính. Nút đóng 28–36 px, không viền. Có tên truy cập và focus rõ |
-| Khung GIS | Tab nghiệp vụ và toolbar cùng cao 48 px trên desktop. Toolbar gắn vào khung, không bóng hoặc bo góc. Canvas bắt đầu bên dưới toolbar. Mobile dùng hai hàng công cụ tổng cao 84 px. Panel chính và bản đồ không bo góc |
+| Khung GIS | Tab nghiệp vụ và toolbar cao 48 px khi bản đồ đủ rộng. Toolbar gắn vào khung, không bóng hoặc bo góc. Bản đồ rộng tối đa 600 px hoặc mobile dùng hai hàng công cụ cao 84 px. Canvas và cửa sổ công cụ ở bên dưới toolbar. Panel chính và bản đồ không bo góc |
 | Bề mặt nổi | Cửa sổ lớp/đo/vị trí có thanh tiêu đề theo màu toolbar, nội dung theo màu bề mặt của theme, viền mảnh, bo 3 px và bóng nhẹ. Chú giải cũng bo 3 px. Popover cài đặt bo 8 px |
 | Header | Cao 56 px. Mốc tổng hợp là ngày và giờ, mở lịch sử dữ liệu khi bấm. Không dùng chấm trực tiếp cho dữ liệu snapshot. Các nút dùng nền trong suốt, cùng kích thước |
 | Ảnh nền | Ảnh vệ tinh là bối cảnh, giảm bão hòa và độ sáng qua `--imagery-filter` để đường, điểm, nhãn nổi lên. Nền địa hình không lọc |
@@ -39,7 +39,7 @@ Giá trị dùng chung nằm trong [tokens.css](../../DEM_to_3D/viewer/src/style
 | Mặt cắt | Gắn sát đáy vùng bản đồ, không bọc thêm card hoặc bo góc ngoài. Nguồn bản đồ nằm trong vùng nhìn phía trên |
 | Phương án tuyến | Dùng `RouteOption` trong một danh sách. Tên, khoảng cách/ETA và trạng thái thành các dòng riêng. Dấu chọn biểu thị lựa chọn, không biểu thị an toàn |
 | Tìm kiếm bản đồ | Một ô chung cho địa bàn, đường và điểm. Kết quả có ký hiệu theo loại, tên với phần khớp in đậm, và loại đối tượng. Hỗ trợ Enter, mũi tên và Escape |
-| Thanh bản đồ | Trái: panel, tìm kiếm, nhóm Lớp / Đo / Vị trí. Phải: phóng to/thu nhỏ, toàn khu vực, lựa chọn 2D/3D và trợ giúp. Tên công cụ ẩn khi vùng bản đồ hẹp, giữ tooltip và tên truy cập. Toolbar không che canvas |
+| Thanh bản đồ | Trái: nút panel trung tính, tìm kiếm, nhóm Lớp / Đo / Vị trí. Phải: phóng to/thu nhỏ, toàn khu vực, lựa chọn 2D/3D và trợ giúp. Nút panel không mang màu chế độ đang bật. Tên công cụ ẩn khi vùng bản đồ hẹp, giữ tooltip và tên truy cập. Kết quả tìm kiếm nằm trên hàng điều hướng |
 | Đo bản đồ | Ba trạng thái: vẽ, xem kết quả, chỉnh sửa. Kết thúc bằng nút, Enter hoặc nhấp đúp điểm cuối. Chọn Chỉnh sửa trước khi kéo điểm. Phép đo hiện tại và kết quả trước đó ở hai mục riêng. Đóng khi đang chỉnh trả về kết quả trước chỉnh |
 | Mở nội dung phụ | Chevron nét mảnh ở cuối hàng, toàn bộ hàng bấm được. Trạng thái mở có `aria-expanded`. Không lồng nhiều cấp hoặc giấu hành động chính |
 | Không gian bản đồ | Panel trái chỉnh độ rộng hoặc thu gọn, giữ lựa chọn. Chú giải có thể thu về một nút. Mở lớp/đo/tọa độ tạm ẩn chú giải |
@@ -47,7 +47,7 @@ Giá trị dùng chung nằm trong [tokens.css](../../DEM_to_3D/viewer/src/style
 | Cửa sổ công cụ | Header cố định, nội dung cuộn trong bảng. Không đổi vị trí khi nội dung tăng hoặc mở tùy chọn. Kéo tiêu đề trên desktop, phím mũi tên để dịch, Home/nhấp đúp để đặt lại. Giữ vị trí trong phiên; mobile dùng vị trí cố định |
 | Thông tin vị trí | Dùng chung trên 2D và 3D. Chọn điểm để đọc tọa độ, độ cao, đổi WGS84/hệ tọa độ dữ liệu và sao chép. Không mở lại bảng thông số kỹ thuật đầy màn hình |
 | Lưu đánh giá | Hành động phụ trong chi tiết địa bàn. Mở xem trước trước khi tải, không thêm trang báo cáo vào menu chính |
-| Hộp xem nhanh | Nội dung ngắn và hành động xem chi tiết. Không khóa bản đồ |
+| Hộp xem nhanh | Tiêu đề, giờ, đối tượng, ghi nhận tối đa hai dòng và hành động xem chi tiết. Có nút đóng và Escape. Popover header nằm trên toolbar và công cụ bản đồ, không khóa bản đồ |
 | Công cụ phụ | Độ rõ/lọc/nhãn trong Lớp bản đồ. Định dạng xuất phụ trong một menu. Không thêm trang hoặc card vào màn ứng phó |
 | Lịch sử dữ liệu | Mốc trên header mở diễn biến. Xem bản cũ có một thông báo gọn trên bản đồ và nút về bản mới. Không đổi trạng thái tin đã áp dụng |
 | So ảnh | Hộp thoại rộng, hai ảnh cùng bản đồ, ngày/nguồn rõ, pan/zoom đồng thời, thanh trượt hỗ trợ bàn phím |

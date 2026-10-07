@@ -2,6 +2,7 @@
 import argparse
 from pathlib import Path
 from playwright.sync_api import expect, sync_playwright
+from workspace_layout_checks import check_workspace_layout
 
 
 def run(url, chrome, captures):
@@ -284,6 +285,7 @@ def run(url, chrome, captures):
             if captures: page.screenshot(path=str(captures / f'workspace-mobile-{width}.png'))
             measure.get_by_role('button', name='Close measurement', exact=True).click()
         assert not errors, errors
+        check_workspace_layout(browser, url, captures)
         browser.close()
         print('Map workspace passed: overview bounds, mouse/keyboard navigation and lifecycle; toolbar, panels, legend, layers, 2D/3D coordinates, copy and mobile.')
 

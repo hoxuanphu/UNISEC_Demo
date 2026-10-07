@@ -6,6 +6,9 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 
 | Vấn đề | Thay đổi |
 |---|---|
+| Thông báo bị toolbar che tiêu đề | Tách thứ tự hiển thị của workspace và header. Cửa sổ thông báo có nút đóng, giờ và tên không chèn nhau |
+| Panel rộng ép tìm kiếm, kết quả bị che | Toolbar chuyển hai hàng theo chiều rộng bản đồ. Kiểm tra vùng bấm thật của kết quả, nút và popup ở 1366/1024/390/320 px |
+| Chú giải đè bản đồ tổng quan, cửa sổ kéo lên toolbar | Chừa khoảng cho tổng quan khi bản đồ hẹp. Cửa sổ giữ vị trí và nằm dưới chiều cao toolbar thực tế |
 | Lý do ưu tiên chung chung, thời gian ghép thành đoạn dài | Nêu đường bị chặn/mất liên lạc hoặc đối tượng có báo cáo. Tách giờ cảnh báo/dữ liệu đến và giờ ghi nhận/tiếp nhận thành hàng có nhãn |
 | Dark mode còn toolbar và cửa sổ trắng | Đồng bộ nền xanh than, chữ xanh xám và trạng thái dịu. Kiểm tra tương phản chữ tối thiểu 4,5:1 tại panel, toolbar và lớp bản đồ trên cả hai theme |
 | Mô tả dính nút, diện tích xuống dòng | Khoảng cách tối thiểu 12 px, diện tích/đơn vị cùng dòng. Metadata bãi đáp dùng hàng nhãn/giá trị |
@@ -96,7 +99,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Kiểm tra | Kết quả |
 |---|---|
 | TypeScript và build | Đạt. Chia chunk app, React, Leaflet và validation. 2D không tải Three.js/GLB, 3D còn chunk lớn hơn 500 KB |
-| TypeScript unit tests | 189 kiểm thử đạt. Có snapshot độc lập React, giữ ngữ cảnh điều hướng, một công cụ nhận input, callback cũ, chọn manifest, dataset khác và lỗi không đổi về mặc định. Các kiểm tra nguồn/thời gian, tuyến/ưu tiên, đo, tọa độ, so ảnh, GeoJSON, timeout và checksum vẫn đạt |
+| TypeScript unit tests | 190 kiểm thử đạt. Có snapshot độc lập React, giữ ngữ cảnh điều hướng, một công cụ nhận input, callback cũ, chọn manifest, dataset khác và lỗi không đổi về mặc định. Các kiểm tra nguồn/thời gian, tuyến/ưu tiên, đo, tọa độ, so ảnh, GeoJSON, timeout và checksum vẫn đạt |
 | Python | 18 kiểm thử đạt: dữ liệu, API đọc, đóng gói, chờ HTTP và cấu hình manifest |
 | Chrome: prepared và API | Sự kiện, AOI, địa bàn, tuyến, nguồn, đọc/áp dụng tin và mặt cắt đạt |
 | Chrome: lỗi dữ liệu và GPU | Chặn Internet, lỗi GLB, không có WebGL, mất context 3D: 2D tiếp tục dùng được. API lỗi không hiện dữ liệu mô phỏng thay thế |
@@ -112,8 +115,8 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Chrome: gói offline | Giải nén thư mục mới, checksum, luồng ứng phó, PNG, 3D/2D và đặt lại đạt. Không phát sinh request mạng ngoài |
 | Vòng đời 3D | Sửa gỡ listener trước khi React tháo canvas. Giải phóng tài nguyên GPU của renderer cũ, giữ dữ liệu để mở lại. 25 vòng thử nhanh không tăng DOM/listener |
 | Phiên 30 phút | Đạt: 58 vòng chọn địa bàn/tuyến, mặt cắt, 3D/2D, áp dụng tin và đặt lại. 20 PNG, không lỗi JavaScript. Sau vòng 10: DOM/listener không tăng, JS heap tăng 0,70 MB |
-| Lặp phiên trên build cuối | Linux sau sửa panel và theme: 4 vòng trong 39,3 giây, DOM/listener giữ nguyên. Thử dài 30 phút ở hàng trên là kết quả của build trước |
-| Kiểm workflow trên Linux | Container Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0 đạt: cài sạch, 189 unit/18 Python tests, audit, build, đóng gói và tám bộ browser checks gồm chọn dataset/gói offline. Panel kiểm cả chữ, metadata và bề mặt sáng/tối. Kết quả bản làm việc cục bộ không thay xác nhận GitHub Actions của commit mới |
+| Lặp phiên trên build cuối | Linux sau sửa bố cục: 5 vòng trong 39,4 giây, DOM/listener giữ nguyên. Thử dài 30 phút ở hàng trên là kết quả của build trước |
+| Kiểm workflow trên Linux | Container Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0 đạt: cài sạch, 190 unit/18 Python tests, audit, build, đóng gói và tám bộ browser checks gồm chọn dataset/gói offline. Panel kiểm cả chữ, metadata và bề mặt sáng/tối. Kết quả bản làm việc cục bộ không thay xác nhận GitHub Actions của commit mới |
 | GitHub Actions | Đã sửa ảnh xem trước tải chậm và khoảng trễ khóa ký hiệu. Browser kiểm tra trạng thái ngay khi đổi chế độ/tạo lớp, trước khung hình tiếp theo. [Theo dõi workflow](https://github.com/hoxuanphu/UNISEC_Demo/actions/workflows/dear-web.yml) |
 | Source dùng khi deploy | Import kiểm đúng chữ hoa/thường. Thư mục sạch với file được Git theo dõi chuẩn bị đủ dữ liệu, kiểm checksum đạt |
 | Dependency audit | Vite 7.3.6, plugin React 5.2.0, Vitest 4.1.11. `source-map-js` cập nhật riêng lên 1.2.2 theo [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q). `npm audit`: 0 cảnh báo, gồm cả công cụ phát triển |

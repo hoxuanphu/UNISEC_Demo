@@ -8,6 +8,7 @@
   background: var(--map-chrome); color: var(--ws-text); box-shadow: none; z-index: 25;
 }
 .map-area > .map-toolbar { left: 0; width: calc(100% - var(--map-navigation-width)); gap: 8px; }
+.map-area > .map-toolbar:has(.map-search-results) { z-index: 30; }
 .map-area > .map-tools { right: 0; width: var(--map-navigation-width); padding-left: 6px; }
 .map-area :is(.map-toolbar, .map-tools) .icon-button {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
@@ -26,6 +27,8 @@
 .map-area .map-tool-group .map-measure-trigger svg { color: var(--tool-measure-ink); }
 .map-area .map-tool-group .map-location-trigger svg { color: var(--tool-location-ink); }
 .map-area .map-search { max-width: 320px; }
+.map-area .map-toolbar > .map-panel-toggle[aria-expanded] { background: transparent; border-color: transparent; color: var(--ws-muted); }
+.map-area .map-toolbar > .map-panel-toggle:hover { background: var(--ws-raised); color: var(--ws-text); }
 .map-area .map-search-field { height: 32px; padding: 0 8px; gap: 7px; border: 1px solid var(--map-chrome-line); border-radius: 3px; background: var(--ws-surface); }
 .map-area .map-search-field input { font-size: 12px; }
 .map-area .map-search-field > svg { width: 16px; height: 16px; }
@@ -87,6 +90,22 @@
 @container (max-width: 850px) {
   .map-area .map-tool-group .icon-button { width: 32px; padding-inline: 0; }
   .map-tool-group .icon-button > span { display: none; }
+}
+/* A resized panel can leave a narrow map even on a desktop viewport. */
+@container (max-width: 600px) {
+  .map-area > .map-toolbar { width: 100%; height: 44px; padding: 5px 8px; }
+  .map-area > .map-tools { top: 44px; width: 100%; height: 40px; padding: 3px 8px; justify-content: flex-end; }
+  .map-canvas { top: 84px; }
+  .map-area .map-search { max-width: none; }
+  .map-area .map-search-results { max-width: calc(100cqw - 64px); }
+}
+@media (min-width: 901px) {
+  @container (max-width: 600px) {
+    .map-area :is(.layers-panel, .map-location-panel, .map-measure-panel, .basemap-status, .revision-notice) { top: 100px; }
+    .map-area :is(.layers-panel, .map-location-panel, .map-measure-panel) { max-height: min(calc(100% - 132px), var(--floating-panel-height, 100%)); }
+    .map-area .map-bottom-bar { max-width: calc(100% - 168px); }
+    .map-area:has(.map-overview[data-expanded="true"]) .map-bottom-bar { max-width: calc(100% - 224px); }
+  }
 }
 @media (max-width: 900px) {
   .map-area { --map-toolbar-height: 84px; }

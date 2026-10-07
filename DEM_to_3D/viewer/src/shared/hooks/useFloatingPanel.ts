@@ -1,14 +1,14 @@
 import { useLayoutEffect, useRef, type RefObject, type PointerEvent, type KeyboardEvent, type MouseEvent } from 'react';
 
 type Position = { x: number; y: number };
-export function constrainPanel(position: Position, width: number, height: number, panelWidth: number, panelHeight: number): Position {
+export function constrainPanel(position: Position, width: number, height: number, panelWidth: number, panelHeight: number, minimumTop = 64): Position {
   return { x: Math.max(8, Math.min(position.x, Math.max(8, width - panelWidth - 64))),
-    y: Math.max(64, Math.min(position.y, Math.max(64, height - panelHeight - 32))) };
+    y: Math.max(minimumTop, Math.min(position.y, Math.max(minimumTop, height - panelHeight - 32))) };
 }
 
 /** Preserve the heading position as content grows; use the space below it for scrolling. */
-export function anchoredPanel(position: Position, width: number, height: number, panelWidth: number) {
-  const anchor = constrainPanel(position, width, height, panelWidth, 240);
+export function anchoredPanel(position: Position, width: number, height: number, panelWidth: number, minimumTop = 64) {
+  const anchor = constrainPanel(position, width, height, panelWidth, 240, minimumTop);
   return { ...anchor, maxHeight: Math.max(0, height - anchor.y - 32) };
 }
 
@@ -24,7 +24,9 @@ export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enab
       node.style.removeProperty('--floating-panel-height');
     } else {
       const bounds = area.getBoundingClientRect(), rect = node.getBoundingClientRect();
-      const anchor = anchoredPanel(position.current, bounds.width, bounds.height, rect.width);
+      const controls = area.querySelector('.map-tools')?.getBoundingClientRect();
+      const minimumTop = controls ? controls.bottom - bounds.top + 16 : 64;
+      const anchor = anchoredPanel(position.current, bounds.width, bounds.height, rect.width, minimumTop);
       node.style.left = `${anchor.x}px`; node.style.top = `${anchor.y}px`;
       node.style.setProperty('--floating-panel-height', `${anchor.maxHeight}px`);
     }
