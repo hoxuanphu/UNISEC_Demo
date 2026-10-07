@@ -8,6 +8,7 @@ import { useDismissiblePopover } from '../../shared/hooks/useDismissiblePopover'
 type Props = {
   locale: Locale;
   incident: IncidentModel;
+  areaName: [vi: string, en: string];
   report: IncidentPacket['report'];
   reportRoad?: RoadSegment;
   dataAvailable: boolean;
@@ -30,6 +31,7 @@ type Props = {
 export const AppHeader: React.FC<Props> = ({
   locale,
   incident,
+  areaName,
   report,
   reportRoad,
   dataAvailable,
@@ -79,7 +81,7 @@ export const AppHeader: React.FC<Props> = ({
       <div className="incident-badge-group">
         <strong>{t('Bản đồ ứng phó', 'Response map')}</strong>
         <div className="incident-meta">
-          <span>{t('Thung lũng Nậm Kha (Chế Tạo)', 'Nậm Kha Valley (Chế Tạo)')}</span>
+          <span>{t(...areaName)}</span>
         </div>
       </div>
 

@@ -9,7 +9,7 @@
   padding: 0 24px;
   border-right: 1px solid var(--ws-line);
   border-bottom: 1px solid var(--ws-line);
-  background: var(--glass-solid);
+  background: var(--ws-surface);
   border-radius: 0;
 }
 
@@ -17,6 +17,7 @@
   flex: 1;
   min-width: 0;
   min-height: 34px;
+  letter-spacing: 0.005em;
   border: 0;
   border-radius: 0;
   padding: 0 4px;
@@ -24,7 +25,7 @@
   font-size: 13px;
   color: var(--ws-muted);
   font-weight: 500;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease;
   position: relative;
 }
 
@@ -37,7 +38,8 @@
   background: transparent;
   font-weight: 600;
 }
-.workspace-nav button[aria-current="page"]::after { content: ''; position: absolute; left: 4px; right: 4px; bottom: 0; height: 2px; background: var(--select); }
+.workspace-nav button[aria-current="page"]::after { content: ''; position: absolute; left: 4px; right: 4px; bottom: -1px; height: 2px; border-radius: 2px 2px 0 0; background: var(--select); }
+.workspace-nav button:not([aria-current="page"]):hover { color: var(--ws-text); }
 .object-observation { display: grid; gap: 12px; padding-bottom: 20px; }
 .object-length { margin-top: 10px; }
 .object-observation time { flex: none; color: var(--ws-muted); font-size: 12px; }
@@ -55,7 +57,7 @@
 .assessment-method dd { margin: 0; color: var(--ws-muted); font-size: 13px; }
 .evidence-finding { margin: 12px 0 24px; line-height: 1.65; }
 .evidence-metadata { display: grid; gap: 14px; margin: 20px 0 24px; font-size: 13px; }
-.evidence-metadata > div { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; }
+.evidence-metadata > div { display: grid; grid-template-columns: var(--meta-label) minmax(0, 1fr); gap: 12px; }
 .evidence-metadata dt { color: var(--ws-muted); }
 .evidence-metadata dd { margin: 0; line-height: 1.55; overflow-wrap: anywhere; }
 .evidence-road.object-row { display: grid; gap: 5px; padding: 12px 0; font-size: 13px; }
@@ -101,7 +103,7 @@
 
 .workflow-section h3 {
   margin-bottom: 12px;
-  font-size: 13.5px;
+  font-size: 13px;
 }
 
 .section-line {
@@ -124,7 +126,7 @@
 }
 
 .incident-facts dt, .decision-metrics dt, .route-numbers dt {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ws-muted);
   margin-bottom: 4px;
 }
@@ -137,7 +139,7 @@
 }
 
 .incident-facts small, .decision-metrics small {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--ws-muted);
 }
@@ -149,11 +151,11 @@
 .workflow-section > p + .text-button { margin-top: 12px; }
 .area-facts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin: 0 0 20px; }
 .area-facts dt { color: var(--ws-muted); font-size: 12px; margin-bottom: 6px; }
-.area-facts dd { margin: 0; font-size: 22px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.area-facts dd { margin: 0; font-size: 20px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .area-facts small { font-size: 13px; font-weight: 400; }
 .area-action .button { width: 100%; justify-content: center; }
 .object-facts { display: grid; gap: 16px; margin: 20px 0; }
-.object-facts > div { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 12px; }
+.object-facts > div { display: grid; grid-template-columns: var(--meta-label) minmax(0, 1fr); gap: 12px; align-items: baseline; }
 .object-facts dt { color: var(--ws-muted); font-size: 12px; }
 .object-facts dd { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
 .object-source { margin-top: 16px; }
@@ -163,25 +165,27 @@
 .assessment-basis .community-reference { border: 0; padding-bottom: 0; }
 .incident-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .incident-facts dt { min-height: 36px; font-size: 12px; line-height: 1.5; }
-.incident-facts dd { font-size: 22px; font-variant-numeric: tabular-nums; }
+.incident-facts dd { font-size: 20px; font-variant-numeric: tabular-nums; }
 .incident-facts small { display: block; font-size: 12px; }
 .sidebar-scroll > .workflow-section:first-child { border-top: 0; padding-top: 0; }
 .assessment-action { padding-top: 18px; border-top: 1px solid var(--ws-line); font-size: 14px; }
 .assessment-action span { color: var(--ws-text); }
 .decision-route > strong, .decision-overview strong { font-size: 14px; }
 .community-heading strong { font-weight: 600; }
-.incident-priority-row { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 12px; width: calc(100% + 24px); margin-inline: -12px; padding: 16px 12px; border: 0; border-bottom: 1px solid var(--ws-line); border-radius: 4px; background: transparent; text-align: left; }
+.incident-priority-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 16px; align-items: center; gap: 12px; width: calc(100% + 24px); margin-inline: -12px; padding: 14px 12px; border: 0; border-radius: var(--radius-control); background: transparent; text-align: left; }
+.incident-priority-row::before, .road-count-row::before { content: ''; grid-column: 2; grid-row: 1; justify-self: center; width: 6px; height: 6px; border: solid var(--ws-muted); border-width: 0 1.5px 1.5px 0; transform: rotate(-45deg); opacity: 0.7; }
+.incident-priority-row > span { grid-column: 1; grid-row: 1; }
 .incident-priority-row:hover { background: var(--hover); }
-.incident-priority-row:last-child { border-bottom: 0; }
+
 .incident-priority-row:hover strong { color: var(--select-ink); }
-.incident-priority-row strong { display: block; font-size: 15px; }
+.incident-priority-row strong { display: block; font-size: 14px; }
 .priority-community-symbol { display: grid; place-items: center; width: 24px; height: 24px; color: var(--ws-brand); }
 .priority-access { display: block; margin-top: 5px; font-size: 12px; line-height: 1.55; color: var(--ws-text); }
 .incident-priority-row small { display: block; margin-top: 5px; font-size: 12px; line-height: 1.55; color: var(--ws-muted); }
 .incident-priority-row .priority-next-action { color: var(--ws-text); }
 .incident-community-action { width: 100%; margin-top: 12px; }
 .incident-data-summary dl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; }
-.incident-data-summary dt { font-size: 11px; color: var(--ws-muted); }
+.incident-data-summary dt { font-size: 12px; color: var(--ws-muted); }
 .incident-data-summary dd { margin: 5px 0 0; font-size: 13px; }
 .incident-data-summary small { color: var(--ws-muted); font-size: 10px; }
 .incident-detail-actions { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 14px; }
@@ -198,7 +202,7 @@
   gap: 10px;
   position: relative;
   padding: 0 0 16px;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 .event-timeline li:last-child {
@@ -206,7 +210,7 @@
 }
 
 .event-timeline time {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ws-muted);
   padding-top: 2px;
   font-family: var(--font-mono);
@@ -243,7 +247,7 @@
 
 .freshness-row small {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ws-muted);
   margin-top: 3px;
 }
@@ -252,77 +256,31 @@
   white-space: nowrap;
   color: var(--ws-muted);
   font-family: var(--font-mono);
-  font-size: 11px;
-}
-
-.impact-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  margin: 16px 0 14px;
-  border: 0;
-  border-bottom: 1px solid var(--ws-line);
-  border-radius: 0;
-  overflow: hidden;
-}
-
-.impact-metrics button {
-  text-align: left;
-  border: 0;
-  border-radius: 0;
-  padding: 9px 7px 10px;
-  background: var(--ws-surface);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: background 0.15s ease;
-}
-
-.impact-metrics button + button { border-left: 1px solid var(--ws-line); }
-.impact-metrics button:hover { background: var(--ws-bg); }
-
-.impact-metrics button[aria-pressed="true"] {
-  background: transparent;
-  box-shadow: inset 0 -2px var(--select);
-}
-
-.impact-metrics strong {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.impact-metrics span {
-  font-size: 11px;
-  color: var(--ws-muted);
-  margin-top: 2px;
-}
-
-.impact-metrics [data-road-filter="blocked"] strong {
-  color: var(--critical-ink);
-}
-
-.impact-metrics [data-road-filter="uncertain"] strong {
-  color: var(--warning-ink);
+  font-size: 12px;
 }
 
 .object-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 100%;
-  padding: 12px 4px;
+  width: calc(100% + 24px);
+  margin-inline: -12px;
+  padding: 12px;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid var(--ws-line);
+  border-radius: var(--radius-control);
   text-align: left;
   font-size: 12px;
   transition: background 0.15s ease;
 }
+.object-row::after, .road-constraint::after, .incident-priority-row::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; border-bottom: 1px solid var(--ws-line); }
+.object-row:last-child::after, .road-constraint:last-child::after, .incident-priority-row:last-child::after { display: none; }
 
 .object-row:hover {
-  background: var(--fill);
-  color: var(--select-ink);
+  background: var(--hover);
 }
+.object-row:hover strong { color: var(--select-ink); }
 
 .object-row > span:first-child, .object-row > strong {
   margin-right: auto;
@@ -335,14 +293,14 @@
 
 .object-row strong {
   display: block;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .object-row small {
   display: block;
   margin-top: 3px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ws-muted);
 }
 
@@ -355,11 +313,14 @@
   column-gap: 8px;
   row-gap: 5px;
   align-items: start;
-  padding: 11px 4px;
+  padding: 12px;
 }
 .impact-row > span:first-child { display: contents; }
 .impact-row strong { grid-column: 1 / 3; grid-row: 1; line-height: 1.4; }
-.impact-row small { grid-column: 1; grid-row: 2; margin: 0; align-self: center; }
+.impact-row small { grid-column: 1; grid-row: 2; margin: 0; align-self: center; display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.road-swatch { flex: none; width: 14px; height: 0; border-top: 3px solid var(--ws-muted); border-radius: 2px; opacity: 0.7; }
+.road-swatch.is-blocked { border-color: var(--critical); opacity: 1; }
+.road-swatch.is-uncertain { border-color: var(--warning); border-top-style: dashed; opacity: 1; }
 .impact-row > .status-text { grid-column: 2; grid-row: 2; max-width: none; white-space: nowrap; justify-self: end; }
 
 .decision-tabs {
@@ -378,14 +339,16 @@
 .detail-title .panel-close { width: 32px; height: 32px; min-height: 32px; padding: 0; border: 0; background: transparent; box-shadow: none; color: var(--ws-muted); }
 .panel-parent { margin-bottom: 10px; }
 .detail-priority { margin-top: 6px; }
-.community-reference { display: grid; gap: 12px; margin: 0; padding-bottom: 16px; border-bottom: 1px solid var(--ws-line); }
-.community-reference dt { color: var(--ws-muted); font-size: 11px; }
-.community-reference dd { margin: 4px 0 0; font-size: 13px; }
+.community-reference { display: grid; gap: 8px; margin: 0 0 12px; padding-bottom: 16px; border-bottom: 1px solid var(--ws-line); }
+.community-reference > div { display: grid; grid-template-columns: var(--meta-label) minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.community-reference dt { color: var(--ws-muted); font-size: 12px; line-height: 1.5; }
+.community-reference dd { margin: 0; font-size: 13px; line-height: 1.5; }
+.assessment-basis .community-reference + .community-reference { margin-top: -4px; padding-top: 0; }
 
 .decision-tabs button {
   flex: 1;
-  padding: 11px 2px;
-  font-size: 12px;
+  padding: 10px 2px;
+  font-size: 13px;
   white-space: nowrap;
   border: 0;
   background: transparent;
@@ -395,10 +358,11 @@
 
 .decision-tabs button[aria-pressed="true"] {
   background: transparent;
-  color: var(--ws-brand);
+  color: var(--select-ink);
   font-weight: 600;
   box-shadow: inset 0 -2px var(--select);
 }
+.decision-tabs button:hover { color: var(--ws-text); }
 
 .decision-overview {
   display: grid;
@@ -411,13 +375,13 @@
 .decision-overview small {
   display: block;
   color: var(--ws-muted);
-  font-size: 11px;
+  font-size: 12px;
   margin-bottom: 4px;
 }
 
 .decision-overview strong {
   display: block;
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.45;
   font-weight: 600;
 }
@@ -437,12 +401,10 @@
   margin-bottom: 6px;
 }
 
-.decision-route .section-line h3 {
-  font-size: 13px;
-}
+
 
 .decision-route > strong {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ws-text);
   font-weight: 600;
 }
@@ -452,8 +414,10 @@
 .route-empty { border-top: 0; padding-top: 0; }
 
 .access-issues { margin-top: 18px; }
-.access-issues h3 { margin-bottom: 4px; font-size: 13px; }
-.access-issues .object-row:last-child { border-bottom: 0; }
+.access-issues h3 { margin-bottom: 4px; }
+/* Dialogs have no gutter to bleed into. */
+.modal-body .object-row { width: 100%; margin-inline: 0; padding-inline: 0; }
+.modal-body .object-row::after { left: 0; right: 0; }
 .priority-reason { margin-top: 8px; color: var(--ws-muted); font-size: 12px; line-height: 1.55; }
 .access-primary { width: 100%; justify-content: center; margin-top: 16px; }
 .access-supplementary { margin-top: 20px; border-block: 1px solid var(--ws-line); }
@@ -463,31 +427,33 @@
 .access-supplementary .route-options { margin: 0 0 8px; }
 .access-tools { flex-wrap: wrap; }
 .access-tools .button { flex: 1; min-width: 0; gap: 6px; justify-content: center; font-size: 12px; }
-.route-action { padding: 12px 0 12px 12px; border-top: 0; border-left: 2px solid var(--ws-line); }
-.route-action.is-blocked { border-left-color: var(--critical); }
+.route-action { gap: 4px; padding: 12px 14px; border: 1px solid var(--ws-line); border-radius: var(--radius-control); background: var(--fill); }
+.route-action strong { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.route-action strong svg { flex: none; }
+.route-action.is-blocked { border-color: color-mix(in srgb, var(--critical) 32%, transparent); background: var(--critical-soft); }
 .route-action.is-blocked strong { color: var(--critical-ink); }
-.route-action.is-uncertain { border-left-color: var(--warning); }
+.route-action.is-uncertain { border-color: color-mix(in srgb, var(--warning) 36%, transparent); background: var(--warning-soft); }
 .route-action.is-uncertain strong { color: var(--warning-ink); }
-.road-constraint { display: grid; gap: 8px; width: 100%; padding: 14px 4px; border: 0; border-bottom: 1px solid var(--ws-line); background: transparent; color: var(--ws-text); text-align: left; }
-.road-constraint:last-child { border-bottom: 0; }
+.road-constraint { position: relative; display: grid; gap: 6px; width: calc(100% + 24px); margin-inline: -12px; padding: 14px 12px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--ws-text); text-align: left; }
 .road-constraint:hover { background: var(--hover); }
 .constraint-title { display: flex; flex-wrap: wrap; align-items: start; gap: 6px 12px; }
-.constraint-title strong { flex: 1 1 190px; min-width: 0; font-size: 13px; line-height: 1.5; }
+.constraint-title strong { flex: 1 1 190px; min-width: 0; font-size: 14px; line-height: 1.45; }
 .constraint-title .status-text { font-size: 12px; }
 .constraint-observation { font-size: 13px; line-height: 1.6; }
-.constraint-source { color: var(--ws-muted); font-size: 11px; line-height: 1.5; }
+.constraint-source { color: var(--ws-muted); font-size: 12px; line-height: 1.5; }
 .community-finding { padding: 16px 0; border-bottom: 1px solid var(--ws-line); }
 .community-finding:first-of-type { padding-top: 4px; }
 .community-finding:last-child { padding-bottom: 0; border-bottom: 0; }
-.community-finding h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
+.community-finding h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
 .community-finding p { font-size: 13px; line-height: 1.6; }
 .community-finding > .text-button { margin-top: 12px; }
-.finding-source { display: grid; gap: 6px; margin: 12px 0 0; font-size: 11px; line-height: 1.55; color: var(--ws-muted); }
-.finding-source > div { display: grid; grid-template-columns: 68px minmax(0, 1fr); gap: 12px; }
+.finding-source { display: grid; gap: 4px; margin: 10px 0 0; font-size: 12px; line-height: 1.5; color: var(--ws-muted); }
+.finding-source > div { display: grid; grid-template-columns: var(--meta-label) minmax(0, 1fr); gap: 12px; }
+.finding-source dd { color: var(--ws-text); opacity: 0.86; }
 .finding-source dt, .finding-source dd { margin: 0; }
-.terrain-coverage-note { display: block; margin-top: 6px; color: var(--ws-muted); font-size: 11px; line-height: 1.45; }
+.terrain-coverage-note { display: block; margin-top: 6px; color: var(--ws-muted); font-size: 12px; line-height: 1.45; }
 
-.scenario-code { display: block; margin: 2px 0 6px; color: var(--ws-muted); font-size: 11px; }
+.scenario-code { display: block; margin: 2px 0 6px; color: var(--ws-muted); font-size: 12px; }
 
 .route-numbers {
   display: grid;
@@ -504,14 +470,16 @@
 
 /* Route choices share a single list instead of separate cards. */
 .route-options { border-top: 1px solid var(--ws-line); border-bottom: 1px solid var(--ws-line); }
-.route-card { width: 100%; display: grid; gap: 8px; border: 0; border-radius: 0; background: transparent; text-align: left; padding: 16px 12px; margin: 0; }
-.route-card + .route-card { border-top: 1px solid var(--ws-line); }
+.route-card { width: 100%; display: grid; gap: 6px; border: 0; border-radius: var(--radius-control); background: transparent; text-align: left; padding: 14px 12px; margin: 0; }
+
 .route-card:hover { background: var(--hover); }
-.route-card[aria-pressed="true"] { background: var(--ws-tint); box-shadow: inset 2px 0 var(--select); }
+.route-card[aria-pressed="true"] { background: var(--ws-tint); }
+.route-options { padding: 4px 0; }
+.route-card + .route-card { margin-top: 2px; }
 .route-card strong { font-size: 14px; font-weight: 600; line-height: 1.5; }
 .route-option-heading { display: flex; align-items: flex-start; gap: 10px; }
-.route-option-selector { display: inline-grid; place-items: center; width: 16px; height: 16px; flex: none; margin-top: 3px; border: 1px solid var(--ws-muted); border-radius: 50%; }
-.route-card[aria-pressed="true"] .route-option-selector { border-color: var(--select); color: var(--select-ink); }
+.route-option-selector { display: inline-grid; place-items: center; width: 16px; height: 16px; flex: none; margin-top: 3px; border: 1.5px solid var(--control-border); border-radius: 50%; }
+.route-card[aria-pressed="true"] .route-option-selector { border-color: var(--select); background: var(--select); color: var(--on-primary); }
 .route-option-meta { display: grid; gap: 2px; margin-left: 26px; font-size: 12px; color: var(--ws-muted); font-variant-numeric: tabular-nums; }
 .route-card .route-bottom { margin: 0 0 0 26px; }
 .route-origin { margin-bottom: 12px; font-size: 12px; color: var(--ws-muted); }
@@ -565,7 +533,7 @@
   align-items: center;
   gap: 8px;
   min-height: 36px;
-  font-size: 12.5px;
+  font-size: 13px;
   cursor: pointer;
 }
 
@@ -590,7 +558,7 @@
   border-bottom: 1px solid var(--ws-line);
   background: transparent;
   text-align: left;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
 }
 
 .notification-item:hover {
@@ -607,7 +575,7 @@
   display: block;
   margin-top: 3px;
   color: var(--ws-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .notification-marker {
@@ -626,3 +594,83 @@
 .notification-item .notification-pending { color: var(--warning-ink); }
 .notification-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 16px; margin-top: 12px; }
 .notification-actions .button { font-size: 12px; }
+
+/* Constraint rows carry the hazard symbol in its map style. */
+.road-constraint { grid-template-columns: 28px minmax(0, 1fr); column-gap: 12px; row-gap: 4px; align-items: start; }
+.road-constraint > :not(.constraint-symbol) { grid-column: 2; }
+.constraint-symbol { grid-column: 1; grid-row: 1 / span 3; display: grid; place-items: center; width: 28px; height: 28px; border: 1.5px solid var(--warning); border-radius: 50%; color: var(--warning-ink); background: var(--ws-surface); }
+.road-constraint.is-blocked .constraint-symbol { border-color: var(--critical); background: var(--critical); color: #fff; }
+.constraint-observation { color: var(--ws-text); font-size: 13px; line-height: 1.55; }
+
+/* Event home: facts in the header, then two lists. */
+.incident-head .incident-status { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 16px; margin-top: 6px; color: var(--ws-muted); font-size: 12px; }
+.incident-head .incident-status time { color: var(--ws-text); font-variant-numeric: tabular-nums; }
+.incident-head .incident-area-link { flex-basis: 100%; padding: 0; font-size: 13px; }
+.section-line .section-link { margin-left: auto; padding: 0; font-size: 12px; }
+.incident-priority-list { margin-top: -8px; }
+.incident-priority-row .priority-next-action { margin-top: 2px; color: var(--ws-muted); font-size: 13px; line-height: 1.5; }
+.road-count-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto 16px; align-items: center; gap: 12px; width: calc(100% + 24px); margin-inline: -12px; padding: 11px 12px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--ws-text); text-align: left; }
+.road-count-row::before { grid-column: 3; }
+.road-count-row > :first-child { grid-column: 1; grid-row: 1; font-size: 13px; }
+.road-count-row > span:last-child { grid-column: 2; grid-row: 1; font-size: 13px; font-variant-numeric: tabular-nums; }
+.road-count-row:hover { background: var(--hover); }
+.road-count-row + .road-count-row::after { content: ''; position: absolute; top: 0; left: 12px; right: 12px; border-top: 1px solid var(--ws-line); }
+.incident-road-summary h3 { margin-bottom: 4px; }
+.incident-detail-actions { margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--ws-line); }
+.incident-detail-actions .text-button { padding: 0; font-size: 13px; }
+
+/* Community access: one action, then facts as label/value rows. No tinted cards. */
+.next-action { display: grid; gap: 14px; padding-bottom: 20px; }
+.next-action .route-action { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; }
+.next-action .route-action svg { flex: none; margin-top: 1px; color: var(--ws-muted); }
+.next-action.is-uncertain .route-action svg { color: var(--warning); }
+.next-action.is-blocked .route-action svg { color: var(--critical); }
+.next-action .route-action span { color: var(--ws-text); font-size: 15px; font-weight: 500; line-height: 1.45; }
+.next-action .access-primary { width: 100%; margin: 0; }
+.access-facts { margin: 0; border-bottom: 1px solid var(--ws-line); }
+.access-facts > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: baseline; margin: 0; padding: 10px 0; border: 0; border-top: 1px solid var(--ws-line); border-radius: 0; background: none; }
+.access-facts dt { color: var(--ws-muted); font-size: 12px; }
+.access-facts dd { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 0; color: var(--ws-text); font-size: 13px; line-height: 1.5; }
+.access-facts .decision-route dd > span:first-child { font-weight: 600; }
+.access-facts .route-travel-estimate dd { font-variant-numeric: tabular-nums; }
+.access-facts .route-travel-estimate small { flex-basis: 100%; color: var(--ws-muted); font-size: 12px; }
+.access-issues { margin-top: 20px; }
+.access-issues h3 { margin-bottom: 0; }
+
+/* Road list filters share the community filter style; the count reads as a quiet suffix. */
+.filter .filter-count { margin-left: 6px; color: var(--ws-muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+.filter[aria-pressed="true"] .filter-count { color: inherit; opacity: 0.8; }
+.filter[data-road-filter="blocked"] .filter-count { color: var(--critical-ink); }
+.filter[data-road-filter="uncertain"] .filter-count { color: var(--warning-ink); }
+
+/* Detail template shared by road, impact site, response site and area:
+   title, one status line, an action row, the observation, then attribute rows. */
+.detail-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 6px; color: var(--ws-muted); font-size: 12px; }
+.detail-meta > span:not(.status-text) { padding-left: 10px; border-left: 1px solid var(--ws-line); font-variant-numeric: tabular-nums; }
+.detail-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.detail-actions .button { min-height: 32px; padding: 4px 12px; font-size: 12px; }
+.object-observation { gap: 6px; padding-bottom: 16px; }
+.object-observation > p:first-child { color: var(--ws-text); font-size: 14px; line-height: 1.55; }
+.observation-meta { color: var(--ws-muted); font-size: 12px; line-height: 1.5; }
+.detail-next .object-next-action { display: flex; align-items: flex-start; gap: 10px; margin: 0; font-size: 14px; line-height: 1.5; }
+.detail-next .object-next-action svg { flex: none; margin-top: 2px; color: var(--warning); }
+.linked-row { justify-content: space-between; }
+.linked-row::before { content: ''; order: 2; flex: none; width: 6px; height: 6px; margin-right: 4px; border: solid var(--ws-muted); border-width: 0 1.5px 1.5px 0; transform: rotate(-45deg); opacity: 0.7; }
+.linked-row strong { font-size: 14px; }
+.hazard-detail .detail-meta { margin-top: 0; }
+.hazard-detail .hazard-observation { margin: 16px 0 4px; color: var(--ws-text); font-size: 14px; line-height: 1.55; }
+
+/* One attribute table style for every label/value list in the panel. */
+.fact-rows, .access-facts { margin: 12px 0 0; border-bottom: 1px solid var(--ws-line); }
+.fact-rows.area-facts { display: block; margin-top: 0; }
+.fact-rows > div, .access-facts > div { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; align-items: baseline; margin: 0; padding: 10px 0; border: 0; border-top: 1px solid var(--ws-line); border-radius: 0; background: none; }
+.fact-rows dt, .access-facts dt { min-height: 0; margin: 0; color: var(--ws-muted); font-size: 12px; line-height: 1.5; }
+.fact-rows dd, .access-facts dd { margin: 0; color: var(--ws-text); font-size: 13px; font-weight: 400; line-height: 1.5; white-space: normal; }
+.fact-rows.area-facts dd small { font-size: 12px; }
+.assessment-basis { gap: 12px; margin-bottom: 8px; }
+.assessment-basis .fact-rows { margin-top: 0; }
+.assessment-basis .text-button { justify-self: start; padding: 0; font-size: 13px; }
+.detail-actions .road-profile-action { margin-top: 0; }
+.detail-actions .button { white-space: nowrap; }
+.fact-rows.object-facts { display: block; gap: 0; margin: 16px 0 0; }
+.access-facts > .route-travel-estimate { font-size: 13px; font-weight: 400; }

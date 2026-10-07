@@ -58,17 +58,7 @@ export const CommunityDetailView: React.FC<Props> = ({
   onExport
 }) => {
   const t = (vi: string, en: string) => (locale === 'en' ? en : vi);
-  const hazardName = (id: string) => {
-    const hazard = hazards.find(item => item.id === id);
-    return hazard ? t(hazard.name[0], hazard.name[1]) : id;
-  };
-
   const activeRoute = selectAccessRoute({ candidate: candidateRoute, direct: directRoute }, selectedRouteType);
-  const accessIssues = [...new Map(
-    [directRoute, candidateRoute].flatMap(route => route?.segs ?? [])
-      .filter(segment => segment.status !== 'open')
-      .map(segment => [segment.id, segment] as const)
-  ).values()];
 
   return (
     <>
@@ -78,12 +68,11 @@ export const CommunityDetailView: React.FC<Props> = ({
           <button className="icon-button panel-close" onClick={onBack} aria-label={t('Đóng chi tiết địa bàn', 'Close community details')} title={t('Đóng chi tiết địa bàn', 'Close community details')}><UiIcon name="close" /></button>
         </div>
         <div className="detail-priority">
-          <StatusText tone={community.prio === 1 ? 'critical' : 'neutral'} icon={community.prio === 1 ? 'priority' : undefined}>
+          <StatusText tone={community.prio === 1 ? 'priority' : 'neutral'} icon={community.prio === 1 ? 'priority' : undefined}>
             {community.prio === 1 ? t('Ưu tiên cao', 'High priority') : t('Theo dõi', 'Monitor')}
           </StatusText>
         </div>
 
-        {detailTab === 'decision' && community.prio === 1 && <p className="priority-reason">{t(...assessment.reason)}</p>}
 
         <div className="decision-tabs" role="group">
           <button
@@ -111,42 +100,16 @@ export const CommunityDetailView: React.FC<Props> = ({
         {detailTab === 'evidence' && (
           <div>
             <section className="assessment-basis">
-              <h3>{t('Căn cứ đánh giá', 'Assessment basis')}</h3>
-              <dl className="community-reference">
+              <dl className="fact-rows">
                 <div><dt>{assessment.priority === 1 ? t('Lý do ưu tiên', 'Priority basis') : t('Lý do theo dõi', 'Monitoring basis')}</dt><dd>{t(...assessment.reason)}</dd></div>
+                <div><dt>{t('Dân số tham chiếu', 'Baseline population')}</dt><dd>{community.pop} {t('người', 'residents')}, {community.hh} {t('hộ', 'households')}</dd></div>
+                <div><dt>{t('Độ cao', 'Elevation')}</dt><dd>{terrainCovered === false ? t('Ngoài phạm vi DEM', 'Outside DEM coverage') : terrainCovered === true ? t('Có dữ liệu DEM', 'DEM available') : t('Chưa đánh giá', 'Not assessed')}</dd></div>
+                {activeRoute?.eta && <div><dt>{t('Ước tính thời gian', 'Travel estimate')}</dt><dd>{activeRoute.eta.mode === 'foot' ? t('Đi bộ', 'On foot') : t('Xe 4x4', '4WD')}. {t('Giả định đi qua được. Chưa tính thời gian kiểm tra và dọn đường.', 'Assumes passage. Inspection and road clearance are excluded.')}</dd></div>}
               </dl>
-              {activeRoute?.eta && <dl className="community-reference estimate-method">
-                <div><dt>{t('Phương tiện', 'Estimated travel mode')}</dt><dd>{activeRoute.eta.mode === 'foot' ? t('Đi bộ', 'On foot') : t('Xe 4x4', '4WD')}</dd></div>
-                <div><dt>{t('Giả định tính thời gian', 'Travel time assumptions')}</dt><dd>{t('Giả định đi qua được. Chưa tính thời gian kiểm tra và dọn đường.', 'Assumes passage. Inspection and road clearance are excluded.')}</dd></div>
-              </dl>}
               <button className="text-button" onClick={onOpenSources}>{t('Phương pháp và nguồn dữ liệu', 'Method and data sources')}</button>
             </section>
-            <dl className="community-reference">
-              <div><dt>{t('Dân số tham chiếu', 'Baseline population')}</dt><dd>{community.pop} {t('người', 'residents')}, {community.hh} {t('hộ', 'households')}</dd></div>
-              <div><dt>{t('Địa hình tại địa bàn', 'Local terrain')}</dt><dd>{terrainCovered === false ? t('Ngoài phạm vi DEM', 'Outside DEM coverage') : terrainCovered === true ? t('Có dữ liệu độ cao', 'Elevation data available') : t('Chưa đánh giá', 'Not assessed')}</dd></div>
-            </dl>
             <CommunityFindings facts={community.facts} evidence={evidence} locale={locale} onOpenEvidence={onOpenEvidence}/>
 
-            {accessIssues.length > 0 && <section className="workflow-section">
-              <h3>{t('Báo cáo ảnh hưởng tiếp cận', 'Access impact reports')}</h3>
-              {accessIssues
-                .filter((s) => s.hz)
-                .map((seg) => (
-                  <button
-                    key={seg.id}
-                    className="object-row"
-                    onClick={() => onSelectObject(`road:${seg.id}`)}
-                  >
-                    <span>
-                      <strong>{hazardName(seg.hz!)}</strong>
-                      <small>{t(seg.name[0], seg.name[1])}</small>
-                    </span>
-                    <StatusText tone={seg.status === 'blocked' ? 'critical' : 'warning'} icon={seg.status === 'blocked' ? 'blocked' : 'uncertain'}>
-                      {seg.status === 'blocked' ? t('Bị chặn', 'Blocked') : t('Cần xác minh', 'Uncertain')}
-                    </StatusText>
-                  </button>
-                ))}
-            </section>}
           </div>
         )}
       </div>

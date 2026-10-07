@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { UiIcon } from './UiIcon';
 
 type Props = {
-  tone?: 'neutral' | 'critical' | 'warning' | 'selected';
+  tone?: 'neutral' | 'critical' | 'warning' | 'selected' | 'priority';
   icon?: 'blocked' | 'uncertain' | 'priority';
   children: ReactNode;
 };

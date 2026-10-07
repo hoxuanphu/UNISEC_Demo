@@ -1,12 +1,12 @@
 # Kiến trúc hệ thống
 
-Cập nhật: 2026-10-05. Bản hiện hành dùng một sự kiện Chế Tạo với dữ liệu mô phỏng.
+Cập nhật: 2026-10-07. Bản mặc định dùng sự kiện Chế Tạo mô phỏng; manifest được chọn qua cấu hình.
 
 ## Thành phần đang chạy
 
 | Thành phần | Công nghệ và trách nhiệm | Giới hạn |
 |---|---|---|
-| Web | Vite, React 18, TypeScript strict, CSS token | App ghép màn hình và trạng thái phiên |
+| Web | Vite, React 18, TypeScript strict, CSS token | Khởi động, điều hướng/công cụ và composition tách trong `app/` |
 | Bản đồ 2D | Leaflet, SVG và ảnh được chiếu lại trên CPU | Không cần WebGL hoặc GLB. Nền EOX ngoài khu vực cần mạng |
 | Bản đồ 3D | Three.js, DEM và GLB tải khi mở 3D | GPU hoặc GLB lỗi thì chuyển về 2D, giữ lựa chọn |
 | Dữ liệu | JSON Schema, Ajv, manifest và SHA-256 | Gói Chế Tạo v0.2 là dữ liệu mô phỏng, chưa được duyệt vận hành |
@@ -40,11 +40,11 @@ Gói tĩnh và API dùng cùng hợp đồng. API lỗi không được thay b�
 
 | Vị trí trong `viewer/src` | Trách nhiệm |
 |---|---|
-| `App.tsx` | Ghép màn hình, lựa chọn, modal, mô hình địa hình |
+| `App.tsx`, `app/` | Khởi động, composition, reducer điều hướng/công cụ và preferences. Packet chưa hợp lệ chỉ hiện tải/lỗi |
 | `data/` | Kiểm tra gói, repository prepared/API, adapter cho công cụ địa hình |
-| `features/incident/` | Nạp bộ dữ liệu, kiểm tra manifest/packet/CRS, snapshot, ưu tiên, thông báo và bản dữ liệu đang xem |
+| `features/incident/` | Nạp bộ dữ liệu, kiểm tra manifest/packet/CRS, tính snapshot độc lập React, ưu tiên, thông báo và bản dữ liệu đang xem |
 | `features/routes/` | Tính tuyến, ước tính di chuyển, mặt cắt |
-| `features/map/` | Bản đồ Leaflet, ảnh 2D, fallback 3D, nguồn và giới hạn từng lớp |
+| `features/map/` | Contract hiển thị/chọn/điều khiển chung, bản đồ Leaflet, ảnh 2D, fallback 3D, nguồn và giới hạn từng lớp |
 | `features/search/` | Chỉ mục tên/mã, chuẩn hóa tiếng Việt và hộp tìm trên bản đồ |
 | `features/measurement/` | Đo khoảng cách/diện tích UTM, hình đo tạm và thao tác operator trên Leaflet |
 | `features/briefing/` | Snapshot đánh giá, xem trước, PNG, bản in PDF và xuất JSON/GeoJSON |
@@ -53,9 +53,11 @@ Gói tĩnh và API dùng cùng hợp đồng. API lỗi không được thay b�
 | `components/dear/` | Panel, hộp thoại và điều khiển nhận dữ liệu qua props |
 | `shared/` | Thành phần và hành vi dùng ở nhiều màn |
 
-Renderer không quyết định ưu tiên. Component không giữ một bản báo cáo riêng. `cheTaoScenario.ts` là adapter đọc JSON cho công cụ và kiểm thử cũ. `modelRuntime.ts` chỉ tải Three.js và bộ upload khi cần. Điều chỉnh lớp, đo và so ảnh không thay dữ liệu tính tuyến/ưu tiên.
+Renderer không quyết định ưu tiên. Component không giữ một bản báo cáo riêng. `cheTaoScenario.ts` giữ tương thích kiểm thử cũ, không khởi tạo dữ liệu workspace. `modelRuntime.ts` chỉ tải Three.js và bộ upload khi cần. Điều chỉnh lớp, đo và so ảnh không thay dữ liệu tính tuyến/ưu tiên.
 
-`loadWorkspaceDataset.ts` chỉ trả về khi packet và địa hình khớp manifest. App nhận một bộ hoàn chỉnh hoặc lỗi, không ghép một phần của hai phiên bản. React, Leaflet và bộ kiểm tra schema có chunk riêng để tái sử dụng cache. Tổng JavaScript tải ban đầu khoảng 760 KB, 240 KB gzip; 3D và so ảnh vẫn tải khi mở.
+`workspace-config.json` chọn nguồn prepared/API và URL manifest. Loader chỉ trả về khi packet và địa hình khớp manifest. App nhận một bộ hoàn chỉnh hoặc lỗi, không ghép hai phiên bản hoặc thay bộ lỗi bằng bộ mặc định. Build, server thử và gói offline đọc cùng cấu hình. React, Leaflet và bộ kiểm tra schema có chunk riêng; 3D và so ảnh tải khi mở.
+
+[Rà cấu trúc mã](source-structure.md) ghi các phụ thuộc còn cần tách và cấu trúc frontend đích. [Lộ trình platform](../plans/platform.md) phân biệt phần demo đã có với catalog, xử lý ảnh và backend chưa triển khai.
 
 ## Pipeline theo proposal
 

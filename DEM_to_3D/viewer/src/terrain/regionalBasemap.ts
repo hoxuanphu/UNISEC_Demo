@@ -3,8 +3,8 @@ import proj4 from 'proj4';
 import type { TerrainMetadata } from '../types/terrain';
 import { pixelToProjected, projectedToScene } from './coordinate';
 
-export type BasemapStyle = 'satellite' | 'terrain';
-export type BasemapState = { status: 'off' | 'loading' | 'ready' | 'partial' | 'error' | 'unavailable'; style: BasemapStyle; loaded: number; total: number };
+import type { BasemapStyle, BasemapState } from '../features/map/mapContracts';
+export type { BasemapStyle, BasemapState } from '../features/map/mapContracts';
 export type MapTile = { x: number; y: number; z: number };
 const sourceCrs = (metadata: TerrainMetadata): string => metadata.crs.proj4 || `${metadata.crs.authority}:${metadata.crs.code}`;
 

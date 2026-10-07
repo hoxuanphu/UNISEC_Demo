@@ -6,7 +6,7 @@
 .decision-actions { display: grid; gap: 8px; margin-top: 20px; }
 .export-formats { position: relative; align-self: center; }
 .export-formats summary { cursor: pointer; color: var(--ws-brand); padding: 8px 12px; font-size: 13px; }
-.export-formats > div { position: absolute; bottom: calc(100% + 12px); right: 0; min-width: 180px; background: var(--glass-solid); border: 1px solid var(--ws-line); box-shadow: var(--shadow-pop); padding: 8px; display: grid; gap: 4px; z-index: 2; }
+.export-formats > div { position: absolute; bottom: calc(100% + 12px); right: 0; min-width: 180px; background: var(--glass-solid); border: 1px solid var(--map-control-line); box-shadow: var(--shadow-overlay); padding: 8px; display: grid; gap: 4px; z-index: 2; border-radius: var(--radius-popover); }
 .export-formats .text-button { text-align: left; padding: 10px 12px; white-space: nowrap; }
 .decision-save { background: transparent; color: var(--ws-brand); border: 1px solid var(--ws-line); }
 .decision-save:hover { background: var(--ws-tint); }

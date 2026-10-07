@@ -6,6 +6,7 @@
   "crs": "EPSG:32648",
   "incident": {
     "id": "INC-2026-0412",
+    "title": ["Sạt lở, nguy cơ lũ quét", "Landslide and flash-flood risk"],
     "mode": "prepared",
     "schemaVersion": "0.1",
     "triggeredAt": "2026-09-29T03:40:00+07:00",

@@ -16,12 +16,7 @@ import { roadColors } from './roadStyle';
 import { mapLayerOrder } from '../features/map/mapLayerOrder';
 import { defaultLayerAppearance, showRoad, type LayerAppearance } from '../features/map/layerAppearance';
 
-export type OverlayHit =
-  | { type: 'community'; id: string }
-  | { type: 'road'; id: string }
-  | { type: 'hazard'; id: string }
-  | { type: 'poi'; id: string }
-  | { type: 'aoi'; id: string };
+import type { OverlayHit } from '../features/map/mapContracts';
 
 type ScenarioOverlayOptions = {
   metadata: TerrainMetadata;

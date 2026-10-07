@@ -1,3 +1,4 @@
 {
-  "dataSource": "prepared"
+  "dataSource": "prepared",
+  "manifestUrl": "/scenarios/che-tao/v0.2/manifest.json"
 }

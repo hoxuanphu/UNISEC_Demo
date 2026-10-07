@@ -1,14 +1,14 @@
 .upload-panel { color: var(--ws-text); }
 .upload-modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.upload-mode, .geographic-toggle { display: flex; align-items: start; gap: 10px; padding: 12px; border: 1px solid var(--ws-line); border-radius: 4px; cursor: pointer; font-size: 13px; }
+.upload-mode, .geographic-toggle { display: flex; align-items: start; gap: 10px; padding: 12px; border: 1px solid var(--ws-line); border-radius: var(--radius-control); cursor: pointer; font-size: 13px; }
 .upload-mode.active { border-color: var(--select); background: var(--select-soft); }
 .upload-mode input, .geographic-toggle input { flex: none; margin: 3px 0 0; accent-color: var(--select); }
 .geographic-toggle { margin-top: 12px; }
 .geographic-toggle span { display: grid; gap: 4px; }
 .geographic-toggle small, .upload-dropzone small { color: var(--ws-muted); font-size: 12px; line-height: 1.5; }
-.upload-dropzone { display: grid; gap: 12px; margin-top: 20px; padding: 16px; border: 1px dashed var(--control-border); border-radius: 4px; font-size: 13px; }
+.upload-dropzone { display: grid; gap: 12px; margin-top: 20px; padding: 16px; border: 1px dashed var(--control-border); border-radius: var(--radius-control); font-size: 13px; }
 .upload-dropzone input { min-width: 0; width: 100%; color: var(--ws-muted); font-size: 12px; }
-.upload-dropzone input::file-selector-button { margin-right: 12px; padding: 6px 10px; border: 1px solid var(--ws-line); border-radius: 4px; background: var(--ws-bg); color: var(--ws-text); font: inherit; cursor: pointer; }
+.upload-dropzone input::file-selector-button { margin-right: 12px; padding: 6px 10px; border: 1px solid var(--ws-line); border-radius: var(--radius-control); background: var(--ws-bg); color: var(--ws-text); font: inherit; cursor: pointer; }
 .upload-files { display: grid; margin-top: 12px; overflow-wrap: anywhere; }
 .upload-files span { padding: 8px 0; border-bottom: 1px solid var(--ws-line); font-size: 12px; }
 .upload-clear { margin-top: 12px; padding: 6px 0; border: 0; background: none; color: var(--ws-brand); font-size: 12px; }

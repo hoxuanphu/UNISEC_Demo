@@ -1,19 +1,13 @@
 import { validateIncidentPacket, type IncidentPacket } from './incidentPacket';
 import type { ScenarioAsset } from './scenarioManifest';
 import { readResponse as request } from '../shared/http/readResponse';
+import { workspaceConfiguration } from './workspaceConfiguration';
+export { workspaceConfiguration } from './workspaceConfiguration';
 
 export interface ScenarioRepository { load(signal?: AbortSignal): Promise<IncidentPacket> }
 
 export async function workspaceDataSource(): Promise<'prepared' | 'api'> {
   return (await workspaceConfiguration()).dataSource;
-}
-
-export async function workspaceConfiguration(signal?: AbortSignal): Promise<{ dataSource: 'prepared' | 'api'; offline: boolean }> {
-  const value: unknown = await (await request('/workspace-config.json', signal)).json();
-  if (!value || typeof value !== 'object' || !('dataSource' in value) || (value.dataSource !== 'prepared' && value.dataSource !== 'api')) {
-    throw new Error('Invalid workspace configuration');
-  }
-  return { dataSource: value.dataSource, offline: 'offline' in value && value.offline === true };
 }
 
 export function preparedRepository(asset: ScenarioAsset): ScenarioRepository {

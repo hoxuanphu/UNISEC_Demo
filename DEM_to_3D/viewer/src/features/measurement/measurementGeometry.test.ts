@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { TerrainViewerProps } from '../../components/TerrainViewer';
+import type { MapScene } from '../map/mapContracts';
 import { initialCommunities, initialRoadSegments, initialHazards, preparedPacket, buildScenarioRoutes } from '../../data/cheTaoScenario';
 import { measurementGeometry } from './measurementGeometry';
 import { defaultLayerAppearance } from '../map/layerAppearance';
 import { canFinish } from './measurement';
 
-const base: NonNullable<TerrainViewerProps['scenarioProps']> = {
+const base: MapScene = {
   aoi: preparedPacket.aoi, communities: initialCommunities, roads: initialRoadSegments, hazards: initialHazards,
   selectedRoute: null, selectedCommunityId: null, selectedObjectId: null,
   layers: { roads: true, communities: true, aoi: true }, appearance: defaultLayerAppearance

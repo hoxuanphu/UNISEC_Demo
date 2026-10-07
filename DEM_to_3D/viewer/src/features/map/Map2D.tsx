@@ -6,7 +6,7 @@ import { createScreenMarkers } from '../../terrain/screenMarkers';
 import { addRoadLayers } from './addRoadLayers';
 import { mapLayerOrder, mapPane, type MapPane } from './mapLayerOrder';
 import type { TerrainData } from '../../types/terrain';
-import type { TerrainViewerProps } from '../../components/TerrainViewer';
+import type { MapDisplayProps } from './mapContracts';
 import { createRaster2d, type Raster2D } from './raster2d';
 import { MapOverview } from './MapOverview';
 import { MapMeasurement } from '../measurement/MapMeasurement';
@@ -15,7 +15,7 @@ import type { MeasureAction, MeasurementSession } from '../measurement/measureme
 import { showRoad, defaultLayerAppearance } from './layerAppearance';
 import { readMapLocation, type MapLocation } from './mapLocation';
 
-type Props = Pick<TerrainViewerProps, 'locale' | 'scenarioProps' | 'onSelectOverlayHit' | 'viewControlRef' | 'onBasemapState' | 'focusPoint' | 'profileMetadata'> & {
+type Props = MapDisplayProps & {
   terrain: TerrainData | null; imageUrl?: string; viewportRef: React.MutableRefObject<{ center: [number, number]; zoom: number } | null>;
   profileOpen: boolean;
   profilePoints?: Array<{ x: number; y: number }>;

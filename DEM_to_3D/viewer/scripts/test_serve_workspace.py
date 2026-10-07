@@ -34,7 +34,7 @@ class SnapshotApiTests(unittest.TestCase):
                 self.assertEqual(response.read(), self.packet)
                 self.assertEqual(response.headers['ETag'], '"' + self.asset['sha256'] + '"')
             with urlopen(base + '/workspace-config.json') as response:
-                self.assertEqual(json.load(response), {'dataSource': 'api'})
+                self.assertEqual(json.load(response), {'dataSource': 'api', 'offline': False, 'manifestUrl': '/scenarios/che-tao/v0.2/manifest.json'})
             with self.assertRaises(HTTPError) as error:
                 urlopen(base + '/api/v1/incidents/unknown/workspace')
             self.assertEqual(error.exception.code, 404)
@@ -52,7 +52,7 @@ class SnapshotApiTests(unittest.TestCase):
         thread.start()
         try:
             with urlopen(f'http://127.0.0.1:{server.server_port}/workspace-config.json') as response:
-                self.assertEqual(json.load(response), {'dataSource': 'prepared', 'offline': True})
+                self.assertEqual(json.load(response), {'dataSource': 'prepared', 'offline': True, 'manifestUrl': '/scenarios/che-tao/v0.2/manifest.json'})
         finally:
             server.shutdown(); server.server_close(); thread.join()
 

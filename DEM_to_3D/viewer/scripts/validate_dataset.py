@@ -8,10 +8,10 @@ import shutil
 import struct
 from datetime import datetime
 from pathlib import Path
+from workspace_configuration import workspace_manifest_path
 
 
 PUBLIC = Path(__file__).resolve().parents[1] / "public"
-MANIFEST = PUBLIC / "scenarios" / "che-tao" / "v0.2" / "manifest.json"
 
 
 def fail(message: str) -> None:
@@ -55,8 +55,9 @@ def embedded_image(path: Path) -> bytes:
     return result
 
 
-def main(prepare: bool = False) -> None:
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+def main(prepare: bool = False, manifest_path: Path | None = None) -> None:
+    selected = manifest_path if manifest_path is not None else workspace_manifest_path(PUBLIC)[0]
+    manifest = json.loads(selected.read_text(encoding="utf-8"))
     if not isinstance(manifest, dict):
         fail("manifest must be an object")
     if type(manifest.get("schemaVersion")) is not int or manifest["schemaVersion"] != 1:

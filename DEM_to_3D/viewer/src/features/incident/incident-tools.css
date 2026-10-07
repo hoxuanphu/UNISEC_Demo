@@ -19,10 +19,10 @@
 .revision-choices legend { padding: 0 0 12px; font-weight: 600; }
 .revision-choices label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .revision-choices time { margin-left: auto; color: var(--ws-muted); }
-.revision-notice { position: absolute; top: 76px; left: 16px; z-index: 600; background: var(--glass-solid); padding: 12px 16px; border: 1px solid var(--ws-line); box-shadow: var(--shadow-pop); font-size: 13px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; max-width: calc(100% - 96px); }
+.revision-notice { position: absolute; top: 76px; left: 16px; z-index: 600; background: var(--glass-solid); padding: 12px 16px; border: 1px solid var(--map-control-line); box-shadow: var(--shadow-overlay); font-size: 13px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; max-width: calc(100% - 96px); border-radius: var(--radius-popover); }
 .layer-appearance { border-top: 1px solid var(--ws-line); margin-top: 12px; }
 .layer-appearance summary { cursor: pointer; font-weight: 500; font-size: 13px; padding: 12px 0; }
 .layer-appearance label { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 12px 0; font-size: 12px; }
 .layer-appearance input, .layer-appearance select { grid-column: 1 / -1; width: 100%; min-width: 0; accent-color: var(--ws-brand); }
-.layer-appearance select { padding: 8px; color: var(--ws-text); background: var(--glass-solid); border: 1px solid var(--ws-line); border-radius: 4px; font: inherit; }
+.layer-appearance select { padding: 8px; color: var(--ws-text); background: var(--ws-surface); border: 1px solid var(--ws-line); border-radius: var(--radius-control); font: inherit; }
 .layer-compare-action { margin-top: 18px; text-align: left; line-height: 1.5; }

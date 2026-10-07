@@ -1,5 +1,5 @@
 import type { Community, Hazard, Locale, ResponseSite } from '../types/dear';
-import type { OverlayHit } from './scenarioOverlays';
+import type { OverlayHit } from '../features/map/mapContracts';
 import { mapSymbolSvg, type MapSymbolName } from './mapSymbols';
 import { layoutMarkerGroups, overlaps, type ScreenRect } from './markerLayout';
 import { markerPresentation } from './markerPresentation';

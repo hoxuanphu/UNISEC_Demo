@@ -54,4 +54,6 @@ jobs:
           python scripts/check_map_workspace.py --url http://127.0.0.1:5213
           python scripts/check_layer_sources.py
           python scripts/check_panel_usability.py
+          python scripts/check_dataset_selection.py
+          python scripts/check_offline_package.py dist-release/dear-offline.zip
           python scripts/check_session.py --duration-seconds 30 --cycle-interval-seconds 0 --output dist-release/session-ci.json

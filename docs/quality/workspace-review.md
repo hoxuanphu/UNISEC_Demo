@@ -1,6 +1,6 @@
 # Rà soát giao diện và luồng ứng phó
 
-Cập nhật: 2026-10-06. Phạm vi: web React, gói Chế Tạo v0.2 và API snapshot cục bộ. Chưa thử với người trực thực tế.
+Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture kiểm chọn dataset và API snapshot cục bộ. Chưa thử với người trực thực tế.
 
 ## Sửa sau phản hồi sử dụng
 
@@ -33,6 +33,12 @@ Cập nhật: 2026-10-06. Phạm vi: web React, gói Chế Tạo v0.2 và API sn
 | Gỡ mô hình để bản đồ trống hoặc còn ảnh cũ | Khôi phục địa hình Chế Tạo; dọn raster và điểm của mô hình vừa gỡ. Danh sách tệp chỉ ghi mô hình do người dùng nạp |
 | Thiếu định hướng khi xem gần | Tổng quan 2D thu gọn được, đồng bộ khung nhìn, click và bàn phím. Không tải thêm tile |
 | Ảnh nền tối và bậc màu khi đổi hệ tọa độ | Giảm bóng trên ảnh, lấy mẫu màu song tuyến tính, giữ nodata. Texture 3D dùng anisotropic filtering theo GPU |
+| Xem đường rồi quay lại mất ngữ cảnh địa bàn | Reducer điều hướng giữ địa bàn, tuyến và tab căn cứ. Mỗi tab có đối tượng và nơi quay về riêng |
+| Công cụ nhận callback sau khi đóng | Một trạng thái sở hữu tương tác. Bỏ qua close/hover của công cụ không còn hoạt động |
+| Bộ dữ liệu lỗi vẫn có thông tin sự kiện mẫu | Chỉ mở workspace khi packet/địa hình hợp lệ. Tải/lỗi không có sự kiện, timestamp hoặc marker mẫu |
+| Đường dẫn và tên sự kiện gắn cứng với Chế Tạo | Cấu hình manifest dùng chung cho runtime, kiểm trước build, server và đóng gói. Fixture thứ hai kiểm AOI/đường/panel/JSON |
+| Tìm cầu/bãi đáp nhưng kết quả dùng ký hiệu khác | Kết quả tìm kiếm giữ loại đối tượng, dùng cùng ký hiệu với bản đồ. Đường thiếu điểm ảnh hưởng chỉ hiển thị tình trạng, không tự gán sạt lở |
+| Offline tải tile trước khi tắt nền mạng | Khởi tạo lớp theo cấu hình offline trước khi mount map. CI thử gói giải nén và kiểm không có request ngoài |
 
 Ảnh tham chiếu giữ ba màn: tiếp cận, mặt cắt và công cụ đo. Ảnh kiểm thử phát sinh nằm trong thư mục review đã ignore. Bộ kiểm tra CI gồm panel trên 1366, 1024, 390, 320 px, các địa bàn thiếu tuyến và tiếng Anh.
 
@@ -86,9 +92,9 @@ Cập nhật: 2026-10-06. Phạm vi: web React, gói Chế Tạo v0.2 và API sn
 
 | Kiểm tra | Kết quả |
 |---|---|
-| TypeScript và build | Đạt. JavaScript đầu vào khoảng 809 KB, 254 KB gzip. Chunk app khoảng 383 KB, React/Leaflet/validation riêng. 2D không tải Three.js/GLB, 3D còn chunk lớn hơn 500 KB |
-| TypeScript unit tests | 168 kiểm thử đạt, gồm nguồn/thời gian ghi nhận, snapshot cập nhật, chỉ dẫn theo tuyến chọn, tương thích gói cũ, tuyến/ưu tiên, đo, tọa độ, so ảnh, GeoJSON, timeout/hủy tải và manifest |
-| Python | 8 kiểm thử dữ liệu, 3 API, 2 đóng gói và 3 kiểm tra chờ HTTP sẵn sàng đạt |
+| TypeScript và build | Đạt. JavaScript đầu vào khoảng 798 KB, 251 KB gzip. Chunk app khoảng 372 KB, React/Leaflet/validation riêng. 2D không tải Three.js/GLB, 3D còn chunk lớn hơn 500 KB |
+| TypeScript unit tests | 189 kiểm thử đạt. Có snapshot độc lập React, giữ ngữ cảnh điều hướng, một công cụ nhận input, callback cũ, chọn manifest, dataset khác và lỗi không đổi về mặc định. Các kiểm tra nguồn/thời gian, tuyến/ưu tiên, đo, tọa độ, so ảnh, GeoJSON, timeout và checksum vẫn đạt |
+| Python | 18 kiểm thử đạt: dữ liệu, API đọc, đóng gói, chờ HTTP và cấu hình manifest |
 | Chrome: prepared và API | Sự kiện, AOI, địa bàn, tuyến, nguồn, đọc/áp dụng tin và mặt cắt đạt |
 | Chrome: lỗi dữ liệu và GPU | Chặn Internet, lỗi GLB, không có WebGL, mất context 3D: 2D tiếp tục dùng được. API lỗi không hiện dữ liệu mô phỏng thay thế |
 | Chrome: thao tác và bố cục | Kéo/đổi độ rộng bằng bàn phím, khôi phục độ rộng, nhóm điểm, nhãn. Tổng quan theo pan/zoom, click, bàn phím và mở/đóng không tạo bản đồ trùng. Khoảng đệm hàng địa bàn đạt, hover không dịch chữ. Desktop 1440/1366/1024 px và mobile 390/320 px không tràn ngang |
@@ -99,16 +105,17 @@ Cập nhật: 2026-10-06. Phạm vi: web React, gói Chế Tạo v0.2 và API sn
 | Chrome: công cụ phụ | Thông báo, xem dữ liệu cũ/về bản mới, độ rõ/lọc/nhãn, so GeoTIFF có tọa độ, mở lại cặp ảnh, GeoJSON, bản in và đặt lại phiên |
 | Chrome: static delivery | Luồng chính và công cụ phụ đạt qua server tĩnh, không cần API. Lỗi CRS khi so ảnh cho phép chọn lại và thử tiếp |
 | Chrome: nguồn lớp | Đạt: nguồn/ngày theo bản dữ liệu cũ/mới, ngày ảnh chưa có, giới hạn H, nguồn riêng cho Imagery/Terrain Light, bàn phím và chiều rộng 320–1366 px |
+| Chrome: dataset khác | Fixture riêng thay ID/tên sự kiện, địa bàn, AOI và trạng thái đường. Panel, lựa chọn, quay lại và JSON xuất khớp. Manifest lỗi không hiện bộ mặc định. Dùng lại địa hình cục bộ, chưa phải thử khu vực/CRS khác |
+| Chrome: gói offline | Giải nén thư mục mới, checksum, luồng ứng phó, PNG, 3D/2D và đặt lại đạt. Không phát sinh request mạng ngoài |
 | Vòng đời 3D | Sửa gỡ listener trước khi React tháo canvas. Giải phóng tài nguyên GPU của renderer cũ, giữ dữ liệu để mở lại. 25 vòng thử nhanh không tăng DOM/listener |
 | Phiên 30 phút | Đạt: 58 vòng chọn địa bàn/tuyến, mặt cắt, 3D/2D, áp dụng tin và đặt lại. 20 PNG, không lỗi JavaScript. Sau vòng 10: DOM/listener không tăng, JS heap tăng 0,70 MB |
-| Lặp phiên trên build cuối | Linux: 2 vòng trong 62,6 giây, DOM/listener giữ nguyên, JS heap tăng 0,22 MB từ vòng đầu. Thử dài 30 phút ở hàng trên là kết quả của build trước |
-| CI Linux | Toàn bộ workflow đạt trên Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0: cài sạch, unit/dữ liệu/audit/build/gói và sáu bộ kiểm tra trình duyệt |
+| Lặp phiên trên build cuối | Linux trước commit: 4 vòng trong 37,6 giây, DOM/listener giữ nguyên. Thử dài 30 phút ở hàng trên là kết quả của build trước |
+| Kiểm workflow trên Linux | Container Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0 đạt: cài sạch, 189 unit/18 Python tests, audit, build, đóng gói và tám bộ browser checks gồm chọn dataset/gói offline. Kết quả bản làm việc cục bộ không thay xác nhận GitHub Actions của commit mới |
 | GitHub Actions | Đã sửa ảnh xem trước tải chậm và khoảng trễ khóa ký hiệu. Browser kiểm tra trạng thái ngay khi đổi chế độ/tạo lớp, trước khung hình tiếp theo. [Theo dõi workflow](https://github.com/hoxuanphu/UNISEC_Demo/actions/workflows/dear-web.yml) |
 | Source dùng khi deploy | Import kiểm đúng chữ hoa/thường. Thư mục sạch với file được Git theo dõi chuẩn bị đủ dữ liệu, kiểm checksum đạt |
 | Dependency audit | Vite 7.3.6, plugin React 5.2.0, Vitest 4.1.11. `source-map-js` cập nhật riêng lên 1.2.2 theo [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q). `npm audit`: 0 cảnh báo, gồm cả công cụ phát triển |
-| Chrome: gói offline | Kiểm checksum, giải nén vào thư mục mới, khởi động prepared, không gọi Internet, áp dụng tin, xuất PNG, 3D/2D và đặt lại |
 
-CI chạy `check_workspace.py`, `check_measurement_tools.py`, `check_map_workspace.py`, `check_layer_sources.py`, `check_panel_usability.py` và `check_session.py`. Bộ công cụ phụ/ảnh/offline có script riêng trong `scripts/`. Cài Playwright từ `scripts/requirements-browser.txt`, dùng Chromium hoặc `--chrome` trỏ đến Chrome đã cài.
+CI chạy tám bộ kiểm tra: workspace, đo, tương tác bản đồ, nguồn lớp, panel, chọn dataset, gói offline và vòng lặp phiên. Script nằm trong `scripts/`, tên `check_*.py`. Bộ công cụ phụ/so ảnh có script riêng. Cài Playwright từ `scripts/requirements-browser.txt`, dùng Chromium hoặc `--chrome` trỏ đến Chrome đã cài.
 
 Bước in PDF trong kiểm tra Chrome tự động có một lần timeout. Hai lần chạy lại đạt, chưa xác định nguyên nhân. Cần kiểm tra bản in trên máy trình chiếu.
 

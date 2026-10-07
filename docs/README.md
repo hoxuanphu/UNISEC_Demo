@@ -17,6 +17,8 @@
 | Luồng ứng phó hiện tại đã ổn chưa? | [Rà soát giao diện](quality/workspace-review.md) | PO, SW, RS |
 | Cần cải thiện gì về GIS, viễn thám và skill hỗ trợ? | [Đánh giá GIS và viễn thám](quality/gis-review.md) | PO, SW, RS, AI |
 | Dùng công nghệ gì, chia phần mềm thế nào? | [Kiến trúc hệ thống](architecture/overview.md) | SW, AI |
+| Source đã chia hợp lý chưa, sửa theo nguyên tắc nào? | [Cấu trúc mã](architecture/source-structure.md) | SW, AI |
+| Từ demo lên platform viễn thám theo thứ tự nào? | [Lộ trình platform](plans/platform.md) | Cả nhóm |
 | Công cụ GIS/viễn thám dài hạn dùng gì, quản lý CRS và nguồn ảnh thế nào? | [Nền tảng GIS và viễn thám](architecture/geospatial-platform.md) | SW, RS, AI, PO |
 | Backend cần xây gì, chọn công nghệ và triển khai thế nào? | [Kế hoạch backend](plans/backend.md), chỉ nghiên cứu | SW, AI, RS, PO |
 | Luồng nhập trên bản đồ/admin cần dữ liệu và API gì? | [Tiếp nhận và công bố dữ liệu](architecture/data-ingestion.md), thiết kế dự kiến | SW, AI, RS, PO |

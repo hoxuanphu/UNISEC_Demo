@@ -105,7 +105,7 @@ export const CommunityListView: React.FC<Props> = ({
             >
               <span className="community-heading">
                 <strong>{c.name}</strong>
-                <StatusText tone={c.prio === 1 ? 'critical' : 'neutral'} icon={c.prio === 1 ? 'priority' : undefined}>
+                <StatusText tone={c.prio === 1 ? 'priority' : 'neutral'} icon={c.prio === 1 ? 'priority' : undefined}>
                   {c.prio === 1 ? t('Ưu tiên cao', 'High priority') : t('Theo dõi', 'Monitor')}
                 </StatusText>
               </span>

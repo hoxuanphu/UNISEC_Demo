@@ -1,10 +1,10 @@
-.map-measure-panel { position: absolute; z-index: 24; top: 64px; left: 16px; width: min(304px, calc(100% - 80px)); height: 340px; max-height: min(calc(100% - 112px), var(--floating-panel-height, 100%)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--ws-line); border-radius: 6px; background: var(--ws-surface); color: var(--ws-text); box-shadow: var(--shadow-pop); }
+.map-measure-panel { position: absolute; z-index: 24; top: 64px; left: 16px; width: min(304px, calc(100% - 80px)); height: 340px; max-height: min(calc(100% - 112px), var(--floating-panel-height, 100%)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--map-control-line); border-radius: var(--radius-popover); background: var(--ws-raised); color: var(--ws-text); box-shadow: var(--shadow-overlay); }
 .map-measure-heading { display: flex; align-items: center; gap: 2px; padding: 8px 10px 8px 16px; font-size: 14px; flex: none; }
 .map-measure-heading > strong { flex: 1; font-weight: 600; }
 .map-measure-heading .icon-button { width: 28px; height: 28px; min-height: 28px; border: 0; }
 .map-measure-type { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px 12px; font-size: 12px; flex: none; }
 .map-measure-type > span { color: var(--ws-muted); }
-.map-measure-panel select { min-width: 0; max-width: 65%; min-height: 32px; border: 1px solid var(--ws-line); border-radius: 4px; background: var(--ws-surface); color: var(--ws-text); padding: 4px 8px; font: inherit; }
+.map-measure-panel select { min-width: 0; max-width: 65%; min-height: 32px; border: 1px solid var(--ws-line); border-radius: var(--radius-control); background: var(--ws-surface); color: var(--ws-text); padding: 4px 8px; font: inherit; }
 .measure-tabs { display: flex; border-bottom: 1px solid var(--ws-line); padding: 0 16px; gap: 20px; flex: none; }
 .measure-tabs button { position: relative; border: 0; padding: 8px 0 10px; background: none; color: var(--ws-muted); font: inherit; font-size: 12px; white-space: nowrap; }
 .measure-tabs button[aria-pressed=true] { color: var(--ws-brand); }

@@ -33,6 +33,9 @@
     "incident": {
       "type": "object",
       "properties": {
+        "title": {
+          "$ref": "#/definitions/localizedText"
+        },
         "id": {
           "$ref": "#/definitions/identifier"
         },

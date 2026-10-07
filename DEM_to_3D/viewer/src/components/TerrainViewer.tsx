@@ -8,47 +8,21 @@ import { buildBvh, disposeBvh, disposeObjectResources } from '../terrain/raycast
 import type { SurfaceProfile } from '../terrain/profile';
 import type { GeographicPlacement } from '../terrain/geographic';
 import { applyElevationColorRamp } from '../terrain/colorRamp';
-import { buildScenarioOverlays, type OverlayHit } from '../terrain/scenarioOverlays';
+import { buildScenarioOverlays } from '../terrain/scenarioOverlays';
 import { createScenarioMarkers } from '../terrain/scenarioMarkers';
 import { createMapReference } from '../terrain/mapReference';
-import { createRegionalBasemap, type BasemapState } from '../terrain/regionalBasemap';
-import type { AnalysisArea, Community, Hazard, RoadSegment, ScenarioRoute, Locale, ResponseSite } from '../types/dear';
+import { createRegionalBasemap } from '../terrain/regionalBasemap';
+import type { MapDisplayProps, OverlayHit } from '../features/map/mapContracts';
 
-export type ViewControls = {
-  zoomIn: () => void;
-  zoomOut: () => void;
-  resetView: () => void;
-  retryBasemap: () => void;
-  focusProjected: (point: { x: number; y: number }) => void;
-};
-
-export type TerrainViewerProps = {
+export type TerrainViewerProps = MapDisplayProps & {
   models: LoadedModel[];
   geographicPlacements?: GeographicPlacement[];
   measureMode?: boolean;
   onPick?: (point: TerrainPoint, metadata: TerrainMetadata) => void;
-  focusPoint?: { x: number; y: number; z: number } | null;
   profile?: SurfaceProfile | null;
-  profileMetadata?: LoadedModel['metadata'];
   mapMode?: '3d' | '2d';
   theme?: 'light' | 'dark';
-  locale?: Locale;
-  onBasemapState?: (state: BasemapState) => void;
   onUnavailable?: () => void;
-  scenarioProps?: {
-    aoi?: AnalysisArea;
-    communities: Community[];
-    responseSites?: ResponseSite[];
-    hazards: Hazard[];
-    roads: RoadSegment[];
-    selectedRoute: ScenarioRoute | null;
-    selectedCommunityId: string | null;
-    selectedObjectId: string | null;
-    layers: Record<string, boolean>;
-    appearance?: import('../features/map/layerAppearance').LayerAppearance;
-  };
-  onSelectOverlayHit?: (hit: OverlayHit) => void;
-  viewControlRef?: React.MutableRefObject<ViewControls | null>;
 };
 
 type Props = TerrainViewerProps;

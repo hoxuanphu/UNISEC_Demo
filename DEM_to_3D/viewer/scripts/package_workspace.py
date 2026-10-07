@@ -6,17 +6,19 @@ import subprocess
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+from workspace_configuration import workspace_manifest_path
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def package_workspace(dist, destination):
     dist, destination = Path(dist).resolve(), Path(destination).resolve()
-    required = ['index.html', 'scenarios/che-tao/v0.2/manifest.json', 'scenarios/incident-v1.schema.json']
+    required = ['index.html', 'scenarios/incident-v1.schema.json']
     for relative in required:
         if not (dist / relative).is_file():
             raise ValueError(f'Missing build asset: {relative}')
-    manifest = json.loads((dist / required[1]).read_text(encoding='utf-8'))
+    manifest_path, _ = workspace_manifest_path(dist)
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
     assets = [manifest['workspace'], *manifest['terrain'].values()]
     for asset in assets:
         if not isinstance(asset, dict) or 'url' not in asset:
@@ -34,6 +36,7 @@ def package_workspace(dist, destination):
                 raise ValueError('Build symlink outside package')
             files['dist/' + path.relative_to(dist).as_posix()] = path.read_bytes()
     files['scripts/serve_workspace.py'] = (ROOT / 'scripts/serve_workspace.py').read_bytes()
+    files['scripts/workspace_configuration.py'] = (ROOT / 'scripts/workspace_configuration.py').read_bytes()
     files['Start.ps1'] = b'''param([int]$Port = 5212)
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot

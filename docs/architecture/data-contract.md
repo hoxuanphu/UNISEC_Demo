@@ -1,6 +1,6 @@
 # Hợp đồng dữ liệu
 
-Cập nhật: 2026-10-05. Gói hiện hành: [Chế Tạo v0.2](../../DEM_to_3D/viewer/public/scenarios/che-tao/v0.2/manifest.json), dữ liệu mô phỏng ở trạng thái `draft`.
+Cập nhật: 2026-10-07. Gói mặc định: [Chế Tạo v0.2](../../DEM_to_3D/viewer/public/scenarios/che-tao/v0.2/manifest.json), dữ liệu mô phỏng ở trạng thái `draft`.
 
 ## Gói hiện hành
 
@@ -25,6 +25,26 @@ Cập nhật: 2026-10-05. Gói hiện hành: [Chế Tạo v0.2](../../DEM_to_3D/
 | Loại dữ liệu | `synthetic`, `historical`, `operational`. Mô phỏng không tự chuyển thành dữ liệu vận hành |
 
 Ưu tiên, tuyến và ETA được tính từ gói, không lưu sẵn như kết luận cố định trong JSON. Phương pháp tại [phân tích ứng phó](response-analysis.md).
+
+## Chọn bộ dữ liệu
+
+`public/workspace-config.json` chọn manifest trước khi build. Bản tĩnh trên Vercel không cần API:
+
+```json
+{
+  "dataSource": "prepared",
+  "manifestUrl": "/scenarios/che-tao/v0.2/manifest.json"
+}
+```
+
+| Trường | Quy tắc |
+|---|---|
+| `dataSource` | `prepared` đọc packet từ manifest; `api` đọc endpoint theo ID sự kiện trong manifest |
+| `manifestUrl` | Đường dẫn cục bộ `/scenarios/.../manifest.json`. Không nhận URL ngoài, query hoặc đường dẫn vượt thư mục. Bỏ trường chỉ để tương thích bản cấu hình cũ |
+| `offline` | Boolean tùy chọn. Gói offline đặt `true` và tắt nền mạng mặc định |
+| `incident.title` | Tên sự kiện tùy chọn `[vi, en]`. Thiếu thì dùng “Sự kiện”/“Incident”; không lấy tên sự kiện mẫu |
+
+Loader, kiểm dữ liệu trước build, server thử và đóng gói đều đọc cùng lựa chọn. Khi sửa JSON phải cập nhật kích thước/SHA-256 trong manifest. Cấu hình chọn bộ hợp lệ trong contract v1, chưa phải catalog nhiều CRS hoặc lịch sử công bố. Bộ được chọn lỗi phải báo lỗi, không tự đổi về Chế Tạo.
 
 ## Kiểm tra và tham chiếu
 

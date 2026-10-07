@@ -1,10 +1,10 @@
-import type { TerrainViewerProps } from '../../components/TerrainViewer';
+import type { MapScene } from '../map/mapContracts';
 import type { Locale } from '../../types/dear';
 import { projectedMeasurementPoint, type MeasurePoint } from './measurement';
 import { showRoad } from '../map/layerAppearance';
 
 export type MeasureGeometry = { name: string; points: MeasurePoint[]; closed?: boolean; kind?: 'road' | 'aoi' | 'route' };
-export function measurementGeometry(scenario: TerrainViewerProps['scenarioProps'], locale: Locale): { sources: MeasureGeometry[]; selected?: MeasureGeometry } {
+export function measurementGeometry(scenario: MapScene | undefined, locale: Locale): { sources: MeasureGeometry[]; selected?: MeasureGeometry } {
   if (!scenario) return { sources: [] };
   const t = (name: [string, string]) => name[locale === 'vi' ? 0 : 1];
   const geometry = (name: string, points: Array<{ x: number; y: number }>, closed = false): MeasureGeometry | undefined => {

@@ -42,13 +42,12 @@ class PreparedDatasetTests(unittest.TestCase):
                 'url': f'/terrain/{name}', 'byteLength': len(content),
                 'sha256': hashlib.sha256(content).hexdigest()
             }
-        for name, value in [('PUBLIC', self.public), ('MANIFEST', self.manifest_path)]:
-            self.enterContext(patch.object(validator, name, value))
+        self.enterContext(patch.object(validator, 'PUBLIC', self.public))
 
     def run_validator(self, prepare=False):
         self.manifest_path.write_text(json.dumps(self.manifest), encoding='utf-8')
         with contextlib.redirect_stdout(io.StringIO()):
-            validator.main(prepare=prepare)
+            validator.main(prepare=prepare, manifest_path=self.manifest_path)
 
     def test_clean_checkout_prepares_verified_files(self):
         self.run_validator(prepare=True)

@@ -10,8 +10,8 @@ Cập nhật: 2026-10-05. Quy tắc cho bản đồ ứng phó DEAR, đối chi�
 | Đường chưa rõ | Vàng, nét đứt | Cần kiểm tra khả năng đi qua |
 | Chưa ghi nhận chặn | Nét trung tính | Không suy ra là đường đi được |
 | Tuyến đang xem | Xanh dương | Đoạn bị chặn/chưa rõ vẫn giữ màu cảnh báo, viền trung tính |
-| Cộng đồng | Nhóm người màu xanh | Có tọa độ địa bàn |
-| Cộng đồng ưu tiên | Nhóm người màu nâu vàng | Mức ưu tiên, không phải kết luận cô lập |
+| Cộng đồng | Mái nhà màu xanh | Có tọa độ địa bàn |
+| Cộng đồng ưu tiên | Mái nhà màu nâu vàng | Mức ưu tiên, không phải kết luận cô lập |
 | Sạt lở được báo | Núi/đá màu đỏ | Báo cáo hiện trường có thời điểm |
 | Nghi sạt lở | Núi/đá viền đỏ nét đứt | Nhận định chưa kiểm chứng |
 | Cầu, điểm vượt khe, điểm tập kết | Ký hiệu riêng | Không dùng cùng dấu chấm than cho mọi loại điểm |

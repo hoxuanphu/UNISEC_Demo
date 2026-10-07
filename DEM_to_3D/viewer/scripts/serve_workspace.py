@@ -8,13 +8,15 @@ import json
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
+from workspace_configuration import workspace_manifest_path
 
 DEFAULT_DIST = Path(__file__).resolve().parents[1] / 'dist'
 
 
 def create_server(directory=DEFAULT_DIST, host='127.0.0.1', port=5212, offline=False):
     directory = Path(directory).resolve()
-    manifest = json.loads((directory / 'scenarios/che-tao/v0.2/manifest.json').read_text(encoding='utf-8'))
+    manifest_path, configuration = workspace_manifest_path(directory)
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
     asset = manifest['workspace']
     packet_path = (directory / asset['url'].lstrip('/')).resolve()
     if not packet_path.is_relative_to(directory):
@@ -36,7 +38,7 @@ def create_server(directory=DEFAULT_DIST, host='127.0.0.1', port=5212, offline=F
             path = urlsplit(self.path).path
             payload = packet if path == endpoint else schema if path == '/api/v1/schema/incident-v1' else None
             if path == '/workspace-config.json':
-                payload = b'{"dataSource":"prepared","offline":true}' if offline else b'{"dataSource":"api"}'
+                payload = json.dumps({**configuration, 'dataSource': 'prepared' if offline else 'api', 'offline': offline}).encode()
             if path == '/api/health':
                 payload = json.dumps({'status': 'ready', 'datasetVersion': manifest['datasetVersion']}).encode()
             if payload is not None:

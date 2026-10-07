@@ -38,4 +38,4 @@ Demo chứng minh luồng ứng phó trên web. Chưa chứng minh pipeline vệ
 | Dự phòng | Nếu 3D lỗi, dùng 2D. Nếu mất mạng, dùng gói offline |
 | Lặp lại | Trong Cài đặt, chọn Đặt lại phiên làm việc |
 
-Trước buổi demo: duyệt nội dung với RS/PO, thử đúng máy trình chiếu và URL Vercel, chuẩn bị gói offline/video. Xem [cách chạy offline](offline.md), [cách tính tuyến và ưu tiên](../architecture/response-analysis.md). [Kịch bản 03/10](demo.md) giữ để đối chiếu.
+Trước buổi demo: duyệt nội dung với RS/PO, thử đúng máy trình chiếu và URL Vercel, chuẩn bị gói offline/video. Xem [cách chạy offline](offline.md), [cách tính tuyến và ưu tiên](../architecture/response-analysis.md), [hướng dẫn demo tiếng Việt](demo.md).

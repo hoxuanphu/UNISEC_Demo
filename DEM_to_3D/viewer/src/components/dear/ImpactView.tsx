@@ -15,7 +15,6 @@ type Props = {
   onChangeTab: (tab: ImpactTab) => void;
   onChangeRoadFilter: (filter: RoadFilter) => void;
   onSelectObject: (obj: string) => void;
-  onNext: () => void;
 };
 
 export const ImpactView: React.FC<Props> = ({
@@ -28,8 +27,7 @@ export const ImpactView: React.FC<Props> = ({
   tab,
   onChangeTab,
   onChangeRoadFilter,
-  onSelectObject,
-  onNext
+  onSelectObject
 }) => {
 
   const t = (vi: string, en: string) => (locale === 'en' ? en : vi);
@@ -62,35 +60,6 @@ export const ImpactView: React.FC<Props> = ({
       <div className="sidebar-top">
         <h1>{t('Tình trạng đường', 'Road conditions')}</h1>
 
-        <div className="impact-metrics">
-          <button
-            data-road-filter="blocked"
-            aria-pressed={tab === 'roads' && roadFilter === 'blocked'}
-            onClick={() => { onChangeQuery(''); onChangeTab('roads'); onChangeRoadFilter(tab === 'roads' && roadFilter === 'blocked' ? 'all' : 'blocked'); }}
-          >
-            <strong>{blockedCount}</strong>
-            <span>{t('Bị chặn', 'Blocked')}</span>
-          </button>
-
-          <button
-            data-road-filter="uncertain"
-            aria-pressed={tab === 'roads' && roadFilter === 'uncertain'}
-            onClick={() => { onChangeQuery(''); onChangeTab('roads'); onChangeRoadFilter(tab === 'roads' && roadFilter === 'uncertain' ? 'all' : 'uncertain'); }}
-          >
-            <strong>{uncertainCount}</strong>
-            <span>{t('Cần xác minh', 'Uncertain')}</span>
-          </button>
-
-          <button
-            data-road-filter="all"
-            aria-pressed={tab === 'roads' && roadFilter === 'all'}
-            onClick={() => { onChangeQuery(''); onChangeTab('roads'); onChangeRoadFilter('all'); }}
-          >
-            <strong>{roads.length}</strong>
-            <span>{t('Đoạn đường', 'Segments')}</span>
-          </button>
-        </div>
-
         <div className="search-box">
           <UiIcon name="search" size={18}/>
           <input
@@ -100,6 +69,16 @@ export const ImpactView: React.FC<Props> = ({
             value={query}
             onChange={(e) => onChangeQuery(e.target.value)}
           />
+        </div>
+
+        <div className="filters impact-metrics" role="group" aria-label={t('Lọc đoạn đường', 'Filter road sections')}>
+          {([['all', t('Tất cả', 'All'), roads.length], ['blocked', t('Bị chặn', 'Blocked'), blockedCount], ['uncertain', t('Cần xác minh', 'To verify'), uncertainCount]] as const).map(([value, label, count]) => <button
+            key={value}
+            className="filter"
+            data-road-filter={value}
+            aria-pressed={tab === 'roads' && roadFilter === value}
+            onClick={() => { onChangeQuery(''); onChangeTab('roads'); onChangeRoadFilter(value !== 'all' && tab === 'roads' && roadFilter === value ? 'all' : value); }}
+          >{label}<span className="filter-count">{count}</span></button>)}
         </div>
 
         <div className="decision-tabs" role="group">
@@ -135,7 +114,7 @@ export const ImpactView: React.FC<Props> = ({
                   <span>
                     <strong>{t(road.name[0], road.name[1])}</strong>
                     <small>
-                      {road.len} km
+                      <i className={'road-swatch is-' + road.status} aria-hidden="true"/>{road.len} km
                     </small>
                   </span>
                   <StatusText tone={road.status === 'blocked' ? 'critical' : road.status === 'uncertain' ? 'warning' : 'neutral'} icon={road.status === 'blocked' ? 'blocked' : road.status === 'uncertain' ? 'uncertain' : undefined}>
@@ -175,13 +154,6 @@ export const ImpactView: React.FC<Props> = ({
           </div>
         )}
 
-        <button
-          className="button primary"
-          style={{ width: '100%', marginTop: '20px' }}
-          onClick={onNext}
-        >
-          {t('Xem địa bàn ưu tiên', 'Review community priorities')}
-        </button>
       </div>
     </>
   );

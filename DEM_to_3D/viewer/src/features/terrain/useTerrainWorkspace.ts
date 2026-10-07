@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { UploadMode } from '../../components/ModelUploadPanel';
-import { preparedPacket } from '../../data/cheTaoScenario';
+import type { IncidentPacket } from '../../data/incidentPacket';
 import type { ScenarioManifest } from '../../data/scenarioManifest';
 import { createGeographicPlacements } from '../../terrain/geographic';
 import { loadModelFiles, loadTerrain3D, releaseModels } from '../../terrain/modelRuntime';
@@ -11,7 +11,7 @@ type Props = { mapMode: '2d' | '3d'; on3DUnavailable: () => void };
 
 /** Owns dataset loading and model resources. It does not choose panels or map tools. */
 export function useTerrainWorkspace({ mapMode, on3DUnavailable }: Props) {
-  const [packet, setPacket] = useState(preparedPacket);
+  const [packet, setPacket] = useState<IncidentPacket | null>(null);
   const [manifest, setManifest] = useState<ScenarioManifest | null>(null);
   const [defaultTerrain, setDefaultTerrain] = useState<TerrainData | null>(null);
   const [snapshotReady, setSnapshotReady] = useState(false);
@@ -71,7 +71,7 @@ export function useTerrainWorkspace({ mapMode, on3DUnavailable }: Props) {
     void loadTerrain3D({
       glb: manifest.terrain.glb.url, metadata: manifest.terrain.metadata.url, grid: manifest.terrain.grid.url
     }, defaultTerrain, controller.signal).then(terrain => {
-      const model: LoadedModel = { id: 'che-tao-default', name: 'che_tao_v2_tex.glb', ...terrain, objectUrls: [] };
+      const model: LoadedModel = { id: manifest.datasetVersion, name: manifest.terrain.glb.url.split('/').pop()!, ...terrain, objectUrls: [] };
       if (controller.signal.aborted) releaseModels([model]);
       else replaceModels([model]);
     }).catch(() => { if (!controller.signal.aborted) on3DUnavailable(); })

@@ -1,4 +1,4 @@
-import type { BasemapState } from '../../terrain/regionalBasemap';
+import type { BasemapState } from '../../features/map/mapContracts';
 import type { Locale } from '../../types/dear';
 import { useRef, useState } from 'react';
 import { useDismissiblePopover } from '../../shared/hooks/useDismissiblePopover';

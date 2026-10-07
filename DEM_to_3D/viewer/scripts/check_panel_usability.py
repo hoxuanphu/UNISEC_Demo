@@ -1,5 +1,6 @@
 """Check panel spacing, access context, grouped markers and Vietnamese search."""
 import argparse
+import re
 from pathlib import Path
 from playwright.sync_api import expect, sync_playwright
 from check_workspace import check_symbols
@@ -88,7 +89,7 @@ def run(url, chrome, captures):
                 assert action['y'] + action['height'] <= panel_box['y'] + panel_box['height'], 'Primary action is below the initial viewport'
             expect(page.locator('.access-issues .road-constraint')).to_have_count(1)
             expect(page.locator('.access-issues')).to_contain_text('vượt khe')
-            expect(page.locator('.access-issues')).not_to_contain_text('đoạn sạt lở')
+            expect(page.locator('.access-issues')).not_to_contain_text(re.compile('đoạn sạt lở', re.I))
             expect(page.locator('.assessment-action')).to_contain_text('Kiểm tra điểm vượt khe')
             expect(page.locator('.constraint-observation')).to_contain_text('Chưa xác nhận xe bán tải')
             expect(page.locator('.constraint-source')).to_contain_text('Ghi nhận 08:58')
@@ -100,7 +101,7 @@ def run(url, chrome, captures):
             expect(page.locator('.decision-route .status-text')).to_have_text('Bị chặn')
             expect(page.locator('.assessment-action')).to_contain_text('Tuyến đang xem bị chặn')
             expect(page.locator('.route-travel-estimate')).to_have_count(0)
-            expect(page.locator('.access-issues')).to_contain_text('đoạn sạt lở')
+            expect(page.locator('.access-issues')).to_contain_text(re.compile('đoạn sạt lở', re.I))
             expect(page.locator('.access-issues')).not_to_contain_text('vượt khe')
             page.get_by_role('button', name='Xem tuyến khác', exact=True).click()
             expect(page.locator('.access-issues')).to_contain_text('vượt khe')

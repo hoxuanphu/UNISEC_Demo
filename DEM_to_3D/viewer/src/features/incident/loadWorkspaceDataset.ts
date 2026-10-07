@@ -15,9 +15,9 @@ export function validateWorkspaceManifest(manifest: ScenarioManifest, packet: In
 
 /** Commit a complete, validated packet/terrain pair to the UI in one operation. */
 export async function loadWorkspaceDataset(signal: AbortSignal, apiBase = '') {
-  const manifest = await loadScenarioManifest('/scenarios/che-tao/v0.2/manifest.json', signal);
-  if (!manifest.workspace) throw new Error('Incident packet is missing from the manifest');
   const configuration = await workspaceConfiguration(signal);
+  const manifest = await loadScenarioManifest(configuration.manifestUrl, signal);
+  if (!manifest.workspace) throw new Error('Incident packet is missing from the manifest');
   const repository = apiBase || configuration.dataSource === 'api'
     ? apiRepository(apiBase, manifest.incidentId)
     : preparedRepository(manifest.workspace);
