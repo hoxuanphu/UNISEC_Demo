@@ -6,6 +6,9 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 
 | Vấn đề | Thay đổi |
 |---|---|
+| Bộ lọc đường vượt khung ở mobile 320 px | Giảm đệm ngang mobile, cho xuống hàng khi không đủ chỗ. Kiểm tra cả ba font và hai theme |
+| Hàng đường trong báo cáo sát nền hover | Bỏ rule xóa đệm ngang trong hộp thoại. Giữ đệm 12 px, tiêu đề theo màu chữ chính khi hover. Kiểm tra trên bốn kích thước cửa sổ và hai theme |
+| Tông nền và đường phân cách tab/toolbar lệch nhau | Chung màu nền/viền. Hàng tìm kiếm desktop giữ cao 48 px cả khi map hẹp. Chữ phụ trên nền sáng tăng tương phản, placeholder theo theme. Chú giải không che toolbar khi cửa sổ thấp |
 | Chú giải thu gọn trải ngang, CSS rải nhiều nơi | Giữ bề mặt nhẹ như panel hiện tại. Bố trí hai cột trong khung tối đa 340 px, co lại khi map hẹp. Gom style chú giải vào một file, kiểm tra cả thu gọn/mở đầy đủ với tổng quan đang mở |
 | Nhãn đường cụt, thông tin và trạng thái lặp | Dùng “Chưa ghi nhận tắc đường” thống nhất. Tuyến duy nhất không lặp trạng thái. Ẩn mô tả trống, giữ yêu cầu kiểm tra. Giờ liên lạc nằm trong hàng thời gian. Không lặp nhận định đã có ở tiêu đề. Tắt lớp tình trạng thì chú giải chỉ ghi “Mạng đường” |
 | Hộp thoại và cài đặt khác đường nét với bộ công cụ | Góc 3 px cho điều khiển/cửa sổ nhỏ, 5 px cho hộp thoại. Chung màu thanh tiêu đề và viền. Font chuyển thành danh sách có dấu chọn, thêm nút đóng cài đặt |

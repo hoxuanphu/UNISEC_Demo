@@ -8,9 +8,9 @@
   gap: 2px;
   align-items: flex-end;
   padding: 8px 8px 0;
-  border-right: 1px solid var(--ws-line);
-  border-bottom: 1px solid var(--ws-line);
-  background: var(--ws-bg);
+  border-right: 1px solid var(--map-chrome-line);
+  border-bottom: 1px solid var(--map-chrome-line);
+  background: var(--map-chrome);
   border-radius: 0;
 }
 
@@ -43,7 +43,7 @@
 .workspace-nav button[aria-current="page"] {
   color: var(--select-ink);
   background: var(--ws-surface);
-  border-color: var(--ws-line);
+  border-color: var(--map-chrome-line);
   font-weight: 600;
 }
 .workspace-nav button[aria-current="page"]::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--ws-surface); }
@@ -69,7 +69,8 @@
 .evidence-metadata > div { display: grid; grid-template-columns: var(--meta-label) minmax(0, 1fr); gap: 12px; }
 .evidence-metadata dt { color: var(--ws-muted); }
 .evidence-metadata dd { margin: 0; line-height: 1.55; overflow-wrap: anywhere; }
-.evidence-road.object-row { display: grid; gap: 5px; padding: 12px 0; font-size: 13px; }
+/* Report rows inherit the list inset, including inside a dialog. */
+.evidence-road.object-row { display: grid; gap: 5px; font-size: 13px; }
 .evidence-road span { color: var(--ws-muted); }
 .incident-area-link { font-size: 12px; }
 .route-travel-estimate { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; margin-top: 10px; font-size: 14px; font-weight: 600; }
@@ -288,7 +289,7 @@
 .object-row:hover {
   background: var(--hover);
 }
-.object-row:hover strong { color: var(--select-ink); }
+.object-row:hover strong { color: var(--ws-text); }
 
 .object-row > span:first-child, .object-row > strong {
   margin-right: auto;
@@ -372,9 +373,6 @@
 }
 .decision-tabs button:hover { color: var(--ws-text); }
 
-/* Dialogs have no gutter to bleed into. */
-.modal-body .object-row { width: 100%; margin-inline: 0; padding-inline: 0; }
-.modal-body .object-row::after { left: 0; right: 0; }
 .priority-reason { margin-top: 8px; color: var(--ws-muted); font-size: 12px; line-height: 1.55; }
 
 .community-finding { padding: 16px 0; border-bottom: 1px solid var(--ws-line); }

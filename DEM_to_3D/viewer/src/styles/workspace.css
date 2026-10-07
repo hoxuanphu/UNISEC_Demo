@@ -27,6 +27,11 @@ button, input, textarea, select {
   font: inherit;
 }
 
+:is(.workspace, .modal-overlay, dialog) :is(input, textarea)::placeholder {
+  color: var(--ws-muted);
+  opacity: 1;
+}
+
 button {
   cursor: pointer;
   color: inherit;
@@ -243,6 +248,7 @@ h3 {
 
 .filters {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   margin-top: 12px;
 }
@@ -715,6 +721,7 @@ dialog.timeline-dialog::backdrop { background: rgba(12, 23, 35, .45); }
  .header-data { display: none; }
 }
 @media(max-width:900px) {
+ .filter { padding-inline: 8px; }
  .panel-resize-handle { display: none; }
  .toast { bottom: 72px; max-width: calc(100vw - 24px); }
  .notification-popover { position: fixed; top: 64px; right: 12px; width: min(320px, calc(100vw - 24px)); }

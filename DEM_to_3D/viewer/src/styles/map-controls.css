@@ -81,16 +81,16 @@
 }
 /* A resized panel can leave a narrow map even on a desktop viewport. */
 @container (max-width: 600px) {
-  .map-area > .map-toolbar { width: 100%; height: 44px; padding: 5px 8px; }
-  .map-area > .map-tools { top: 44px; width: 100%; height: 40px; padding: 3px 8px; justify-content: flex-end; }
-  .map-canvas { top: 84px; }
+  .map-area > .map-toolbar { width: 100%; height: var(--size-workspace-toolbar); padding: 7px 8px; }
+  .map-area > .map-tools { top: var(--size-workspace-toolbar); width: 100%; height: 40px; padding: 3px 8px; justify-content: flex-end; }
   .map-area .map-search { max-width: none; }
   .map-area .map-search-results { max-width: calc(100cqw - 64px); }
 }
 @media (min-width: 901px) {
   @container (max-width: 600px) {
-    .map-area :is(.layers-panel, .map-location-panel, .map-measure-panel, .basemap-status, .revision-notice) { top: 100px; }
-    .map-area :is(.layers-panel, .map-location-panel, .map-measure-panel) { max-height: min(calc(100% - 132px), var(--floating-panel-height, 100%)); }
+    .map-canvas { top: calc(var(--size-workspace-toolbar) + 40px); }
+    .map-area :is(.layers-panel, .map-location-panel, .map-measure-panel, .basemap-status, .revision-notice) { top: calc(var(--size-workspace-toolbar) + 56px); }
+    .map-area :is(.layers-panel, .map-location-panel, .map-measure-panel) { max-height: min(calc(100% - 136px), var(--floating-panel-height, 100%)); }
   }
 }
 @media (max-width: 900px) {

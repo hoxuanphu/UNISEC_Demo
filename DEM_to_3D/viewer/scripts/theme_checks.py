@@ -23,14 +23,18 @@ def check_themes(browser, url, captures=None):
                 c /= 255;
                 return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
               }).reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
-              const contrast = node => {
-                const bg = background(node), fg = blend(rgba(getComputedStyle(node).color), bg);
+              const contrast = (node, pseudo = null) => {
+                const bg = background(node), fg = blend(rgba(getComputedStyle(node, pseudo).color), bg);
                 const a = luminance(fg), b = luminance(bg);
                 return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
               };
-              const selector = '.sidebar h1, .sidebar h3, .sidebar dt, .sidebar dd, .sidebar p, .sidebar .status-text, .map-toolbar input, .map-layer-trigger, .layers-heading, .layers-panel, .map-source-popover dt, .map-source-popover dd, .map-source-status';
+              const selector = '.sidebar h1, .sidebar h3, .sidebar dt, .sidebar dd, .sidebar p, .sidebar .status-text, .workspace-nav button, .incident-badge-group strong, .incident-meta, .header-revision, .map-toolbar input, .map-layer-trigger, .layers-heading, .layers-panel, .map-source-popover dt, .map-source-popover dd, .map-source-status, .evidence-road strong, .evidence-road span';
+              const text = [...document.querySelectorAll(selector)].filter(node => node.getClientRects().length).map(node => ({text: node.textContent.trim().slice(0, 60), ratio: contrast(node)}));
+              document.querySelectorAll('.map-search input, .sidebar input').forEach(node => {
+                if (node.getClientRects().length && !node.value && node.placeholder) text.push({text: node.placeholder, ratio: contrast(node, '::placeholder')});
+              });
               return {
-                text: [...document.querySelectorAll(selector)].filter(node => node.getClientRects().length).map(node => ({text: node.textContent.trim().slice(0, 60), ratio: contrast(node)})),
+                text,
                 toolbar: luminance(background(document.querySelector('.map-toolbar'))),
                 window: luminance(background(document.querySelector('.layers-panel, .map-source-popover')))
               };
@@ -60,6 +64,11 @@ def check_themes(browser, url, captures=None):
             expect(report.locator('.finding-source dt')).to_have_text(['Ghi nhận', 'Tiếp nhận'])
             expect(report.locator('.finding-source time')).to_have_count(2)
             report.get_by_role('button', name='Xem báo cáo', exact=True).click()
+            expect(page.locator('.modal-dialog')).to_have_css('opacity', '1')
             expect(page.locator('.evidence-metadata dt')).to_have_text(['Báo cáo', 'Ghi nhận', 'Tiếp nhận'])
+            page.locator('.evidence-road').first.hover()
+            metrics = page.evaluate(metrics_reader)
+            assert not [item for item in metrics['text'] if item['ratio'] < 4.5], (theme, 'report row hover', metrics['text'])
+            if captures: page.screenshot(path=str(captures / f'workspace-report-hover-{theme}.png'), animations='disabled')
         finally:
             context.close()

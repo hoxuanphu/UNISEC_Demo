@@ -20,6 +20,10 @@ def check_workspace_layout(browser, url, captures=None):
         handle.focus()
         page.keyboard.press('End')
         page.wait_for_function("document.querySelector('.map-area').clientWidth === 480")
+        nav = page.locator('.workspace-nav').bounding_box()
+        toolbar = page.locator('.map-toolbar').bounding_box()
+        assert abs(nav['y'] + nav['height'] - toolbar['y'] - toolbar['height']) < 1, 'Desktop tabs and search toolbar have different baselines'
+        assert page.locator('.workspace-nav').evaluate('node => getComputedStyle(node).backgroundColor') == page.locator('.map-toolbar').evaluate('node => getComputedStyle(node).backgroundColor'), 'Workspace controls use different surface tones'
         search = page.get_by_role('combobox', name='Tìm trên bản đồ', exact=True)
         assert search.bounding_box()['width'] >= 160, 'Search was squeezed by the toolbars'
         for selector in ['.map-toolbar', '.map-tools']:
@@ -56,9 +60,19 @@ def check_workspace_layout(browser, url, captures=None):
             assert legend.bounding_box()['height'] <= 42
             legend.get_by_role('button', name='Chú giải', exact=True).click()
             legend.get_by_role('button', name='Chú giải', exact=True).click()
+        # A full legend must also leave the toolbars clear on a short window.
+        page.set_viewport_size({'width': 1024, 'height': 480})
+        legend.get_by_role('button', name='Chú giải', exact=True).click()
+        tools, box = page.locator('.map-tools').bounding_box(), legend.bounding_box()
+        assert box['y'] >= tools['y'] + tools['height'] + 8, ('Legend overlaps tools in short window', box, tools)
+        check_front(legend.get_by_role('button', name='Chú giải', exact=True))
+        legend.get_by_role('button', name='Chú giải', exact=True).click()
         # Header overlays stay above both toolbar rows in all supported views.
         for width in [1366, 1024, 390, 320]:
             page.set_viewport_size({'width': width, 'height': 768})
+            tools = page.locator('.map-tools').bounding_box()
+            canvas = page.locator('.map-canvas').bounding_box()
+            assert abs(tools['y'] + tools['height'] - canvas['y']) < 1, ('Gap below map tools', width, tools, canvas)
             for label, selector in [('Thông báo sự kiện', '.notification-popover'), ('Cài đặt hiển thị', '.settings-menu')]:
                 trigger = page.get_by_role('button', name=label, exact=True)
                 trigger.click()

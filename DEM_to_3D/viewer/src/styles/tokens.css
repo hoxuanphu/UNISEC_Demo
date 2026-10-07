@@ -174,7 +174,7 @@
   --header-bg: #18211d;
   --header-line: #3a4840;
   --header-ink: #e5ede7;
-  --header-muted: #a3b3a8;
+  --header-muted: var(--ws-muted);
   --header-hover: rgba(255, 255, 255, 0.07);
   --header-stroke: rgba(255, 255, 255, 0.12);
   --header-chip: rgba(255, 255, 255, 0.05);
@@ -238,7 +238,7 @@
   --ws-surface: #ffffff;
   --ws-raised: #ffffff;
   --ws-text: #25332e;
-  --ws-muted: #65736d;
+  --ws-muted: #616f69;
   --ws-line: #dfe5df;
   --ws-brand: #166553;
   --ws-tint: #edf5f1;
@@ -248,7 +248,7 @@
   --header-bg: #f0f1ec;
   --header-line: #cbd3cd;
   --header-ink: #25332e;
-  --header-muted: #65736d;
+  --header-muted: var(--ws-muted);
   --header-hover: rgba(25, 64, 45, 0.06);
   --header-stroke: #cbd3cd;
   --header-chip: rgba(25, 64, 45, 0.04);

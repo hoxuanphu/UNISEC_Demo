@@ -2,13 +2,14 @@
 .map-bottom-bar {
   --legend-width: 340px;
   --legend-available-width: calc(100% - 88px);
+  --legend-top-clearance: 80px;
   position: absolute;
   bottom: 52px;
   left: 16px;
   z-index: 10;
   width: max-content;
   max-width: min(var(--legend-width), var(--legend-available-width));
-  max-height: min(340px, calc(100% - 132px));
+  max-height: min(340px, calc(100% - 52px - var(--legend-top-clearance)));
   display: flex;
   flex-direction: column;
   padding: 5px 10px 8px;
@@ -47,12 +48,12 @@
 /* Leave room for the overview even when a desktop panel narrows the map. */
 @media (min-width: 901px) {
   @container (max-width: 600px) {
-    .map-bottom-bar { --legend-available-width: calc(100% - 168px); }
+    .map-bottom-bar { --legend-available-width: calc(100% - 168px); --legend-top-clearance: calc(var(--size-workspace-toolbar) + 72px); }
     .map-area:has(.map-overview[data-expanded="true"]) .map-bottom-bar { --legend-available-width: calc(100% - 224px); }
   }
 }
 @media (max-width: 900px) {
-  .map-bottom-bar { --legend-available-width: calc(100% - 24px); left: 12px; }
+  .map-bottom-bar { --legend-available-width: calc(100% - 24px); --legend-top-clearance: 116px; left: 12px; }
   .map-legend { font-size: 10px; gap: 6px 12px; }
   .map-area[data-profile="true"] .map-bottom-bar { bottom: calc(min(320px, 60%) + 16px); }
   .map-area[data-profile="true"] .map-bottom-bar[data-expanded="false"] .map-legend { display: none; }

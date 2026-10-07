@@ -13,6 +13,9 @@ def check_panel(page):
       if (panel.scrollWidth > panel.clientWidth + 1) errors.push('panel overflow');
       const body = panel.querySelector('.sidebar-scroll');
       if (body.scrollWidth > body.clientWidth + 1) errors.push('body overflow');
+      panel.querySelectorAll('.filters').forEach(filters => {
+        if (filters.scrollWidth > filters.clientWidth + 1) errors.push('filter controls overflow');
+      });
       panel.querySelectorAll('.workflow-section > p + button').forEach(button => {
         const gap = button.getBoundingClientRect().top - button.previousElementSibling.getBoundingClientRect().bottom;
         if (gap < 11) errors.push('copy touches action: ' + button.textContent);
@@ -132,6 +135,16 @@ def run(url, chrome, captures):
             check_panel(page)
             page.get_by_role('button', name='Xem báo cáo', exact=True).click()
             expect(page.locator('.evidence-metadata')).to_contain_text('03:55')
+            row = page.locator('.evidence-road').first
+            expect(row).to_be_visible()
+            row.hover()
+            spacing = row.evaluate("""row => {
+                const box = row.getBoundingClientRect(), title = row.querySelector('strong').getBoundingClientRect();
+                const detail = row.querySelector('span').getBoundingClientRect();
+                return {left: title.left - box.left, right: box.right - detail.right,
+                    top: title.top - box.top, bottom: box.bottom - detail.bottom};
+            }""")
+            assert min(spacing.values()) >= 11, ('Report road row has no text inset', spacing)
             page.keyboard.press('Escape')
             page.get_by_role('button', name='Đóng chi tiết đối tượng', exact=True).click()
             expect(road_query).to_have_value('khau mang')
