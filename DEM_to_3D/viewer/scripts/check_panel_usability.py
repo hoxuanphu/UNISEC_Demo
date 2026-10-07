@@ -6,6 +6,7 @@ from playwright.sync_api import expect, sync_playwright
 from check_workspace import check_symbols
 from theme_checks import check_themes
 from control_surface_checks import check_control_surfaces
+from incident_panel_checks import check_incident_layout
 
 
 def check_panel(page):
@@ -54,6 +55,10 @@ def run(url, chrome, captures):
             if width < 900:
                 page.get_by_role('button', name='Thông tin', exact=True).click()
             page.locator('.workspace-nav button').first.click()
+            page.evaluate('document.fonts.ready')
+            check_incident_layout(page)
+            if captures and width == 1366:
+                page.screenshot(path=str(captures / 'workspace-incident-vi.png'), animations='disabled')
             page.locator('.incident-area-link').click()
             check_panel(page)
             assert page.locator('.area-facts dd').first.bounding_box()['height'] < 40

@@ -61,7 +61,6 @@
 .assessment-action { display: grid; gap: 6px; margin: 20px 0 0; font-size: 13px; }
 .assessment-action span { color: var(--ws-muted); }
 .assessment-basis { display: grid; gap: 10px; margin-bottom: 20px; }
-.incident-all-communities { margin-top: 12px; }
 .assessment-method { display: grid; gap: 12px; margin: 12px 0; }
 .assessment-method dt { font-weight: 600; margin-bottom: 4px; }
 .assessment-method dd { margin: 0; color: var(--ws-muted); font-size: 13px; }
@@ -73,7 +72,6 @@
 /* Report rows inherit the list inset, including inside a dialog. */
 .evidence-road.object-row { display: grid; gap: 5px; font-size: 13px; }
 .evidence-road span { color: var(--ws-muted); }
-.incident-area-link { font-size: 12px; }
 .route-travel-estimate { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; margin-top: 10px; font-size: 14px; font-weight: 600; }
 .route-travel-estimate small { font-weight: 400; color: var(--ws-muted); font-size: 12px; }
 .route-estimate-basis { margin: 12px 0 16px; color: var(--ws-muted); font-size: 12px; line-height: 1.6; }
@@ -96,14 +94,6 @@
   top: 6px;
   right: 6px;
   border: 1px solid var(--ws-surface);
-}
-
-.incident-status {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
-  align-items: center;
 }
 
 .workflow-section {
@@ -182,23 +172,13 @@
 .assessment-action span { color: var(--ws-text); }
 
 .community-heading strong { font-weight: 600; }
-.incident-priority-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 16px; align-items: center; gap: 12px; width: calc(100% + 24px); margin-inline: -12px; padding: 14px 12px; border: 0; border-radius: var(--radius-control); background: transparent; text-align: left; }
-.incident-priority-row::before, .road-count-row::before { content: ''; grid-column: 2; grid-row: 1; justify-self: center; width: 6px; height: 6px; border: solid var(--ws-muted); border-width: 0 1.5px 1.5px 0; transform: rotate(-45deg); opacity: 0.7; }
-.incident-priority-row > span { grid-column: 1; grid-row: 1; }
-.incident-priority-row:hover { background: var(--hover); }
-
-.incident-priority-row:hover strong { color: var(--select-ink); }
-.incident-priority-row strong { display: block; font-size: 14px; }
 .priority-community-symbol { display: grid; place-items: center; width: 24px; height: 24px; color: var(--ws-brand); }
 .priority-access { display: block; margin-top: 5px; font-size: 12px; line-height: 1.55; color: var(--ws-text); }
-.incident-priority-row small { display: block; margin-top: 5px; font-size: 12px; line-height: 1.55; color: var(--ws-muted); }
-.incident-priority-row .priority-next-action { color: var(--ws-text); }
 .incident-community-action { width: 100%; margin-top: 12px; }
 .incident-data-summary dl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; }
 .incident-data-summary dt { font-size: 12px; color: var(--ws-muted); }
 .incident-data-summary dd { margin: 5px 0 0; font-size: 13px; }
 .incident-data-summary small { color: var(--ws-muted); font-size: 10px; }
-.incident-detail-actions { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 14px; }
 
 .event-timeline {
   list-style: none;
@@ -284,8 +264,8 @@
   font-size: 12px;
   transition: background 0.15s ease;
 }
-.object-row::after, .incident-priority-row::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; border-bottom: 1px solid var(--ws-line); }
-.object-row:last-child::after, .incident-priority-row:last-child::after { display: none; }
+.object-row::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; border-bottom: 1px solid var(--ws-line); }
+.object-row:last-child::after { display: none; }
 
 .object-row:hover {
   background: var(--hover);
@@ -518,24 +498,7 @@
 .notification-actions .button { font-size: 12px; }
 
 /* Event home: facts in the header, then two lists. */
-.incident-head .incident-status { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 16px; margin-top: 6px; color: var(--ws-muted); font-size: 12px; }
-.incident-timing { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0 0; }
-.incident-timing > div { display: grid; gap: 3px; }
-.incident-timing dt { color: var(--ws-muted); font-size: 12px; }
-.incident-timing dd { margin: 0; color: var(--ws-text); font-size: 14px; font-variant-numeric: tabular-nums; }
-.incident-head .incident-area-link { flex-basis: 100%; padding: 0; font-size: 13px; }
 .section-line .section-link { margin-left: auto; padding: 0; font-size: 12px; }
-.incident-priority-list { margin-top: -8px; }
-.incident-priority-row .priority-next-action { margin-top: 2px; color: var(--ws-muted); font-size: 13px; line-height: 1.5; }
-.road-count-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto 16px; align-items: center; gap: 12px; width: calc(100% + 24px); margin-inline: -12px; padding: 11px 12px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--ws-text); text-align: left; }
-.road-count-row::before { grid-column: 3; }
-.road-count-row > :first-child { grid-column: 1; grid-row: 1; font-size: 13px; }
-.road-count-row > span:last-child { grid-column: 2; grid-row: 1; font-size: 13px; font-variant-numeric: tabular-nums; }
-.road-count-row:hover { background: var(--hover); }
-.road-count-row + .road-count-row::after { content: ''; position: absolute; top: 0; left: 12px; right: 12px; border-top: 1px solid var(--ws-line); }
-.incident-road-summary h3 { margin-bottom: 4px; }
-.incident-detail-actions { margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--ws-line); }
-.incident-detail-actions .text-button { padding: 0; font-size: 13px; }
 
 /* Road list filters share the community filter style; the count reads as a quiet suffix. */
 .filter .filter-count { margin-left: 6px; color: var(--ws-muted); font-weight: 500; font-variant-numeric: tabular-nums; }

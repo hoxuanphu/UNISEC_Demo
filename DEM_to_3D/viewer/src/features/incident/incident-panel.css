@@ -1,0 +1,112 @@
+/* Incident summary: fixed event context, followed by two clearly bounded lists. */
+.sidebar-top.incident-head {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--ws-line);
+}
+
+.incident-head .incident-area-link {
+  display: block;
+  margin-top: 8px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.incident-timing {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--ws-line);
+}
+
+.incident-timing > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; }
+.incident-timing dt { color: var(--ws-muted); font-size: 12px; }
+.incident-timing dd { margin: 0; color: var(--ws-text); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+.incident-body .incident-section { margin: 0; }
+.incident-body .incident-section + .incident-section { border-top: 1px solid var(--ws-line); }
+
+.incident-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  margin-inline: -24px;
+  padding: 4px 24px;
+  border-bottom: 1px solid var(--ws-line);
+  background: var(--map-chrome);
+}
+
+.sidebar .incident-section-heading h3 { margin: 0; }
+.incident-section-heading .incident-all-communities {
+  flex: none;
+  min-height: 32px;
+  margin: 0 -8px 0 0;
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.incident-priority-row, .road-count-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% + 24px);
+  margin-inline: -12px;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--ws-text);
+  text-align: left;
+}
+
+.incident-priority-row::before, .road-count-row::before {
+  content: '';
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  width: 6px;
+  height: 6px;
+  border: solid var(--ws-muted);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(-45deg);
+  opacity: 0.7;
+}
+
+.incident-priority-row + .incident-priority-row::after,
+.road-count-row + .road-count-row::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  border-top: 1px solid var(--ws-line);
+}
+
+.incident-priority-row > span { grid-column: 1; grid-row: 1; min-width: 0; }
+.incident-priority-row strong { display: block; font-size: 14px; line-height: 1.5; }
+.incident-priority-row .priority-next-action { display: block; margin-top: 4px; color: var(--ws-muted); font-size: 13px; line-height: 1.5; }
+.incident-priority-row:hover, .road-count-row:hover { background: var(--hover); }
+.incident-priority-row:hover strong { color: var(--select-ink); }
+
+.road-count-row { grid-template-columns: minmax(0, 1fr) auto 16px; min-height: 44px; }
+.road-count-row::before { grid-column: 3; }
+.road-count-row > :first-child { grid-column: 1; grid-row: 1; font-size: 13px; }
+.road-count-row > span:last-child { grid-column: 2; grid-row: 1; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+.incident-detail-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ws-line);
+}
+
+.incident-detail-actions .text-button { min-height: 36px; padding: 4px 0; font-size: 12px; line-height: 1.5; }
+.incident-detail-actions .text-button + .text-button { padding-left: 12px; border-left: 1px solid var(--ws-line); border-radius: 0; }

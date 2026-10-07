@@ -1,6 +1,7 @@
 """Check English controls in both themes and all fonts, including narrow panels."""
 from playwright.sync_api import expect
 from itertools import product
+from incident_panel_checks import check_incident_layout
 
 
 def check_control_surfaces(browser, url, captures=None):
@@ -14,6 +15,7 @@ def check_control_surfaces(browser, url, captures=None):
             page.goto(url)
             expect(page.locator('.incident-priority-row').first).to_be_visible(timeout=25000)
             page.evaluate('document.fonts.ready')
+            check_incident_layout(page)
             page.get_by_role('button', name='Cài đặt hiển thị', exact=True).click()
             page.get_by_role('button', name='English', exact=True).click()
             page.keyboard.press('Escape')
@@ -22,6 +24,10 @@ def check_control_surfaces(browser, url, captures=None):
             page.wait_for_function("document.querySelector('.sidebar').clientWidth <= 320")
             for width in [1366, 1024, 390, 320]:
                 page.set_viewport_size({'width': width, 'height': 768})
+                page.locator('.workspace-nav button').first.click()
+                check_incident_layout(page)
+                if captures and width in [1366, 320]:
+                    page.screenshot(path=str(captures / f'workspace-incident-en-{theme}-{font}-{width}.png'), animations='disabled')
                 page.locator('.workspace-nav button').last.click()
                 problems = page.locator('.workspace-nav').evaluate("""nav => {
                     const errors = [], box = nav.getBoundingClientRect();

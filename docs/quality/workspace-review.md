@@ -6,6 +6,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 
 | Vấn đề | Thay đổi |
 |---|---|
+| Tổng quan sự kiện dàn trải, tiêu đề/nút lệch hàng | Bỏ margin trên nút Tất cả, rút nhãn và giữ tên truy cập đầy đủ. Tách hai nhóm bằng thanh tiêu đề cùng nền toolbar. Hai mốc giờ cùng dòng, lề nội dung 24 px, hàng đệm 12 px, tra cứu chia hai cột. Style chuyển về `incident-panel.css`. Kiểm tra căn hàng, ranh giới, khoảng đệm trên Việt/Anh, hai theme và ba bộ chữ |
 | Nút tiêu đề công cụ thành các ô trắng, tab tiếng Anh sát viền | Nút tiêu đề dùng nền trong suốt, cách nhau 4 px, chỉ đổi nền khi hover hoặc bật tùy chọn. Tab chia theo nội dung. Kiểm tra panel 320 px, bốn viewport, ba font và hai theme. Tách nền hàng kiểu đo khỏi thanh tab |
 | Bộ lọc đường vượt khung ở mobile 320 px | Giảm đệm ngang mobile, cho xuống hàng khi không đủ chỗ. Kiểm tra cả ba font và hai theme |
 | Hàng đường trong báo cáo sát nền hover | Bỏ rule xóa đệm ngang trong hộp thoại. Giữ đệm 12 px, tiêu đề theo màu chữ chính khi hover. Kiểm tra trên bốn kích thước cửa sổ và hai theme |
