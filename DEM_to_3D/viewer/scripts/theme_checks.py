@@ -28,7 +28,7 @@ def check_themes(browser, url, captures=None):
                 const a = luminance(fg), b = luminance(bg);
                 return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
               };
-              const selector = '.sidebar h1, .sidebar h3, .sidebar dt, .sidebar dd, .sidebar p, .sidebar .status-text, .workspace-nav button, .incident-badge-group strong, .incident-meta, .header-revision, .map-toolbar input, .map-layer-trigger, .layers-heading, .layers-panel, .map-source-popover dt, .map-source-popover dd, .map-source-status, .evidence-road strong, .evidence-road span';
+              const selector = '.sidebar h1, .sidebar h3, .sidebar dt, .sidebar dd, .sidebar p, .sidebar .status-text, .workspace-nav button, .incident-badge-group strong, .incident-meta, .header-revision, .map-toolbar input, .map-layer-trigger, .layers-heading, .layers-panel, .map-source-popover dt, .map-source-popover dd, .map-source-status, .evidence-road strong, .evidence-road span, .map-measure-heading strong, .map-measure-type span, .map-measure-type select, .measure-tabs button, .map-measure-result dt, .map-measure-result dd, .map-measure-hint';
               const text = [...document.querySelectorAll(selector)].filter(node => node.getClientRects().length).map(node => ({text: node.textContent.trim().slice(0, 60), ratio: contrast(node)}));
               document.querySelectorAll('.map-search input, .sidebar input').forEach(node => {
                 if (node.getClientRects().length && !node.value && node.placeholder) text.push({text: node.placeholder, ratio: contrast(node, '::placeholder')});
@@ -36,17 +36,20 @@ def check_themes(browser, url, captures=None):
               return {
                 text,
                 toolbar: luminance(background(document.querySelector('.map-toolbar'))),
-                window: luminance(background(document.querySelector('.layers-panel, .map-source-popover')))
+                window: luminance(background(document.querySelector('.layers-panel, .map-source-popover, .map-measure-panel')))
               };
             }"""
-            for popup in ['layers', 'sources']:
+            for popup in ['layers', 'sources', 'measurement']:
                 if popup == 'layers':
                     page.locator('.map-layer-trigger').click()
                     expect(page.locator('.layers-panel')).to_be_visible()
                     expect(page.locator('.layers-panel')).to_have_css('opacity', '1')
-                else:
+                elif popup == 'sources':
                     page.get_by_role('button', name='Nguồn bản đồ', exact=True).click()
                     expect(page.locator('.map-source-popover')).to_be_visible()
+                else:
+                    page.get_by_role('button', name='Đo trên bản đồ 2D', exact=True).click()
+                    expect(page.locator('.map-measure-panel')).to_have_css('opacity', '1')
                 metrics = page.evaluate(metrics_reader)
                 failures = [item for item in metrics['text'] if item['ratio'] < 4.5]
                 assert not failures, (theme, popup, failures)
@@ -56,8 +59,10 @@ def check_themes(browser, url, captures=None):
                     if captures:
                         page.screenshot(path=str(captures / f'workspace-theme-{theme}.png'))
                     page.locator('.layers-heading .icon-button').click()
-                else:
+                elif popup == 'sources':
                     page.get_by_role('button', name='Đóng nguồn bản đồ', exact=True).click()
+                else:
+                    page.get_by_role('button', name='Đóng công cụ đo', exact=True).click()
             page.locator('.incident-priority-row').first.click()
             page.locator('.decision-tabs button').nth(1).click()
             report = page.locator('.community-finding').filter(has_text='Đường chính vào Nậm Khắt')

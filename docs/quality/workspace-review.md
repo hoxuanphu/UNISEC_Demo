@@ -6,6 +6,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 
 | Vấn đề | Thay đổi |
 |---|---|
+| Nút tiêu đề công cụ thành các ô trắng, tab tiếng Anh sát viền | Nút tiêu đề dùng nền trong suốt, cách nhau 4 px, chỉ đổi nền khi hover hoặc bật tùy chọn. Tab chia theo nội dung. Kiểm tra panel 320 px, bốn viewport, ba font và hai theme. Tách nền hàng kiểu đo khỏi thanh tab |
 | Bộ lọc đường vượt khung ở mobile 320 px | Giảm đệm ngang mobile, cho xuống hàng khi không đủ chỗ. Kiểm tra cả ba font và hai theme |
 | Hàng đường trong báo cáo sát nền hover | Bỏ rule xóa đệm ngang trong hộp thoại. Giữ đệm 12 px, tiêu đề theo màu chữ chính khi hover. Kiểm tra trên bốn kích thước cửa sổ và hai theme |
 | Tông nền và đường phân cách tab/toolbar lệch nhau | Chung màu nền/viền. Hàng tìm kiếm desktop giữ cao 48 px cả khi map hẹp. Chữ phụ trên nền sáng tăng tương phản, placeholder theo theme. Chú giải không che toolbar khi cửa sổ thấp |

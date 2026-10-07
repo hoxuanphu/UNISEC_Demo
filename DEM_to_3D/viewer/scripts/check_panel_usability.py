@@ -5,6 +5,7 @@ from pathlib import Path
 from playwright.sync_api import expect, sync_playwright
 from check_workspace import check_symbols
 from theme_checks import check_themes
+from control_surface_checks import check_control_surfaces
 
 
 def check_panel(page):
@@ -276,6 +277,7 @@ def run(url, chrome, captures):
         check_panel(page)
         assert not errors, errors
         check_themes(browser, url, captures)
+        check_control_surfaces(browser, url, captures)
         browser.close()
         print('Panel usability passed: 4 viewport sizes, spacing, search, access context, sources, markers, report update, missing-route states and light/dark text contrast.')
 

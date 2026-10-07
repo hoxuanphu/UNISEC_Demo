@@ -15,12 +15,12 @@
 }
 
 .workspace-nav button {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-width: 0;
+  min-width: max-content;
   min-height: 34px;
   letter-spacing: 0.005em;
   height: 39px;
@@ -34,6 +34,7 @@
   font-weight: 500;
   transition: color 0.15s ease, background 0.15s ease;
   position: relative;
+  white-space: nowrap;
 }
 
 .workspace-nav button:hover {

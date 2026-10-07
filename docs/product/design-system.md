@@ -25,7 +25,7 @@ Giá trị dùng chung nằm trong [tokens.css](../../DEM_to_3D/viewer/src/style
 
 | Thành phần | Quy tắc |
 |---|---|
-| Tab | Nghiệp vụ và công cụ đo dùng tab gắn vào bề mặt nội dung. Tab trong chi tiết địa bàn dùng gạch chân. Mỗi loại giữ cùng một cách trình bày, không dùng badge làm tab |
+| Tab | Nghiệp vụ và công cụ đo dùng tab gắn vào bề mặt nội dung. Tab nghiệp vụ chia chiều rộng theo nội dung, chừa ít nhất 8 px hai bên icon/nhãn, kể cả tiếng Anh. Tab trong chi tiết địa bàn dùng gạch chân. Không dùng badge làm tab |
 | Điều khiển biểu mẫu | Checkbox, radio, select, thanh trượt và thanh cuộn dùng style chung trong `workspace.css`, giữ phần tử gốc để bàn phím và trình đọc màn hình hoạt động. Không để kiểu mặc định của trình duyệt |
 | Cài đặt | Hai lựa chọn dùng chung một khung, ngăn bằng đường mảnh. Font là danh sách có mẫu chữ và dấu chọn, không xếp nhiều thẻ. Focus nằm trong hàng, không bị khung cắt |
 | Hàng nhãn/giá trị | Metadata dùng nhãn 12 px và giá trị 13 px. Thông số tuyến dùng hai cột, nhãn trên và số bên dưới. Chỉ kẻ đường khi cần phân tách mục |
@@ -47,7 +47,7 @@ Giá trị dùng chung nằm trong [tokens.css](../../DEM_to_3D/viewer/src/style
 | Không gian bản đồ | Panel trái chỉnh độ rộng hoặc thu gọn, giữ lựa chọn. Chú giải có thể thu về một nút. Mở lớp/đo/tọa độ tạm ẩn chú giải |
 | Chú giải | Hai cột, khung tối đa 340 px và co theo vùng bản đồ. Giữ nền theo theme, viền mảnh, không thêm thanh tiêu đề màu riêng. Khung đầy đủ cuộn khi thiếu chiều cao, không chồng lên bản đồ tổng quan |
 | Bản đồ tổng quan | Công cụ phụ trên 2D desktop, thu gọn mặc định. Hiển thị khung nhìn thật, click hoặc dùng bàn phím để di chuyển. Tạm ẩn khi đo, xem tọa độ, lớp hoặc mặt cắt |
-| Cửa sổ công cụ | Header cố định, nội dung cuộn trong bảng. Không đổi vị trí khi nội dung tăng hoặc mở tùy chọn. Kéo tiêu đề trên desktop, phím mũi tên để dịch, Home/nhấp đúp để đặt lại. Giữ vị trí trong phiên; mobile dùng vị trí cố định |
+| Cửa sổ công cụ | Header cố định, nội dung cuộn trong bảng. Nút tiêu đề 28 px, nền trong suốt, cách nhau 4 px. Hover có nền nhẹ, tùy chọn đang mở có trạng thái chọn. Hàng chọn kiểu đo dùng nền nội dung, thanh tab dùng nền công cụ. Không đổi vị trí khi nội dung tăng. Kéo tiêu đề trên desktop, phím mũi tên để dịch, Home/nhấp đúp để đặt lại. Mobile dùng vị trí cố định |
 | Thông tin vị trí | Dùng chung trên 2D và 3D. Chọn điểm để đọc tọa độ, độ cao, đổi WGS84/hệ tọa độ dữ liệu và sao chép. Không mở lại bảng thông số kỹ thuật đầy màn hình |
 | Lưu đánh giá | Hành động phụ trong chi tiết địa bàn. Mở xem trước trước khi tải, không thêm trang báo cáo vào menu chính |
 | Hộp xem nhanh | Tiêu đề, giờ, đối tượng, ghi nhận tối đa hai dòng và hành động xem chi tiết. Có nút đóng và Escape. Popover header nằm trên toolbar và công cụ bản đồ, không khóa bản đồ |

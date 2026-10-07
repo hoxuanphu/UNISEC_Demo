@@ -50,9 +50,12 @@
 
 .map-area .map-north { right: 16px; top: 16px; border-radius: var(--radius-control); padding: 5px 2px 6px; font-size: 9px; font-weight: 500; box-shadow: var(--shadow-float); }
 .map-area :is(.layers-panel, .map-location-panel, .map-measure-panel) { border-radius: var(--radius-control); border-color: var(--map-chrome-line); box-shadow: var(--shadow-float); }
-.map-area :is(.layers-heading, .map-location-heading, .map-measure-heading) { min-height: 38px; padding: 5px 8px 5px 12px; border-bottom: 1px solid var(--map-chrome-line); background: var(--map-chrome); }
+.map-area :is(.layers-heading, .map-location-heading, .map-measure-heading) { min-height: 38px; padding: 5px 8px 5px 12px; gap: 4px; border-bottom: 1px solid var(--map-chrome-line); background: var(--map-chrome); }
 .map-area :is(.layers-heading h2, .map-location-heading strong, .map-measure-heading strong) { font-size: 12px; font-weight: 600; }
-.map-area :is(.layers-heading, .map-location-heading, .map-measure-heading) .icon-button { width: 28px; height: 28px; min-height: 28px; }
+.map-area :is(.layers-heading, .map-location-heading, .map-measure-heading) .icon-button { width: 28px; height: 28px; min-height: 28px; padding: 0; border: 1px solid transparent; background: transparent; color: var(--ws-muted); box-shadow: none; }
+.map-area :is(.layers-heading, .map-location-heading, .map-measure-heading) .icon-button:hover { color: var(--ws-text); background: var(--hover); }
+.map-area :is(.layers-heading, .map-location-heading, .map-measure-heading) .icon-button[aria-pressed="true"] { color: var(--select-ink); background: var(--ws-tint); border-color: var(--map-chrome-line); }
+.map-area .map-measure-heading .icon-button[aria-controls="measurement-options"][aria-expanded="true"] { color: var(--select-ink); background: var(--ws-tint); border-color: var(--map-chrome-line); }
 .map-area .layers-content { padding: 12px; }
 .map-area .layers-content legend { margin-bottom: 10px; font-size: 11px; font-weight: 600; color: var(--ws-text); }
 .map-area .basemap-choices { gap: 10px; }
@@ -64,13 +67,15 @@
 .map-area .layer-info-button { border-radius: var(--radius-control); }
 .map-area .layers-footer { padding: 8px 12px; background: var(--map-chrome); }
 .map-area .map-location-body { padding-top: 12px; }
-.map-area .map-measure-type { padding: 10px 12px; background: var(--map-chrome); }
-.map-area .measure-tabs { padding: 0 12px; gap: 0; background: var(--map-chrome); }
+.map-area .map-measure-type { padding: 12px; background: var(--ws-raised); }
+.map-area .measure-tabs { padding: 5px 12px 0; gap: 2px; border-top: 1px solid var(--ws-line); background: var(--map-chrome); }
 .map-area .measure-tabs button { padding: 7px 12px; border: 1px solid transparent; border-bottom: 0; border-radius: var(--radius-control) var(--radius-control) 0 0; }
-.map-area .measure-tabs button[aria-pressed="true"] { border-color: var(--map-chrome-line); background: var(--ws-raised); }
+.map-area .measure-tabs button[aria-pressed="true"] { border-color: var(--map-chrome-line); background: var(--ws-raised); font-weight: 600; }
 .map-area .measure-tabs button[aria-pressed="true"]::after { height: 1px; background: var(--ws-raised); }
 .map-area .measure-body { padding: 14px 12px; }
 .map-area .map-measure-actions { background: var(--map-chrome); }
+.map-area .map-measure-actions .icon-button { background: transparent; color: var(--ws-muted); }
+.map-area .map-measure-actions .icon-button:hover { background: var(--hover); color: var(--ws-text); }
 .map-area .map-measure-compact { padding: 10px 12px; }
 
 .map-area .map-source-popover, .map-area .map-object-chooser { border-radius: var(--radius-control); box-shadow: var(--shadow-float); }
