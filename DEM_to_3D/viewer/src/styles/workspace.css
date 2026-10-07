@@ -159,7 +159,7 @@ h3 {
   min-height: 30px;
   padding: 4px 7px;
   margin: -4px 0 10px -7px;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   color: var(--ws-muted);
   font-size: 12px;
 }
@@ -615,32 +615,37 @@ h3 {
   max-height: calc(100dvh - 64px);
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--ws-line);
-  border-radius: 14px;
+  border: 1px solid var(--map-chrome-line);
+  border-radius: var(--radius-dialog);
   box-shadow: var(--shadow-overlay);
   overflow: hidden;
 }
 
 .modal-head {
-  padding: 16px 20px;
+  min-height: 48px;
+  padding: 8px 12px 8px 20px;
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid var(--ws-line);
-  background: var(--ws-raised);
+  border-bottom: 1px solid var(--map-chrome-line);
+  background: var(--map-chrome);
   flex-shrink: 0;
 }
+
+.modal-head h2 { min-width: 0; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
 
 dialog.timeline-dialog { padding: 0; margin: auto; }
 dialog.timeline-dialog:not([open]) { display: none; }
 dialog.timeline-dialog::backdrop { background: rgba(12, 23, 35, .45); }
 
-.modal-head .icon-button { margin-left: auto; border-color: transparent; background: transparent; color: var(--ws-muted); }
+.modal-head .icon-button { width: 28px; height: 28px; min-height: 28px; margin-left: auto; border-color: transparent; background: transparent; color: var(--ws-muted); }
 .modal-head .icon-button:hover { background: var(--fill); color: var(--ws-text); }
 
 .modal-body {
   padding: 20px;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   font-size: 13px;
   line-height: 1.6;
 }
@@ -667,8 +672,8 @@ dialog.timeline-dialog::backdrop { background: rgba(12, 23, 35, .45); }
 .mobile-view-switch { display: none; }
 .model-settings { border-top: 1px solid var(--ws-line); padding-top: 12px; }
 .notification-anchor { position: relative; }
-.notification-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; width: min(336px, calc(100vw - 24px)); max-height: calc(100dvh - 88px); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--ws-line); border-radius: 5px; background: var(--glass-solid); color: var(--ws-text); box-shadow: var(--shadow-overlay); }
-.notification-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px 8px 16px; border-bottom: 1px solid var(--ws-line); }
+.notification-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; width: min(336px, calc(100vw - 24px)); max-height: calc(100dvh - 88px); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--map-chrome-line); border-radius: var(--radius-popover); background: var(--glass-solid); color: var(--ws-text); box-shadow: var(--shadow-overlay); }
+.notification-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px 8px 16px; border-bottom: 1px solid var(--map-chrome-line); background: var(--map-chrome); }
 .notification-heading h2 { font-size: 13px; }
 .notification-heading .icon-button { width: 28px; height: 28px; min-height: 28px; border: 0; background: transparent; }
 .notification-preview { padding: 14px 16px 16px; }
@@ -816,7 +821,7 @@ dialog.timeline-dialog::backdrop { background: rgba(12, 23, 35, .45); }
  .workspace[data-mobile="map"] .sidebar { display: none; }
  .workspace[data-mobile="info"] .map-area { visibility: hidden; pointer-events: none; }
  .mobile-view-switch { display: flex; align-items: center; gap: 8px; padding: 5px 12px; border-top: 1px solid var(--ws-line); background: var(--glass-solid); }
- .mobile-view-switch button { flex: 1; height: 42px; border: 0; border-radius: 8px; background: transparent; font-size: 13px; }
+ .mobile-view-switch button { flex: 1; height: 42px; border: 0; border-radius: var(--radius-control); background: transparent; font-size: 13px; }
  .mobile-view-switch button[aria-pressed="true"] { color: var(--select-ink); background: var(--select-soft); font-weight: 600; }
  .map-bottom-bar { left: 12px; bottom: 52px; max-width: calc(100% - 24px); padding: 6px 10px; }
  .map-legend { font-size: 10px; gap: 5px 10px; padding: 6px 0 2px; }
@@ -842,7 +847,7 @@ dialog.timeline-dialog::backdrop { background: rgba(12, 23, 35, .45); }
   width: 16px; height: 16px; margin: 0; border: 1.5px solid var(--control-border); background: var(--ws-surface);
   cursor: pointer; transition: background 0.12s ease, border-color 0.12s ease;
 }
-.workspace input[type="checkbox"], .modal-overlay input[type="checkbox"] { border-radius: 4px; }
+.workspace input[type="checkbox"], .modal-overlay input[type="checkbox"] { border-radius: var(--radius-control); }
 .workspace input[type="radio"], .modal-overlay input[type="radio"], dialog input[type="radio"] { border-radius: 50%; }
 :is(.workspace, .modal-overlay) input[type="checkbox"]:checked { border-color: var(--select); background: var(--select) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 8.2 2.6 2.6L12 5.4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px no-repeat; }
 [data-theme="dark"] :is(.sidebar, .modal-overlay) input[type="checkbox"]:checked { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 8.2 2.6 2.6L12 5.4' fill='none' stroke='%2313201e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
@@ -859,6 +864,10 @@ dialog.timeline-dialog::backdrop { background: rgba(12, 23, 35, .45); }
 }
 .workspace select:not([multiple]):hover, .modal-overlay select:not([multiple]):hover { border-color: var(--control-border); }
 .workspace select:not([multiple]):focus-visible, .modal-overlay select:not([multiple]):focus-visible { outline: 0; border-color: var(--select); box-shadow: 0 0 0 3px var(--select-soft); }
+
+.modal-dialog input[type="file"]::file-selector-button { margin-right: 12px; padding: 6px 10px; border: 1px solid var(--ws-line); border-radius: var(--radius-control); background: var(--ws-bg); color: var(--ws-text); font: inherit; cursor: pointer; }
+.modal-dialog input[type="file"]::file-selector-button:hover { background: var(--ws-tint); }
+[data-theme="dark"] .modal-dialog input[type="datetime-local"] { color-scheme: dark; }
 
 .workspace input[type="range"] { -webkit-appearance: none; appearance: none; height: 20px; background: transparent; cursor: pointer; }
 .workspace input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--ws-line); }

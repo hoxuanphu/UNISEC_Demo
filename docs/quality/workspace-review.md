@@ -6,6 +6,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 
 | Vấn đề | Thay đổi |
 |---|---|
+| Hộp thoại và cài đặt khác đường nét với bộ công cụ | Góc 3 px cho điều khiển/cửa sổ nhỏ, 5 px cho hộp thoại. Chung màu thanh tiêu đề và viền. Font chuyển thành danh sách có dấu chọn, thêm nút đóng cài đặt |
 | Thông báo bị toolbar che tiêu đề | Tách thứ tự hiển thị của workspace và header. Cửa sổ thông báo có nút đóng, giờ và tên không chèn nhau |
 | Panel rộng ép tìm kiếm, kết quả bị che | Toolbar chuyển hai hàng theo chiều rộng bản đồ. Kiểm tra vùng bấm thật của kết quả, nút và popup ở 1366/1024/390/320 px |
 | Chú giải đè bản đồ tổng quan, cửa sổ kéo lên toolbar | Chừa khoảng cho tổng quan khi bản đồ hẹp. Cửa sổ giữ vị trí và nằm dưới chiều cao toolbar thực tế |

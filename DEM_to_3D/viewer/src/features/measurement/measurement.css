@@ -60,7 +60,7 @@
 .map-measure-vertex span { width: 10px; height: 10px; background: var(--ws-surface); border: 2px solid #0c7560; border-radius: 50%; box-shadow: 0 1px 3px #102b3d30; }
 .map-measure-vertex.is-editable:hover span, .map-measure-vertex.is-editable:focus-visible span { width: 14px; height: 14px; }
 .map-measure-vertex.has-number span { width: 20px; height: 20px; font-size: 10px; line-height: 16px; text-align: center; color: var(--ws-text); }
-.leaflet-tooltip.map-measure-label { width: max-content; max-width: 160px; white-space: normal; border: 1px solid var(--ws-line); border-radius: 3px; background: var(--ws-raised); color: var(--ws-text); box-shadow: 0 1px 4px #102b3d20; padding: 4px 7px; font-size: 11px; font-variant-numeric: tabular-nums; pointer-events: none; }
+.leaflet-tooltip.map-measure-label { width: max-content; max-width: 160px; white-space: normal; border: 1px solid var(--ws-line); border-radius: var(--radius-control); background: var(--ws-raised); color: var(--ws-text); box-shadow: 0 1px 4px #102b3d20; padding: 4px 7px; font-size: 11px; font-variant-numeric: tabular-nums; pointer-events: none; }
 .map-2d.is-measuring .leaflet-container { cursor: grab; }
 .map-2d.is-measuring .leaflet-container[data-measure-drawing=true] { cursor: crosshair; }
 .map-2d.is-measuring .map-pin { pointer-events: none; }

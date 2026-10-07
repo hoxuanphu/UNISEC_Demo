@@ -2,12 +2,13 @@
 .decision-export-dialog .modal-body { padding: 16px; background: var(--ws-bg); }
 .decision-export-preview { display: block; width: 100%; height: auto; }
 .decision-export-loading { display: grid; place-items: center; gap: 16px; min-height: 240px; color: var(--ws-muted); }
-.decision-export-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--ws-line); }
+.decision-export-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; padding: 12px 20px; border-top: 1px solid var(--map-chrome-line); background: var(--map-chrome); }
 .decision-actions { display: grid; gap: 8px; margin-top: 20px; }
 .export-formats { position: relative; align-self: center; }
 .export-formats summary { cursor: pointer; color: var(--ws-brand); padding: 8px 12px; font-size: 13px; }
 .export-formats > div { position: absolute; bottom: calc(100% + 12px); right: 0; min-width: 180px; background: var(--glass-solid); border: 1px solid var(--map-control-line); box-shadow: var(--shadow-overlay); padding: 8px; display: grid; gap: 4px; z-index: 2; border-radius: var(--radius-popover); }
-.export-formats .text-button { text-align: left; padding: 10px 12px; white-space: nowrap; }
+.export-formats .text-button { text-align: left; padding: 8px 12px; white-space: nowrap; }
+.export-formats .text-button:hover { background: var(--ws-tint); text-decoration: none; }
 .decision-save { background: transparent; color: var(--ws-brand); border: 1px solid var(--ws-line); }
 .decision-save:hover { background: var(--ws-tint); }
 @media(max-width:600px) { .decision-export-actions .button { width: 100%; } }

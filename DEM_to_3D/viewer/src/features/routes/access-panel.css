@@ -5,7 +5,7 @@
   line-height: 1.55;
 }
 
-.decision-route { margin: 0 0 20px; padding: 12px; border: 1px solid var(--ws-line); border-radius: 3px; background: var(--ws-bg); }
+.decision-route { margin: 0 0 20px; padding: 12px; border: 1px solid var(--ws-line); border-radius: var(--radius-control); background: var(--ws-bg); }
 .access-route-label { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-bottom: 6px; color: var(--ws-muted); font-size: 12px; }
 .access-route-label .status-text { font-size: 12px; }
 .decision-route h2 { margin: 0; color: var(--ws-text); font-size: 17px; font-weight: 600; line-height: 1.4; }

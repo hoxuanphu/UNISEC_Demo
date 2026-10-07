@@ -12,7 +12,8 @@ Hiện hành, cập nhật 2026-10-07. Web React là bản triển khai chuẩn.
 | Màu | Mặc định tối: nền xanh than, panel xanh xám, nút chính xanh sáng. Chế độ sáng: panel trắng, header xám ấm, nút chính xanh đậm. Toolbar và cửa sổ công cụ theo cùng theme. Ưu tiên màu đồng, cần xác minh vàng đất, bị chặn màu đỏ. Dùng chữ và ký hiệu để phân biệt trạng thái |
 | Icon và nút | [Lucide](https://lucide.dev/guide/react), qua `shared/ui/UiIcon`: lưới 24 px, hiển thị 18 px, nét 1,75 px. Nút toolbar 32 px, nút công cụ mobile 36 px. Lớp xanh lá, đo nâu đất, tra vị trí xanh lam, điều hướng trung tính. Nút đóng 28–36 px, không viền. Có tên truy cập và focus rõ |
 | Khung GIS | Tab nghiệp vụ và toolbar cao 48 px khi bản đồ đủ rộng. Toolbar gắn vào khung, không bóng hoặc bo góc. Bản đồ rộng tối đa 600 px hoặc mobile dùng hai hàng công cụ cao 84 px. Canvas và cửa sổ công cụ ở bên dưới toolbar. Panel chính và bản đồ không bo góc |
-| Bề mặt nổi | Cửa sổ lớp/đo/vị trí có thanh tiêu đề theo màu toolbar, nội dung theo màu bề mặt của theme, viền mảnh, bo 3 px và bóng nhẹ. Chú giải cũng bo 3 px. Popover cài đặt bo 8 px |
+| Hình khối | Nút, ô nhập, menu và cửa sổ công cụ bo 3 px. Hộp thoại lớn bo 5 px. Dùng token chung, không đặt bán kính riêng cho từng component. Panel và canvas không bo. Radio và ký hiệu bản đồ giữ hình dạng theo chức năng |
+| Bề mặt nổi | Cửa sổ lớp/đo/vị trí, thông báo, cài đặt và hộp thoại dùng thanh tiêu đề theo màu toolbar, nội dung theo màu bề mặt của theme và viền mảnh. Bóng nhẹ cho công cụ, bóng rõ hơn cho hộp thoại |
 | Header | Cao 56 px. Mốc tổng hợp là ngày và giờ, mở lịch sử dữ liệu khi bấm. Không dùng chấm trực tiếp cho dữ liệu snapshot. Các nút dùng nền trong suốt, cùng kích thước |
 | Ảnh nền | Ảnh vệ tinh là bối cảnh, giảm bão hòa và độ sáng qua `--imagery-filter` để đường, điểm, nhãn nổi lên. Nền địa hình không lọc |
 | Nhãn và ký hiệu | Nhãn dùng viền mềm `--pin-label-halo`, không dùng bóng cứng nhiều hướng. Ký hiệu viền trắng mảnh, bóng nhẹ. Đối tượng đang chọn có vòng trắng và vòng xanh cùng màu tuyến chọn |
@@ -26,6 +27,7 @@ Giá trị dùng chung nằm trong [tokens.css](../../DEM_to_3D/viewer/src/style
 |---|---|
 | Tab | Nghiệp vụ và công cụ đo dùng tab gắn vào bề mặt nội dung. Tab trong chi tiết địa bàn dùng gạch chân. Mỗi loại giữ cùng một cách trình bày, không dùng badge làm tab |
 | Điều khiển biểu mẫu | Checkbox, radio, select, thanh trượt và thanh cuộn dùng style chung trong `workspace.css`, giữ phần tử gốc để bàn phím và trình đọc màn hình hoạt động. Không để kiểu mặc định của trình duyệt |
+| Cài đặt | Hai lựa chọn dùng chung một khung, ngăn bằng đường mảnh. Font là danh sách có mẫu chữ và dấu chọn, không xếp nhiều thẻ. Focus nằm trong hàng, không bị khung cắt |
 | Hàng nhãn/giá trị | Metadata dùng nhãn 12 px và giá trị 13 px. Thông số tuyến dùng hai cột, nhãn trên và số bên dưới. Chỉ kẻ đường khi cần phân tách mục |
 | Tiêu đề mục trong panel | `h3` là nhãn 12 px đậm, màu chữ chính. Tên trong danh sách 14 px. Không dùng chữ hoa toàn bộ |
 | Trạng thái | `StatusText`: chữ và ký hiệu nhỏ. Không chỉ dựa vào màu, không đóng hộp mọi trạng thái |
@@ -51,7 +53,7 @@ Giá trị dùng chung nằm trong [tokens.css](../../DEM_to_3D/viewer/src/style
 | Công cụ phụ | Độ rõ/lọc/nhãn trong Lớp bản đồ. Định dạng xuất phụ trong một menu. Không thêm trang hoặc card vào màn ứng phó |
 | Lịch sử dữ liệu | Mốc trên header mở diễn biến. Xem bản cũ có một thông báo gọn trên bản đồ và nút về bản mới. Không đổi trạng thái tin đã áp dụng |
 | So ảnh | Hộp thoại rộng, hai ảnh cùng bản đồ, ngày/nguồn rõ, pan/zoom đồng thời, thanh trượt hỗ trợ bàn phím |
-| Hộp thoại | Focus vào khi mở. Tab giữ bên trong, Escape đóng và trả focus về nút mở |
+| Hộp thoại | Thanh tiêu đề tối thiểu 48 px, chữ 14 px, nút đóng 28 px. Nội dung có lề 20 px và cuộn độc lập. Footer so ảnh/xuất đánh giá dùng cùng màu thanh tiêu đề. Focus vào khi mở, Tab giữ bên trong, Escape đóng và trả focus về nút mở |
 | Câu chữ | Theo [thuật ngữ](terminology.md): phân biệt báo cáo, phân tích ảnh, nguồn và kết quả tính tuyến. Tên cụ thể, trạng thái nhất quán, câu ngắn. Không dùng chấm phẩy để ghép nhiều ý, mũi tên trang trí hoặc dấu gạch dài để ngăn dữ kiện |
 | Giải thích kỹ thuật | Đặt trong tùy chọn hoặc nguồn nếu cần đối chiếu. Màn thao tác chỉ giữ dữ kiện, trạng thái và hướng dẫn cho bước hiện tại |
 | Ghi nhận tại địa bàn | Mỗi mục có chủ đề và một nhận định. Giờ quan sát và nhận tin có nhãn riêng. Tên báo cáo đầy đủ nằm trong cửa sổ báo cáo. Tách dữ liệu nền và thông tin thiếu khỏi ghi nhận, không gắn tin cầu vào địa bàn chưa xác định tuyến |

@@ -59,11 +59,20 @@ def check_workspace_layout(browser, url, captures=None):
                 if selector == '.notification-popover':
                     check_front(surface.locator('h2'))
                     expect(surface.get_by_role('button', name='Đóng thông báo', exact=True)).to_be_visible()
+                else:
+                    check_front(surface.locator('h2'))
+                    close = surface.get_by_role('button', name='Đóng cài đặt', exact=True)
+                    check_front(close)
                 box = surface.bounding_box()
                 assert box['x'] >= 0 and box['x'] + box['width'] <= width
                 assert box['y'] + box['height'] <= 768
                 page.keyboard.press('Escape')
                 expect(surface).to_have_count(0)
                 expect(trigger).to_be_focused()
+                if selector == '.settings-menu':
+                    trigger.click()
+                    surface.get_by_role('button', name='Đóng cài đặt', exact=True).click()
+                    expect(surface).to_have_count(0)
+                    expect(trigger).to_be_focused()
     finally:
         context.close()

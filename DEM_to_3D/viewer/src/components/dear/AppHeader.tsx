@@ -137,6 +137,10 @@ export const AppHeader: React.FC<Props> = ({
 
           {prefOpen && (
             <div className="settings-menu" aria-label={t('Tùy chọn hiển thị', 'Display options')}>
+              <div className="settings-heading">
+                <h2>{t('Cài đặt hiển thị', 'Display settings')}</h2>
+                <button className="icon-button" aria-label={t('Đóng cài đặt', 'Close settings')} onClick={() => { setPrefOpen(false); prefRef.current?.querySelector<HTMLButtonElement>('button')?.focus(); }}><UiIcon name="close" /></button>
+              </div>
               <div className="settings-group">
                 <strong className="settings-label">
                   {t('Giao diện', 'Appearance')}
@@ -194,14 +198,17 @@ export const AppHeader: React.FC<Props> = ({
                   <button className="font-option" aria-pressed={fontChoice === 'classic'} onClick={() => onChangeFontChoice('classic')}>
                     <span className="font-sample font-sample-classic" aria-hidden="true">Aa</span>
                     <span className="font-option-copy"><strong>Inter</strong></span>
+                    {fontChoice === 'classic' && <UiIcon name="check" />}
                   </button>
                   <button className="font-option" aria-pressed={fontChoice === 'plex'} onClick={() => onChangeFontChoice('plex')}>
                     <span className="font-sample font-sample-plex" aria-hidden="true">Aa</span>
                     <span className="font-option-copy"><strong>IBM Plex Sans</strong></span>
+                    {fontChoice === 'plex' && <UiIcon name="check" />}
                   </button>
                   <button className="font-option" aria-pressed={fontChoice === 'modern'} onClick={() => onChangeFontChoice('modern')}>
                     <span className="font-sample font-sample-modern" aria-hidden="true">Aa</span>
                     <span className="font-option-copy"><strong>Space Grotesk</strong><small>Be Vietnam Pro</small></span>
+                    {fontChoice === 'modern' && <UiIcon name="check" />}
                   </button>
                 </div>
               </div>
