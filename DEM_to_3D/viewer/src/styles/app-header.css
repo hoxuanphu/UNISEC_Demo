@@ -72,21 +72,20 @@
   margin-right: 8px;
 }
 
-/* Data time reads as a status pill; every other header control is a ghost button. */
+/* A revision timestamp is metadata, not an indication of live data. */
 .app-header .header-data .header-revision {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-height: 32px;
-  padding: 0 12px;
-  border: 1px solid var(--header-stroke);
-  border-radius: var(--radius-full);
-  background: var(--header-chip);
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
   color: var(--header-muted);
   font-size: 12px;
   text-decoration: none;
 }
-.app-header .header-data .header-revision::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--live); }
 .app-header .header-data .header-revision:hover { background: var(--header-hover); text-decoration: none; }
 .header-data strong { color: var(--header-ink); font-weight: 500; font-variant-numeric: tabular-nums; }
 .app-header :is(.header-actions, .notification-anchor, .settings-anchor) > :is(.button, .icon-button) { min-height: 36px; border: 1px solid transparent; border-radius: var(--radius-control); background: transparent; color: var(--header-ink); }

@@ -54,7 +54,7 @@ def run(url, chrome=None):
         expect(page.locator('[data-map-object="community:KM"]')).to_have_count(0)
         page.locator('.incident-priority-row').click()
         expect(page.locator('.sidebar h1')).to_have_text('Địa bàn kiểm thử')
-        expect(page.locator('.decision-overview dd')).to_have_text('Các tuyến đã biết đều bị chặn')
+        expect(page.locator('.decision-overview')).to_have_text('Các tuyến đã biết đều bị chặn')
         # Inspect a road and return to the original community without resetting it.
         page.locator('.sidebar').get_by_role('button', name='Xem đoạn cần kiểm tra', exact=True).click()
         expect(page.locator('.sidebar h1')).to_have_text('Đường vòng qua sườn núi, đoạn vượt khe')

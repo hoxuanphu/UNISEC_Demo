@@ -6,6 +6,7 @@ import { communityAccessText } from './accessAssessment';
 import { RouteOption } from './RouteOption';
 import { RoadConstraint } from './RoadConstraint';
 import { routeNextAction, selectAccessRoute } from './routeReview';
+import './access-panel.css';
 
 type Props = {
   locale: Locale; hazards: Hazard[]; evidence: IncidentEvidence[];
@@ -43,18 +44,21 @@ export function AccessPanel({ locale, hazards, evidence, candidate, direct, sele
     </StatusText>
   </button>);
   return <>
+    <p className="decision-overview">{t(...communityAccessText({ candidate, direct }))}</p>
+    {active && <section className="decision-route" aria-label={t('Tuyến đang xem', 'Selected route')}>
+      <div className="access-route-label"><span>{active.type === 'candidate' && !blocked ? t('Tuyến gợi ý', 'Suggested route') : t('Tuyến đang xem', 'Selected route')}</span><StatusText tone={blocked ? 'critical' : 'warning'}>{blocked ? t('Bị chặn', 'Blocked') : t('Cần xác minh', 'Verify access')}</StatusText></div>
+      <h2>{t(...active.name)}</h2>
+      <dl className="route-metrics">
+        <div><dt>{t('Quãng đường', 'Distance')}</dt><dd>{active.lengthKm} <small>km</small></dd><span>{t('Từ điểm tập kết', 'From staging point')}</span></div>
+        {active.eta && <div className="route-travel-estimate"><dt>{t('Thời gian dự kiến', 'Estimated time')}</dt><dd>{active.eta.minMinutes}–{active.eta.maxMinutes} <small>{t('phút', 'min')}</small></dd><span>{active.eta.mode === 'foot' ? t('Đi bộ, nếu thông tuyến', 'On foot, assuming passage') : t('Xe 4x4, nếu thông tuyến', '4WD, assuming passage')}</span></div>}
+      </dl>
+    </section>}
     <section className={'next-action ' + tone} aria-label={t('Việc cần làm', 'Next action')}>
       <div id="route-next-action" className={'assessment-action route-action ' + tone}>{active && <UiIcon name={blocked ? 'blocked' : 'uncertain'} size={18}/>}<span>{action}</span></div>
       <button className="button primary access-primary" aria-describedby="route-next-action" onClick={primaryAction}>
         {needsOtherRoute ? t('Xem tuyến khác', 'Review other route') : firstConstraint ? t('Xem đoạn cần kiểm tra', 'Inspect road constraint') : active ? t('Xem các đoạn đường', 'Review road sections') : t('Xem thông tin địa bàn', 'Review community findings')}
       </button>
     </section>
-    <dl className="access-facts">
-      <div className="decision-overview"><dt>{t('Tiếp cận', 'Access')}</dt><dd>{t(...communityAccessText({ candidate, direct }))}</dd></div>
-      {active && <div className="decision-route"><dt>{active.type === 'candidate' && !blocked ? t('Tuyến gợi ý', 'Suggested route') : t('Tuyến đang xem', 'Selected route')}</dt><dd><span>{t(...active.name)}</span><StatusText tone={blocked ? 'critical' : 'warning'}>{blocked ? t('Bị chặn', 'Blocked') : t('Cần xác minh', 'Verify access')}</StatusText></dd></div>}
-      {active && <div><dt>{t('Quãng đường', 'Distance')}</dt><dd>{active.lengthKm} km {t('từ điểm tập kết', 'from staging point')}</dd></div>}
-      {active?.eta && <div className="route-travel-estimate"><dt>{t('Thời gian', 'Travel time')}</dt><dd>{active.eta.minMinutes} {t('đến', 'to')} {active.eta.maxMinutes} {t('phút', 'min')}<small>{active.eta.mode === 'foot' ? t('Đi bộ, nếu thông tuyến', 'On foot, assuming passage') : t('Xe 4x4, nếu thông tuyến', '4WD, assuming passage')}</small></dd></div>}
-    </dl>
     {constraints.length > 0 && <section className="access-issues" aria-label={t('Đoạn ảnh hưởng tiếp cận', 'Access constraints')}>
       <h3>{t('Cần kiểm tra', 'To check')}</h3>{constraints.map(road => <RoadConstraint key={road.id} road={road} routeName={active ? t(...active.name) : undefined} hazard={hazards.find(item => item.id === road.hz)} record={evidence.find(item => item.hazardId === road.hz)} locale={locale} onInspect={() => inspect(road.id)}/>)}
     </section>}

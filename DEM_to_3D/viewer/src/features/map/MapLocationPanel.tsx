@@ -18,7 +18,7 @@ export function MapLocationPanel({ locale, point, onClose }: { locale: Locale; p
   }, [onClose]);
   const projected = format === 'projected' && point?.projected;
   const rows = point ? projected
-    ? [['X', projected.x.toFixed(1)], ['Y', projected.y.toFixed(1)]]
+    ? [[point.crs === 'EPSG:32648' ? 'E (m)' : 'X', projected.x.toFixed(1)], [point.crs === 'EPSG:32648' ? 'N (m)' : 'Y', projected.y.toFixed(1)]]
     : [[t('Vĩ độ', 'Latitude'), point.latitude.toFixed(6) + '°'], [t('Kinh độ', 'Longitude'), point.longitude.toFixed(6) + '°']] : [];
   const copy = async () => {
     if (!point) return;

@@ -87,6 +87,8 @@ def run(url, chrome, captures):
                 action = page.locator('.access-primary').bounding_box()
                 panel_box = page.locator('.sidebar').bounding_box()
                 assert action['y'] + action['height'] <= panel_box['y'] + panel_box['height'], 'Primary action is below the initial viewport'
+                route = page.locator('.decision-route').bounding_box()
+                assert route['y'] + route['height'] <= action['y'], 'Route context must appear before its action'
             expect(page.locator('.access-issues .road-constraint')).to_have_count(1)
             expect(page.locator('.access-issues')).to_contain_text('vượt khe')
             expect(page.locator('.access-issues')).not_to_contain_text(re.compile('đoạn sạt lở', re.I))
@@ -203,11 +205,11 @@ def run(url, chrome, captures):
         if captures: page.screenshot(path=str(captures / 'workspace-image-analysis-metadata.png'))
         page.keyboard.press('Escape')
         page.locator('.workspace-nav button').first.click()
-        expect(page.locator('.incident-priority-row').first).to_contain_text('Kiểm tra điểm vượt khe trước khi sử dụng tuyến')
+        expect(page.locator('.incident-priority-row').first).to_contain_text('Có đường bị chặn và mất liên lạc với địa bàn')
         page.get_by_role('button', name='Thông báo sự kiện', exact=True).click()
         page.get_by_role('button', name='Xem chi tiết', exact=True).click()
         page.get_by_role('button', name='Cập nhật bản đồ', exact=True).click()
-        expect(page.locator('.incident-priority-row').first).to_contain_text('Xác minh phương án tiếp cận khác')
+        expect(page.locator('.incident-priority-row').first).to_contain_text('Có đường bị chặn và mất liên lạc với địa bàn')
         page.locator('.incident-priority-row').first.click()
         expect(page.locator('.decision-overview')).to_contain_text('Các tuyến đã biết đều bị chặn')
         expect(page.locator('.route-travel-estimate')).to_have_count(0)

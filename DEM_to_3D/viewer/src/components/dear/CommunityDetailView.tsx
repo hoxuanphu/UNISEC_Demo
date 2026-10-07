@@ -103,7 +103,7 @@ export const CommunityDetailView: React.FC<Props> = ({
               <dl className="fact-rows">
                 <div><dt>{assessment.priority === 1 ? t('Lý do ưu tiên', 'Priority basis') : t('Lý do theo dõi', 'Monitoring basis')}</dt><dd>{t(...assessment.reason)}</dd></div>
                 <div><dt>{t('Dân số tham chiếu', 'Baseline population')}</dt><dd>{community.pop} {t('người', 'residents')}, {community.hh} {t('hộ', 'households')}</dd></div>
-                <div><dt>{t('Độ cao', 'Elevation')}</dt><dd>{terrainCovered === false ? t('Ngoài phạm vi DEM', 'Outside DEM coverage') : terrainCovered === true ? t('Có dữ liệu DEM', 'DEM available') : t('Chưa đánh giá', 'Not assessed')}</dd></div>
+                <div><dt>{t('Dữ liệu địa hình', 'Terrain coverage')}</dt><dd>{terrainCovered === false ? t('Ngoài phạm vi DEM', 'Outside DEM coverage') : terrainCovered === true ? t('Có dữ liệu DEM', 'DEM available') : t('Chưa đánh giá', 'Not assessed')}</dd></div>
                 {activeRoute?.eta && <div><dt>{t('Ước tính thời gian', 'Travel estimate')}</dt><dd>{activeRoute.eta.mode === 'foot' ? t('Đi bộ', 'On foot') : t('Xe 4x4', '4WD')}. {t('Giả định đi qua được. Chưa tính thời gian kiểm tra và dọn đường.', 'Assumes passage. Inspection and road clearance are excluded.')}</dd></div>}
               </dl>
               <button className="text-button" onClick={onOpenSources}>{t('Phương pháp và nguồn dữ liệu', 'Method and data sources')}</button>

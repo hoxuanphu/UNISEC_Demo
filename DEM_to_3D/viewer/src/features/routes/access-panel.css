@@ -1,0 +1,55 @@
+.decision-overview {
+  margin: 0 0 20px;
+  color: var(--ws-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.decision-route { margin: 0 0 20px; }
+.access-route-label { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-bottom: 6px; color: var(--ws-muted); font-size: 12px; }
+.access-route-label .status-text { font-size: 12px; }
+.decision-route h2 { margin: 0; color: var(--ws-text); font-size: 17px; font-weight: 600; line-height: 1.4; }
+.route-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0 0; }
+.route-metrics > div { display: grid; align-content: start; gap: 4px; margin: 0; }
+.route-metrics dt, .route-metrics > div > span { color: var(--ws-muted); font-size: 12px; font-weight: 400; line-height: 1.45; }
+.route-metrics dd { margin: 0; color: var(--ws-text); font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.4; }
+.route-metrics dd small { font-size: 12px; font-weight: 400; }
+
+.next-action { display: grid; gap: 12px; padding-bottom: 20px; }
+.next-action .route-action { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 0; border: 0; background: none; }
+.next-action .route-action svg { flex: none; margin-top: 2px; color: var(--ws-muted); }
+.next-action.is-uncertain .route-action svg { color: var(--warning); }
+.next-action.is-blocked .route-action svg { color: var(--critical); }
+.next-action .route-action span { color: var(--ws-text); font-size: 13px; font-weight: 400; line-height: 1.55; }
+.next-action .access-primary { width: 100%; justify-content: center; margin: 0; min-height: 38px; }
+
+.access-issues { padding-top: 20px; border-top: 1px solid var(--ws-line); }
+.access-issues h3 { margin: 0 0 2px; font-size: 13px; font-weight: 600; }
+.road-constraint { position: relative; display: grid; grid-template-columns: 26px minmax(0, 1fr); column-gap: 10px; row-gap: 5px; align-items: start; width: calc(100% + 24px); margin-inline: -12px; padding: 14px 12px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--ws-text); text-align: left; }
+.road-constraint:hover { background: var(--hover); }
+.road-constraint + .road-constraint::before { content: ''; position: absolute; top: 0; left: 48px; right: 12px; border-top: 1px solid var(--ws-line); }
+.road-constraint > :not(.constraint-symbol) { grid-column: 2; }
+.constraint-symbol { grid-column: 1; grid-row: 1 / span 3; display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--warning); border-radius: 50%; color: var(--warning-ink); background: var(--ws-surface); }
+.road-constraint.is-blocked .constraint-symbol { border-color: var(--critical); background: var(--critical); color: #fff; }
+.constraint-title { display: flex; flex-wrap: wrap; align-items: start; gap: 4px 10px; }
+.constraint-title strong { flex: 1 1 180px; min-width: 0; font-size: 13px; font-weight: 600; line-height: 1.5; }
+.constraint-title .status-text { font-size: 12px; }
+.constraint-observation { color: var(--ws-text); font-size: 13px; line-height: 1.55; }
+.constraint-source { color: var(--ws-muted); font-size: 11px; line-height: 1.5; }
+
+.access-supplementary { margin-top: 8px; border-block: 1px solid var(--ws-line); }
+.access-disclosure { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 42px; padding: 10px 0; border: 0; background: transparent; color: var(--ws-muted); text-align: left; font-size: 12px; }
+.access-disclosure svg { flex: none; }
+.access-disclosure:hover { color: var(--select-ink); }
+.access-tools { flex-wrap: wrap; }
+.access-tools .button { flex: 1; min-width: 0; gap: 6px; justify-content: center; font-size: 12px; }
+.route-options { display: grid; gap: 2px; margin: 0 0 8px; }
+.route-card { width: 100%; display: grid; gap: 6px; padding: 12px; border: 0; border-radius: var(--radius-control); background: transparent; text-align: left; }
+.route-card:hover { background: var(--hover); }
+.route-card[aria-pressed="true"] { background: var(--ws-tint); }
+.route-card strong { font-size: 13px; font-weight: 600; line-height: 1.5; }
+.route-option-heading { display: flex; align-items: flex-start; gap: 10px; }
+.route-option-selector { display: inline-grid; place-items: center; width: 16px; height: 16px; flex: none; margin-top: 2px; border: 1px solid var(--control-border); border-radius: 50%; }
+.route-card[aria-pressed="true"] .route-option-selector { border-color: var(--select); background: var(--select); color: var(--on-primary); }
+.route-option-meta { display: grid; gap: 2px; margin-left: 26px; font-size: 12px; color: var(--ws-muted); font-variant-numeric: tabular-nums; }
+.route-card .route-bottom { margin: 0 0 0 26px; }

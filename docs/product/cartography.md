@@ -1,6 +1,6 @@
 # Hiển thị bản đồ
 
-Cập nhật: 2026-10-05. Quy tắc cho bản đồ ứng phó DEAR, đối chiếu proposal trang 2–3.
+Cập nhật: 2026-10-07. Quy tắc cho bản đồ ứng phó DEAR, đối chiếu proposal trang 2–3.
 
 ## Ký hiệu và tỷ lệ
 
@@ -10,8 +10,8 @@ Cập nhật: 2026-10-05. Quy tắc cho bản đồ ứng phó DEAR, đối chi�
 | Đường chưa rõ | Vàng, nét đứt | Cần kiểm tra khả năng đi qua |
 | Chưa ghi nhận chặn | Nét trung tính | Không suy ra là đường đi được |
 | Tuyến đang xem | Xanh dương | Đoạn bị chặn/chưa rõ vẫn giữ màu cảnh báo, viền trung tính |
-| Cộng đồng | Mái nhà màu xanh | Có tọa độ địa bàn |
-| Cộng đồng ưu tiên | Mái nhà màu nâu vàng | Mức ưu tiên, không phải kết luận cô lập |
+| Cộng đồng | Nhóm người màu xanh | Có tọa độ địa bàn |
+| Cộng đồng ưu tiên | Nhóm người màu nâu vàng | Mức ưu tiên, không phải kết luận cô lập |
 | Sạt lở được báo | Núi/đá màu đỏ | Báo cáo hiện trường có thời điểm |
 | Nghi sạt lở | Núi/đá viền đỏ nét đứt | Nhận định chưa kiểm chứng |
 | Cầu, điểm vượt khe, điểm tập kết | Ký hiệu riêng | Không dùng cùng dấu chấm than cho mọi loại điểm |
@@ -41,7 +41,7 @@ Chọn đường tách khỏi độ dày nét vẽ: vùng bấm 2D rộng 16 px 
 | Bóng địa hình | Nhẹ trên ảnh vệ tinh để giữ màu và chi tiết ảnh. Lớp địa hình vẫn có bóng riêng |
 | Texture 3D | Anisotropic filtering tối đa 8× trong khả năng GPU, giảm mờ ở góc nhìn nghiêng |
 | Giới hạn độ nét | Cải thiện render không bổ sung chi tiết mới. Muốn đọc vật thể nhỏ cần ảnh nguồn độ phân giải cao hơn, có nguồn và quyền sử dụng phù hợp |
-| Tổng quan 2D | Khung 184 × 150 px ở dưới phải, thu gọn mặc định. Dùng lại raster cục bộ, không tải thêm tile. Ranh AOI nét đứt, khung nhìn chính nét liền |
+| Tổng quan 2D | Khung 176 × 142 px ở dưới phải, thu gọn mặc định. Dùng lại raster cục bộ, không tải thêm tile. Ranh AOI nét đứt, khung nhìn chính nét liền |
 | Điều hướng | Khung nhìn đổi theo pan/zoom. Click tổng quan chuyển tâm bản đồ chính, giữ mức zoom. Phím mũi tên dịch tâm, Enter về tâm vùng tổng quan |
 | Không gian | Nhãn/marker tránh khung tổng quan. Ẩn trên mobile, cửa sổ thấp hoặc khi mở công cụ. Chưa hiển thị footprint camera 3D |
 

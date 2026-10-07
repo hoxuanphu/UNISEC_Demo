@@ -9,7 +9,7 @@ Dùng bộ dữ liệu mô phỏng Chế Tạo. Mở đầu nói rõ phạm vi n
 | 00:00–00:40 | Sự kiện, mở vùng đánh giá nếu cần | Mưa kích hoạt đánh giá sạt lở. AOI khác phạm vi DEM. Dữ liệu đến 09:31 |
 | 00:40–01:30 | Chọn **Nậm Khắt** trong danh sách ưu tiên | Ưu tiên cao do báo cáo chặn đường và mất liên lạc. Việc tiếp theo là kiểm tra phương án tiếp cận |
 | 01:30–02:30 | **Tiếp cận → So sánh tuyến**, chọn đường chính và đường vòng | Đường chính bị chặn. Đường vòng cần xác minh điểm vượt khe. Thời gian là ước tính với giả định đi qua được |
-| 02:30–03:20 | Chọn đoạn vượt khe, mở **Xem bản ghi** | Phân biệt quan sát, nhận tin, ảnh hưởng và điều chưa xác minh. X đóng về đúng ngữ cảnh |
+| 02:30–03:20 | Chọn đoạn vượt khe, mở **Xem báo cáo** | Phân biệt quan sát, nhận tin, ảnh hưởng và điều chưa xác minh. X đóng về đúng ngữ cảnh |
 | 03:20–04:15 | Chuông, **Xem chi tiết**, **Cập nhật bản đồ** | Đọc tin không đổi bản đồ. Áp dụng tin 09:45 tính lại tuyến và đánh giá. Hai tuyến đã biết có đoạn bị chặn, ETA bị bỏ |
 | 04:15–05:10 | Mặt cắt, thử 3D khi cần | Đọc độ cao và vị trí tương ứng trên bản đồ. Độ dốc DEM không phải độ dốc mặt đường đã khảo sát |
 | 05:10–06:00 | **Lưu đánh giá**, xem trước và tải PNG/JSON | Bản xuất giữ tuyến đang chọn, trạng thái sau tin 09:45 và căn cứ. Tuyến bị chặn không có ETA |

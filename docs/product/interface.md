@@ -1,6 +1,6 @@
 # Thiết kế giao diện
 
-Cập nhật: 2026-10-05. Áp dụng cho web React tại `DEM_to_3D/viewer`.
+Cập nhật: 2026-10-07. Áp dụng cho web React tại `DEM_to_3D/viewer`.
 
 ## Luồng ứng phó
 
@@ -31,7 +31,7 @@ Hướng dẫn dân tới nơi an toàn cần nơi trú được xác nhận và
 | Vị trí | Thông tin chính | Mở khi cần |
 |---|---|---|
 | Sự kiện | Sự kiện, giờ kích hoạt, dữ liệu đến, địa bàn ưu tiên, số đoạn bị chặn/chưa rõ | Diễn biến phân tích, nguồn dữ liệu |
-| Chi tiết địa bàn | Lý do ưu tiên, tình trạng các tuyến đã biết, tuyến đang chọn và việc cần xử lý | So tuyến, căn cứ cụ thể, dân số tham chiếu |
+| Chi tiết địa bàn | Tình trạng tiếp cận, tên/trạng thái tuyến, khoảng cách/ETA có điều kiện, việc cần kiểm tra | So tuyến, lý do ưu tiên và nguồn trong Căn cứ, dân số tham chiếu |
 | Tuyến | Danh sách so sánh phương án, khoảng cách, ETA có điều kiện, tình trạng từng đoạn | Địa hình dọc tuyến, nguồn của đoạn đường |
 | Đường sá | Tên, trạng thái, chiều dài. Đoạn bị chặn xếp trước | Ghi nhận, việc cần xử lý, bản ghi nguồn |
 | Bản đồ | AOI, nền, mạng đường, tình trạng đường, điểm ảnh hưởng, địa bàn, điểm tập kết | Thanh tìm/lớp/đo trên trái, chú giải dưới trái, nguồn sau nút thông tin |

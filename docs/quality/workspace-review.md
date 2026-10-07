@@ -10,7 +10,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Panel vùng đánh giá dài và chung chung | Giữ diện tích, số thôn/bản, mở danh sách. Nguồn ranh giới thu gọn |
 | Lẫn tiếp cận chung với tuyến đang chọn | Chung một cách tổng hợp tại sự kiện, danh sách và chi tiết. Tuyến chọn có trạng thái riêng |
 | Mô tả cũ sau tin mới | Danh sách địa bàn dùng trạng thái tuyến của snapshot đang xem |
-| Không rõ căn cứ ưu tiên | Tab Căn cứ ghi lý do cụ thể, tiếp cận và đường dẫn phương pháp/nguồn |
+| Không rõ căn cứ ưu tiên | Danh sách sự kiện ghi lý do ưu tiên. Tiếp cận giữ tuyến và việc cần làm; Căn cứ chứa báo cáo và phương pháp |
 | Mất tên địa bàn ưu tiên khi gom điểm | Giữ tên/ký hiệu địa bàn và dấu nhóm. Không gọi điểm gần nhau là cùng vị trí |
 | Số tổng đường không khớp danh sách do giữ từ khóa cũ | Chọn số tổng sẽ xóa tìm kiếm và mở đúng nhóm đường. Không đánh dấu bộ lọc đường khi đang xem điểm ảnh hưởng |
 | Tìm không dấu không nhất quán | Tìm đường/địa bàn trong panel và bản đồ dùng cùng phép chuẩn hóa |
@@ -19,7 +19,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Khó biết cần kiểm tra đoạn nào | Tiếp cận chỉ liệt kê đoạn cản trở trên tuyến đang xem. So tuyến và toàn bộ các đoạn mở khi cần |
 | Dữ kiện và nguồn dính thành nhiều câu | Ghi nhận có chủ đề, nguồn và thời gian riêng. Tách thiếu dữ liệu khỏi báo cáo. Bỏ liên hệ cầu với địa bàn chưa xác định tuyến |
 | Lẫn báo cáo hiện trường, nguồn và kết quả tính toán | Chung nhãn theo loại báo cáo/phân tích. Tách thu nhận ảnh, ghi nhận và tiếp nhận. Không gọi tên báo cáo hoặc mã phiên bản là đơn vị cung cấp. Kết quả tính tuyến có phần riêng. Quy ước ở [thuật ngữ](../product/terminology.md) |
-| Cảnh báo và bước xử lý còn chung chung | Hướng dẫn theo tuyến chọn, nêu cầu/điểm vượt khe. Tuyến bị chặn không được gọi là gợi ý, không có ETA. Nút xử lý đặt trước phần hỗ trợ |
+| Cảnh báo và bước xử lý còn chung chung | Tên/trạng thái tuyến, khoảng cách và ETA đứng trước nút kiểm tra. Chỉ dẫn nêu cầu/điểm vượt khe. Tuyến bị chặn không được gọi là gợi ý, không có ETA |
 | Lý do không khớp tuyến bị chặn khi thiếu báo cáo ảnh hưởng | Đọc trạng thái tuyến độc lập với bản ghi hazard. Giữ mất liên lạc trong căn cứ ưu tiên khi đường còn chưa rõ |
 | CI đọc ảnh trước khi tải xong | Chờ ảnh giải mã thành công có timeout. Kiểm tra với request ảnh bị giữ lại, rồi cho tải tiếp. Chờ HTTP sẵn sàng trước khi chạy browser |
 | Ký hiệu còn nhận tương tác khi vừa bật đo/tọa độ | Khóa trước khi vẽ khung hình và trước khi gắn lớp mới vào DOM. Kiểm tra đổi chế độ, tạo lại lớp và mở khóa khi đóng công cụ |
@@ -28,7 +28,8 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Mục mở rộng và hàng lớp bị lệch | Chevron nét mảnh ở cuối hàng. Căn giữa checkbox, tên lớp và nút nguồn |
 | Không chọn được kiểu đo khi chỉnh sửa | Bỏ khóa bộ chọn. Đổi kiểu giữ kết quả hợp lệ trước khi bắt đầu phép đo mới. Kiểm tra bằng click thật và bàn phím |
 | Hàng địa bàn sát nền hover/chọn | Khoảng đệm 12/16 px, giữ nguyên vị trí chữ khi chọn. Tên và trạng thái xuống hàng khi thiếu chiều rộng |
-| Bề mặt và điều khiển chưa đồng bộ | Nền đặc, viền mảnh, giảm bóng/bo góc. Giữ màu tương tác xanh lá, tách khỏi màu tình trạng bản đồ |
+| Bề mặt và điều khiển chưa đồng bộ | Panel phẳng, điều khiển 40 px/icon 18 px, bo 5–6 px, chú giải gọn. Sửa nút panel chen vào tìm kiếm mobile. Giữ màu tương tác xanh lá, tách khỏi màu tình trạng bản đồ |
+| Nhãn và metadata không đúng nội dung | Đổi Độ cao thành Dữ liệu địa hình khi nói về DEM coverage. CRS/bước lưới đọc từ metadata. Bỏ chấm trực tiếp trên timestamp snapshot. Ký hiệu thôn bản dùng nhóm người |
 | Đổi công cụ khi đang sửa hình đo | Đóng công cụ trả về hình đã áp dụng. Bản vẽ chưa kết thúc vẫn còn khi mở lại. Nút 3D dùng được và tự đóng đo trên 2D |
 | Gỡ mô hình để bản đồ trống hoặc còn ảnh cũ | Khôi phục địa hình Chế Tạo; dọn raster và điểm của mô hình vừa gỡ. Danh sách tệp chỉ ghi mô hình do người dùng nạp |
 | Thiếu định hướng khi xem gần | Tổng quan 2D thu gọn được, đồng bộ khung nhìn, click và bàn phím. Không tải thêm tile |
@@ -86,13 +87,13 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 
 [Công cụ đo bản đồ](assets/workspace-measurement.png). Hình đo tạm giữ lớp tình huống để người trực đối chiếu.
 
-Ảnh từ bản build khi chặn Internet. Khoảng trống ngoài ảnh địa hình là vùng thiếu nền cục bộ, không phải vùng đã xác nhận không có thiên tai.
+Ảnh từ đợt kiểm tra trước khi chỉnh bề mặt và bố cục panel ngày 07/10. [Design system](../product/design-system.md) mô tả giao diện hiện hành. Khoảng trống ngoài ảnh địa hình là vùng thiếu nền cục bộ, không phải vùng đã xác nhận không có thiên tai.
 
 ## Kiểm tra kỹ thuật
 
 | Kiểm tra | Kết quả |
 |---|---|
-| TypeScript và build | Đạt. JavaScript đầu vào khoảng 798 KB, 251 KB gzip. Chunk app khoảng 372 KB, React/Leaflet/validation riêng. 2D không tải Three.js/GLB, 3D còn chunk lớn hơn 500 KB |
+| TypeScript và build | Đạt. JavaScript đầu vào khoảng 799 KB, 251 KB gzip. Chunk app khoảng 373 KB, React/Leaflet/validation riêng. 2D không tải Three.js/GLB, 3D còn chunk lớn hơn 500 KB |
 | TypeScript unit tests | 189 kiểm thử đạt. Có snapshot độc lập React, giữ ngữ cảnh điều hướng, một công cụ nhận input, callback cũ, chọn manifest, dataset khác và lỗi không đổi về mặc định. Các kiểm tra nguồn/thời gian, tuyến/ưu tiên, đo, tọa độ, so ảnh, GeoJSON, timeout và checksum vẫn đạt |
 | Python | 18 kiểm thử đạt: dữ liệu, API đọc, đóng gói, chờ HTTP và cấu hình manifest |
 | Chrome: prepared và API | Sự kiện, AOI, địa bàn, tuyến, nguồn, đọc/áp dụng tin và mặt cắt đạt |
@@ -109,7 +110,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Chrome: gói offline | Giải nén thư mục mới, checksum, luồng ứng phó, PNG, 3D/2D và đặt lại đạt. Không phát sinh request mạng ngoài |
 | Vòng đời 3D | Sửa gỡ listener trước khi React tháo canvas. Giải phóng tài nguyên GPU của renderer cũ, giữ dữ liệu để mở lại. 25 vòng thử nhanh không tăng DOM/listener |
 | Phiên 30 phút | Đạt: 58 vòng chọn địa bàn/tuyến, mặt cắt, 3D/2D, áp dụng tin và đặt lại. 20 PNG, không lỗi JavaScript. Sau vòng 10: DOM/listener không tăng, JS heap tăng 0,70 MB |
-| Lặp phiên trên build cuối | Linux trước commit: 4 vòng trong 37,6 giây, DOM/listener giữ nguyên. Thử dài 30 phút ở hàng trên là kết quả của build trước |
+| Lặp phiên trên build cuối | Linux trước commit UI: 2 vòng trong 35,5 giây, DOM/listener giữ nguyên. Thử dài 30 phút ở hàng trên là kết quả của build trước |
 | Kiểm workflow trên Linux | Container Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0 đạt: cài sạch, 189 unit/18 Python tests, audit, build, đóng gói và tám bộ browser checks gồm chọn dataset/gói offline. Kết quả bản làm việc cục bộ không thay xác nhận GitHub Actions của commit mới |
 | GitHub Actions | Đã sửa ảnh xem trước tải chậm và khoảng trễ khóa ký hiệu. Browser kiểm tra trạng thái ngay khi đổi chế độ/tạo lớp, trước khung hình tiếp theo. [Theo dõi workflow](https://github.com/hoxuanphu/UNISEC_Demo/actions/workflows/dear-web.yml) |
 | Source dùng khi deploy | Import kiểm đúng chữ hoa/thường. Thư mục sạch với file được Git theo dõi chuẩn bị đủ dữ liệu, kiểm checksum đạt |

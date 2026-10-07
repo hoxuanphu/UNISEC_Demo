@@ -89,10 +89,6 @@ export const ObjectDetailView: React.FC<Props> = ({
         </button>}
         <div className="detail-title"><h1 id="object-title">{title}</h1><button className="icon-button panel-close" onClick={onBack} aria-label={t('Đóng chi tiết đối tượng', 'Close feature details')} title={t('Đóng chi tiết đối tượng', 'Close feature details')}><UiIcon name="close" /></button></div>
         {road && <div className="detail-priority detail-meta"><StatusText tone={road.status === 'blocked' ? 'critical' : road.status === 'uncertain' ? 'warning' : 'neutral'} icon={road.status === 'blocked' ? 'blocked' : road.status === 'uncertain' ? 'uncertain' : undefined}>{road.status === 'blocked' ? t('Bị chặn', 'Blocked') : road.status === 'uncertain' ? t('Chưa xác minh khả năng đi qua', 'Passability unverified') : t('Chưa ghi nhận chặn', 'No blockage reported')}</StatusText><span>{road.len} km</span></div>}
-        {road && <div className="detail-actions">
-          <button className="button road-profile-action" disabled={!hasTerrainProfile} aria-pressed={profileOpen} onClick={onToggleProfile} title={!hasTerrainProfile ? t('Chưa có DEM cho đoạn đường này', 'DEM unavailable for this road section') : undefined}><UiIcon name="profile" size={16}/>{t('Mặt cắt địa hình', 'Elevation profile')}</button>
-          {road.hz && <button className="button" onClick={() => onOpenEvidence(road.hz!)}><UiIcon name="info" size={16}/>{roadRecord ? evidencePresentation(roadRecord.type, locale).action : t('Xem chi tiết', 'View details')}</button>}
-        </div>}
       </div>
 
       <div className="sidebar-scroll">
@@ -114,9 +110,13 @@ export const ObjectDetailView: React.FC<Props> = ({
               <p className="object-next-action"><UiIcon name={road.status === 'blocked' ? 'blocked' : 'uncertain'} size={18}/><span>{road.status === 'blocked' ? t('Xem phương án tránh đoạn bị chặn.', 'Review an option avoiding the blocked section.')
                 : relatedHazard?.kind === 'bridge' ? t('Kiểm tra mực nước, mặt cầu và khả năng qua cầu.', 'Check water level, bridge deck and passage conditions.')
                 : t('Xác minh tình trạng đường trước khi sử dụng tuyến.', 'Verify road conditions before using this route.')}</span></p>
+              <div className="detail-actions">
+                {road.hz && <button className="button" onClick={() => onOpenEvidence(road.hz!)}><UiIcon name="info" size={16}/>{roadRecord ? evidencePresentation(roadRecord.type, locale).action : t('Xem chi tiết', 'View details')}</button>}
+                <button className="button road-profile-action" disabled={!hasTerrainProfile} aria-pressed={profileOpen} onClick={onToggleProfile} title={!hasTerrainProfile ? t('Chưa có DEM cho đoạn đường này', 'DEM unavailable for this road section') : undefined}><UiIcon name="profile" size={16}/>{t('Mặt cắt địa hình', 'Elevation profile')}</button>
+              </div>
             </section>
             {affectedCommunities.length > 0 && <section className="workflow-section">
-              <h3>{t('Địa bàn dùng đoạn này', 'Communities using this section')}</h3>
+              <h3>{t('Địa bàn liên quan', 'Related communities')}</h3>
               {affectedCommunities.map(community => <button key={community.id} className="object-row linked-row" onClick={() => onSelectCommunity(community.id)}>
                 <strong>{community.name}</strong>
               </button>)}

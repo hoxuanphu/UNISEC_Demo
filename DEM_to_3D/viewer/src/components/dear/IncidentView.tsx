@@ -37,7 +37,7 @@ export function IncidentView({ incident, locale, updated, areaName, communities,
           {priorityCommunities.map(community => {
             const assessment = assessments.get(community.id);
             return <button className="incident-priority-row" key={community.id} onClick={() => onSelectCommunity(community.id)}>
-              <span><strong>{community.name}</strong><small className="priority-next-action">{t(...(assessment?.nextAction ?? communityAccessText(routes.get(community.id))))}</small></span>
+              <span><strong>{community.name}</strong><small className="priority-next-action">{t(...(assessment?.reason ?? communityAccessText(routes.get(community.id))))}</small></span>
             </button>;
           })}
         </div>

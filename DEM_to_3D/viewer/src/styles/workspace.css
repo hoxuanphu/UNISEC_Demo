@@ -373,9 +373,8 @@ h3 {
 .map-location-panel p { margin: 0; }
 .map-location-panel dd { margin: 0; font-variant-numeric: tabular-nums; user-select: text; font-weight: 500; }
 .map-location-panel .text-button { font-size: 12px; }
-.map-2d .leaflet-container { background: var(--ws-map-bg, #e9eeed); }
+.map-2d .leaflet-container { background: var(--ws-map); }
 .map-2d:has(.map-marker-layer[data-basemap="imagery"]) :is(.leaflet-tile-pane, .leaflet-dear-imagery-pane) { filter: var(--imagery-filter); }
-[data-theme="dark"] .map-2d { --ws-map-bg: #26343a; }
 /* Light map chrome re-resolves text color from its own tokens; body color is inherited already computed. */
 [data-theme="dark"] :is(.map-toolbar, .map-tools, .map-north, .map-scale, .map-bottom-bar, .map-overview, .map-attribution, .layers-panel, .map-measure-panel, .map-location-panel, .map-object-chooser, .basemap-status, .revision-notice, .map-load-state, .map-model-note, .leaflet-tooltip.map-measure-label) { color: var(--ws-text); }
 [data-theme="dark"] :is(.map-toolbar, .map-tools, .map-north, .map-bottom-bar, .map-overview, .map-source-button, .layers-panel, .map-measure-panel, .map-location-panel) { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(0, 0, 0, 0.28); }
