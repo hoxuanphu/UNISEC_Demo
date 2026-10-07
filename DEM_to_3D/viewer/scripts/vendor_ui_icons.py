@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = 'https://raw.githubusercontent.com/lucide-icons/lucide/main/'
 ICONS = {
     'copy': 'copy',
+    'zoomIn': 'zoom-in', 'zoomOut': 'zoom-out',
     'plus': 'plus', 'minus': 'minus', 'close': 'x', 'back': 'arrow-left',
     'help': 'circle-question-mark', 'info': 'info', 'expand': 'chevron-down',
     'collapse': 'chevron-up', 'fit': 'maximize', 'search': 'search',

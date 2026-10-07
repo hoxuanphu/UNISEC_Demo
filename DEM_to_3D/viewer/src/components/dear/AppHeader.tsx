@@ -74,7 +74,7 @@ export const AppHeader: React.FC<Props> = ({
   return (
     <header className="app-header">
       <div className="brand">
-        <span className="brand-symbol"><UiIcon name="layers"/></span>
+        <span className="brand-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M3 25 13 7l6 10 4-6 6 14H3Z" fill="currentColor" fillOpacity=".12"/><path d="m3 25 10-18 6 10 4-6 6 14M8 25l5-9 6 9M3 29h26" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg></span>
         <span className="brand-word">DEAR</span>
       </div>
 

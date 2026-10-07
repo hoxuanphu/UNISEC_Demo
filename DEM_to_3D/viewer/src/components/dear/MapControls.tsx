@@ -13,7 +13,7 @@ type Props = {
   panelCollapsed: boolean; onTogglePanel: () => void;
   locating: boolean; onLocation: () => void;
   locale: Locale; mapMode: '3d' | '2d';
-  onToggleMapMode: () => void; onZoomIn: () => void; onZoomOut: () => void;
+  onChangeMapMode: (mode: '2d' | '3d') => void; onZoomIn: () => void; onZoomOut: () => void;
   onResetView: () => void; onOpenLayers: () => void;
   layersOpen: boolean; layers: Record<string, boolean>; hasSelectedRoute: boolean; hazards: Hazard[];
   hasHLZData?: boolean;
@@ -21,7 +21,7 @@ type Props = {
   children?: ReactNode; onMeasure: () => void; measuring: boolean;
 };
 
-export function MapControls({ locale, mapMode, onToggleMapMode, onZoomIn, onZoomOut, onResetView, onOpenLayers, layersOpen, layers, hasSelectedRoute, hazards, hasHLZData, affectedOnly, children, onMeasure, measuring, panelCollapsed, onTogglePanel, locating, onLocation }: Props): JSX.Element {
+export function MapControls({ locale, mapMode, onChangeMapMode, onZoomIn, onZoomOut, onResetView, onOpenLayers, layersOpen, layers, hasSelectedRoute, hazards, hasHLZData, affectedOnly, children, onMeasure, measuring, panelCollapsed, onTogglePanel, locating, onLocation }: Props): JSX.Element {
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [legendMinimized, setLegendMinimized] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -50,19 +50,23 @@ export function MapControls({ locale, mapMode, onToggleMapMode, onZoomIn, onZoom
     <div className="map-toolbar" role="group" aria-label={t('Công cụ bản đồ', 'Map tools')}>
       <button className="icon-button map-panel-toggle" aria-controls="response-panel" aria-expanded={!panelCollapsed} onClick={onTogglePanel} aria-label={panelCollapsed ? t('Mở bảng thông tin', 'Show information panel') : t('Ẩn bảng thông tin', 'Hide information panel')} title={panelCollapsed ? t('Mở bảng thông tin', 'Show information panel') : t('Ẩn bảng thông tin', 'Hide information panel')}><UiIcon name={panelCollapsed ? 'panelOpen' : 'panelClose'}/></button>
       {children}
-      <button className="icon-button map-layer-trigger map-layer-launcher" data-map-layers-trigger aria-label={t('Lớp bản đồ', 'Layers')} title={t('Lớp bản đồ', 'Layers')} aria-expanded={layersOpen} aria-controls="map-layers-panel" onClick={onOpenLayers}><UiIcon name="layers"/></button>
-      <button className="icon-button map-measure-trigger" aria-label={t('Đo trên bản đồ 2D', 'Measure on 2D map')} title={t('Đo trên bản đồ 2D', 'Measure on 2D map')} aria-pressed={measuring} onClick={onMeasure}><UiIcon name="ruler"/></button>
+      <div className="map-tool-group" role="group" aria-label={t('Dữ liệu và phân tích', 'Data and analysis')}>
+        <button className="icon-button map-layer-trigger map-layer-launcher" data-map-layers-trigger aria-label={t('Lớp bản đồ', 'Layers')} title={t('Lớp bản đồ', 'Layers')} aria-expanded={layersOpen} aria-controls="map-layers-panel" onClick={onOpenLayers}><UiIcon name="layers"/><span>{t('Lớp', 'Layers')}</span></button>
+        <button className="icon-button map-measure-trigger" aria-label={t('Đo trên bản đồ 2D', 'Measure on 2D map')} title={t('Đo trên bản đồ 2D', 'Measure on 2D map')} aria-pressed={measuring} onClick={onMeasure}><UiIcon name="ruler"/><span>{t('Đo', 'Measure')}</span></button>
+        <button className="icon-button map-location-trigger" aria-label={t('Thông tin vị trí', 'Location information')} title={t('Thông tin vị trí', 'Location information')} aria-pressed={locating} onClick={onLocation}><UiIcon name="location"/><span>{t('Vị trí', 'Identify')}</span></button>
+      </div>
     </div>
     <div className="map-tools" role="group" aria-label={t('Điều khiển bản đồ', 'Map controls')}>
-      <button className="icon-button map-mode" onClick={onToggleMapMode} aria-label={t('Chuyển sang ' + (mapMode === '2d' ? '3D' : '2D'), 'Switch to ' + (mapMode === '2d' ? '3D' : '2D'))} title={mapMode === '3d' ? t('Ctrl + kéo để nghiêng và xoay', 'Ctrl + drag to tilt and rotate') : t('Chuyển sang góc nhìn 3D', 'Switch to 3D view')}>{mapMode === '2d' ? '3D' : '2D'}</button>
       <div className="map-zoom">
-        <button className="icon-button" onClick={onZoomIn} aria-label={t('Phóng to', 'Zoom in')} title={t('Phóng to', 'Zoom in')}><UiIcon name="plus" /></button>
-        <button className="icon-button" onClick={onZoomOut} aria-label={t('Thu nhỏ', 'Zoom out')} title={t('Thu nhỏ', 'Zoom out')}><UiIcon name="minus" /></button>
+        <button className="icon-button" onClick={onZoomIn} aria-label={t('Phóng to', 'Zoom in')} title={t('Phóng to', 'Zoom in')}><UiIcon name="zoomIn" /></button>
+        <button className="icon-button" onClick={onZoomOut} aria-label={t('Thu nhỏ', 'Zoom out')} title={t('Thu nhỏ', 'Zoom out')}><UiIcon name="zoomOut" /></button>
       </div>
       <button className="icon-button" onClick={onResetView} aria-label={t('Xem toàn khu vực', 'Fit area')} title={t('Xem toàn khu vực', 'Fit area')}>
         <UiIcon name="fit" />
       </button>
-      <button className="icon-button map-location-trigger" aria-label={t('Thông tin vị trí', 'Location information')} title={t('Thông tin vị trí', 'Location information')} aria-pressed={locating} onClick={onLocation}><UiIcon name="location"/></button>
+      <div className="map-mode-group" role="group" aria-label={t('Góc nhìn bản đồ', 'Map view')}>
+        {(['2d', '3d'] as const).map(mode => <button key={mode} className="icon-button map-mode" aria-pressed={mapMode === mode} onClick={() => onChangeMapMode(mode)} aria-label={t('Chuyển sang ', 'Switch to ') + mode.toUpperCase()} title={mode === '3d' ? t('Ctrl + kéo để nghiêng và xoay', 'Ctrl + drag to tilt and rotate') : t('Bản đồ 2D', '2D map')}>{mode.toUpperCase()}</button>)}
+      </div>
       <div className="map-help" ref={helpRef}>
         <button className="icon-button" aria-label={t('Thao tác bản đồ', 'Map gestures')} title={t('Thao tác bản đồ', 'Map gestures')} aria-expanded={helpOpen} aria-controls="map-gesture-help" onClick={() => setHelpOpen(open => !open)}><UiIcon name="help"/></button>
         {helpOpen && <div id="map-gesture-help" data-popover><strong>{t('Thao tác bản đồ', 'Map gestures')}</strong><dl><dt>{t('Di chuyển', 'Pan')}</dt><dd>{t('Kéo chuột trái', 'Left-drag')}</dd><dt>{t('Phóng to / thu nhỏ', 'Zoom')}</dt><dd>{t('Cuộn chuột', 'Mouse wheel')}</dd>{mapMode === '3d' && <><dt>{t('Nghiêng và xoay', 'Tilt and rotate')}</dt><dd>{t('Ctrl + kéo hoặc kéo chuột phải', 'Ctrl + drag or right-drag')}</dd></>}</dl></div>}

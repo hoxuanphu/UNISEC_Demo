@@ -172,8 +172,9 @@ export function Map2D(props: Props): JSX.Element {
     };
     const resize = new ResizeObserver(() => { map.invalidateSize({ pan: false }); schedule(); }); resize.observe(host);
     const ui = new MutationObserver(schedule);
-    if (host.parentElement) ui.observe(host.parentElement, { childList: true, subtree: true });
-    const area = host.closest('.map-area'); area?.addEventListener('dear:map-layout', schedule);
+    const area = host.closest('.map-area');
+    if (area) ui.observe(area, { childList: true, subtree: true });
+    area?.addEventListener('dear:map-layout', schedule);
     map.on('move zoom resize viewreset', schedule);
     return () => {
       disposed = true; rasterAbort?.abort(); cancelAnimationFrame(frame); resize.disconnect(); ui.disconnect(); markers?.dispose();

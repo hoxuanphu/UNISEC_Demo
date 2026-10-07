@@ -171,7 +171,9 @@ def run(url, chrome, captures):
             assert panel.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
             toolbar = page.locator('.map-toolbar').bounding_box()
             north = page.locator('.map-north').bounding_box()
-            assert toolbar['x'] + toolbar['width'] <= north['x'] - 6
+            tools = page.locator('.map-tools').bounding_box()
+            assert toolbar['y'] + toolbar['height'] <= north['y'] - 6
+            assert tools['y'] + tools['height'] <= north['y'] - 6
             page.wait_for_function("""() => {
                 const visible = n => n.offsetWidth && n.offsetHeight && getComputedStyle(n).display !== 'none';
                 const boxes = [...document.querySelectorAll('.map-tools,.map-toolbar,.map-measure-panel,.map-north')].filter(visible).map(n => n.getBoundingClientRect());

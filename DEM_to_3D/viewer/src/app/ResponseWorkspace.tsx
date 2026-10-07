@@ -368,6 +368,7 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
 
         <section className="map-area" aria-label={locale === 'vi' ? 'Bản đồ ứng phó' : 'Response map'} data-profile={showProfile} data-locating={locationOpen}>
           {historical && reportApplied && <RevisionNotice locale={locale} timestamp={incident.asOf} onLatest={() => setHistorical(false)}/>}
+          <div className="map-canvas">
           {mapMode === '2d' ? <Map2D
             terrain={mapTerrain}
             profileOpen={showProfile}
@@ -416,6 +417,7 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
             viewControlRef={viewControlRef}
             onUnavailable={handle3DUnavailable}
           /></React.Suspense></Map3DBoundary>}
+          </div>
 
           {((!mapTerrain && uploadBusy) || (mapMode === '3d' && terrain3DBusy)) && (
             <div className="map-load-state" role="status">{locale === 'vi' ? 'Đang mở bản đồ địa hình' : 'Opening terrain map'}</div>
@@ -437,7 +439,7 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
             onTogglePanel={() => setPanelCollapsed(value => !value)}
             locale={locale}
             mapMode={mapMode}
-            onToggleMapMode={() => setMapMode(mapMode === '3d' ? '2d' : '3d')}
+            onChangeMapMode={setMapMode}
             onZoomIn={() => viewControlRef.current?.zoomIn()}
             onZoomOut={() => viewControlRef.current?.zoomOut()}
             onResetView={() => viewControlRef.current?.resetView()}

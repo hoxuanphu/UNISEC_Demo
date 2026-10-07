@@ -9,9 +9,10 @@ Hiện hành, cập nhật 2026-10-07. Web React là bản triển khai chuẩn.
 | Bố cục | Panel và bản đồ liền nhau, không bo góc hoặc chừa viền ngoài. Panel mặc định 384 px, kéo để đổi trong khoảng 320 đến 560 px và giới hạn theo cửa sổ. Mobile có hai chế độ Thông tin và Bản đồ |
 | Chữ | Inter mặc định. Cài đặt có IBM Plex Sans và Space Grotesk/Be Vietnam Pro. Nhãn 12 px, nội dung 13 px, tên trong danh sách 14 px, tuyến và số liệu chính 17 px, tiêu đề panel 22 px. Số đo và giờ dùng chữ số đều độ rộng |
 | Khoảng cách | Thang 4, 8, 12, 16, 20, 24, 32 px. Căn theo khối nội dung, không chèn khoảng trắng để căn nút |
-| Màu | Mặc định tối: header và panel xám trung tính, nút chính sáng. Chế độ sáng: panel trắng, header và nút chính xanh đậm. Bối cảnh bản đồ xanh dịu. Ưu tiên màu đồng, cần xác minh vàng đất, bị chặn màu đỏ. Dùng chữ và ký hiệu để phân biệt trạng thái |
-| Icon và nút | [Lucide](https://lucide.dev/guide/react), qua `shared/ui/UiIcon`: lưới 24 px, hiển thị 18 px, nét 1,75 px. Nút bản đồ 40 × 40 px. Nút đóng 28–36 px theo bề mặt, không viền. Nút và ô nhập bo 5 px. Có tên truy cập và focus rõ |
-| Bề mặt nổi | Công cụ trên bản đồ dùng nền trắng và chữ tối ở cả hai chế độ. Thanh công cụ, điều hướng, chú giải và bảng công cụ bo 6 px, viền mảnh, bóng nhẹ. Popover bo 8 px. Panel chính và bản đồ không bo góc |
+| Màu | Mặc định tối: header và panel xám trung tính, nút chính sáng. Chế độ sáng: panel trắng, header xám ấm, nút chính xanh đậm. Bối cảnh bản đồ xanh dịu. Ưu tiên màu đồng, cần xác minh vàng đất, bị chặn màu đỏ. Dùng chữ và ký hiệu để phân biệt trạng thái |
+| Icon và nút | [Lucide](https://lucide.dev/guide/react), qua `shared/ui/UiIcon`: lưới 24 px, hiển thị 18 px, nét 1,75 px. Nút toolbar 32 px, nút công cụ mobile 36 px. Lớp xanh lá, đo nâu đất, tra vị trí xanh lam, điều hướng trung tính. Nút đóng 28–36 px, không viền. Có tên truy cập và focus rõ |
+| Khung GIS | Tab nghiệp vụ và toolbar cùng cao 48 px trên desktop. Toolbar gắn vào khung, không bóng hoặc bo góc. Canvas bắt đầu bên dưới toolbar. Mobile dùng hai hàng công cụ tổng cao 84 px. Panel chính và bản đồ không bo góc |
+| Bề mặt nổi | Cửa sổ lớp/đo/vị trí có thanh tiêu đề xám ấm, nội dung trắng, viền mảnh, bo 3 px và bóng nhẹ. Chú giải cũng bo 3 px. Popover cài đặt bo 8 px |
 | Header | Cao 56 px. Mốc tổng hợp là ngày và giờ, mở lịch sử dữ liệu khi bấm. Không dùng chấm trực tiếp cho dữ liệu snapshot. Các nút dùng nền trong suốt, cùng kích thước |
 | Ảnh nền | Ảnh vệ tinh là bối cảnh, giảm bão hòa và độ sáng qua `--imagery-filter` để đường, điểm, nhãn nổi lên. Nền địa hình không lọc |
 | Nhãn và ký hiệu | Nhãn dùng viền mềm `--pin-label-halo`, không dùng bóng cứng nhiều hướng. Ký hiệu viền trắng mảnh, bóng nhẹ. Đối tượng đang chọn có vòng trắng và vòng xanh cùng màu tuyến chọn |
@@ -23,10 +24,10 @@ Giá trị dùng chung nằm trong [tokens.css](../../DEM_to_3D/viewer/src/style
 
 | Thành phần | Quy tắc |
 |---|---|
-| Tab | Chữ đậm và gạch chân cho lựa chọn, dùng cho cả điều hướng chính và tab trong panel. Không dùng badge hoặc viên tô nền làm tab |
+| Tab | Nghiệp vụ và công cụ đo dùng tab gắn vào bề mặt nội dung. Tab trong chi tiết địa bàn dùng gạch chân. Mỗi loại giữ cùng một cách trình bày, không dùng badge làm tab |
 | Điều khiển biểu mẫu | Checkbox, radio, select, thanh trượt và thanh cuộn dùng style chung trong `workspace.css`, giữ phần tử gốc để bàn phím và trình đọc màn hình hoạt động. Không để kiểu mặc định của trình duyệt |
 | Hàng nhãn/giá trị | Metadata dùng nhãn 12 px và giá trị 13 px. Thông số tuyến dùng hai cột, nhãn trên và số bên dưới. Chỉ kẻ đường khi cần phân tách mục |
-| Tiêu đề mục trong panel | `h3` là nhãn 12 px đậm, màu phụ. Tên đối tượng 15 px giữ vai trò nổi bật. Không dùng chữ hoa toàn bộ |
+| Tiêu đề mục trong panel | `h3` là nhãn 12 px đậm, màu chữ chính. Tên trong danh sách 14 px. Không dùng chữ hoa toàn bộ |
 | Trạng thái | `StatusText`: chữ và ký hiệu nhỏ. Không chỉ dựa vào màu, không đóng hộp mọi trạng thái |
 | Hàng danh sách | Tên trước, dữ kiện sau. Chữ thẳng lề 24 px của panel, nền hover tràn ra lề, đường phân cách ở độ rộng nội dung. Chọn bằng nền nhạt, không dùng sọc màu. Hàng đoạn đường có mẩu nét cùng màu và kiểu nét với bản đồ. Vùng hover chừa ít nhất 12 px hai bên, 16 px trên/dưới. Chọn không dịch chữ. Tên/trạng thái xuống hàng khi panel hẹp |
 | Luồng panel | Sự kiện: vùng, giờ, địa bàn ưu tiên và lý do, số đoạn bị chặn/cần xác minh. Địa bàn: tình trạng tiếp cận → tên và trạng thái tuyến → khoảng cách/ETA có điều kiện → việc cần làm và nút kiểm tra → các điểm cản trở. So sánh và nguồn mở khi cần. Không dùng thẻ tô màu hoặc số lớn trang trí |
@@ -38,7 +39,7 @@ Giá trị dùng chung nằm trong [tokens.css](../../DEM_to_3D/viewer/src/style
 | Mặt cắt | Gắn sát đáy vùng bản đồ, không bọc thêm card hoặc bo góc ngoài. Nguồn bản đồ nằm trong vùng nhìn phía trên |
 | Phương án tuyến | Dùng `RouteOption` trong một danh sách. Tên, khoảng cách/ETA và trạng thái thành các dòng riêng. Dấu chọn biểu thị lựa chọn, không biểu thị an toàn |
 | Tìm kiếm bản đồ | Một ô chung cho địa bàn, đường và điểm. Kết quả có ký hiệu theo loại, tên với phần khớp in đậm, và loại đối tượng. Hỗ trợ Enter, mũi tên và Escape |
-| Thanh bản đồ | Nút panel, tìm kiếm, lớp và đo cùng thanh trên trái. Điều hướng và thông tin vị trí ở nhóm trên phải |
+| Thanh bản đồ | Trái: panel, tìm kiếm, nhóm Lớp / Đo / Vị trí. Phải: phóng to/thu nhỏ, toàn khu vực, lựa chọn 2D/3D và trợ giúp. Tên công cụ ẩn khi vùng bản đồ hẹp, giữ tooltip và tên truy cập. Toolbar không che canvas |
 | Đo bản đồ | Ba trạng thái: vẽ, xem kết quả, chỉnh sửa. Kết thúc bằng nút, Enter hoặc nhấp đúp điểm cuối. Chọn Chỉnh sửa trước khi kéo điểm. Phép đo hiện tại và kết quả trước đó ở hai mục riêng. Đóng khi đang chỉnh trả về kết quả trước chỉnh |
 | Mở nội dung phụ | Chevron nét mảnh ở cuối hàng, toàn bộ hàng bấm được. Trạng thái mở có `aria-expanded`. Không lồng nhiều cấp hoặc giấu hành động chính |
 | Không gian bản đồ | Panel trái chỉnh độ rộng hoặc thu gọn, giữ lựa chọn. Chú giải có thể thu về một nút. Mở lớp/đo/tọa độ tạm ẩn chú giải |
@@ -65,7 +66,7 @@ Bản đồ dùng chung [ký hiệu SVG](../../DEM_to_3D/viewer/src/terrain/mapS
 
 Icon giao diện dùng Lucide. Ký hiệu chuyên môn dùng `MapSymbol`: thôn bản là nhóm người, sạt lở là sườn dốc có đá lăn, điểm vượt khe là đường bị dòng nước cắt ngang, cầu có mặt cầu và trụ, điểm tập kết là cờ, hạ cánh là chữ H. Màu ưu tiên không có nghĩa đã xác nhận cô lập. Subset Lucide và [giấy phép](../../DEM_to_3D/viewer/vendor/lucide/LICENSE) nằm trong repo, chạy offline.
 
-Tham khảo: [SkyFi](https://learn.skyfi.com/how-to/tasking-a-satellite-to-capture-a-new-image/) cho thao tác cạnh bản đồ, [DisasterAWARE](https://www.disasteraware.com/news-event/new-streamlined-layers-panel-in-disasteraware-enterprise) cho nhóm lớp và ảnh UNOSAT Nepal do nhóm cung cấp cho chú giải, ký hiệu, tổng quan. Quy tắc nghiệp vụ theo [proposal SIC 2026](../../references/SIC2026/VinSpace_SIC2026_proposal.pdf).
+Tham khảo: [QGIS](https://docs.qgis.org/3.40/en/docs/user_manual/introduction/qgis_gui.html) cho toolbar và panel, [Earth Engine](https://developers.google.com/earth-engine/guides/playground) cho tách công cụ tra dữ liệu/vẽ, [SkyFi](https://learn.skyfi.com/how-to/tasking-a-satellite-to-capture-a-new-image/) cho thao tác cạnh bản đồ. Ảnh UNOSAT Nepal do nhóm cung cấp định hướng chú giải, ký hiệu và tổng quan. Nghiệp vụ theo [proposal SIC 2026](../../references/SIC2026/VinSpace_SIC2026_proposal.pdf).
 
 ## Kiểm soát thay đổi
 

@@ -5,11 +5,11 @@
   line-height: 1.55;
 }
 
-.decision-route { margin: 0 0 20px; }
+.decision-route { margin: 0 0 20px; padding: 12px; border: 1px solid var(--ws-line); border-radius: 3px; background: var(--ws-bg); }
 .access-route-label { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-bottom: 6px; color: var(--ws-muted); font-size: 12px; }
 .access-route-label .status-text { font-size: 12px; }
 .decision-route h2 { margin: 0; color: var(--ws-text); font-size: 17px; font-weight: 600; line-height: 1.4; }
-.route-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0 0; }
+.route-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--ws-line); }
 .route-metrics > div { display: grid; align-content: start; gap: 4px; margin: 0; }
 .route-metrics dt, .route-metrics > div > span { color: var(--ws-muted); font-size: 12px; font-weight: 400; line-height: 1.45; }
 .route-metrics dd { margin: 0; color: var(--ws-text); font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.4; }

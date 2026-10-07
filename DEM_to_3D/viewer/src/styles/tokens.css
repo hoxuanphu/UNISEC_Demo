@@ -241,14 +241,14 @@
   --ws-map: #dce5d7;
   --shadow-map-control: 0 2px 8px rgba(15,23,42,0.10);
 
-  --header-bg: #1c2924;
-  --header-line: #1c2924;
-  --header-ink: #f0f5f3;
-  --header-muted: #b6c9c8;
-  --header-hover: rgba(255, 255, 255, 0.08);
-  --header-stroke: rgba(255, 255, 255, 0.14);
-  --header-chip: rgba(255, 255, 255, 0.04);
-  --header-brand: #a3d5c4;
+  --header-bg: #f0f1ec;
+  --header-line: #cbd3cd;
+  --header-ink: #25332e;
+  --header-muted: #65736d;
+  --header-hover: rgba(25, 64, 45, 0.06);
+  --header-stroke: #cbd3cd;
+  --header-chip: rgba(25, 64, 45, 0.04);
+  --header-brand: #166553;
   --live: #4edea3;
   --map-control-line: rgba(20, 43, 49, 0.12);
   --shadow-float: 0 1px 3px rgba(16,36,42,0.12), 0 3px 10px rgba(16,36,42,0.08);
@@ -258,6 +258,8 @@
 }
 
 :root {
+  --map-chrome: #f0f1ec;
+  --map-chrome-line: #cbd3cd;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -274,6 +276,7 @@
   --radius-float: 6px;
   --radius-popover: 8px;
   --size-header: 56px;
+  --size-workspace-toolbar: 48px;
   --meta-label: 120px;
   --map-inset: 16px;
   --size-hud: 44px;

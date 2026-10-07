@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type Dispatch, type MutableRefObject } from 'react';
+import { createPortal } from 'react-dom';
 import type * as L from 'leaflet';
 import type { Locale } from '../../types/dear';
 import { UiIcon } from '../../shared/ui/UiIcon';
@@ -36,7 +37,10 @@ export function MapMeasurement({ mapRef, enabled, locale, session, dispatch, sou
       ...session.points.map((point, i) => `${i + 1}: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)} | E ${point.x.toFixed(1)} m, N ${point.y.toFixed(1)} m`)].join('\n');
     try { await navigator.clipboard.writeText(report); setCopyState('copied'); } catch { setCopyState('error'); }
   };
-  if (!enabled) return null;
+  // Tool windows belong to the workspace, outside the map's drawing surface.
+  // This keeps their positions unchanged when the canvas or profile is resized.
+  const workspace = mapRef.current?.getContainer().closest('.map-area');
+  if (!enabled || !workspace) return null;
   const hint = outside ? t('Điểm nằm ngoài phạm vi đo UTM 48N.', 'Point is outside the UTM 48N measurement area.')
     : session.mode === 'area' && session.points.length >= 3 && !canComplete ? t('Các cạnh giao nhau. Hãy chỉnh lại các điểm.', 'Edges intersect. Adjust the points.')
     : session.mode === 'radius' && session.points.length === 2 && !canComplete ? t('Đường tròn vượt phạm vi đo UTM 48N.', 'The circle exceeds the UTM 48N measurement area.')
@@ -48,7 +52,7 @@ export function MapMeasurement({ mapRef, enabled, locale, session, dispatch, sou
     : session.mode === 'bearing' ? t('Chọn điểm đầu và điểm hướng tới.', 'Select the origin and destination.')
     : session.points.length < minimumPoints(session.mode) ? t(session.mode === 'area' ? 'Chọn ít nhất 3 điểm để khoanh vùng.' : 'Chọn điểm đầu và các điểm tiếp theo.', session.mode === 'area' ? 'Select at least 3 points for an area.' : 'Select the first point, then continue.')
     : t('Nhấp đúp điểm cuối hoặc nhấn Enter để kết thúc.', 'Double-click the last point or press Enter to finish.');
-  return <section ref={root} className="map-measure-panel" data-collapsed={collapsed} data-stage={session.editing ? 'editing' : session.finished ? 'finished' : 'drawing'} aria-label={t('Đo bản đồ', 'Map measurement')}>
+  return createPortal(<section ref={root} className="map-measure-panel" data-collapsed={collapsed} data-stage={session.editing ? 'editing' : session.finished ? 'finished' : 'drawing'} aria-label={t('Đo bản đồ', 'Map measurement')}>
     <div className="map-measure-heading floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={t('Vị trí công cụ đo', 'Measurement panel position')} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home" title={t('Kéo để đổi vị trí. Nhấp đúp để đặt lại.', 'Drag to move. Double-click to reset.')}>
       <strong>{t('Đo bản đồ', 'Map measurement')}</strong>
       <button className="icon-button" aria-label={t('Tùy chọn đo', 'Measurement settings')} title={t('Tùy chọn đo', 'Measurement settings')} aria-expanded={view === 'options' && !collapsed} aria-controls="measurement-options" onClick={() => { setCollapsed(false); setView(value => value === 'options' ? 'measure' : 'options'); }}><UiIcon name="settings" size={16}/></button>
@@ -93,5 +97,5 @@ export function MapMeasurement({ mapRef, enabled, locale, session, dispatch, sou
         </>}
       </div>
     </>}
-  </section>;
+  </section>, workspace);
 }

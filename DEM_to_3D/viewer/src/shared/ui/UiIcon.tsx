@@ -8,6 +8,8 @@ const paths = {
   'plus': <><path d="M5 12h14" />
   <path d="M12 5v14" /></>,
   'minus': <><path d="M5 12h14" /></>,
+  'zoomIn': <><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M8 11h6M11 8v6"/></>,
+  'zoomOut': <><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M8 11h6"/></>,
   'close': <><path d="M18 6 6 18" />
   <path d="m6 6 12 12" /></>,
   'back': <><path d="m12 19-7-7 7-7" />

@@ -515,7 +515,8 @@ export function TerrainViewer({
     const mapArea = host.closest('.map-area');
     const markLayoutDirty = () => { markerLayoutDirty = true; };
     mapArea?.addEventListener('dear:map-layout', markLayoutDirty);
-    if (host.parentElement) mapUiObserver.observe(host.parentElement, { childList: true, subtree: true });
+    const workspace = mapArea ?? host.parentElement;
+    if (workspace) mapUiObserver.observe(workspace, { childList: true, subtree: true });
     resize();
 
     let animationFrame = 0;

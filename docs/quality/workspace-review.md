@@ -28,7 +28,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Mục mở rộng và hàng lớp bị lệch | Chevron nét mảnh ở cuối hàng. Căn giữa checkbox, tên lớp và nút nguồn |
 | Không chọn được kiểu đo khi chỉnh sửa | Bỏ khóa bộ chọn. Đổi kiểu giữ kết quả hợp lệ trước khi bắt đầu phép đo mới. Kiểm tra bằng click thật và bàn phím |
 | Hàng địa bàn sát nền hover/chọn | Khoảng đệm 12/16 px, giữ nguyên vị trí chữ khi chọn. Tên và trạng thái xuống hàng khi thiếu chiều rộng |
-| Bề mặt và điều khiển chưa đồng bộ | Panel phẳng, điều khiển 40 px/icon 18 px, bo 5–6 px, chú giải gọn. Sửa nút panel chen vào tìm kiếm mobile. Giữ màu tương tác xanh lá, tách khỏi màu tình trạng bản đồ |
+| Bề mặt và điều khiển chưa đồng bộ | Toolbar GIS cố định, canvas riêng bên dưới, tab nghiệp vụ gắn vào panel. Điều khiển 32 px/icon 18 px, cửa sổ công cụ bo 3 px với thanh tiêu đề chung. 2D/3D hiện cả hai lựa chọn và trạng thái. Công cụ đo nằm ngoài canvas, giữ vị trí khi mở mặt cắt |
 | Nhãn và metadata không đúng nội dung | Đổi Độ cao thành Dữ liệu địa hình khi nói về DEM coverage. CRS/bước lưới đọc từ metadata. Bỏ chấm trực tiếp trên timestamp snapshot. Ký hiệu thôn bản dùng nhóm người |
 | Đổi công cụ khi đang sửa hình đo | Đóng công cụ trả về hình đã áp dụng. Bản vẽ chưa kết thúc vẫn còn khi mở lại. Nút 3D dùng được và tự đóng đo trên 2D |
 | Gỡ mô hình để bản đồ trống hoặc còn ảnh cũ | Khôi phục địa hình Chế Tạo; dọn raster và điểm của mô hình vừa gỡ. Danh sách tệp chỉ ghi mô hình do người dùng nạp |
@@ -93,13 +93,13 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 
 | Kiểm tra | Kết quả |
 |---|---|
-| TypeScript và build | Đạt. JavaScript đầu vào khoảng 799 KB, 251 KB gzip. Chunk app khoảng 373 KB, React/Leaflet/validation riêng. 2D không tải Three.js/GLB, 3D còn chunk lớn hơn 500 KB |
+| TypeScript và build | Đạt. Chia chunk app, React, Leaflet và validation. 2D không tải Three.js/GLB, 3D còn chunk lớn hơn 500 KB |
 | TypeScript unit tests | 189 kiểm thử đạt. Có snapshot độc lập React, giữ ngữ cảnh điều hướng, một công cụ nhận input, callback cũ, chọn manifest, dataset khác và lỗi không đổi về mặc định. Các kiểm tra nguồn/thời gian, tuyến/ưu tiên, đo, tọa độ, so ảnh, GeoJSON, timeout và checksum vẫn đạt |
 | Python | 18 kiểm thử đạt: dữ liệu, API đọc, đóng gói, chờ HTTP và cấu hình manifest |
 | Chrome: prepared và API | Sự kiện, AOI, địa bàn, tuyến, nguồn, đọc/áp dụng tin và mặt cắt đạt |
 | Chrome: lỗi dữ liệu và GPU | Chặn Internet, lỗi GLB, không có WebGL, mất context 3D: 2D tiếp tục dùng được. API lỗi không hiện dữ liệu mô phỏng thay thế |
 | Chrome: thao tác và bố cục | Kéo/đổi độ rộng bằng bàn phím, khôi phục độ rộng, nhóm điểm, nhãn. Tổng quan theo pan/zoom, click, bàn phím và mở/đóng không tạo bản đồ trùng. Khoảng đệm hàng địa bàn đạt, hover không dịch chữ. Desktop 1440/1366/1024 px và mobile 390/320 px không tràn ngang |
-| Chrome: đường và mặt cắt | Bấm lệch tâm nét đường 6 px vẫn chọn được. Nút mở mặt cắt trực tiếp, tên đúng đoạn đường. Kiểm thứ tự nền/đường/tuyến/cảnh báo, ảnh xem trước và thao tác đo/lấy tọa độ |
+| Chrome: đường và mặt cắt | Bấm lệch tâm nét đường 6 px vẫn chọn được. Mặt cắt mở trực tiếp, tên đúng đoạn đường. Canvas không đè toolbar hoặc mặt cắt ở 1366/390/320 px. Kiểm thứ tự nền/đường/tuyến/cảnh báo, ảnh xem trước và đo/lấy tọa độ |
 | Chrome: báo cáo và phân tích ảnh | Việt/Anh, panel 1366/1024/390/320 px đạt. Báo cáo giữ giờ ghi nhận/tiếp nhận riêng. Phân tích giữ đúng giờ thu nhận ảnh 06:12 và nhận kết quả 07:05, không gắn nhãn giờ khảo sát |
 | Chrome: tìm kiếm và bản xuất | Tìm không dấu và mã đường, xem trước, tải PNG/JSON, thời điểm và tuyến khớp trước/sau tin mới |
 | Chrome: công cụ và biến thể | 6 kiểu đo, xem trước, kéo đỉnh, hoàn tác/làm lại, đơn vị, sao chép, giữ/ẩn/xóa hình, đo trực tiếp tuyến/AOI, thu gọn và 12 vòng đóng/mở. Đổi tối/Anh/font và qua 3D về 2D giữ phép đo. Mobile 390/320 px không tràn hoặc đè hướng Bắc |

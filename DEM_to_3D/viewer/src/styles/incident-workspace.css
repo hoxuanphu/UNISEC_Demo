@@ -5,24 +5,31 @@
   grid-row: 1;
   z-index: 5;
   display: flex;
-  gap: 20px;
-  padding: 0 24px;
+  gap: 2px;
+  align-items: flex-end;
+  padding: 8px 8px 0;
   border-right: 1px solid var(--ws-line);
   border-bottom: 1px solid var(--ws-line);
-  background: var(--ws-surface);
+  background: var(--ws-bg);
   border-radius: 0;
 }
 
 .workspace-nav button {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-width: 0;
   min-height: 34px;
   letter-spacing: 0.005em;
-  border: 0;
-  border-radius: 0;
-  padding: 0 4px;
+  height: 39px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 3px 3px 0 0;
+  padding: 0 8px;
   background: transparent;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--ws-muted);
   font-weight: 500;
   transition: color 0.15s ease, background 0.15s ease;
@@ -35,10 +42,12 @@
 
 .workspace-nav button[aria-current="page"] {
   color: var(--select-ink);
-  background: transparent;
+  background: var(--ws-surface);
+  border-color: var(--ws-line);
   font-weight: 600;
 }
-.workspace-nav button[aria-current="page"]::after { content: ''; position: absolute; left: 4px; right: 4px; bottom: -1px; height: 2px; border-radius: 2px 2px 0 0; background: var(--select); }
+.workspace-nav button[aria-current="page"]::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--ws-surface); }
+.workspace-nav button > svg { flex: none; }
 .workspace-nav button:not([aria-current="page"]):hover { color: var(--ws-text); }
 .object-observation { display: grid; gap: 12px; padding-bottom: 20px; }
 .object-length { margin-top: 10px; }
