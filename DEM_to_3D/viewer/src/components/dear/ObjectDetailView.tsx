@@ -12,7 +12,6 @@ import type {
 import { UiIcon } from './UiIcon';
 import { StatusText } from '../../shared/ui/StatusText';
 import { areaM2, withinArea } from '../../terrain/areaGeometry';
-import { localClock, observationTime } from '../../features/incident/sourceTime';
 import { EvidenceMetadata } from '../../features/incident/EvidenceMetadata';
 import { evidencePresentation } from '../../features/incident/evidencePresentation';
 
@@ -102,12 +101,13 @@ export const ObjectDetailView: React.FC<Props> = ({
         {kind === 'road' && road && (
           <>
             <section className="object-observation">
+              {roadRecord && <h3>{evidencePresentation(roadRecord.type, locale).kind}</h3>}
               <p>{roadObservation || t('Chưa có báo cáo về khả năng phương tiện đi qua.', 'Vehicle passage has not been reported.')}</p>
-              {roadRecord ? <p className="observation-meta">{evidencePresentation(roadRecord.type, locale).kind} · {evidencePresentation(roadRecord.type, locale).observed} <time dateTime={roadRecord.observedAt}>{observationTime(roadRecord.observedAt, locale)}</time> · {evidencePresentation(roadRecord.type, locale).received} <time dateTime={roadRecord.receivedAt}>{localClock(roadRecord.receivedAt)}</time></p>
+              {roadRecord ? <EvidenceMetadata evidence={roadRecord} locale={locale} className="observation-times" showSource={false}/>
                 : relatedHazard && <p className="observation-meta">{t(...relatedHazard.src)} · {relatedHazard.detected}</p>}
             </section>
             <section className="workflow-section detail-next">
-              <p className="object-next-action"><UiIcon name={road.status === 'blocked' ? 'blocked' : 'uncertain'} size={18}/><span>{road.status === 'blocked' ? t('Xem phương án tránh đoạn bị chặn.', 'Review an option avoiding the blocked section.')
+              <p className={'object-next-action is-' + road.status}><UiIcon name={road.status === 'blocked' ? 'blocked' : road.status === 'uncertain' ? 'uncertain' : 'info'} size={18}/><span>{road.status === 'blocked' ? t('Xem phương án tránh đoạn bị chặn.', 'Review an option avoiding the blocked section.')
                 : relatedHazard?.kind === 'bridge' ? t('Kiểm tra mực nước, mặt cầu và khả năng qua cầu.', 'Check water level, bridge deck and passage conditions.')
                 : t('Xác minh tình trạng đường trước khi sử dụng tuyến.', 'Verify road conditions before using this route.')}</span></p>
               <div className="detail-actions">
@@ -133,19 +133,20 @@ export const ObjectDetailView: React.FC<Props> = ({
                 : hazard.kind === 'crossing' ? t('Điểm vượt khe cần xác minh', 'Gully crossing to verify')
                 : t('Nghi ngập', 'Flood indication')}
             </StatusText></div>
-            <div className="detail-actions"><button className="button" onClick={() => onOpenEvidence(hazard.id)}><UiIcon name="info" size={16}/>{hazardRecord ? evidencePresentation(hazardRecord.type, locale).action : t('Xem chi tiết', 'View details')}</button></div>
             {hazardRecord && <p className="hazard-observation">{t(...hazardRecord.finding)}</p>}
+            {hazardRecord && <EvidenceMetadata evidence={hazardRecord} locale={locale} className="observation-times" showSource={false}/>}
 
             <dl className="object-facts fact-rows">
               {hazard.area != null && (hazard.kind === 'landslide' || hazard.kind === 'flood') && <div>
                 <dt>{t('Diện tích ước tính', 'Estimated area')}</dt>
                 <dd>{hazard.area} ha</dd>
               </div>}
-              <div>
+              {!hazardRecord && <div>
                 <dt>{t('Ghi nhận lúc', 'Impact recorded')}</dt>
                 <dd>{hazard.detected}</dd>
-              </div>
+              </div>}
             </dl>
+            <div className="detail-actions"><button className="button" onClick={() => onOpenEvidence(hazard.id)}><UiIcon name="info" size={16}/>{hazardRecord ? evidencePresentation(hazardRecord.type, locale).action : t('Xem chi tiết', 'View details')}</button></div>
 
             {affectedRoads.length > 0 && <section className="workflow-section"><h3>{t('Đoạn đường liên quan', 'Related road sections')}</h3>{affectedRoads.map(item => <button className="object-row impact-row" key={item.id} onClick={() => onSelectObject(`road:${item.id}`)}><span><strong>{t(...item.name)}</strong><small>{item.len} km</small></span><StatusText tone={item.status === 'blocked' ? 'critical' : item.status === 'uncertain' ? 'warning' : 'neutral'} icon={item.status === 'blocked' ? 'blocked' : item.status === 'uncertain' ? 'uncertain' : undefined}>{item.status === 'blocked' ? t('Bị chặn', 'Blocked') : item.status === 'uncertain' ? t('Cần xác minh', 'Uncertain') : t('Chưa ghi nhận chặn', 'No blockage reported')}</StatusText></button>)}</section>}
 
@@ -156,8 +157,8 @@ export const ObjectDetailView: React.FC<Props> = ({
           <section className="workflow-section" style={{ borderTop: 0 }}>
             <p>
               {site.kind === 'hlz' ? t('Điểm hạ cánh trực thăng', 'Helicopter landing zone') : t(
-                'Điểm xuất phát của các phương án tiếp cận trong sự kiện thung lũng Nậm Kha.',
-                'Starting staging point for all access options in the Nậm Kha incident.'
+                'Điểm xuất phát của các tuyến tiếp cận.',
+                'Starting point for access routes.'
               )}
             </p>
             {site.kind === 'hlz' && <dl className="object-facts fact-rows"><div><dt>{t('Trạng thái khảo sát', 'Survey status')}</dt><dd>{site.assessment === 'assessed' ? t('Đã khảo sát', 'Assessed') : site.assessment === 'unavailable' ? t('Không sử dụng', 'Unavailable') : t('Vị trí đề xuất', 'Proposed location')}</dd></div><div><dt>{t('Nguồn', 'Source')}</dt><dd>{t(site.source[0], site.source[1])}</dd></div><div><dt>{t('Cập nhật', 'Updated')}</dt><dd>{new Date(site.observedAt).toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-GB', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</dd></div></dl>}

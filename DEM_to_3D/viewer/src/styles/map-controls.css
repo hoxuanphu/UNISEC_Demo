@@ -16,17 +16,17 @@
   color: var(--ws-text); line-height: 1; box-shadow: none; font-size: 12px; font-weight: 500;
 }
 .map-area :is(.map-toolbar, .map-tools) .icon-button svg { width: 18px; height: 18px; flex: none; }
-.map-area :is(.map-toolbar, .map-tools) .icon-button:hover { background: #ffffff; border-color: var(--map-chrome-line); }
+.map-area :is(.map-toolbar, .map-tools) .icon-button:hover { background: var(--ws-raised); border-color: var(--map-chrome-line); }
 .map-area :is(.map-toolbar, .map-tools) .icon-button:is([aria-expanded="true"], [aria-pressed="true"]) {
-  color: var(--ws-brand); background: #dfece4; border-color: #92b4a1;
+  color: var(--ws-brand); background: var(--ws-tint); border-color: var(--select);
 }
 .map-area .map-tool-group { display: flex; align-items: center; gap: 2px; padding-left: 8px; border-left: 1px solid var(--map-chrome-line); }
 .map-area .map-tool-group .icon-button { width: auto; padding-inline: 8px; }
-.map-area .map-tool-group .icon-button svg { color: #38765a; }
-.map-area .map-tool-group .map-measure-trigger svg { color: #8c6a32; }
-.map-area .map-tool-group .map-location-trigger svg { color: #326e92; }
+.map-area .map-tool-group .icon-button svg { color: var(--tool-data-ink); }
+.map-area .map-tool-group .map-measure-trigger svg { color: var(--tool-measure-ink); }
+.map-area .map-tool-group .map-location-trigger svg { color: var(--tool-location-ink); }
 .map-area .map-search { max-width: 320px; }
-.map-area .map-search-field { height: 32px; padding: 0 8px; gap: 7px; border: 1px solid var(--map-chrome-line); border-radius: 3px; background: #fff; }
+.map-area .map-search-field { height: 32px; padding: 0 8px; gap: 7px; border: 1px solid var(--map-chrome-line); border-radius: 3px; background: var(--ws-surface); }
 .map-area .map-search-field input { font-size: 12px; }
 .map-area .map-search-field > svg { width: 16px; height: 16px; }
 .map-area .map-search-field .icon-button { width: 22px; height: 24px; min-height: 24px; }

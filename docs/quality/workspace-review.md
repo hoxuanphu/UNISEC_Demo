@@ -6,6 +6,8 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 
 | Vấn đề | Thay đổi |
 |---|---|
+| Lý do ưu tiên chung chung, thời gian ghép thành đoạn dài | Nêu đường bị chặn/mất liên lạc hoặc đối tượng có báo cáo. Tách giờ cảnh báo/dữ liệu đến và giờ ghi nhận/tiếp nhận thành hàng có nhãn |
+| Dark mode còn toolbar và cửa sổ trắng | Đồng bộ nền xanh than, chữ xanh xám và trạng thái dịu. Kiểm tra tương phản chữ tối thiểu 4,5:1 tại panel, toolbar và lớp bản đồ trên cả hai theme |
 | Mô tả dính nút, diện tích xuống dòng | Khoảng cách tối thiểu 12 px, diện tích/đơn vị cùng dòng. Metadata bãi đáp dùng hàng nhãn/giá trị |
 | Panel vùng đánh giá dài và chung chung | Giữ diện tích, số thôn/bản, mở danh sách. Nguồn ranh giới thu gọn |
 | Lẫn tiếp cận chung với tuyến đang chọn | Chung một cách tổng hợp tại sự kiện, danh sách và chi tiết. Tuyến chọn có trạng thái riêng |
@@ -110,8 +112,8 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Chrome: gói offline | Giải nén thư mục mới, checksum, luồng ứng phó, PNG, 3D/2D và đặt lại đạt. Không phát sinh request mạng ngoài |
 | Vòng đời 3D | Sửa gỡ listener trước khi React tháo canvas. Giải phóng tài nguyên GPU của renderer cũ, giữ dữ liệu để mở lại. 25 vòng thử nhanh không tăng DOM/listener |
 | Phiên 30 phút | Đạt: 58 vòng chọn địa bàn/tuyến, mặt cắt, 3D/2D, áp dụng tin và đặt lại. 20 PNG, không lỗi JavaScript. Sau vòng 10: DOM/listener không tăng, JS heap tăng 0,70 MB |
-| Lặp phiên trên build cuối | Linux trước commit UI: 2 vòng trong 35,5 giây, DOM/listener giữ nguyên. Thử dài 30 phút ở hàng trên là kết quả của build trước |
-| Kiểm workflow trên Linux | Container Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0 đạt: cài sạch, 189 unit/18 Python tests, audit, build, đóng gói và tám bộ browser checks gồm chọn dataset/gói offline. Kết quả bản làm việc cục bộ không thay xác nhận GitHub Actions của commit mới |
+| Lặp phiên trên build cuối | Linux sau sửa panel và theme: 4 vòng trong 39,3 giây, DOM/listener giữ nguyên. Thử dài 30 phút ở hàng trên là kết quả của build trước |
+| Kiểm workflow trên Linux | Container Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0 đạt: cài sạch, 189 unit/18 Python tests, audit, build, đóng gói và tám bộ browser checks gồm chọn dataset/gói offline. Panel kiểm cả chữ, metadata và bề mặt sáng/tối. Kết quả bản làm việc cục bộ không thay xác nhận GitHub Actions của commit mới |
 | GitHub Actions | Đã sửa ảnh xem trước tải chậm và khoảng trễ khóa ký hiệu. Browser kiểm tra trạng thái ngay khi đổi chế độ/tạo lớp, trước khung hình tiếp theo. [Theo dõi workflow](https://github.com/hoxuanphu/UNISEC_Demo/actions/workflows/dear-web.yml) |
 | Source dùng khi deploy | Import kiểm đúng chữ hoa/thường. Thư mục sạch với file được Git theo dõi chuẩn bị đủ dữ liệu, kiểm checksum đạt |
 | Dependency audit | Vite 7.3.6, plugin React 5.2.0, Vitest 4.1.11. `source-map-js` cập nhật riêng lên 1.2.2 theo [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q). `npm audit`: 0 cảnh báo, gồm cả công cụ phát triển |

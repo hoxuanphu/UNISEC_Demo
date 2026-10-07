@@ -47,7 +47,7 @@ export const CommunityListView: React.FC<Props> = ({
   return (
     <>
       <div className="sidebar-top">
-        <h1>{t('Địa bàn cần chú ý', 'Communities to review')}</h1>
+        <h1>{t('Địa bàn', 'Communities')}</h1>
 
         <div className="search-box">
           <UiIcon name="search" size={18}/>

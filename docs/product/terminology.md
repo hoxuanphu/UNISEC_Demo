@@ -1,6 +1,6 @@
 # Thuật ngữ giao diện
 
-Cập nhật: 2026-10-06. Áp dụng cho bản đồ, panel, thông báo và bản xuất Việt/Anh.
+Cập nhật: 2026-10-07. Áp dụng cho bản đồ, panel, thông báo và bản xuất Việt/Anh.
 
 ## Phân biệt thông tin
 
@@ -11,6 +11,8 @@ Cập nhật: 2026-10-06. Áp dụng cho bản đồ, panel, thông báo và b�
 | Nguồn dữ liệu / Data source | Người, đơn vị, nhà cung cấp hoặc bộ dữ liệu. Không gọi mã phiên bản hay phương án tính tuyến là nguồn |
 | Báo cáo / Report | Tên bản báo cáo được dùng cho nhận định. Không thay thế danh tính người/đơn vị báo tin |
 | Tổng hợp lúc / Data as of | Mốc của bản dữ liệu đang xem. Không phải thời điểm tất cả đối tượng được khảo sát hay ngày ảnh vệ tinh |
+| Cảnh báo / Triggered | Mốc kích hoạt sự kiện, không khẳng định thời điểm bắt đầu sạt lở |
+| Dữ liệu đến / Data as of | Nhãn trong panel sự kiện, cùng mốc với Tổng hợp lúc trên header |
 | Tuyến gợi ý / Suggested route | Kết quả tính trên mạng đường hiện có, chưa phải lệnh điều phối hoặc tuyến đã xác nhận an toàn |
 
 `IncidentEvidence.source` hiện lưu tên báo cáo/tài liệu phân tích, chưa có người hoặc đơn vị cung cấp. Giao diện dùng nhãn **Báo cáo** hoặc **Tài liệu phân tích** cho trường này. Không bổ sung danh tính hoặc trạng thái xác minh từ nội dung mô phỏng.
@@ -31,6 +33,8 @@ Cập nhật: 2026-10-06. Áp dụng cho bản đồ, panel, thông báo và b�
 | Mặt cắt | Độ cao tăng, Độ cao giảm, Tỷ lệ tuyến có DEM, Độ dốc địa hình |
 
 Tên đối tượng → tình trạng → ghi nhận → việc cần làm. Nguồn và phương pháp mở khi cần. Hướng dẫn phải chỉ đúng đoạn đường hoặc đối tượng, không dùng “chưa rõ” khi chưa rõ điều gì. Giữ thuật ngữ chuyên môn như DEM, SAR, hệ tọa độ và phương vị tại nơi phân tích liên quan.
+
+Lý do ưu tiên nêu dữ kiện cụ thể: đường bị chặn, mất liên lạc hoặc báo cáo tại cầu/điểm vượt khe. Báo cáo ảnh hưởng tại cầu không tự chứng minh cầu ngập hay không đi qua được. Trong danh sách điểm ảnh hưởng, trạng thái và diện tích là hai trường riêng.
 
 ## Căn cứ đối chiếu
 

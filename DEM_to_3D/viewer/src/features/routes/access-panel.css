@@ -18,8 +18,8 @@
 .next-action { display: grid; gap: 12px; padding-bottom: 20px; }
 .next-action .route-action { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 0; border: 0; background: none; }
 .next-action .route-action svg { flex: none; margin-top: 2px; color: var(--ws-muted); }
-.next-action.is-uncertain .route-action svg { color: var(--warning); }
-.next-action.is-blocked .route-action svg { color: var(--critical); }
+.next-action.is-uncertain .route-action svg { color: var(--warning-ink); }
+.next-action.is-blocked .route-action svg { color: var(--critical-ink); }
 .next-action .route-action span { color: var(--ws-text); font-size: 13px; font-weight: 400; line-height: 1.55; }
 .next-action .access-primary { width: 100%; justify-content: center; margin: 0; min-height: 38px; }
 

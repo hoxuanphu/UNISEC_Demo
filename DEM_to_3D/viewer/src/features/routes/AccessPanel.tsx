@@ -60,7 +60,7 @@ export function AccessPanel({ locale, hazards, evidence, candidate, direct, sele
       </button>
     </section>
     {constraints.length > 0 && <section className="access-issues" aria-label={t('Đoạn ảnh hưởng tiếp cận', 'Access constraints')}>
-      <h3>{t('Cần kiểm tra', 'To check')}</h3>{constraints.map(road => <RoadConstraint key={road.id} road={road} routeName={active ? t(...active.name) : undefined} hazard={hazards.find(item => item.id === road.hz)} record={evidence.find(item => item.hazardId === road.hz)} locale={locale} onInspect={() => inspect(road.id)}/>)}
+      <h3>{t('Đoạn cần kiểm tra', 'Sections to check')}</h3>{constraints.map(road => <RoadConstraint key={road.id} road={road} routeName={active ? t(...active.name) : undefined} hazard={hazards.find(item => item.id === road.hz)} record={evidence.find(item => item.hazardId === road.hz)} locale={locale} onInspect={() => inspect(road.id)}/>)}
     </section>}
     {active && <div className="access-supplementary">
       {candidate && direct && <>

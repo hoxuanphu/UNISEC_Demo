@@ -9,6 +9,8 @@ describe('response assessment', () => {
     const result = assessCommunity(routes.get('KM'), initialHazards, signal);
     expect(result.priority).toBe(1); expect(result.hazardIds).toEqual(['B-2']); expect(result.access).toBe('uncertain');
     expect(result.reason[0]).toContain('báo cáo');
+    expect(result.reason[0]).toContain('cầu');
+    expect(result.reason[0]).not.toContain('ngập');
   });
   it('does not promote missing road data into safe access or proven isolation', () => {
     const result = assessCommunity(undefined, initialHazards, signal);

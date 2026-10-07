@@ -26,13 +26,15 @@ export function IncidentView({ incident, locale, updated, areaName, communities,
       <h1>{incident.title ? t(...incident.title) : t('Sự kiện', 'Incident')}</h1>
       <div className="incident-status">
         <button className="text-button incident-area-link" onClick={onOpenArea}>{t(...areaName)}</button>
-        <span>{t('Kích hoạt', 'Triggered')} <time dateTime={incident.triggeredAt}>{localClock(incident.triggeredAt)}</time></span>
-        <span>{t('Tổng hợp', 'Data as of')} <time dateTime={asOf}>{localClock(asOf)}</time></span>
       </div>
+      <dl className="incident-timing">
+        <div><dt>{t('Cảnh báo', 'Triggered')}</dt><dd><time dateTime={incident.triggeredAt}>{localClock(incident.triggeredAt)}</time></dd></div>
+        <div><dt>{t('Dữ liệu đến', 'Data as of')}</dt><dd><time dateTime={asOf}>{localClock(asOf)}</time></dd></div>
+      </dl>
     </div>
     <div className="sidebar-scroll">
       <section className="workflow-section">
-        <div className="section-line"><h3>{t('Cần xử lý trước', 'Immediate priorities')}</h3><button className="text-button section-link incident-all-communities" onClick={onOpenCommunities}>{t('Tất cả địa bàn', 'All communities')} ({communities.length})</button></div>
+        <div className="section-line"><h3>{t('Địa bàn ưu tiên', 'Priority communities')}</h3><button className="text-button section-link incident-all-communities" onClick={onOpenCommunities}>{t('Tất cả địa bàn', 'All communities')} ({communities.length})</button></div>
         <div className="incident-priority-list">
           {priorityCommunities.map(community => {
             const assessment = assessments.get(community.id);

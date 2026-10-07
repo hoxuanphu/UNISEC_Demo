@@ -13,12 +13,12 @@ export function CommunityFindings({ facts, evidence, locale, onOpenEvidence }: P
     const items = findings.filter(finding => finding.kind === kind);
     if (!items.length) return null;
     return <section className="workflow-section community-findings" key={kind}>
-      <h3>{kind === 'gap' ? t('Thông tin còn thiếu', 'Information gaps') : kind === 'report' ? t('Ghi nhận tại địa bàn', 'Community observations') : t('Thông tin tham chiếu', 'Reference information')}</h3>
+      <h3>{kind === 'gap' ? t('Thông tin còn thiếu', 'Information gaps') : kind === 'report' ? t('Ghi nhận tại địa bàn', 'Community observations') : t('Dữ liệu nền', 'Baseline data')}</h3>
       {items.map((finding, index) => {
         const record = evidence.find(item => item.hazardId === finding.hazardId);
         return <article className="community-finding" key={index}>
           <h4>{t(...finding.label)}</h4><p>{t(...finding.value)}</p>
-          {record ? <EvidenceMetadata evidence={record} locale={locale} className="finding-source"/> : finding.source && <dl className="finding-source">
+          {record ? <EvidenceMetadata evidence={record} locale={locale} className="finding-source" showSource={false}/> : finding.source && <dl className="finding-source">
             <div><dt>{t('Nguồn', 'Source')}</dt><dd>{t(...finding.source)}</dd></div>
             {finding.observedAt && <div><dt>{t('Ghi nhận', 'Observed')}</dt><dd><time dateTime={finding.observedAt}>{observationTime(finding.observedAt, locale)}</time></dd></div>}
             {finding.receivedAt && <div><dt>{t('Tiếp nhận', 'Received')}</dt><dd><time dateTime={finding.receivedAt}>{observationTime(finding.receivedAt, locale)}</time></dd></div>}

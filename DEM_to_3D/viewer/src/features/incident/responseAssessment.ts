@@ -18,7 +18,17 @@ export function assessCommunity(pair: ScenarioRoutePair | undefined, hazards: Ha
   const routes = [pair?.direct, pair?.candidate].filter(route => route != null);
   const affected = [...new Map(routes.flatMap(route => route.segs).filter(road => road.status !== 'open').map(road => [road.id, road])).values()];
   const hazardIds = [...new Set(affected.flatMap(road => road.hz ? [road.hz] : []))];
-  const reportedImpact = hazardIds.some(id => hazards.find(hazard => hazard.id === id)?.observation === 'reported');
+  const reportedHazard = hazards.find(hazard => hazardIds.includes(hazard.id) && hazard.observation === 'reported');
+  const reportedImpact = Boolean(reportedHazard);
+  const reportedReason: ResponseAssessment['reason'] = reportedHazard?.kind === 'bridge'
+    ? ['Có báo cáo ảnh hưởng tại cầu trên đường vào', 'Reported impact at the access bridge']
+    : reportedHazard?.kind === 'crossing'
+    ? ['Có báo cáo ảnh hưởng tại điểm vượt khe', 'Reported impact at the gully crossing']
+    : reportedHazard?.kind === 'landslide'
+    ? ['Có báo cáo sạt lở trên đường vào', 'Landslide reported on the access route']
+    : reportedHazard?.kind === 'flood'
+    ? ['Có báo cáo ngập trên đường vào', 'Flooding reported on the access route']
+    : ['Có báo cáo ảnh hưởng trên đường tiếp cận', 'Reported impact on the access route'];
   const access = !routes.length ? 'unmapped' : routes.every(route => route.status === 'blocked') ? 'blocked'
     : routes.some(route => route.status === 'uncertain') ? 'uncertain' : 'unverified';
   const priority = signal.urgentNeed || reportedImpact || (signal.communication === 'lost' && affected.length > 0) ? 1
@@ -26,9 +36,9 @@ export function assessCommunity(pair: ScenarioRoutePair | undefined, hazards: Ha
   const reason: ResponseAssessment['reason'] = signal.urgentNeed
     ? ['Có yêu cầu hỗ trợ khẩn cấp', 'Urgent assistance requested']
     : signal.communication === 'lost' && affected.some(road => road.status === 'blocked')
-    ? ['Có đường bị chặn và mất liên lạc với địa bàn', 'Access road blocked and community contact lost']
+    ? ['Đường tiếp cận bị chặn. Mất liên lạc.', 'Access road blocked. Contact lost.']
     : reportedImpact
-    ? ['Có báo cáo ảnh hưởng trên đường tiếp cận', 'Reported impact on the access route']
+    ? reportedReason
     : signal.communication === 'lost' && affected.length > 0
     ? ['Mất liên lạc và có đoạn tiếp cận chưa xác minh', 'Contact lost and access sections remain unverified']
     : access === 'unmapped'

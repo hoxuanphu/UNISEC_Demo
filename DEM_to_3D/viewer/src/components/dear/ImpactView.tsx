@@ -143,10 +143,10 @@ export const ImpactView: React.FC<Props> = ({
                 >
                   <span>
                     <strong>{t(hz.name[0], hz.name[1])}</strong>
-                    <small>{t(hz.src[0], hz.src[1])}</small>
+                    <small>{hz.area != null ? `${hz.area} ha · ` : ''}{t(hz.src[0], hz.src[1])}</small>
                   </span>
                   <StatusText>
-                    {hz.area != null ? `${hz.area} ha` : hz.kind === 'bridge' ? t('Cầu', 'Bridge') : hz.kind === 'crossing' ? t('Điểm vượt khe', 'Gully crossing') : hz.observation === 'reported' ? t('Có báo cáo', 'Reported') : t('Chưa xác minh', 'Unverified')}
+                    {hz.observation === 'reported' ? t('Có báo cáo', 'Reported') : t('Chưa xác minh', 'Unverified')}
                   </StatusText>
                 </button>
               ))

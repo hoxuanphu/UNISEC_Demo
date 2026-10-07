@@ -9,10 +9,10 @@ Hiện hành, cập nhật 2026-10-07. Web React là bản triển khai chuẩn.
 | Bố cục | Panel và bản đồ liền nhau, không bo góc hoặc chừa viền ngoài. Panel mặc định 384 px, kéo để đổi trong khoảng 320 đến 560 px và giới hạn theo cửa sổ. Mobile có hai chế độ Thông tin và Bản đồ |
 | Chữ | Inter mặc định. Cài đặt có IBM Plex Sans và Space Grotesk/Be Vietnam Pro. Nhãn 12 px, nội dung 13 px, tên trong danh sách 14 px, tuyến và số liệu chính 17 px, tiêu đề panel 22 px. Số đo và giờ dùng chữ số đều độ rộng |
 | Khoảng cách | Thang 4, 8, 12, 16, 20, 24, 32 px. Căn theo khối nội dung, không chèn khoảng trắng để căn nút |
-| Màu | Mặc định tối: header và panel xám trung tính, nút chính sáng. Chế độ sáng: panel trắng, header xám ấm, nút chính xanh đậm. Bối cảnh bản đồ xanh dịu. Ưu tiên màu đồng, cần xác minh vàng đất, bị chặn màu đỏ. Dùng chữ và ký hiệu để phân biệt trạng thái |
+| Màu | Mặc định tối: nền xanh than, panel xanh xám, nút chính xanh sáng. Chế độ sáng: panel trắng, header xám ấm, nút chính xanh đậm. Toolbar và cửa sổ công cụ theo cùng theme. Ưu tiên màu đồng, cần xác minh vàng đất, bị chặn màu đỏ. Dùng chữ và ký hiệu để phân biệt trạng thái |
 | Icon và nút | [Lucide](https://lucide.dev/guide/react), qua `shared/ui/UiIcon`: lưới 24 px, hiển thị 18 px, nét 1,75 px. Nút toolbar 32 px, nút công cụ mobile 36 px. Lớp xanh lá, đo nâu đất, tra vị trí xanh lam, điều hướng trung tính. Nút đóng 28–36 px, không viền. Có tên truy cập và focus rõ |
 | Khung GIS | Tab nghiệp vụ và toolbar cùng cao 48 px trên desktop. Toolbar gắn vào khung, không bóng hoặc bo góc. Canvas bắt đầu bên dưới toolbar. Mobile dùng hai hàng công cụ tổng cao 84 px. Panel chính và bản đồ không bo góc |
-| Bề mặt nổi | Cửa sổ lớp/đo/vị trí có thanh tiêu đề xám ấm, nội dung trắng, viền mảnh, bo 3 px và bóng nhẹ. Chú giải cũng bo 3 px. Popover cài đặt bo 8 px |
+| Bề mặt nổi | Cửa sổ lớp/đo/vị trí có thanh tiêu đề theo màu toolbar, nội dung theo màu bề mặt của theme, viền mảnh, bo 3 px và bóng nhẹ. Chú giải cũng bo 3 px. Popover cài đặt bo 8 px |
 | Header | Cao 56 px. Mốc tổng hợp là ngày và giờ, mở lịch sử dữ liệu khi bấm. Không dùng chấm trực tiếp cho dữ liệu snapshot. Các nút dùng nền trong suốt, cùng kích thước |
 | Ảnh nền | Ảnh vệ tinh là bối cảnh, giảm bão hòa và độ sáng qua `--imagery-filter` để đường, điểm, nhãn nổi lên. Nền địa hình không lọc |
 | Nhãn và ký hiệu | Nhãn dùng viền mềm `--pin-label-halo`, không dùng bóng cứng nhiều hướng. Ký hiệu viền trắng mảnh, bóng nhẹ. Đối tượng đang chọn có vòng trắng và vòng xanh cùng màu tuyến chọn |
@@ -54,7 +54,7 @@ Giá trị dùng chung nằm trong [tokens.css](../../DEM_to_3D/viewer/src/style
 | Hộp thoại | Focus vào khi mở. Tab giữ bên trong, Escape đóng và trả focus về nút mở |
 | Câu chữ | Theo [thuật ngữ](terminology.md): phân biệt báo cáo, phân tích ảnh, nguồn và kết quả tính tuyến. Tên cụ thể, trạng thái nhất quán, câu ngắn. Không dùng chấm phẩy để ghép nhiều ý, mũi tên trang trí hoặc dấu gạch dài để ngăn dữ kiện |
 | Giải thích kỹ thuật | Đặt trong tùy chọn hoặc nguồn nếu cần đối chiếu. Màn thao tác chỉ giữ dữ kiện, trạng thái và hướng dẫn cho bước hiện tại |
-| Ghi nhận tại địa bàn | Mỗi mục có chủ đề và một nhận định. Nguồn, giờ quan sát và nhận tin có nhãn riêng. Tách thông tin thiếu khỏi ghi nhận, không gắn tin cầu vào địa bàn chưa xác định tuyến |
+| Ghi nhận tại địa bàn | Mỗi mục có chủ đề và một nhận định. Giờ quan sát và nhận tin có nhãn riêng. Tên báo cáo đầy đủ nằm trong cửa sổ báo cáo. Tách dữ liệu nền và thông tin thiếu khỏi ghi nhận, không gắn tin cầu vào địa bàn chưa xác định tuyến |
 | Cảnh báo tuyến | Một chỉ dẫn ngắn và ký hiệu trạng thái, không bọc thêm thẻ. Nêu rõ cầu, điểm vượt khe hoặc đoạn sạt lở trên tuyến đang xem. Khi bị chặn, không hiện ETA và không gọi tuyến là an toàn |
 | Dữ liệu chưa có | Ghi ở nơi liên quan đến quyết định hoặc phân tích. Không rải ghi chú kỹ thuật trên mọi nhãn. Không dùng số 0 thay cho chưa xác định |
 | Mã tham chiếu | Mã dùng cho tìm kiếm và đối chiếu dữ liệu, không tạo mục mở ra chỉ có một ID. Số hiệu đường chính thức chỉ hiện khi có nguồn xác nhận |

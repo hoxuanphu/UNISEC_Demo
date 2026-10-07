@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 from playwright.sync_api import expect, sync_playwright
 from check_workspace import check_symbols
+from theme_checks import check_themes
 
 
 def check_panel(page):
@@ -110,9 +111,9 @@ def run(url, chrome, captures):
             expect(page.locator('.route-travel-estimate')).to_contain_text('40')
             expect(page.locator('.route-card').first).to_have_attribute('aria-pressed', 'true')
             page.locator('.decision-tabs button').nth(1).click()
-            expect(page.locator('.assessment-basis')).to_contain_text('Có đường bị chặn và mất liên lạc')
+            expect(page.locator('.assessment-basis')).to_contain_text('Đường tiếp cận bị chặn. Mất liên lạc.')
             report = page.locator('.community-finding').filter(has_text='Đường chính vào Nậm Khắt')
-            expect(report.locator('.finding-source')).to_contain_text('Báo cáo')
+            expect(report.locator('.finding-source dt')).to_have_text(['Ghi nhận', 'Tiếp nhận'])
             expect(report.locator('time')).to_have_count(2)
             report.get_by_role('button', name='Xem báo cáo', exact=True).click()
             expect(page.locator('.evidence-metadata')).to_contain_text('07:40')
@@ -205,11 +206,11 @@ def run(url, chrome, captures):
         if captures: page.screenshot(path=str(captures / 'workspace-image-analysis-metadata.png'))
         page.keyboard.press('Escape')
         page.locator('.workspace-nav button').first.click()
-        expect(page.locator('.incident-priority-row').first).to_contain_text('Có đường bị chặn và mất liên lạc với địa bàn')
+        expect(page.locator('.incident-priority-row').first).to_contain_text('Đường tiếp cận bị chặn. Mất liên lạc.')
         page.get_by_role('button', name='Thông báo sự kiện', exact=True).click()
         page.get_by_role('button', name='Xem chi tiết', exact=True).click()
         page.get_by_role('button', name='Cập nhật bản đồ', exact=True).click()
-        expect(page.locator('.incident-priority-row').first).to_contain_text('Có đường bị chặn và mất liên lạc với địa bàn')
+        expect(page.locator('.incident-priority-row').first).to_contain_text('Đường tiếp cận bị chặn. Mất liên lạc.')
         page.locator('.incident-priority-row').first.click()
         expect(page.locator('.decision-overview')).to_contain_text('Các tuyến đã biết đều bị chặn')
         expect(page.locator('.route-travel-estimate')).to_have_count(0)
@@ -222,7 +223,7 @@ def run(url, chrome, captures):
         expect(page.locator('.constraint-source')).to_contain_text('Ghi nhận 09:40')
         expect(page.locator('.route-travel-estimate')).to_have_count(0)
         page.locator('.decision-tabs button').nth(1).click()
-        expect(page.locator('.sidebar').get_by_text('Có đường bị chặn và mất liên lạc với địa bàn', exact=True)).to_have_count(1)
+        expect(page.locator('.sidebar').get_by_text('Đường tiếp cận bị chặn. Mất liên lạc.', exact=True)).to_have_count(1)
         expect(page.locator('.sidebar-intro')).to_have_count(0)
         page.get_by_role('button', name='Cài đặt hiển thị', exact=True).click()
         page.get_by_role('button', name='English', exact=True).click()
@@ -238,8 +239,9 @@ def run(url, chrome, captures):
         expect(panel.locator('.sidebar-intro')).to_have_count(0)
         check_panel(page)
         assert not errors, errors
+        check_themes(browser, url, captures)
         browser.close()
-        print('Panel usability passed: 4 viewport sizes, spacing, search, access context, sources, markers, report update and non-repeated missing-route states.')
+        print('Panel usability passed: 4 viewport sizes, spacing, search, access context, sources, markers, report update, missing-route states and light/dark text contrast.')
 
 
 if __name__ == '__main__':

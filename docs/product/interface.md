@@ -30,7 +30,7 @@ Hướng dẫn dân tới nơi an toàn cần nơi trú được xác nhận và
 
 | Vị trí | Thông tin chính | Mở khi cần |
 |---|---|---|
-| Sự kiện | Sự kiện, giờ kích hoạt, dữ liệu đến, địa bàn ưu tiên, số đoạn bị chặn/chưa rõ | Diễn biến phân tích, nguồn dữ liệu |
+| Sự kiện | Sự kiện, giờ cảnh báo, dữ liệu đến, địa bàn ưu tiên, số đoạn bị chặn/cần xác minh | Diễn biến phân tích, nguồn dữ liệu |
 | Chi tiết địa bàn | Tình trạng tiếp cận, tên/trạng thái tuyến, khoảng cách/ETA có điều kiện, việc cần kiểm tra | So tuyến, lý do ưu tiên và nguồn trong Căn cứ, dân số tham chiếu |
 | Tuyến | Danh sách so sánh phương án, khoảng cách, ETA có điều kiện, tình trạng từng đoạn | Địa hình dọc tuyến, nguồn của đoạn đường |
 | Đường sá | Tên, trạng thái, chiều dài. Đoạn bị chặn xếp trước | Ghi nhận, việc cần xử lý, bản ghi nguồn |

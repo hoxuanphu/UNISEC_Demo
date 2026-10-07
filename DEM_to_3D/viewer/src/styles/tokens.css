@@ -119,33 +119,33 @@
 }
 
 :root, [data-theme="dark"] {
-  --canvas: #181d1f;
-  --glass: rgba(37, 44, 46, 0.95);
-  --glass-solid: #252c2e;
+  --canvas: #18211d;
+  --glass: rgba(31, 41, 36, 0.96);
+  --glass-solid: #202a25;
   --glass-stroke: rgba(255, 255, 255, 0.10);
   --hover: rgba(255, 255, 255, 0.055);
   --fill: rgba(255, 255, 255, 0.07);
   --divider: rgba(255, 255, 255, 0.08);
-  --control-border: #6c7d81;
+  --control-border: #7f9488;
   --ink: #f1f5f4;
   --ink-2: #b3c1c1;
   --ink-3: #93a3a3;
   --critical: #ef4444;
   --critical-soft: rgba(239, 68, 68, 0.11);
-  --critical-ink: #ff9d95;
+  --critical-ink: #efa49d;
   --warning: #f59e0b;
   --warning-soft: rgba(245, 158, 11, 0.09);
-  --warning-ink: #f2c25c;
+  --warning-ink: #ddbf83;
   --open: #10b981;
   --open-soft: rgba(16, 185, 129, 0.16);
   --open-ink: #4edea3;
   --priority: #c27a1f;
-  --priority-ink: #f1a06a;
-  --primary: #eef3f2;
+  --priority-ink: #d9ad7f;
+  --primary: #b6d6c3;
   --on-primary: #13201e;
-  --select: #8bceba;
-  --select-soft: rgba(139, 206, 186, 0.12);
-  --select-ink: #9fd8c6;
+  --select: #9bbfaa;
+  --select-soft: rgba(155, 191, 170, 0.12);
+  --select-ink: #b2d2bf;
   --prio-3: #8a93a6;
   --flood: #22d3ee;
   --focus: var(--select);
@@ -160,25 +160,30 @@
   --shadow-panel: 0 12px 32px -4px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.30);
   --shadow-pop: 0 8px 24px rgba(0,0,0,0.50);
 
-  --ws-bg: #181d1f;
-  --ws-surface: #202628;
-  --ws-raised: #2a3133;
-  --ws-text: #edf0ee;
-  --ws-muted: #a8b3b0;
-  --ws-line: #35403d;
-  --ws-brand: #a3d5c4;
-  --ws-tint: #293c35;
+  --ws-bg: #18211d;
+  --ws-surface: #202a25;
+  --ws-raised: #29352e;
+  --ws-text: #e5ede7;
+  --ws-muted: #a3b3a8;
+  --ws-line: #3a4840;
+  --ws-brand: #b2d2bf;
+  --ws-tint: #2d4034;
   --ws-map: #273d30;
   --shadow-map-control: 0 2px 8px rgba(0,0,0,0.24);
 
-  --header-bg: #181d1f;
-  --header-line: #35403d;
-  --header-ink: #f1f5f4;
-  --header-muted: #adbebc;
+  --header-bg: #18211d;
+  --header-line: #3a4840;
+  --header-ink: #e5ede7;
+  --header-muted: #a3b3a8;
   --header-hover: rgba(255, 255, 255, 0.07);
   --header-stroke: rgba(255, 255, 255, 0.12);
   --header-chip: rgba(255, 255, 255, 0.05);
-  --header-brand: #a3d5c4;
+  --header-brand: #b2d2bf;
+  --map-chrome: #263129;
+  --map-chrome-line: #435247;
+  --tool-data-ink: #a3c9b2;
+  --tool-measure-ink: #d2b783;
+  --tool-location-ink: #9fbccc;
   --live: #4edea3;
   --map-control-line: rgba(255, 255, 255, 0.10);
   --shadow-float: 0 1px 3px rgba(0,0,0,0.18), 0 3px 10px rgba(0,0,0,0.14);
@@ -187,8 +192,7 @@
   --pin-label-halo: 0 0 1px #0b1a1d, 0 0 1px #0b1a1d, 0 0 2px #0b1a1d, 0 0 3px rgba(11, 26, 29, 0.9), 0 1px 5px rgba(11, 26, 29, 0.6);
 }
 
-[data-theme="light"],
-[data-theme="dark"] :is(.map-toolbar, .map-tools, .map-north, .map-scale, .map-bottom-bar, .map-overview, .map-attribution, .layers-panel, .map-measure-panel, .map-location-panel, .map-object-chooser, .basemap-status, .revision-notice, .map-load-state, .map-model-note, .leaflet-tooltip.map-measure-label) {
+[data-theme="light"] {
   --canvas: #dfe3ea;
   --glass: rgba(255, 255, 255, 0.90);
   --glass-solid: #ffffff;
@@ -249,6 +253,11 @@
   --header-stroke: #cbd3cd;
   --header-chip: rgba(25, 64, 45, 0.04);
   --header-brand: #166553;
+  --map-chrome: #f0f1ec;
+  --map-chrome-line: #cbd3cd;
+  --tool-data-ink: #38765a;
+  --tool-measure-ink: #8c6a32;
+  --tool-location-ink: #326e92;
   --live: #4edea3;
   --map-control-line: rgba(20, 43, 49, 0.12);
   --shadow-float: 0 1px 3px rgba(16,36,42,0.12), 0 3px 10px rgba(16,36,42,0.08);
@@ -258,8 +267,6 @@
 }
 
 :root {
-  --map-chrome: #f0f1ec;
-  --map-chrome-line: #cbd3cd;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
