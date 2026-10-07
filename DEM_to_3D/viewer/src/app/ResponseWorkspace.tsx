@@ -7,24 +7,15 @@ import '../features/incident/incident-tools.css';
 import '../features/search/search.css';
 import '../features/briefing/briefing.css';
 
+import { ResponsePanel } from './ResponsePanel';
+import { WorkspaceDialogs } from './WorkspaceDialogs';
 import { AppHeader } from '../components/dear/AppHeader';
 import { WorkspaceNav } from '../components/dear/WorkspaceNav';
-import { IncidentView } from '../components/dear/IncidentView';
-import { ImpactView } from '../components/dear/ImpactView';
-import { CommunityListView } from '../components/dear/CommunityListView';
-import { CommunityDetailView } from '../components/dear/CommunityDetailView';
-import { ObjectDetailView } from '../components/dear/ObjectDetailView';
 import { MapControls } from '../components/dear/MapControls';
 import { MapAttribution } from '../components/dear/MapAttribution';
 import { ProfileDrawer } from '../components/dear/ProfileDrawer';
-import { NotificationDialog } from '../components/dear/NotificationDialog';
-import { DataDialog } from '../components/dear/DataDialog';
-import { TimelineDialog } from '../components/dear/TimelineDialog';
 import { LayersDialog } from '../components/dear/LayersDialog';
-import { EvidenceDialog } from '../components/dear/EvidenceDialog';
-import { UiIcon } from '../components/dear/UiIcon';
 
-import { ModelUploadPanel } from '../components/ModelUploadPanel';
 import type { ViewControls, OverlayHit, BasemapState } from '../features/map/mapContracts';
 import { Map2D } from '../features/map/Map2D';
 import { MapLocationPanel } from '../features/map/MapLocationPanel';
@@ -36,29 +27,19 @@ import type { useWorkspacePreferences } from './useWorkspacePreferences';
 import { Map3DBoundary } from '../features/map/Map3DBoundary';
 import { useRouteTerrainAnalysis } from '../features/routes/useRouteTerrainAnalysis';
 import { selectAccessRoute } from '../features/routes/routeReview';
-import { usePanelScroll } from '../shared/hooks/usePanelScroll';
 import { useModalFocus } from '../shared/hooks/useModalFocus';
 import { PanelResizeHandle } from '../shared/ui/PanelResizeHandle';
 import { useIncidentWorkspace } from '../features/incident/useIncidentWorkspace';
 import { effectiveRevision } from '../features/incident/workspaceRevision';
 import { RevisionNotice } from '../features/incident/RevisionNotice';
-import { NotificationCenter } from '../features/incident/NotificationCenter';
-import { ImageCompareDialog } from '../features/comparison/ImageCompareDialog';
 import type { ComparisonPair } from '../features/comparison/comparison';
 import { defaultLayerAppearance } from '../features/map/layerAppearance';
 import { LayerDetails } from '../features/map/LayerDetails';
 import { MapSearch } from '../features/search/MapSearch';
 import { searchWorkspace } from '../features/search/searchIndex';
 import { createDecisionSnapshot, type DecisionSnapshot } from '../features/briefing/decisionSnapshot';
-import { DecisionExportDialog } from '../features/briefing/DecisionExportDialog';
 
-import type {
-  CommunityFilter,
-  DetailTab,
-  ImpactTab,
-  RoadFilter,
-  WorkspaceView
-} from '../types/dear';
+import type { WorkspaceView } from '../types/dear';
 import type { TerrainPoint, TerrainMetadata } from '../types/terrain';
 
 import { sampleTiles } from '../terrain/analysisTerrain';
@@ -77,15 +58,7 @@ type Props = {
 export function ResponseWorkspace({ preferences, interaction, runtime }: Props): JSX.Element {
   const { locale, setLocale, theme, setTheme, fontChoice, setFontChoice } = preferences;
   const navigation = useWorkspaceNavigation();
-  const { view, selectedCommunityId, selectedRouteType, selectedObjectId,
-    detailTab, roadFilter, communityFilter, roadQuery, impactTab, communityQuery } = navigation;
-  const setDetailTab = (detailTab: DetailTab) => navigation.dispatch({ type: 'filters', values: { detailTab } });
-  const setSelectedRouteType = (selectedRouteType: 'candidate' | 'direct') => navigation.dispatch({ type: 'filters', values: { selectedRouteType } });
-  const setRoadFilter = (roadFilter: RoadFilter) => navigation.dispatch({ type: 'filters', values: { roadFilter } });
-  const setCommunityFilter = (communityFilter: CommunityFilter) => navigation.dispatch({ type: 'filters', values: { communityFilter } });
-  const setRoadQuery = (roadQuery: string) => navigation.dispatch({ type: 'filters', values: { roadQuery } });
-  const setCommunityQuery = (communityQuery: string) => navigation.dispatch({ type: 'filters', values: { communityQuery } });
-  const setImpactTab = (impactTab: ImpactTab) => navigation.dispatch({ type: 'filters', values: { impactTab } });
+  const { view, selectedCommunityId, selectedRouteType, selectedObjectId } = navigation;
   const [mapQuery, setMapQuery] = useState('');
   const [decisionSnapshot, setDecisionSnapshot] = useState<DecisionSnapshot | null>(null);
   const [comparisonPair, setComparisonPair] = useState<ComparisonPair | null>(null);
@@ -94,7 +67,7 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
   const [historical, setHistorical] = useState(false);
   const updated = effectiveRevision({ applied: reportApplied, historical });
   const [alertRead, setAlertRead] = useState<boolean>(false);
-  const { showProfile, measurementOpen, locationOpen, activeDialog, showCustomUploadModal,
+  const { showProfile, measurementOpen, locationOpen, activeDialog,
     mapMode, setMapMode, setActiveDialog, focusDistance, setFocusDistance, resetTools,
     recover2D: handle3DUnavailable } = interaction;
   const [panelCollapsed, setPanelCollapsed] = useState(false);
@@ -109,20 +82,11 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
 
   const map2DViewport = useRef<{ center: [number, number]; zoom: number } | null>(null);
   const viewControlRef = useRef<ViewControls | null>(null);
-  const sidebarRef = useRef<HTMLElement>(null);
   const workspaceRef = useRef<HTMLDivElement>(null);
-  const modalKey = showCustomUploadModal ? 'upload' : activeDialog === 'layers' ? null : activeDialog;
+  const modalKey = interaction.dialog === 'layers' ? null : interaction.dialog;
   useModalFocus(workspaceRef, modalKey, () => {
     setActiveDialog(null);
   });
-  const panelKey = view === 'priority'
-    ? selectedCommunityId ? `community:${selectedCommunityId}:${detailTab}` : `priority:${communityFilter}:${communityQuery}`
-    : selectedObjectId
-    ? `object:${selectedObjectId}`
-    : view === 'impact'
-    ? `impact:${impactTab}:${roadFilter}:${roadQuery}`
-    : 'incident';
-  usePanelScroll(sidebarRef, panelKey);
 
   const toastTimer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(toastTimer.current), []);
@@ -147,7 +111,8 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
     retry: retryTerrain, reload: reloadTerrain, clear: clearTerrain, upload: uploadTerrain,
     changeMode: handleUploadModeChange, changeGeographicMerge: handleGeographicMergeChange
   } = runtime;
-  const { roads, hazards, evidence, routes, assessments, communities, incident, responseSites } = useIncidentWorkspace(packet, updated);
+  const incidentSnapshot = useIncidentWorkspace(packet, updated);
+  const { roads, hazards, evidence, routes, assessments, communities, incident, responseSites } = incidentSnapshot;
   useEffect(() => { if (offlineMode) setLayers(previous => ({ ...previous, context: false })); }, [offlineMode]);
 
   const resetTerrainTools = useCallback(() => { resetTools(); setLocationPoint(null); }, [resetTools]);
@@ -266,103 +231,34 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
 
       <main className="work-area">
         <WorkspaceNav view={view} locale={locale} onChangeView={changeView} />
-        <aside id="response-panel" ref={sidebarRef} className="sidebar" aria-label={locale === 'vi' ? 'Thông tin ứng phó' : 'Response information'}>
-          {!snapshotReady ? <div className="sidebar-top"><h1>{startupError ? (locale === 'vi' ? 'Chưa tải được dữ liệu' : 'Dataset unavailable') : (locale === 'vi' ? 'Đang tải dữ liệu' : 'Loading dataset')}</h1>{startupError && <button className="button soft" onClick={retryTerrain}>{locale === 'vi' ? 'Thử lại' : 'Retry'}</button>}</div> : view === 'priority' && selectedCommunity && selectedRoutePair ? (
-            <CommunityDetailView
-              community={selectedCommunity}
-              terrainCovered={communityTerrainCoverage?.get(selectedCommunity.id) ?? null}
-              assessment={assessments.get(selectedCommunity.id)!}
-              hazards={hazards}
-              evidence={evidence}
-              locale={locale}
-              detailTab={detailTab}
-              onChangeDetailTab={setDetailTab}
-              onBack={() => { navigation.dispatch({ type: 'close-community' }); resetTools(); }}
-              candidateRoute={selectedRoutePair.candidate}
-              directRoute={selectedRoutePair.direct}
-              selectedRouteType={selectedRouteType}
-              onChangeRouteType={(type) => {
-                setSelectedRouteType(type);
-                setFocusDistance(null);
-              }}
-              hasTerrainProfile={Boolean(routeProfile?.samples.some(sample => sample.elevation !== undefined))}
-              onToggleProfile={toggleProfile}
-              onOpenSources={() => {
-                setActiveDialog('data');
-              }}
-              onSelectObject={inspectObject}
-              onOpenEvidence={(hazardId) => { setEvidenceModalId(hazardId); setActiveDialog('evidence'); }}
-              onExport={openDecisionExport}
-            />
-          ) : view !== 'priority' && selectedObjectId ? (
-            <ObjectDetailView
-              objectId={selectedObjectId}
-              parentName={navigation.objectOrigins[view] === 'priority' ? selectedCommunity?.name : undefined}
-              aoi={packet.aoi}
-              locale={locale}
-              roads={roads}
-              hazards={hazards}
-              evidence={evidence}
-              communities={communities}
-              responseSites={responseSites}
-              routes={routes}
-              hasTerrainProfile={Boolean(routeProfile?.samples.some(sample => sample.elevation !== undefined))}
-              profileOpen={showProfile}
-              onToggleProfile={toggleProfile}
-              onBack={() => { navigation.dispatch({ type: 'close-object' }); resetTools(); }}
-              onSelectCommunity={selectCommunity}
-              onSelectObject={inspectObject}
-              onOpenEvidence={(hzId) => {
-                setEvidenceModalId(hzId);
-                setActiveDialog('evidence');
-              }}
-              onOpenPriority={() => { setCommunityFilter('all'); setCommunityQuery(''); openList('priority'); }}
-            />
-          ) : view === 'incident' ? (
-            <IncidentView
-              incident={incident}
-              areaName={packet.aoi.name}
-              onOpenArea={() => inspectObject(`aoi:${packet.aoi.id}`)}
-              locale={locale}
-              updated={updated}
-              communities={communities}
-              routes={routes}
-              assessments={assessments}
-              blockedRoadCount={roads.filter(road => road.status === 'blocked').length}
-              uncertainRoadCount={roads.filter(road => road.status === 'uncertain').length}
-              onSelectCommunity={selectCommunity}
-              onOpenTimeline={() => setActiveDialog('timeline')}
-              onOpenData={() => setActiveDialog('data')}
-              onOpenCommunities={() => { setCommunityFilter('all'); setCommunityQuery(''); openList('priority'); }}
-              onOpenRoads={filter => { navigation.dispatch({ type: 'road-list', filter }); revealPanel(); }}
-            />
-          ) : view === 'impact' ? (
-            <ImpactView
-              roads={roads}
-              hazards={hazards}
-              locale={locale}
-              roadFilter={roadFilter}
-              query={roadQuery}
-              onChangeQuery={setRoadQuery}
-              tab={impactTab}
-              onChangeTab={setImpactTab}
-              onChangeRoadFilter={setRoadFilter}
-              onSelectObject={inspectObject}
-            />
-          ) : (
-            <CommunityListView
-              communities={communities}
-              locale={locale}
-              filter={communityFilter}
-              query={communityQuery}
-              onChangeQuery={setCommunityQuery}
-              onChangeFilter={setCommunityFilter}
-              onSelectCommunity={selectCommunity}
-              selectedId={selectedCommunityId}
-              routes={routes}
-            />
-          )}
-        </aside>
+        <ResponsePanel
+          locale={locale}
+          navigation={navigation}
+          onNavigate={navigation.dispatch}
+          snapshot={incidentSnapshot}
+          aoi={packet.aoi}
+          updated={updated}
+          ready={snapshotReady}
+          unavailable={startupError}
+          onRetry={retryTerrain}
+          community={selectedCommunity}
+          routePair={selectedRoutePair}
+          terrainCoverage={communityTerrainCoverage}
+          hasTerrainProfile={Boolean(routeProfile?.samples.some(sample => sample.elevation !== undefined))}
+          profileOpen={showProfile}
+          onToggleProfile={toggleProfile}
+          onChangeRoute={selectedRouteType => {
+            navigation.dispatch({ type: 'filters', values: { selectedRouteType } });
+            setFocusDistance(null);
+          }}
+          onSelectCommunity={selectCommunity}
+          onInspectObject={inspectObject}
+          onRevealPanel={revealPanel}
+          onResetTools={resetTools}
+          onOpenDialog={setActiveDialog}
+          onOpenEvidence={hazardId => { setEvidenceModalId(hazardId); setActiveDialog('evidence'); }}
+          onExport={openDecisionExport}
+        />
 
         <PanelResizeHandle locale={locale}/>
 
@@ -510,74 +406,31 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
         <button aria-pressed={mobileView === 'map'} onClick={() => setMobileView('map')}>{locale === 'vi' ? 'Bản đồ' : 'Map'}</button>
       </nav>
 
-      {/* Dialogs */}
-      {activeDialog === 'comparison' && <ImageCompareDialog pair={comparisonPair} onPair={setComparisonPair} triggeredAt={incident.triggeredAt} locale={locale} onClose={() => setActiveDialog(null)}/>}
-      {activeDialog === 'exportDecision' && decisionSnapshot && <DecisionExportDialog snapshot={decisionSnapshot}
-        terrain={defaultTerrainData} imageUrl={scenarioManifest?.terrain.image?.url} locale={locale} onClose={() => setActiveDialog(null)}/>}
-      {activeDialog === 'alerts' && (
-        <NotificationDialog
-          locale={locale}
-          report={packet.report}
-          road={roads.find(road => road.id === packet.report.roadId)}
-          updated={reportApplied}
-          historical={historical}
-          onApplyReport={handleSimulateUpdate}
-          onClose={() => setActiveDialog(null)}
-          onSelectRoad={inspectObject}
-        />
-      )}
-
-      {activeDialog === 'notificationCenter' && <NotificationCenter packet={packet} applied={reportApplied} locale={locale} onClose={() => setActiveDialog(null)} onOpenReport={() => setActiveDialog('alerts')} onInspect={inspectObject}/>}
-      {activeDialog === 'timeline' && <TimelineDialog locale={locale} incident={incident} report={packet.report} updated={reportApplied} historical={historical} onRevision={value => { setHistorical(value); resetTools(); }} onClose={() => setActiveDialog(null)} />}
-
-      {activeDialog === 'data' && (
-        <DataDialog
-          incident={incident}
-          locale={locale}
-          updated={updated}
-          manifest={defaultTerrainData ? scenarioManifest : null}
-          terrainMetadata={mapTerrain?.metadata}
-          onClose={() => setActiveDialog(null)}
-        />
-      )}
-
-      {activeDialog === 'evidence' && evidenceModalId && (
-        <EvidenceDialog
-          evidence={evidence.find(item => item.hazardId === evidenceModalId)}
-          hazard={hazards.find(item => item.id === evidenceModalId)}
-          roads={roads}
-          locale={locale}
-          onClose={() => setActiveDialog(null)}
-          onSelectRoad={inspectObject}
-        />
-      )}
-
-      {showCustomUploadModal && (
-        <div className="modal-overlay" onClick={() => setActiveDialog(null)}>
-          <div className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="upload-dialog-title" onClick={(e) => e.stopPropagation()} style={{ width: '640px' }}>
-            <div className="modal-head">
-              <h2 id="upload-dialog-title">{locale === 'en' ? 'Terrain model' : 'Mô hình địa hình'}</h2>
-              <button className="icon-button" onClick={() => setActiveDialog(null)} aria-label={locale === 'vi' ? 'Đóng' : 'Close'}>
-                <UiIcon name="close" />
-              </button>
-            </div>
-            <div className="modal-body">
-              <ModelUploadPanel
-                locale={locale}
-                mode={uploadMode}
-                geographicMerge={geographicMerge}
-                fileNames={uploadedNames}
-                busy={uploadBusy}
-                error={uploadError}
-                onModeChange={handleUploadModeChange}
-                onGeographicMergeChange={handleGeographicMergeChange}
-                onFiles={handleUpload}
-                onClear={clearUploadedModels}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <WorkspaceDialogs
+        dialog={interaction.dialog}
+        locale={locale}
+        packet={packet}
+        snapshot={incidentSnapshot}
+        updated={updated}
+        reportApplied={reportApplied}
+        historical={historical}
+        comparisonPair={comparisonPair}
+        onComparisonPair={setComparisonPair}
+        decisionSnapshot={decisionSnapshot}
+        evidenceId={evidenceModalId}
+        terrain={defaultTerrainData}
+        terrainMetadata={mapTerrain?.metadata}
+        manifest={scenarioManifest}
+        upload={{ mode: uploadMode, geographicMerge, fileNames: uploadedNames,
+          busy: uploadBusy, error: uploadError, onModeChange: handleUploadModeChange,
+          onGeographicMergeChange: handleGeographicMergeChange, onFiles: handleUpload,
+          onClear: clearUploadedModels }}
+        onClose={() => setActiveDialog(null)}
+        onOpenReport={() => setActiveDialog('alerts')}
+        onApplyReport={handleSimulateUpdate}
+        onRevision={value => { setHistorical(value); resetTools(); }}
+        onInspectObject={inspectObject}
+      />
 
       {toastMessage && <div className="toast" role="status">{toastMessage[locale === 'vi' ? 0 : 1]}</div>}
     </div>

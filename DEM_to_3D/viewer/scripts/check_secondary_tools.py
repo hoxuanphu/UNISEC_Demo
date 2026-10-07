@@ -143,7 +143,7 @@ def run(url, chrome, captures):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--url', default='http://127.0.0.1:5212')
-    parser.add_argument('--chrome', default='C:/Program Files/Google/Chrome/Application/chrome.exe')
+    parser.add_argument('--chrome')
     parser.add_argument('--captures', type=Path)
     args = parser.parse_args()
     if args.captures:

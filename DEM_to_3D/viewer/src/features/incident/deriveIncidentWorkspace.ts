@@ -27,3 +27,5 @@ export function deriveIncidentWorkspace(packet: IncidentPacket, updated: boolean
   const communities = baseline.map(community => ({ ...community, prio: assessments.get(community.id)!.priority }));
   return { roads, hazards, evidence, routes, assessments, communities, incident: packet.incident, responseSites: packet.responseSites };
 }
+
+export type IncidentWorkspaceSnapshot = ReturnType<typeof deriveIncidentWorkspace>;

@@ -8,7 +8,7 @@ Cập nhật: 2026-10-07. Định hướng đã chọn, các đợt sau SIC chư
 |---|---|---|
 | Workspace ứng phó | Sự kiện, đường ảnh hưởng, ưu tiên, tuyến, căn cứ, bản xuất, 2D/3D | Thử với cán bộ trực, dữ liệu và quy tắc được duyệt |
 | Công cụ GIS | Tìm kiếm, sáu kiểu đo, tọa độ, mặt cắt, lớp/nhãn, so GeoTIFF | Sửa/lưu lớp nghiệp vụ, catalog nhiều bộ dữ liệu, CRS được kiểm bằng điểm chuẩn |
-| Kiến trúc frontend | Feature, repository, schema/checksum, snapshot độc lập, contract map chung, reducer điều hướng/công cụ, cấu hình dataset | Tách geo/domain/renderer, panel/dialog và CSS. Catalog nhiều bộ dữ liệu thực |
+| Kiến trúc frontend | Feature, repository, schema/checksum, snapshot độc lập, contract map chung, reducer điều hướng/công cụ, cấu hình dataset, module ghép panel/hộp thoại riêng | Tách geo/domain/renderer, phân tích địa hình và phần CSS còn chung. Catalog nhiều bộ dữ liệu thực |
 | Nguồn và viễn thám | Metadata/manifest, kiểm file, cấu trúc dự kiến cho nguồn và phương pháp | Ảnh/DEM có nguồn và quyền dùng, SAR/quang học, job tái lập và QA chuyên môn |
 | Backend | Kế hoạch NestJS/PostGIS/Python, contract ghi dự kiến | Chưa triển khai API ghi, lưu trữ, tài khoản, duyệt/công bố hoặc worker |
 | Phát hành | CI kiểm dữ liệu/unit/browser, build và gói offline, cấu hình Vercel | Xác nhận GitHub Actions của bản phát hành, URL deploy và chạy trên máy trình chiếu |
@@ -54,4 +54,4 @@ Catalog ảnh định hướng theo [OGC STAC](https://www.ogc.org/standards/sta
 
 Đợt nền frontend đã có điều hướng/công cụ và cấu hình dataset. Fixture thứ hai kiểm tên sự kiện, AOI, tình trạng đường, quay lại địa bàn và JSON xuất; vẫn dùng địa hình Chế Tạo, chưa chứng minh hỗ trợ nhiều CRS hoặc khu vực thực.
 
-Tiếp theo: tách panel/dialog khỏi composition, tách toán địa lý khỏi renderer, rồi chốt contract catalog v2 bằng metadata một bộ dữ liệu thực. Duyệt dữ liệu và chạy trên máy trình chiếu vẫn là việc cần chốt cho SIC. Backend tiếp tục ở mức kế hoạch.
+Đã tách panel/hộp thoại khỏi composition. Kiểm tra giữ vị trí cuộn, tab căn cứ, quay lại từ đoạn đường và focus hộp thoại đạt. Tiếp theo: tách chọn/phân tích địa hình và toán địa lý khỏi renderer, rồi chốt contract catalog v2 bằng metadata một bộ dữ liệu thực. Duyệt dữ liệu và chạy trên máy trình chiếu vẫn là việc cần chốt cho SIC. Backend tiếp tục ở mức kế hoạch.

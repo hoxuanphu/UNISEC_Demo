@@ -6,6 +6,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 
 | Vấn đề | Thay đổi |
 |---|---|
+| Workspace ghép mọi panel và hộp thoại trong một file | Tách `ResponsePanel`, `WorkspaceDialogs` và `TerrainUploadDialog`. Giữ reducer điều hướng/công cụ và một snapshot dùng chung. Kiểm tra quay lại từ báo cáo/đường giữ tab Căn cứ và vị trí cuộn; danh sách giữ vị trí; hộp thoại giữ/trả focus |
 | Tổng quan sự kiện dàn trải, tiêu đề/nút lệch hàng | Bỏ margin trên nút Tất cả, rút nhãn và giữ tên truy cập đầy đủ. Tách hai nhóm bằng thanh tiêu đề cùng nền toolbar. Hai mốc giờ cùng dòng, lề nội dung 24 px, hàng đệm 12 px, tra cứu chia hai cột. Style chuyển về `incident-panel.css`. Kiểm tra căn hàng, ranh giới, khoảng đệm trên Việt/Anh, hai theme và ba bộ chữ |
 | Nút tiêu đề công cụ thành các ô trắng, tab tiếng Anh sát viền | Nút tiêu đề dùng nền trong suốt, cách nhau 4 px, chỉ đổi nền khi hover hoặc bật tùy chọn. Tab chia theo nội dung. Kiểm tra panel 320 px, bốn viewport, ba font và hai theme. Tách nền hàng kiểu đo khỏi thanh tab |
 | Bộ lọc đường vượt khung ở mobile 320 px | Giảm đệm ngang mobile, cho xuống hàng khi không đủ chỗ. Kiểm tra cả ba font và hai theme |
@@ -123,13 +124,13 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Chrome: gói offline | Giải nén thư mục mới, checksum, luồng ứng phó, PNG, 3D/2D và đặt lại đạt. Không phát sinh request mạng ngoài |
 | Vòng đời 3D | Sửa gỡ listener trước khi React tháo canvas. Giải phóng tài nguyên GPU của renderer cũ, giữ dữ liệu để mở lại. 25 vòng thử nhanh không tăng DOM/listener |
 | Phiên 30 phút | Đạt: 58 vòng chọn địa bàn/tuyến, mặt cắt, 3D/2D, áp dụng tin và đặt lại. 20 PNG, không lỗi JavaScript. Sau vòng 10: DOM/listener không tăng, JS heap tăng 0,70 MB |
-| Lặp phiên trên build cuối | Linux sau sửa bố cục: 5 vòng trong 39,4 giây, DOM/listener giữ nguyên. Thử dài 30 phút ở hàng trên là kết quả của build trước |
-| Kiểm workflow trên Linux | Container Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0 đạt: cài sạch, 190 unit/18 Python tests, audit, build, đóng gói và tám bộ browser checks gồm chọn dataset/gói offline. Panel kiểm cả chữ, metadata và bề mặt sáng/tối. Kết quả bản làm việc cục bộ không thay xác nhận GitHub Actions của commit mới |
+| Lặp phiên trên build cuối | Linux sau tách panel/hộp thoại: 2 vòng trong 45,4 giây, DOM/listener giữ nguyên ở 676/368. Thử dài 30 phút ở hàng trên là kết quả của build trước |
+| Kiểm workflow trên Linux | Container Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0 đạt: cài sạch, 190 unit/18 Python tests, audit, build, đóng gói và chín bộ browser checks gồm chọn dataset/gói offline, so ảnh/xuất/in. Panel kiểm cả chữ, metadata, sáng/tối và giữ ngữ cảnh. Kết quả bản làm việc cục bộ không thay xác nhận GitHub Actions của commit mới |
 | GitHub Actions | Đã sửa ảnh xem trước tải chậm và khoảng trễ khóa ký hiệu. Browser kiểm tra trạng thái ngay khi đổi chế độ/tạo lớp, trước khung hình tiếp theo. [Theo dõi workflow](https://github.com/hoxuanphu/UNISEC_Demo/actions/workflows/dear-web.yml) |
 | Source dùng khi deploy | Import kiểm đúng chữ hoa/thường. Thư mục sạch với file được Git theo dõi chuẩn bị đủ dữ liệu, kiểm checksum đạt |
 | Dependency audit | Vite 7.3.6, plugin React 5.2.0, Vitest 4.1.11. `source-map-js` cập nhật riêng lên 1.2.2 theo [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q). `npm audit`: 0 cảnh báo, gồm cả công cụ phát triển |
 
-CI chạy tám bộ kiểm tra: workspace, đo, tương tác bản đồ, nguồn lớp, panel, chọn dataset, gói offline và vòng lặp phiên. Script nằm trong `scripts/`, tên `check_*.py`. Bộ công cụ phụ/so ảnh có script riêng. Cài Playwright từ `scripts/requirements-browser.txt`, dùng Chromium hoặc `--chrome` trỏ đến Chrome đã cài.
+CI chạy chín bộ kiểm tra: workspace, đo, tương tác bản đồ, nguồn lớp, công cụ phụ/so ảnh, panel, chọn dataset, gói offline và vòng lặp phiên. Script nằm trong `scripts/`, tên `check_*.py`. Cài Playwright từ `scripts/requirements-browser.txt`, dùng Chromium hoặc `--chrome` trỏ đến Chrome đã cài.
 
 Bước in PDF trong kiểm tra Chrome tự động có một lần timeout. Hai lần chạy lại đạt, chưa xác định nguyên nhân. Cần kiểm tra bản in trên máy trình chiếu.
 

@@ -7,6 +7,7 @@ from check_workspace import check_symbols
 from theme_checks import check_themes
 from control_surface_checks import check_control_surfaces
 from incident_panel_checks import check_incident_layout
+from workspace_context_checks import check_workspace_context
 
 
 def check_panel(page):
@@ -283,6 +284,7 @@ def run(url, chrome, captures):
         assert not errors, errors
         check_themes(browser, url, captures)
         check_control_surfaces(browser, url, captures)
+        check_workspace_context(browser, url)
         browser.close()
         print('Panel usability passed: 4 viewport sizes, spacing, search, access context, sources, markers, report update, missing-route states and light/dark text contrast.')
 
