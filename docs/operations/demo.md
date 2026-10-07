@@ -6,7 +6,7 @@ Dùng bộ dữ liệu mô phỏng Chế Tạo. Mở đầu nói rõ phạm vi n
 
 | Thời gian | Thao tác | Điều cần thể hiện |
 |---|---|---|
-| 00:00–00:40 | Sự kiện, mở vùng đánh giá nếu cần | Mưa kích hoạt đánh giá sạt lở. AOI khác phạm vi DEM. Dữ liệu đến 09:31 |
+| 00:00–00:40 | Sự kiện, mở vùng đánh giá nếu cần | Mưa kích hoạt đánh giá sạt lở. AOI khác phạm vi DEM. Tổng hợp lúc 09:31 |
 | 00:40–01:30 | Chọn **Nậm Khắt** trong danh sách ưu tiên | Ưu tiên cao do báo cáo chặn đường và mất liên lạc. Việc tiếp theo là kiểm tra phương án tiếp cận |
 | 01:30–02:30 | **Tiếp cận → So sánh tuyến**, chọn đường chính và đường vòng | Đường chính bị chặn. Đường vòng cần xác minh điểm vượt khe. Thời gian là ước tính với giả định đi qua được |
 | 02:30–03:20 | Chọn đoạn vượt khe, mở **Xem báo cáo** | Phân biệt quan sát, nhận tin, ảnh hưởng và điều chưa xác minh. X đóng về đúng ngữ cảnh |

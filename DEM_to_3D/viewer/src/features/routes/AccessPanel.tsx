@@ -6,6 +6,7 @@ import { communityAccessText } from './accessAssessment';
 import { RouteOption } from './RouteOption';
 import { RoadConstraint } from './RoadConstraint';
 import { routeNextAction, selectAccessRoute } from './routeReview';
+import { roadStatusLabels } from './roadStatus';
 import './access-panel.css';
 
 type Props = {
@@ -40,11 +41,11 @@ export function AccessPanel({ locale, hazards, evidence, candidate, direct, sele
   const roadRows = (roads: ScenarioRoute['segs']) => roads.map(road => <button key={road.id} className="object-row impact-row" onClick={() => inspect(road.id)}>
     <span><strong>{t(...road.name)}</strong><small>{road.len} km</small></span>
     <StatusText tone={road.status === 'blocked' ? 'critical' : road.status === 'uncertain' ? 'warning' : 'neutral'} icon={road.status === 'blocked' ? 'blocked' : road.status === 'uncertain' ? 'uncertain' : undefined}>
-      {road.status === 'blocked' ? t('Bị chặn', 'Blocked') : road.status === 'uncertain' ? t('Cần xác minh', 'Uncertain') : t('Chưa ghi nhận chặn', 'No blockage reported')}
+      {t(...roadStatusLabels[road.status])}
     </StatusText>
   </button>);
   return <>
-    <p className="decision-overview">{t(...communityAccessText({ candidate, direct }))}</p>
+    {(!active || (candidate && direct)) && <p className="decision-overview">{t(...communityAccessText({ candidate, direct }))}</p>}
     {active && <section className="decision-route" aria-label={t('Tuyến đang xem', 'Selected route')}>
       <div className="access-route-label"><span>{active.type === 'candidate' && !blocked ? t('Tuyến gợi ý', 'Suggested route') : t('Tuyến đang xem', 'Selected route')}</span><StatusText tone={blocked ? 'critical' : 'warning'}>{blocked ? t('Bị chặn', 'Blocked') : t('Cần xác minh', 'Verify access')}</StatusText></div>
       <h2>{t(...active.name)}</h2>

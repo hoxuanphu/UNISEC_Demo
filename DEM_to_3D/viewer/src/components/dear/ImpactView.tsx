@@ -3,6 +3,7 @@ import React from 'react';
 import type { Hazard, ImpactTab, Locale, RoadFilter, RoadSegment } from '../../types/dear';
 import { StatusText } from '../../shared/ui/StatusText';
 import { normalizeSearch } from '../../features/search/searchIndex';
+import { roadStatusLabels } from '../../features/routes/roadStatus';
 
 type Props = {
   roads: RoadSegment[];
@@ -118,11 +119,7 @@ export const ImpactView: React.FC<Props> = ({
                     </small>
                   </span>
                   <StatusText tone={road.status === 'blocked' ? 'critical' : road.status === 'uncertain' ? 'warning' : 'neutral'} icon={road.status === 'blocked' ? 'blocked' : road.status === 'uncertain' ? 'uncertain' : undefined}>
-                    {road.status === 'blocked'
-                      ? t('Bị chặn', 'Blocked')
-                      : road.status === 'uncertain'
-                      ? t('Cần xác minh', 'Uncertain')
-                      : t('Chưa ghi nhận chặn', 'No blockage reported')}
+                    {t(...roadStatusLabels[road.status])}
                   </StatusText>
                 </button>
               ))

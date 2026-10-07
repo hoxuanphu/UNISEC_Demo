@@ -35,7 +35,7 @@
   },
   "workspace": {
     "url": "/scenarios/che-tao/v0.2/incident.json",
-    "byteLength": 25169,
-    "sha256": "e0dadcd2728b91f5ea9ceca46e5c9a9956ca68bb08b872920b6d711c83f3d6b3"
+    "byteLength": 25069,
+    "sha256": "8c5f59f894d99ea46d65040ad1cdf4abebf3d75716192d33ffed8066a691f8c1"
   }
 }

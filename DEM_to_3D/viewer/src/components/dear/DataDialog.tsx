@@ -66,9 +66,9 @@ export function DataDialog({ incident, locale, updated, manifest, terrainMetadat
           {gridSpacing && <div><dt>{t('Bước lưới DEM', 'DEM cell spacing')}</dt><dd>{gridSpacing}</dd></div>}
           <div><dt>{t('Nguồn DEM', 'DEM source')}</dt><dd>{t('Chưa khai báo', 'Not provided')}</dd></div>
           {imagerySource && <div><dt>{t('Tệp ảnh nền', 'Imagery file')}</dt><dd style={{ overflowWrap: 'anywhere' }}>{imagerySource}</dd></div>}
-        </dl> : <p className="data-context">{t('Chưa có metadata địa hình.', 'Terrain metadata unavailable.')}</p>}
+        </dl> : <p className="data-context">{t('Chưa có thông tin về dữ liệu địa hình.', 'Terrain metadata unavailable.')}</p>}
         <h3 className="data-section-title">{t('Cách đánh giá', 'Assessment method')}</h3>
-        <dl className="assessment-method"><div><dt>{t('Ưu tiên địa bàn', 'Community priority')}</dt><dd>{t('Dựa vào báo cáo ảnh hưởng trên đường tiếp cận, tình trạng liên lạc và yêu cầu khẩn cấp.', 'Uses reported road impacts, community contact and urgent requests.')}</dd></div><div><dt>{t('Phương án tiếp cận', 'Access options')}</dt><dd>{t('Tính trên mạng đường có trong dữ liệu. Loại đoạn bị chặn, tăng chi phí cho đoạn chưa rõ. Tuyến gợi ý vẫn cần xác minh khả năng đi qua.', 'Computed on the available road network. Blocked sections are excluded and uncertain sections add cost. Suggested routes still require passage verification.')}</dd></div></dl>
+        <dl className="assessment-method"><div><dt>{t('Ưu tiên địa bàn', 'Community priority')}</dt><dd>{t('Dựa vào ảnh hưởng trên đường tiếp cận, tình trạng liên lạc và yêu cầu hỗ trợ khẩn cấp.', 'Uses reported road impacts, community contact and urgent assistance requests.')}</dd></div><div><dt>{t('Phương án tiếp cận', 'Access options')}</dt><dd>{t('Tìm tuyến trên mạng đường hiện có, tránh đoạn bị chặn và hạn chế đoạn cần xác minh. Kiểm tra khả năng đi qua trước khi sử dụng tuyến.', 'Routing uses the available road network, excludes blocked sections and penalises uncertain ones. Check passage conditions before using a route.')}</dd></div></dl>
       </div>
     </section>
   </div>;

@@ -49,7 +49,7 @@ export function assessCommunity(pair: ScenarioRoutePair | undefined, hazards: Ha
     ? ['Có tuyến bị chặn, phương án khác chưa được xác minh', 'One route is blocked and other access is unverified']
     : access === 'uncertain'
     ? ['Có đoạn đường chưa xác minh khả năng đi qua', 'An access section has unverified passability']
-    : ['Chưa ghi nhận đoạn bị chặn trên tuyến đã biết', 'No blockage reported on mapped routes'];
+    : ['Chưa ghi nhận tắc đường trên các tuyến đã biết', 'No blockage reported on mapped routes'];
   const nextAction: ResponseAssessment['nextAction'] = access === 'blocked'
     ? ['Xác minh phương án tiếp cận khác', 'Verify another access option']
     : access === 'unmapped'

@@ -44,7 +44,6 @@ export function LayerDetails({ id, locale, packet, updated, evidence, terrain, r
     add('Nguồn', 'Source', t(...packet.aoi.source));
     add('Thời điểm', 'Timestamp', date(packet.aoi.observedAt));
     add('Phạm vi', 'Coverage', t(...packet.aoi.name));
-    add('Loại ranh giới', 'Boundary type', t('Vùng đánh giá', 'Assessment area'));
   } else if (id === 'staging' || id === 'hlz') {
     const sites = packet.responseSites.filter(site => site.kind === id);
     for (const site of sites) add(t(...site.name), t(...site.name), `${t(...site.source)} (${date(site.observedAt)})`);
@@ -59,7 +58,7 @@ export function LayerDetails({ id, locale, packet, updated, evidence, terrain, r
       if (times.at(-1) !== times[0]) add('Quan sát gần nhất', 'Latest observation', date(times.at(-1)!));
     }
     add('Báo cáo và phân tích', 'Reports and analyses', [...new Set(records.map(item => t(...item.source)))].join('\n') || t('Chưa có báo cáo hoặc phân tích', 'No reports or analyses'));
-    note = id === 'status' ? t('Tình trạng từng đoạn lấy từ bản ghi ảnh hưởng. Chưa ghi nhận chặn không có nghĩa đã xác nhận đi được.', 'Segment conditions use impact records. No reported blockage does not mean confirmed passability.')
+    note = id === 'status' ? t('Theo báo cáo và phân tích hiện có. Đường chưa ghi nhận tắc vẫn cần kiểm tra khả năng đi qua.', 'Based on available reports and analyses. Roads with no reported blockage still require passage checks.')
       : t('Chỉ có vị trí điểm trong gói. Không suy ra diện tích hay phạm vi sạt lở/ngập từ ký hiệu điểm.', 'The packet contains point locations. Point symbols do not establish landslide or flood extent.');
   } else if (id === 'route') {
     add('Phương pháp', 'Method', t('Tính trên mạng đường của bộ dữ liệu', 'Computed on the dataset road network'));

@@ -140,8 +140,8 @@
             "Communications"
           ],
           "value": [
-            "Mất liên lạc với bản từ 04:10.",
-            "Contact with the village lost since 04:10."
+            "Mất liên lạc với bản.",
+            "Contact with the village lost."
           ],
           "source": [
             "Tin từ xã",
@@ -226,7 +226,7 @@
             "Flood extent"
           ],
           "value": [
-            "Chưa có vùng ngập được khoanh.",
+            "Chưa khoanh vùng ngập.",
             "No mapped flood extent."
           ]
         },
@@ -237,7 +237,7 @@
             "Affected households"
           ],
           "value": [
-            "Chưa có thống kê.",
+            "Chưa thống kê.",
             "No count available."
           ]
         },
@@ -830,8 +830,8 @@
         "Field report at the Khau Mang access bridge"
       ],
       "finding": [
-        "Mặt cầu được báo ngập khoảng 0,6 m. Chưa có cập nhật khả năng đi qua.",
-        "Water reported approximately 0.6 m above the bridge deck. Passage has not been updated."
+        "Có báo cáo nước ngập mặt cầu khoảng 0,6 m. Khả năng qua cầu chưa được xác minh.",
+        "Water reported approximately 0.6 m above the bridge deck. Bridge passage is unverified."
       ],
       "limitation": [
         "Mực nước có thể đã thay đổi. Cần kiểm tra lại mặt cầu và đường dẫn.",
@@ -849,8 +849,8 @@
         "SAR analysis result in the dataset"
       ],
       "finding": [
-        "Đánh dấu một điểm nghi sạt lở gần Lao Mải.",
-        "A suspected landslide site is marked near Lao Mải."
+        "Điểm nghi sạt lở gần Lao Mải.",
+        "Suspected landslide near Lao Mải."
       ],
       "limitation": [
         "Chưa kiểm chứng thực địa. Chưa xác nhận ảnh hưởng đến đường.",
@@ -868,8 +868,8 @@
         "SAR analysis result in the dataset"
       ],
       "finding": [
-        "Đánh dấu một điểm nghi sạt lở gần đường vào Khau Mang.",
-        "A suspected landslide site is marked near the Khau Mang access road."
+        "Điểm nghi sạt lở gần đường vào Khau Mang.",
+        "Suspected landslide near the Khau Mang access road."
       ],
       "limitation": [
         "Chưa kiểm chứng thực địa. Chưa có phạm vi sạt lở được đo hoặc khoanh.",

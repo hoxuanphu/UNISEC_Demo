@@ -2,6 +2,7 @@ import type { Hazard, Locale } from '../../types/dear';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { UiIcon } from './UiIcon';
 import { roadColors } from '../../terrain/roadStyle';
+import { roadStatusLabels } from '../../features/routes/roadStatus';
 import { MapSymbol } from '../../shared/ui/MapSymbol';
 import type { MapSymbolName } from '../../terrain/mapSymbols';
 import { useDismissiblePopover } from '../../shared/hooks/useDismissiblePopover';
@@ -31,7 +32,7 @@ export function MapControls({ locale, mapMode, onChangeMapMode, onZoomIn, onZoom
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const routeVisible = hasSelectedRoute && layers.route;
   const legend: Array<{ kind: string; label: string; symbol?: MapSymbolName; uiSymbol?: 'layers' }> = [];
-  if (layers.roads && !affectedOnly) legend.push({ kind: 'network', label: t('Chưa ghi nhận chặn', 'No blockage reported') });
+  if (layers.roads && !affectedOnly) legend.push({ kind: 'network', label: layers.status ? t(...roadStatusLabels.open) : t('Mạng đường', 'Road network') });
   if (layers.aoi) legend.push({ kind: 'aoi', label: t('Vùng đánh giá', 'Assessment area') });
   if ((layers.roads || routeVisible) && layers.status) legend.push({ kind: 'blocked', label: t('Đường bị chặn', 'Blocked road') }, { kind: 'uncertain', label: t('Đường cần xác minh', 'Road to verify') });
   if (routeVisible) legend.push({ kind: 'selected', label: t('Tuyến đang xem', 'Selected route') });

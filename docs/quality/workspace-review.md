@@ -6,6 +6,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 
 | Vấn đề | Thay đổi |
 |---|---|
+| Nhãn đường cụt, thông tin và trạng thái lặp | Dùng “Chưa ghi nhận tắc đường” thống nhất. Tuyến duy nhất không lặp trạng thái. Ẩn mô tả trống, giữ yêu cầu kiểm tra. Giờ liên lạc nằm trong hàng thời gian. Không lặp nhận định đã có ở tiêu đề. Tắt lớp tình trạng thì chú giải chỉ ghi “Mạng đường” |
 | Hộp thoại và cài đặt khác đường nét với bộ công cụ | Góc 3 px cho điều khiển/cửa sổ nhỏ, 5 px cho hộp thoại. Chung màu thanh tiêu đề và viền. Font chuyển thành danh sách có dấu chọn, thêm nút đóng cài đặt |
 | Thông báo bị toolbar che tiêu đề | Tách thứ tự hiển thị của workspace và header. Cửa sổ thông báo có nút đóng, giờ và tên không chèn nhau |
 | Panel rộng ép tìm kiếm, kết quả bị che | Toolbar chuyển hai hàng theo chiều rộng bản đồ. Kiểm tra vùng bấm thật của kết quả, nút và popup ở 1366/1024/390/320 px |
@@ -63,7 +64,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Chia sẻ nhận định | Xem trước, PNG, in/lưu PDF, JSON và GeoJSON cùng snapshot | GeoPackage theo proposal, duyệt dữ liệu/nguồn, thử trên máy trình chiếu |
 | So ảnh trước/sau | Đọc GeoTIFF hiển thị, kiểm ngày/nguồn/CRS/vùng chung, so bằng thanh trượt | Cặp ảnh RS duyệt, mask mây và chất lượng phân tích |
 
-Ưu tiên cứu hộ không đồng nghĩa cô lập. Chưa ghi nhận chặn không đồng nghĩa đã xác nhận đi được. H là vị trí mô phỏng chưa khảo sát. Quy tắc và giả định ở [phân tích ứng phó](../architecture/response-analysis.md).
+Ưu tiên cứu hộ không đồng nghĩa cô lập. Chưa ghi nhận tắc đường không đồng nghĩa đã xác nhận đi được. H là vị trí mô phỏng chưa khảo sát. Quy tắc và giả định ở [phân tích ứng phó](../architecture/response-analysis.md).
 
 [Đánh giá GIS và viễn thám](gis-review.md) nêu ưu tiên cải thiện, căn cứ UI và các skill đã khảo sát.
 

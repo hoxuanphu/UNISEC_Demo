@@ -8,7 +8,7 @@ Cập nhật: 2026-10-07. Quy tắc cho bản đồ ứng phó DEAR, đối chi�
 |---|---|---|
 | Đường bị chặn | Đỏ, nét liền | Có báo cáo đoạn bị chặn |
 | Đường chưa rõ | Vàng, nét đứt | Cần kiểm tra khả năng đi qua |
-| Chưa ghi nhận chặn | Nét trung tính | Không suy ra là đường đi được |
+| Chưa ghi nhận tắc đường | Nét trung tính | Không suy ra là đường đi được |
 | Tuyến đang xem | Xanh dương | Đoạn bị chặn/chưa rõ vẫn giữ màu cảnh báo, viền trung tính |
 | Cộng đồng | Nhóm người màu xanh | Có tọa độ địa bàn |
 | Cộng đồng ưu tiên | Nhóm người màu nâu vàng | Mức ưu tiên, không phải kết luận cô lập |

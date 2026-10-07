@@ -29,7 +29,7 @@ export function IncidentView({ incident, locale, updated, areaName, communities,
       </div>
       <dl className="incident-timing">
         <div><dt>{t('Cảnh báo', 'Triggered')}</dt><dd><time dateTime={incident.triggeredAt}>{localClock(incident.triggeredAt)}</time></dd></div>
-        <div><dt>{t('Dữ liệu đến', 'Data as of')}</dt><dd><time dateTime={asOf}>{localClock(asOf)}</time></dd></div>
+        <div><dt>{t('Tổng hợp', 'Data as of')}</dt><dd><time dateTime={asOf}>{localClock(asOf)}</time></dd></div>
       </dl>
     </div>
     <div className="sidebar-scroll">
