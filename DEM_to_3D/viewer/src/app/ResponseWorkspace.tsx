@@ -163,10 +163,23 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
   }, [analysisTerrain, communities]);
 
   const revealPanel = () => { setPanelCollapsed(false); setMobileView('info'); resetTools(); };
-  const selectCommunity = (id: string) => { navigation.dispatch({ type: 'select-community', id }); revealPanel(); };
-  const inspectObject = (id: string) => { navigation.dispatch({ type: 'inspect-object', id }); revealPanel(); };
+  const selectCommunity = (id: string, routeType?: 'candidate' | 'direct', sectionId?: string) => {
+    navigation.dispatch({ type: 'select-community', id });
+    if (routeType) navigation.dispatch({ type: 'filters', values: { selectedRouteType: routeType, detailTab: 'decision' } });
+    if (sectionId) navigation.dispatch({ type: 'route-section', id: sectionId });
+    revealPanel();
+  };
+  const inspectObject = (id: string) => {
+    if (id.startsWith('community:')) { selectCommunity(id.slice(10)); return; }
+    navigation.dispatch({ type: 'inspect-object', id }); revealPanel();
+  };
+  const selectRouteSection = (id: string | null) => {
+    navigation.dispatch({ type: 'route-section', id });
+    setFocusDistance(null); setPanelCollapsed(false); setMobileView('info');
+  };
   const handleOverlayHit = (hit: OverlayHit) => {
     if (hit.type === 'community') selectCommunity(hit.id);
+    else if (hit.type === 'road' && view === 'priority' && activeRoute?.segs.some(road => road.id === hit.id)) selectRouteSection(hit.id);
     else inspectObject(`${hit.type}:${hit.id}`);
   };
 
@@ -260,6 +273,7 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
           hasTerrainProfile={Boolean(routeProfile?.samples.some(sample => sample.elevation !== undefined))}
           profileOpen={showProfile}
           onToggleProfile={toggleProfile}
+          onSelectRouteSection={selectRouteSection}
           onChangeRoute={selectedRouteType => {
             navigation.dispatch({ type: 'filters', values: { selectedRouteType } });
             setFocusDistance(null);

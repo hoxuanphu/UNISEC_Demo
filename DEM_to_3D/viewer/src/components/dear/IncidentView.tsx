@@ -64,6 +64,11 @@ export function IncidentView({
   const asOf = updated ? incident.asOfUpdated : incident.asOf;
   const priorityCommunities = communities.filter((community) => community.prio === 1);
   const open = tasks.filter((task) => workState(task, entries).status !== 'done');
+  const statusCounts = tasks.reduce((counts, task) => {
+    const status = workState(task, entries).status;
+    counts[status] = (counts[status] ?? 0) + 1;
+    return counts;
+  }, {} as Record<string, number>);
   return (
     <>
       <div className="sidebar-top incident-head">
@@ -99,37 +104,6 @@ export function IncidentView({
         )}
       </div>
       <div className="sidebar-scroll incident-body">
-        <section className="incident-section incident-work" aria-labelledby="incident-work-heading">
-          <div className="incident-section-heading">
-            <h3 id="incident-work-heading">{t('Việc cần xử lý', 'Response work')}</h3>
-            <button className="text-button incident-all-communities" onClick={() => onOpenWork()}>
-              {t('Tất cả', 'All')} ({open.length})
-            </button>
-          </div>
-          {open
-            .filter((task) => task.kind !== 'report')
-            .slice(0, 2)
-            .map((task) => (
-              <button
-                className="incident-work-row"
-                key={task.id}
-                onClick={() => onOpenWork(task.id)}
-              >
-                <span>
-                  <strong>{t(...task.title)}</strong>
-                  <small>{t(...workStatusText[workState(task, entries).status])}</small>
-                </span>
-              </button>
-            ))}
-          {!open.length && (
-            <p className="small">
-              {t(
-                'Không có việc chưa hoàn tất trong danh sách hiện tại.',
-                'No open work in the current list.'
-              )}
-            </p>
-          )}
-        </section>
         <section className="incident-section" aria-labelledby="incident-priority-heading">
           <div className="incident-section-heading">
             <h3 id="incident-priority-heading">{t('Địa bàn ưu tiên', 'Priority communities')}</h3>
@@ -184,6 +158,17 @@ export function IncidentView({
               {uncertainRoadCount} {t('đoạn', uncertainRoadCount === 1 ? 'section' : 'sections')}
             </span>
           </button>
+        </section>
+        <section className="incident-section incident-work" aria-labelledby="incident-work-heading">
+          <div className="incident-section-heading">
+            <h3 id="incident-work-heading">{t('Theo dõi xác minh', 'Verification tracking')}</h3>
+            <button className="text-button incident-all-communities" onClick={() => onOpenWork()}>
+              {t('Mở', 'Open')} ({open.length})
+            </button>
+          </div>
+          <dl className="incident-work-summary">
+            {Object.entries(statusCounts).map(([status, count]) => <div key={status}><dt>{t(...workStatusText[status as keyof typeof workStatusText])}</dt><dd>{count}</dd></div>)}
+          </dl>
         </section>
         <div className="incident-detail-actions">
           <button className="text-button" onClick={onOpenTimeline}>

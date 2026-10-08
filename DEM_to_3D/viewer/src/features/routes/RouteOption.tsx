@@ -1,4 +1,3 @@
-import { UiIcon } from '../../shared/ui/UiIcon';
 import type { Locale, ScenarioRoute } from '../../types/dear';
 import { StatusText } from '../../shared/ui/StatusText';
 
@@ -9,12 +8,11 @@ export function RouteOption({ route, selected, locale, onSelect }: {
   const blocked = route.status === 'blocked';
   return <button className="route-card" aria-pressed={selected} onClick={onSelect}>
     <span className="route-option-heading">
-      <span className="route-option-selector" aria-hidden="true">{selected && <UiIcon name="check" size={14}/>}</span>
+      <span className="route-option-selector" aria-hidden="true"/>
       <strong>{t(route.name[0], route.name[1])}</strong>
     </span>
     <span className="route-option-meta">
       <span>{route.lengthKm} km</span>
-      {route.eta && <span>{route.eta.minMinutes} {t('đến', 'to')} {route.eta.maxMinutes} {t('phút nếu thông tuyến', 'min assuming passage')}</span>}
     </span>
     <span className="route-bottom">
       <StatusText tone={blocked ? 'critical' : 'warning'} icon={blocked ? 'blocked' : 'uncertain'}>

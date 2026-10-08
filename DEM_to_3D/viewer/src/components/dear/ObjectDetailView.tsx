@@ -32,7 +32,7 @@ type Props = {
   profileOpen: boolean;
   onToggleProfile: () => void;
   onBack: () => void;
-  onSelectCommunity: (id: string) => void;
+  onSelectCommunity: (id: string, routeType?: 'candidate' | 'direct', sectionId?: string) => void;
   onOpenEvidence: (id: string) => void;
   onSelectObject: (id: string) => void;
   onOpenPriority: () => void;
@@ -118,10 +118,13 @@ export const ObjectDetailView: React.FC<Props> = ({
               </div>
             </section>
             {affectedCommunities.length > 0 && <section className="workflow-section">
-              <h3>{t('Địa bàn liên quan', 'Related communities')}</h3>
-              {affectedCommunities.map(community => <button key={community.id} className="object-row linked-row" onClick={() => onSelectCommunity(community.id)}>
-                <strong>{community.name}</strong>
-              </button>)}
+              <h3>{t('Tuyến sử dụng đoạn này', 'Routes using this section')}</h3>
+              {affectedCommunities.flatMap(community => {
+                const pair = routes.get(community.id);
+                return [pair?.candidate, pair?.direct].filter(route => route?.segs.some(segment => segment.id === road.id)).map(route => route && <button key={community.id + route.type} className="object-row linked-row" onClick={() => onSelectCommunity(community.id, route.type, road.id)}>
+                  <span><strong>{community.name}</strong><small>{t(...route.name)}</small></span><UiIcon name="expand" size={14}/>
+                </button>);
+              })}
             </section>}
           </>
         )}

@@ -30,7 +30,8 @@ type Props = {
   profileOpen: boolean;
   onToggleProfile: () => void;
   onChangeRoute: (type: 'candidate' | 'direct') => void;
-  onSelectCommunity: (id: string) => void;
+  onSelectRouteSection: (id: string | null) => void;
+  onSelectCommunity: (id: string, routeType?: 'candidate' | 'direct', sectionId?: string) => void;
   onInspectObject: (id: string) => void;
   onRevealPanel: () => void;
   onResetTools: () => void;
@@ -42,7 +43,7 @@ type Props = {
 /** Chooses panel content and restores each screen's scroll position. No map or modal state. */
 export function ResponsePanel({ locale, navigation, onNavigate, snapshot, aoi, updated,workTasks,workEntries,reportPending,historical,onOpenWork,onOpenReport,
   ready, unavailable, onRetry, community, routePair, terrainCoverage, hasTerrainProfile, profileOpen,
-  onToggleProfile, onChangeRoute, onSelectCommunity, onInspectObject, onRevealPanel, onResetTools,
+  onToggleProfile, onChangeRoute, onSelectRouteSection, onSelectCommunity, onInspectObject, onRevealPanel, onResetTools,
   onOpenDialog, onOpenEvidence, onExport }: Props): JSX.Element {
   const { view, selectedCommunityId, selectedRouteType, detailTab, roadFilter,
     communityFilter, roadQuery, impactTab, communityQuery } = navigation;
@@ -82,6 +83,8 @@ export function ResponsePanel({ locale, navigation, onNavigate, snapshot, aoi, u
       directRoute={routePair.direct}
       selectedRouteType={selectedRouteType}
       onChangeRouteType={onChangeRoute}
+      sectionId={navigation.routeSectionId}
+      onSelectSection={onSelectRouteSection}
       hasTerrainProfile={hasTerrainProfile}
       onToggleProfile={onToggleProfile}
       onOpenSources={() => onOpenDialog('data')}

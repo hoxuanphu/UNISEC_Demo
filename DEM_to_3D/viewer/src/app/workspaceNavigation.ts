@@ -6,6 +6,7 @@ export type WorkspaceNavigation = {
   selectedCommunityId: string | null;
   communityOrigin: WorkspaceView;
   selectedRouteType: 'candidate' | 'direct';
+  routeSectionId: string | null;
   objectIds: Record<ObjectView, string | null>;
   objectOrigins: Record<ObjectView, WorkspaceView | null>;
   detailTab: DetailTab;
@@ -17,7 +18,7 @@ export type WorkspaceNavigation = {
 };
 
 export const initialWorkspaceNavigation: WorkspaceNavigation = {
-  view: 'incident', selectedCommunityId: null, communityOrigin: 'priority', selectedRouteType: 'candidate',
+  view: 'incident', selectedCommunityId: null, communityOrigin: 'priority', selectedRouteType: 'candidate', routeSectionId: null,
   objectIds: { incident: null, impact: null }, objectOrigins: { incident: null, impact: null },
   detailTab: 'decision', roadFilter: 'all', communityFilter: 'all', roadQuery: '', communityQuery: '', impactTab: 'roads'
 };
@@ -26,6 +27,7 @@ type Filters = Pick<WorkspaceNavigation, 'roadFilter' | 'communityFilter' | 'roa
 export type NavigationAction =
   | { type: 'select-community'; id: string }
   | { type: 'inspect-object'; id: string }
+  | { type: 'route-section'; id: string | null }
   | { type: 'view'; view: WorkspaceView; list?: boolean }
   | { type: 'close-community' }
   | { type: 'close-object' }
@@ -34,11 +36,13 @@ export type NavigationAction =
   | { type: 'reset' };
 
 export function selectedMapObject(state: WorkspaceNavigation): string | null {
-  return state.view === 'priority' ? null : state.objectIds[state.view];
+  return state.view === 'priority'
+    ? state.selectedCommunityId && state.detailTab === 'decision' && state.routeSectionId ? `road:${state.routeSectionId}` : null
+    : state.objectIds[state.view];
 }
 
 function clearDetail(state: WorkspaceNavigation, view: WorkspaceView): WorkspaceNavigation {
-  return view === 'priority' ? { ...state, selectedCommunityId: null }
+  return view === 'priority' ? { ...state, selectedCommunityId: null, routeSectionId: null }
     : { ...state, objectIds: { ...state.objectIds, [view]: null }, objectOrigins: { ...state.objectOrigins, [view]: null } };
 }
 
@@ -49,7 +53,7 @@ export function workspaceNavigationReducer(state: WorkspaceNavigation, action: N
       const origin = state.view !== 'priority' ? state.view : state.selectedCommunityId ? state.communityOrigin : 'priority';
       if (state.selectedCommunityId === action.id) return { ...state, view: 'priority', communityOrigin: origin };
       return { ...state, view: 'priority', selectedCommunityId: action.id, communityOrigin: origin,
-        selectedRouteType: 'candidate', detailTab: 'decision' };
+        selectedRouteType: 'candidate', detailTab: 'decision', routeSectionId: null };
     }
     case 'inspect-object': {
       const owner: ObjectView = action.id.startsWith('road:') || action.id.startsWith('hazard:') ? 'impact' : 'incident';
@@ -62,11 +66,14 @@ export function workspaceNavigationReducer(state: WorkspaceNavigation, action: N
       return { ...next, view: action.view,
         objectOrigins: { ...next.objectOrigins, ...(action.view !== 'priority' ? { [action.view]: null } : {}) } };
     }
-    case 'close-community': return { ...state, selectedCommunityId: null, view: state.communityOrigin };
+    case 'route-section': return state.selectedCommunityId ? { ...state, view: 'priority', detailTab: 'decision', routeSectionId: action.id } : state;
+    case 'close-community': return { ...state, selectedCommunityId: null, routeSectionId: null, view: state.communityOrigin };
     case 'close-object': return state.view === 'priority' ? state : {
       ...clearDetail(state, state.view), view: state.objectOrigins[state.view] ?? state.view
     };
-    case 'filters': return { ...state, ...action.values };
+    case 'filters': return { ...state, ...action.values,
+      routeSectionId: action.values.selectedRouteType !== undefined && action.values.selectedRouteType !== state.selectedRouteType
+        ? null : state.routeSectionId };
     case 'road-list': return { ...clearDetail(state, 'impact'), view: 'impact', impactTab: 'roads', roadFilter: action.filter, roadQuery: '' };
     case 'reset': return initialWorkspaceNavigation;
   }

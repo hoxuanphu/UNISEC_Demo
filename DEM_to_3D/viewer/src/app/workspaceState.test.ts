@@ -3,6 +3,22 @@ import { initialWorkspaceNavigation as initial, selectedMapObject, workspaceNavi
 import { initialWorkspaceInteraction, workspaceInteractionReducer as interact } from './workspaceInteraction';
 
 describe('workspace navigation', () => {
+  it('keeps road inspection inside the selected route and clears it when changing routes', () => {
+    const community = navigate(initial, { type: 'select-community', id: 'NK' });
+    const section = navigate(community, { type: 'route-section', id: 'E13' });
+    expect(section.view).toBe('priority');
+    expect(section.selectedCommunityId).toBe('NK');
+    expect(selectedMapObject(section)).toBe('road:E13');
+    const details = navigate(section, { type: 'inspect-object', id: 'road:E13' });
+    const returned = navigate(details, { type: 'close-object' });
+    expect(returned.view).toBe('priority');
+    expect(returned.routeSectionId).toBe('E13');
+    const changed = navigate(returned, { type: 'filters', values: { selectedRouteType: 'direct' } });
+    expect(changed.routeSectionId).toBeNull();
+    expect(selectedMapObject(changed)).toBeNull();
+    expect(navigate(changed, { type: 'select-community', id: 'KM' }).routeSectionId).toBeNull();
+    expect(navigate(initial, { type: 'route-section', id: 'E13' })).toBe(initial);
+  });
   it('preserves the community and chosen route across tabs and road inspection', () => {
     let state = navigate(initial, { type: 'select-community', id: 'NK' });
     state = navigate(state, { type: 'filters', values: { selectedRouteType: 'direct', detailTab: 'evidence' } });

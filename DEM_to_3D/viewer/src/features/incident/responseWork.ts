@@ -6,6 +6,9 @@ export type ResponseWork = {
   id: string;
   signature: string;
   title: [string, string];
+  action: [string, string];
+  subject: [string, string];
+  completion: [string, string];
   reason: [string, string];
   objectId: string;
   priority: number;
@@ -41,6 +44,9 @@ export function responseWork(
       id: `report:${packet.report.id}`,
       signature: packet.report.evidence.id,
       title: ['Kiểm tra báo cáo mới', 'Review new report'],
+      action: ['Kiểm tra báo cáo', 'Review report'],
+      subject: packet.roads.find(road => road.id === packet.report.roadId)?.name ?? packet.report.evidence.source,
+      completion: ['Đối chiếu báo cáo trước khi cập nhật bản đồ.', 'Review the report before updating the map.'],
       reason: packet.report.evidence.finding,
       objectId: `road:${packet.report.roadId}`,
       priority: 0,
@@ -53,6 +59,9 @@ export function responseWork(
         id: `contact:${community.id}`,
         signature: JSON.stringify(packet.signals[community.id]),
         title: [`Liên lạc với ${community.name}`, `Contact ${community.name}`],
+        action: ['Xác minh liên lạc', 'Check contact'],
+        subject: [community.name, community.name],
+        completion: ['Tình trạng liên lạc, nhu cầu hỗ trợ và thời điểm xác nhận.', 'Contact status, support needs and confirmation time.'],
         reason: [
           'Mất liên lạc. Chưa có cập nhật tình hình tại địa bàn.',
           'Contact lost. No current community update.'
@@ -72,9 +81,14 @@ export function responseWork(
             .map((road) => [road.id, road.status, road.note])
         ]),
         title: [
-          `${assessment.access === 'unmapped' ? 'Bổ sung đường vào' : 'Tìm phương án tiếp cận'} ${community.name}`,
+          `${assessment.access === 'unmapped' ? 'Rà soát dữ liệu đường vào' : 'Xác minh phương án tiếp cận'} ${community.name}`,
           `${assessment.access === 'unmapped' ? 'Map access to' : 'Review access to'} ${community.name}`
         ],
+        action: assessment.access === 'unmapped' ? ['Rà soát dữ liệu đường', 'Review road data'] : ['Xác minh phương án tiếp cận', 'Verify access options'],
+        subject: [community.name, community.name],
+        completion: assessment.access === 'unmapped'
+          ? ['Nguồn và đường tiếp cận đã kiểm tra, hoặc dữ liệu còn thiếu.', 'Sources and access roads checked, or remaining data gaps.']
+          : ['Phương án thay thế, đoạn chưa rõ và nguồn xác minh.', 'Alternative access, unresolved sections and verification source.'],
         reason: assessment.reason,
         objectId: `community:${community.id}`,
         priority: community.prio,
@@ -92,7 +106,10 @@ export function responseWork(
         record?.observedAt,
         record?.finding
       ]),
-      title: [`Xác minh ${road.name[0]}`, `Verify ${road.name[1]}`],
+      title: [`Xác minh ${road.name[0].replace(/^./, c => c.toLocaleLowerCase())}`, `Verify ${road.name[1]}`],
+      action: ['Xác minh khả năng đi qua', 'Verify passage'],
+      subject: road.name,
+      completion: ['Khả năng đi qua, loại phương tiện và thời điểm kiểm tra.', 'Passability, vehicle type and inspection time.'],
       reason: record?.finding ??
         road.note ?? ['Chưa xác minh khả năng đi qua.', 'Passability not verified.'],
       objectId: `road:${road.id}`,

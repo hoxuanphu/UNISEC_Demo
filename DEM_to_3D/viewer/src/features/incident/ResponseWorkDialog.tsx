@@ -53,7 +53,7 @@ export function ResponseWorkDialog({
         onClick={(event) => event.stopPropagation()}
       >
         <header className="modal-head">
-          <h2 id="response-work-title">{t('Việc cần xử lý', 'Response work')}</h2>
+          <h2 id="response-work-title">{t('Theo dõi xác minh', 'Verification tracking')}</h2>
           <button
             className="icon-button"
             aria-label={t('Xuất công việc', 'Export work')}
@@ -114,6 +114,7 @@ export function ResponseWorkDialog({
               <li key={task.id}>
                 <button
                   className="response-work-row"
+                  data-task-id={task.id}
                   aria-pressed={selected === task.id}
                   onClick={() => {
                     setSelected(task.id);
@@ -121,8 +122,8 @@ export function ResponseWorkDialog({
                   }}
                 >
                   <span>
-                    <strong>{t(...task.title)}</strong>
-                    <small>{t(...task.reason)}</small>
+                    <strong>{t(...task.action)}</strong>
+                    <small>{t(...task.subject)}</small>
                   </span>
                   <span className={`work-status work-${workState(task, entries).status}`}>
                     {t(...workStatusText[workState(task, entries).status])}
@@ -145,7 +146,9 @@ export function ResponseWorkDialog({
                 <UiIcon name="back" />
                 {t('Danh sách công việc', 'Work list')}
               </button>
-              <h3>{t(...active.title)}</h3>
+              <h3>{t(...active.action)}</h3>
+              <p className="work-subject">{t(...active.subject)}</p>
+              <section className="work-basis"><h4>{t('Căn cứ', 'Evidence')}</h4><p>{t(...active.reason)}</p></section>
               <button
                 className="text-button"
                 onClick={() => (active.kind === 'report' ? onReport() : onInspect(active.objectId))}
@@ -181,6 +184,7 @@ export function ResponseWorkDialog({
                   }}
                 >
                   <fieldset disabled={readOnly}>
+                    <p className="work-completion">{t(...active.completion)}</p>
                     <div className="work-fields">
                       <label>
                         {t('Trạng thái công việc', 'Work status')}
@@ -221,8 +225,8 @@ export function ResponseWorkDialog({
               )}
               <p className="small">
                 {t(
-                  'Hoàn tất công việc không xác nhận tuyến an toàn hoặc đường đã thông.',
-                  'Completing work does not confirm safe routes or road clearance.'
+                  'Trạng thái công việc không thay đổi dữ liệu bản đồ.',
+                  'Work status does not change map data.'
                 )}
               </p>
             </section>

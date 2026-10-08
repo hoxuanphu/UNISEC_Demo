@@ -57,9 +57,13 @@ def run(url, chrome=None):
         expect(page.locator('.decision-overview')).to_have_text('Các tuyến đã biết đều bị chặn')
         # Inspect a road and return to the original community without resetting it.
         page.locator('.sidebar').get_by_role('button', name='Xem đoạn cần kiểm tra', exact=True).click()
+        expect(page.locator('.sidebar h1')).to_have_text('Địa bàn kiểm thử')
+        expect(page.locator('.route-section-row[aria-expanded="true"]')).to_contain_text('vượt khe')
+        page.get_by_role('button', name='Chi tiết đoạn', exact=True).click()
         expect(page.locator('.sidebar h1')).to_have_text('Đường vòng qua sườn núi, đoạn vượt khe')
         page.locator('.sidebar .panel-parent').click()
         expect(page.locator('.sidebar h1')).to_have_text('Địa bàn kiểm thử')
+        expect(page.locator('.route-section-row[aria-expanded="true"]')).to_contain_text('vượt khe')
         page.get_by_role('button', name='Lưu đánh giá', exact=True).click()
         page.locator('.export-formats summary').click()
         with page.expect_download() as download:

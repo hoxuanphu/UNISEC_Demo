@@ -28,6 +28,8 @@ type Props = {
   directRoute: ScenarioRoute | null;
   selectedRouteType: 'candidate' | 'direct';
   onChangeRouteType: (type: 'candidate' | 'direct') => void;
+  sectionId: string | null;
+  onSelectSection: (id: string | null) => void;
   hasTerrainProfile: boolean;
   onToggleProfile: () => void;
   onOpenSources: () => void;
@@ -50,6 +52,8 @@ export const CommunityDetailView: React.FC<Props> = ({
   directRoute,
   selectedRouteType,
   onChangeRouteType,
+  sectionId,
+  onSelectSection,
   hasTerrainProfile,
   onToggleProfile,
   onOpenSources,
@@ -94,6 +98,7 @@ export const CommunityDetailView: React.FC<Props> = ({
         {detailTab === 'decision' && <AccessPanel key={community.id}
           locale={locale} candidate={candidateRoute} direct={directRoute} hazards={hazards} evidence={evidence}
           selected={selectedRouteType} onSelectRoute={onChangeRouteType}
+          sectionId={sectionId} onSelectSection={onSelectSection} onEvidence={onOpenEvidence}
           hasProfile={hasTerrainProfile} onProfile={onToggleProfile} onInspect={onSelectObject}
           onFindings={() => onChangeDetailTab('evidence')} onExport={onExport}/>}
 

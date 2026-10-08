@@ -31,7 +31,7 @@ Hướng dẫn dân tới nơi an toàn cần nơi trú được xác nhận và
 | Vị trí | Thông tin chính | Mở khi cần |
 |---|---|---|
 | Sự kiện | Mốc mở đánh giá, dữ liệu đến, địa bàn ưu tiên, số đoạn bị chặn/cần xác minh | Nhật ký sự kiện, nguồn dữ liệu |
-| Việc cần xử lý | Báo cáo mới, mất liên lạc, thiếu đường hoặc điểm cần xác minh; hai việc nổi bật trong tổng quan | Danh sách/chi tiết, người phụ trách, trạng thái và kết quả. Lưu tại trình duyệt, không gửi điều động |
+| Theo dõi xác minh | Số yêu cầu theo trạng thái, sau địa bàn ưu tiên và tình trạng đường | Danh sách tách hành động/đối tượng/căn cứ; người theo dõi và kết quả. Lưu tại trình duyệt, không gửi điều động |
 | Chi tiết địa bàn | Tình trạng tiếp cận, tên/trạng thái tuyến, khoảng cách/ETA có điều kiện, việc cần kiểm tra | So tuyến, lý do ưu tiên và nguồn trong Căn cứ, dân số tham chiếu |
 | Tuyến | Danh sách so sánh phương án, khoảng cách, ETA có điều kiện, tình trạng từng đoạn | Địa hình dọc tuyến, nguồn của đoạn đường |
 | Đường sá | Tên, trạng thái, chiều dài. Đoạn bị chặn xếp trước | Ghi nhận, việc cần xử lý, bản ghi nguồn |
@@ -58,7 +58,8 @@ Toolbar cố định: tìm kiếm và **Lớp / Đo / Vị trí** bên trái, đ
 | Chọn số đoạn bị chặn/chưa rõ | Xóa từ khóa tìm kiếm, mở nhóm đường tương ứng, kể cả khi đang xem điểm ảnh hưởng |
 | Tìm trên bản đồ | Tìm tên/mã hoặc tiếng Việt không dấu. Enter chọn khi danh sách mở. Escape đóng, phím lên/xuống mở lại. Chọn kết quả bật lớp tương ứng và đưa đối tượng vào vùng nhìn |
 | Bấm lại địa bàn đang xem | Giữ tab và tuyến đã chọn |
-| Chọn đoạn đường hoặc điểm ảnh hưởng | Thay nội dung trong cùng panel. Đưa điểm vào vùng nhìn nếu đang ngoài màn hình hoặc sau điều khiển |
+| Chọn đoạn thuộc tuyến đang xem | Giữ địa bàn và tuyến; mở ghi nhận/nguồn/mặt cắt ngay dưới đoạn, đồng thời đánh dấu trên bản đồ. Đổi tuyến bỏ lựa chọn đoạn |
+| Chọn đường ngoài tuyến hoặc điểm ảnh hưởng | Mở chi tiết đối tượng. Từ đường có thể mở đúng tuyến sử dụng đoạn đó; đóng chi tiết trở lại ngữ cảnh và vị trí cuộn trước |
 | Xem mặt cắt một đoạn đường | Chọn đường → Mặt cắt địa hình. Lấy mẫu chính hình đoạn đường, không cần chọn địa bàn/tuyến trước |
 | Đóng chi tiết | Trở về nơi mở chi tiết, giữ tìm kiếm, bộ lọc và vị trí cuộn |
 | Đọc tin hoặc xem đoạn đường từ tin | Không đổi dữ liệu bản đồ |
@@ -66,7 +67,7 @@ Toolbar cố định: tìm kiếm và **Lớp / Đo / Vị trí** bên trái, đ
 | Mở Lớp bản đồ | Đóng mặt cắt, tạm ẩn chú giải. Click ngoài hoặc Escape đóng lớp |
 | Điều chỉnh hiển thị | Không thay kết quả đánh giá. Lọc đường vẫn giữ đoạn bị ảnh hưởng và tuyến đang chọn. Độ rõ không làm mờ cảnh báo |
 | Xem lại thời điểm | Đường, căn cứ, tuyến và ưu tiên cùng một bản dữ liệu. Không hủy tin đã áp dụng. Có nút về dữ liệu mới nhất |
-| Công việc | Chưa xử lý / Đang xử lý / Chờ hỗ trợ / Hoàn tất. Có người phụ trách khi xử lý; chờ hỗ trợ và hoàn tất cần ghi lý do/kết quả. Hoàn tất không xác nhận thông đường hoặc an toàn. Căn cứ đổi mở lại việc, giữ ghi nhận trước trong nhật ký |
+| Theo dõi xác minh | Chưa xử lý / Đang xử lý / Chờ hỗ trợ / Hoàn tất. Hiện nội dung cần xác nhận theo loại yêu cầu. Có người phụ trách khi xử lý; chờ hỗ trợ và hoàn tất cần ghi lý do/kết quả. Căn cứ đổi mở lại việc, giữ ghi nhận trước trong nhật ký |
 | Nhật ký | Chung một màn cho báo cáo, phân tích, công việc và cập nhật bản đồ. Phân biệt giờ quan sát, nhận tin và thao tác tại trình duyệt; có lọc và xuất JSON. Không coi mốc phân tích là cảnh báo được ban hành |
 | Xác minh tuyến | Hiện phương thức dự kiến, tình trạng xác minh toàn tuyến và giờ ghi nhận mới nhất trên tuyến. Ghi nhận tại một điểm không xác nhận đã kiểm tra toàn tuyến |
 | So ảnh | Chọn hai GeoTIFF có ngày, nguồn và vùng chung. Pan/zoom cùng bản đồ, kéo thanh để so. Vùng thiếu ảnh để trống. Không tự xác nhận sạt lở |
@@ -76,6 +77,6 @@ Toolbar cố định: tìm kiếm và **Lớp / Đo / Vị trí** bên trái, đ
 | GLB hoặc GPU lỗi | Chuyển về 2D, giữ lựa chọn. 2D không tải mô hình GLB |
 | Lưu đánh giá | Chụp snapshot khi mở xem trước. Mọi định dạng dùng cùng snapshot. Đóng và mở lại sau khi đổi tuyến hoặc cập nhật tin để lấy đánh giá mới |
 
-Thời điểm `triggeredAt` là **Mở đánh giá**, chưa phải giờ ban hành cảnh báo. Công việc dùng nguồn hiện có và thao tác nhập của người trực; lịch sử tối đa 500 bản ghi theo dataset, không đồng bộ hoặc xác thực người nhập. Khi xem bản cũ, công việc chỉ đọc. Không có nút điều động, phát cảnh báo hay xác nhận cứu hộ khi chưa có quy trình và dữ liệu tương ứng. Dữ liệu mô phỏng được ghi trong **Nguồn dữ liệu** và nhật ký.
+Thời điểm `triggeredAt` là **Mở đánh giá**, chưa phải giờ ban hành cảnh báo. Theo dõi xác minh dùng nguồn hiện có và thao tác nhập của người trực; lịch sử tối đa 500 bản ghi theo dataset, không đồng bộ hoặc xác thực người nhập. Khi xem bản cũ, yêu cầu chỉ đọc. Hoàn tất không xác nhận thông đường hoặc an toàn. Quản lý ứng phó thực cần mục tiêu, đơn vị/nguồn lực, thời gian thực hiện, thẩm quyền phê duyệt và cập nhật hiện trường; chưa triển khai điều động hoặc phát cảnh báo. Tham khảo [ArcGIS Operations Management](https://doc.arcgis.com/en/arcgis-solutions/latest/reference/use-operations-management.htm) và [FEMA ICS](https://training.fema.gov/emiweb/is/icsresource/icsforms/), cần đối chiếu quy trình của đơn vị vận hành. Dữ liệu mô phỏng được ghi trong **Nguồn dữ liệu** và nhật ký.
 
 Quy tắc tính ưu tiên và tuyến: [phân tích ứng phó](../architecture/response-analysis.md). Thành phần: [design system](design-system.md). Ký hiệu và mặt cắt: [hiển thị bản đồ](cartography.md). Luồng trình diễn: [walkthrough](../operations/walkthrough.md).

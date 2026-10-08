@@ -138,18 +138,17 @@ export function IncidentJournal({
                 <details>
                   <summary>
                     <time dateTime={record.at}>
-                      {new Date(record.at).toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-GB', {
+                      <span>{new Date(record.at).toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-GB', {
                         timeZone: 'Asia/Bangkok',
-                        day: '2-digit',
-                        month: '2-digit',
                         hour: '2-digit',
                         minute: '2-digit'
-                      })}
+                      })}</span>
+                      <small>{new Date(record.at).toLocaleDateString('en-GB', {timeZone: 'Asia/Bangkok', day: '2-digit', month: '2-digit'})}</small>
                     </time>
                     <span>
                       <strong>{t(...record.title)}</strong>
                       <small>
-                        {kinds[record.kind]}
+                        {record.kind === 'report' ? t('Tiếp nhận báo cáo', 'Report received') : kinds[record.kind]}
                         {record.pending
                           ? applied
                             ? t(' · đã cập nhật bản đồ', ' · applied to map')
@@ -159,13 +158,14 @@ export function IncidentJournal({
                     </span>
                   </summary>
                   <div className="notification-record">
-                    <p>{t(...record.description)}</p>
+                    <p className="journal-finding">{t(...record.description)}</p>
                     {record.record && (
                       <>
                         <EvidenceMetadata
                           evidence={record.record}
                           locale={locale}
                           showSource={false}
+                          showReceived={false}
                         />
                         <p className="small">{t(...record.record.limitation)}</p>
                       </>
