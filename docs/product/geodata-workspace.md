@@ -51,4 +51,44 @@ flowchart LR
 | Lưu/chia sẻ | LocalStorage theo origin, kiểm dữ liệu khi mở lại. Xuất tệp để giữ/chia sẻ. Chưa có tài khoản, đồng bộ, checksum tệp gốc hoặc lịch sử nhập |
 | Nhập lại bản xuất | Đọc hình học/tên/thuộc tính. Vai trò theo lựa chọn nhập, có thể gán lại tại Thuộc tính |
 
-Catalog ảnh, QA ảnh và xử lý viễn thám tiếp theo nằm ở [lộ trình platform](../plans/platform.md) và [kiến trúc GIS](../architecture/geospatial-platform.md).
+## Thiết kế bước tiếp theo: tìm và chọn ảnh
+
+**Đề xuất, chưa tích hợp vào app.** [Maquette tương tác](assets/analysis-workspace.html) dùng hình sơ đồ và metadata giả để kiểm bố cục, không truy vấn hoặc phân tích ảnh vệ tinh. Khả năng đang chạy được mô tả ở các phần trên. Thứ tự triển khai theo [lộ trình platform](../plans/platform.md).
+
+```mermaid
+flowchart LR
+  A[Nhập / vẽ AOI] --> B[Tìm cảnh theo vùng và thời gian]
+  B --> C[Kiểm nguồn và chất lượng]
+  C --> D[Chọn đầu vào / cặp trước-sau]
+  D --> E[Xem ảnh và lưu bộ chọn]
+  E --> F[Phân tích và kiểm chứng: đợt sau]
+```
+
+| Thành phần | Thiết kế |
+|---|---|
+| Khung làm việc | Giữ header và thanh công cụ hiện tại. Panel trái đổi rộng, ba tab **AOI / Cảnh ảnh / Lớp**. AOI đang dùng luôn hiện ở đầu panel |
+| AOI | Dùng bộ nhập/vẽ hiện có. Một AOI cho mỗi lần tìm; sửa AOI đánh dấu kết quả tìm cũ và yêu cầu tìm lại, không tự thay đầu vào đã chọn |
+| Tìm ảnh | Collection, khoảng thu nhận UTC, AOI. Bắt đầu với Sentinel-1 GRD và Sentinel-2 L2A. Mây chỉ áp dụng cho quang học. Kết quả có phân trang, trạng thái tải/lỗi/rỗng và thử lại |
+| Dòng kết quả | Thumbnail, tên sản phẩm, thời gian UTC, độ phủ hình học AOI. Quang học: độ phân giải theo band và mây **toàn cảnh**. SAR: pass, relative orbit, polarization; phân biệt pixel spacing với spatial resolution |
+| Chọn và xem | Bấm dòng/footprint để xem chi tiết. Checkbox chọn đầu vào. Bật/tắt lớp chỉ đổi hiển thị, không thay bộ chọn. Hai thao tác có state riêng |
+| Chi tiết | Mở khi chọn cảnh, đóng được. Nguồn, ID, processing level, asset, CRS, chất lượng, giấy phép. Metadata thiếu ghi chưa có, không suy từ basemap |
+| Trước/sau | Khay dưới map chỉ mở khi có bộ chọn. Chọn rõ vai trò trước/sau; kiểm cùng AOI, thứ tự thời gian, dữ liệu/CRS/vùng chung. Cặp SAR kiểm thêm orbit, geometry và polarization. Hai cảnh không mặc định đủ điều kiện phát hiện biến động |
+| Lớp và pointer | Thứ tự từ dưới lên: nền → raster → footprint → AOI → lớp kết quả → đối tượng đang chọn. Chỉ một chế độ nhận pointer. Chi tiết/so ảnh không tự đổi vị trí panel trái |
+| Màn nhỏ | Chuyển **Dữ liệu / Bản đồ**; chi tiết thay vùng dữ liệu, có nút quay lại. Không chồng ba panel nổi. Overview chỉ bật khi cần định vị vùng lớn |
+
+Đợt đầu dùng catalog prepared qua repository, không cần backend hoặc khóa API ở trình duyệt. Chốt riêng contract AOI, scene/asset và bộ chọn; adapter sang STAC sau. Giữ provenance từ ID/nguồn/ngày thu nhận tới đầu vào kết quả. Chưa thêm tasking/đặt mua, code editor, model AI, chỉ số phổ hoặc pixel inspector khi chưa có raster phù hợp. Độ phủ footprint không thay độ phủ pixel hợp lệ hay tỷ lệ không mây trong AOI.
+
+### Tham chiếu và lựa chọn
+
+Đây là lựa chọn thiết kế cho DEAR từ tài liệu chính thức và ảnh người dùng cung cấp, không phải một tiêu chuẩn bắt buộc chung cho WebGIS.
+
+| Công cụ | Áp dụng vào DEAR |
+|---|---|
+| [SkyFi](https://skyfi.com/en/faqs), [tasking](https://learn.skyfi.com/how-to/tasking-a-satellite-to-capture-a-new-image/) | AOI và danh sách ảnh; tách archive khỏi yêu cầu chụp. Không đưa luồng mua/assistant vào bước đầu |
+| [Copernicus Browser](https://documentation.dataspace.copernicus.eu/Applications/Browser.html) | Tìm theo collection/thời gian, footprint, metadata, bộ chọn và so ảnh. Tách tìm sản phẩm khỏi hiển thị ảnh |
+| [QGIS GUI](https://docs.qgis.org/3.44/en/docs/user_manual/introduction/qgis_gui.html) | Dock ổn định, thứ tự lớp, thuộc tính, identify và chế độ thao tác rõ. Không sao chép toàn bộ toolbar desktop |
+| [Earth Engine](https://developers.google.com/earth-engine/guides/playground) | Inspector khi cần và Tasks cho xử lý dài. Không dùng RGB nền làm giá trị band hay thêm console sớm |
+| [EOSDA LandViewer](https://eos.com/user-guide/landviewer/my_landviewer/) | Tổ hợp band, chỉ số, so ảnh và chuỗi thời gian cho đợt có raster/QA |
+| [UNOSAT](https://unosat.org/products/4256) và ảnh giao diện đã gửi | Màn ứng phó tập trung tác động, phạm vi, nguồn và thời điểm; công cụ phân tích nằm ở workspace riêng. Chưa kiểm trực tiếp toàn bộ thao tác của webmap |
+
+Proposal vẫn là đích nghiệp vụ: SAR ưu tiên sau sự kiện, phân tích tác động đường/cộng đồng rồi tạo sản phẩm cứu hộ. Catalog là đầu vào hỗ trợ luồng đó, không thay pipeline hoặc biến demo thành sản phẩm xử lý tự động.

@@ -84,15 +84,7 @@ Proposal tập trung ưu tiên cứu hộ và tuyến tiếp cận cho cơ quan 
 
 Không đảo ngược tuyến cứu hộ để mặc định thành tuyến sơ tán. H đề xuất là bãi đáp chưa khảo sát, không thay nơi trú an toàn.
 
-## Thứ tự triển khai
-
-| Đợt | Đầu ra |
-|---|---|
-| SIC hiện tại | Demo prepared ổn định, nguồn và giới hạn đọc được, dữ liệu/tuyến được RS/PO duyệt |
-| Nhập và công bố | NestJS/PostGIS, báo hiện trường, quyền, lịch sử và phiên bản thống nhất. Chi tiết ở [kế hoạch backend](../plans/backend.md) |
-| Nền tảng bản đồ | Adapter OpenLayers/Cesium, COG/GeoPackage, CRS có kiểm chứng, lớp và ký hiệu dùng chung |
-| Phân tích ảnh | Copernicus/GEE qua job, metadata STAC, mask chất lượng, pipeline SAR/quang học được kiểm chứng |
-| Sơ tán | Điểm an toàn, tuyến theo phương thức, duyệt điều phối và thử với người sử dụng thực tế |
+Thứ tự và điều kiện triển khai theo [lộ trình platform](../plans/platform.md). Catalog prepared có thể chạy trên Vercel trước khi xây backend. Adapter gọi dịch vụ có khóa và job xử lý vẫn nằm phía server khi triển khai.
 
 ## Căn cứ lựa chọn
 

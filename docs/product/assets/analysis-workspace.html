@@ -1,0 +1,1285 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DEAR · Thiết kế workspace phân tích</title>
+  <style>
+    :root {
+      --bg: #f3f5f2;
+      --paper: #fff;
+      --chrome: #f0f1ec;
+      --ink: #25332e;
+      --muted: #616f69;
+      --line: #cbd3cd;
+      --green: #166553;
+      --tint: #edf5f1;
+      --map: #dce5d7;
+      --water: #a5c4cc;
+      --contour: #819879;
+      --blue: #286d98;
+      --amber: #855a00;
+      color-scheme: light;
+    }
+    [data-theme="dark"] {
+      --bg: #18211d;
+      --paper: #202a25;
+      --chrome: #263129;
+      --ink: #e5ede7;
+      --muted: #a3b3a8;
+      --line: #435247;
+      --green: #b2d2bf;
+      --tint: #2d4034;
+      --map: #273d30;
+      --water: #517d86;
+      --contour: #739075;
+      --blue: #82c4ea;
+      --amber: #ddbf83;
+      color-scheme: dark;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font:
+        14px/1.5 system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    button,
+    input,
+    select {
+      font: inherit;
+      color: inherit;
+    }
+    button {
+      cursor: pointer;
+    }
+    button:disabled {
+      cursor: default;
+      opacity: 0.55;
+    }
+    button,
+    a,
+    input,
+    select {
+      outline-offset: 3px;
+    }
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid var(--green);
+    }
+    button {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 7px 12px;
+    }
+    button:hover:not(:disabled) {
+      background: var(--tint);
+    }
+    input,
+    select {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 7px 8px;
+      width: 100%;
+      min-width: 0;
+    }
+    input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--green);
+      flex: none;
+    }
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+    h1 {
+      font-size: 16px;
+    }
+    h2 {
+      font-size: 16px;
+    }
+    h3 {
+      font-size: 14px;
+    }
+    small,
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    svg.icon {
+      width: 19px;
+      height: 19px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vertical-align: middle;
+      flex: none;
+    }
+    a {
+      color: var(--green);
+    }
+    [hidden] {
+      display: none !important;
+    }
+    .shell {
+      height: 100dvh;
+      min-height: 540px;
+      display: grid;
+      grid-template-rows: 56px 42px 1fr;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--chrome);
+      border-bottom: 1px solid var(--line);
+      padding: 0 20px;
+    }
+    .brand {
+      font-weight: 750;
+      font-size: 21px;
+      letter-spacing: 1px;
+      color: var(--green);
+      padding-right: 20px;
+      border-right: 1px solid var(--line);
+    }
+    .header h1 {
+      flex: 1;
+    }
+    .badge {
+      border: 1px solid var(--line);
+      padding: 3px 8px;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      background: transparent;
+    }
+    .banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 20px;
+      font-size: 12px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .banner a {
+      margin-left: auto;
+    }
+    .layout {
+      display: flex;
+      min-height: 0;
+    }
+    .sidebar {
+      width: 360px;
+      min-width: 320px;
+      max-width: 480px;
+      resize: horizontal;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--line);
+      background: var(--paper);
+      flex-shrink: 0;
+    }
+    .context {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .context strong {
+      display: block;
+    }
+    .context small {
+      display: block;
+      margin-top: 3px;
+    }
+    .tabs {
+      display: flex;
+      background: var(--chrome);
+      border-bottom: 1px solid var(--line);
+      padding: 0 12px;
+      gap: 4px;
+    }
+    .tabs button {
+      flex: 1;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      padding: 12px 8px;
+      border-bottom: 2px solid transparent;
+    }
+    .tabs button[aria-selected="true"] {
+      color: var(--green);
+      border-bottom-color: var(--green);
+      font-weight: 650;
+    }
+    .panel {
+      padding: 18px 20px;
+      overflow: auto;
+      flex: 1;
+    }
+    .panel > p {
+      margin: 10px 0 16px;
+    }
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 14px 0;
+    }
+    .field {
+      display: grid;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .field.full {
+      grid-column: 1/-1;
+    }
+    .primary {
+      background: var(--green);
+      color: var(--paper);
+      border-color: var(--green);
+      font-weight: 600;
+    }
+    .primary:hover:not(:disabled) {
+      background: var(--green);
+      filter: brightness(0.92);
+    }
+    [data-theme="dark"] .primary {
+      color: #13201e;
+    }
+    .full-width {
+      width: 100%;
+    }
+    .result-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 22px 0 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    .result {
+      display: flex;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+      align-items: flex-start;
+    }
+    .result input {
+      margin: 7px 0;
+    }
+    .result.selected {
+      background: var(--tint);
+      margin: 0 -10px;
+      padding: 12px 10px;
+    }
+    .scene-button {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      padding: 0;
+      line-height: 1.5;
+    }
+    .scene-button:hover:not(:disabled) {
+      background: transparent;
+      color: var(--green);
+    }
+    .thumb {
+      width: 54px;
+      height: 60px;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      background: repeating-linear-gradient(
+        135deg,
+        #dce5d7 0 9px,
+        #879b76 9px 16px,
+        #637952 16px 27px
+      );
+      flex: none;
+      position: relative;
+    }
+    .thumb.sar {
+      background: repeating-linear-gradient(
+        35deg,
+        #a8adac 0 3px,
+        #65706b 3px 9px,
+        #303d35 9px 12px
+      );
+    }
+    .thumb:after {
+      content: "SƠ ĐỒ";
+      position: absolute;
+      bottom: 1px;
+      left: 3px;
+      font-size: 8px;
+      letter-spacing: 0.5px;
+      background: #ffffffd9;
+      color: #25332e;
+    }
+    .scene-text {
+      min-width: 0;
+    }
+    .scene-text strong {
+      display: block;
+      font-weight: 650;
+    }
+    .scene-text small {
+      display: block;
+      margin-top: 3px;
+    }
+    .sidebar-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--line);
+      background: var(--chrome);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sidebar-footer span {
+      flex: 1;
+      font-size: 12px;
+    }
+    .rows {
+      margin-top: 14px;
+    }
+    .layer-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .swatch {
+      width: 22px;
+      border-top: 2px dashed var(--blue);
+    }
+    .swatch.aoi {
+      border-color: var(--green);
+      border-top-style: solid;
+    }
+    .swatch.base {
+      height: 14px;
+      background: var(--map);
+      border: 1px solid var(--line);
+    }
+    .layer-row span:last-child {
+      flex: 1;
+    }
+    .compact-table {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr);
+      gap: 12px 10px;
+      margin-top: 16px;
+      font-size: 13px;
+    }
+    .compact-table dt {
+      color: var(--muted);
+    }
+    .compact-table dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+    .note {
+      padding: 12px;
+      margin-top: 16px;
+      border-left: 3px solid var(--line);
+      background: var(--chrome);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .map-column {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .map-toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: var(--chrome);
+      border-bottom: 1px solid var(--line);
+      padding: 8px 12px;
+      min-height: 49px;
+    }
+    .map-toolbar span {
+      flex: 1;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .map {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      background: var(--map);
+      overflow: hidden;
+    }
+    .map > svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .map .land {
+      fill: var(--map);
+    }
+    .map .contours {
+      stroke: var(--contour);
+      fill: none;
+      opacity: 0.33;
+      stroke-width: 1.3;
+    }
+    .map .river {
+      stroke: var(--water);
+      fill: none;
+      stroke-width: 7;
+    }
+    .map .road {
+      stroke: #dce0d3;
+      stroke-width: 4;
+      fill: none;
+    }
+    .map .footprint {
+      fill: var(--blue);
+      fill-opacity: 0.07;
+      stroke: var(--blue);
+      stroke-width: 2;
+      stroke-dasharray: 8 5;
+      vector-effect: non-scaling-stroke;
+    }
+    .map .footprint.chosen {
+      stroke: #bd8630;
+      fill: #bd8630;
+      fill-opacity: 0.1;
+    }
+    .map .footprint.inspected {
+      stroke-width: 4;
+    }
+    .map .aoi {
+      stroke: var(--green);
+      stroke-width: 3;
+      fill: var(--green);
+      fill-opacity: 0.14;
+      vector-effect: non-scaling-stroke;
+    }
+    .map text {
+      fill: var(--ink);
+      font-size: 15px;
+      font-weight: 600;
+      paint-order: stroke;
+      stroke: var(--map);
+      stroke-width: 4;
+      stroke-linejoin: round;
+    }
+    .map-stamp {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      padding: 5px 9px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      font-size: 11px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+    .north {
+      position: absolute;
+      right: 16px;
+      top: 14px;
+      text-align: center;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      padding: 4px 10px;
+      font-size: 12px;
+      color: var(--green);
+    }
+    .tray {
+      padding: 14px 18px;
+      background: var(--paper);
+      border-top: 1px solid var(--line);
+    }
+    .tray-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .tray-header h2 {
+      flex: 1;
+    }
+    .pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0;
+    }
+    .pair > div {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+    }
+    .pair small {
+      display: block;
+    }
+    .tray .note {
+      margin: 0;
+    }
+    .inspector {
+      background: var(--paper);
+      border-left: 1px solid var(--line);
+      width: 300px;
+      flex-shrink: 0;
+      overflow: auto;
+      padding: 18px;
+    }
+    .inspector-header {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+    }
+    .inspector-header h2 {
+      flex: 1;
+    }
+    .inspector .compact-table {
+      grid-template-columns: 90px 1fr;
+    }
+    .mobile-views {
+      display: none;
+    }
+    .empty {
+      padding: 20px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    @media (max-width: 1050px) {
+      .layout:has(.inspector:not([hidden])) .map-column {
+        display: none;
+      }
+      .inspector {
+        flex: 1;
+        width: auto;
+      }
+      .sidebar {
+        max-width: 420px;
+      }
+      .header {
+        gap: 12px;
+      }
+    }
+    @media (max-width: 650px) {
+      .shell {
+        min-height: 0;
+        grid-template-rows: 56px auto 1fr;
+      }
+      .header {
+        padding: 0 12px;
+        gap: 12px;
+      }
+      .header h1 {
+        font-size: 14px;
+      }
+      .brand {
+        padding-right: 12px;
+        font-size: 18px;
+      }
+      .badge {
+        display: none;
+      }
+      .banner {
+        padding: 8px 12px;
+        align-items: flex-start;
+      }
+      .banner a {
+        white-space: nowrap;
+      }
+      .layout {
+        position: relative;
+        padding-top: 43px;
+      }
+      .mobile-views {
+        display: flex;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: var(--chrome);
+        border-bottom: 1px solid var(--line);
+        padding: 5px 12px;
+        gap: 8px;
+      }
+      .mobile-views button {
+        padding: 4px 12px;
+        font-size: 13px;
+      }
+      .mobile-views button[aria-pressed="true"] {
+        background: var(--tint);
+        color: var(--green);
+      }
+      .sidebar {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        resize: none;
+        border-right: 0;
+      }
+      .map-column {
+        display: none;
+      }
+      .layout[data-view="map"] .sidebar {
+        display: none;
+      }
+      .layout[data-view="map"] .map-column {
+        display: flex;
+      }
+      .layout:has(.inspector:not([hidden])) .sidebar,
+      .layout:has(.inspector:not([hidden])) .map-column {
+        display: none;
+      }
+      .inspector {
+        border-left: 0;
+      }
+      .pair {
+        grid-template-columns: 1fr;
+      }
+      .context,
+      .panel {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      .tray {
+        max-height: 48%;
+        overflow: auto;
+      }
+      .map-toolbar span {
+        font-size: 11px;
+      }
+    }
+  </style>
+  <div class="shell">
+    <header class="header">
+      <span class="brand">DEAR</span>
+      <h1>Phân tích · Chế Tạo</h1>
+      <span class="badge">Thiết kế bước đầu</span
+      ><button
+        id="theme"
+        class="icon-btn"
+        aria-label="Đổi giao diện sáng/tối"
+        title="Sáng / tối"
+      >
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M20 14a8 8 0 0 1-10-10 8 8 0 1 0 10 10Z" />
+        </svg>
+      </button>
+    </header>
+    <div class="banner">
+      Maquette tương tác · Hình sơ đồ và metadata giả, không phải cảnh vệ
+      tinh.<a href="../geodata-workspace.md">Đặc tả</a>
+    </div>
+    <main class="layout" data-view="data">
+      <nav class="mobile-views" aria-label="Vùng làm việc">
+        <button data-view="data" aria-pressed="true">Dữ liệu</button
+        ><button data-view="map" aria-pressed="false">Bản đồ</button>
+      </nav>
+      <aside class="sidebar" aria-label="Công cụ phân tích">
+        <div class="context">
+          <small>VÙNG QUAN TÂM</small><strong>Chế Tạo · AOI mẫu</strong
+          ><small>KML / polygon → tìm cảnh ảnh → kiểm đầu vào</small>
+        </div>
+        <nav class="tabs" role="tablist" aria-label="Công cụ">
+          <button
+            role="tab"
+            id="tab-aoi"
+            aria-controls="panel-aoi"
+            aria-selected="false"
+            tabindex="-1"
+          >
+            AOI</button
+          ><button
+            role="tab"
+            id="tab-scenes"
+            aria-controls="panel-scenes"
+            aria-selected="true"
+          >
+            Cảnh ảnh</button
+          ><button
+            role="tab"
+            id="tab-layers"
+            aria-controls="panel-layers"
+            aria-selected="false"
+            tabindex="-1"
+          >
+            Lớp
+          </button>
+        </nav>
+        <section
+          id="panel-aoi"
+          class="panel"
+          role="tabpanel"
+          aria-labelledby="tab-aoi"
+          hidden
+        >
+          <h2>Vùng quan tâm</h2>
+          <p>
+            Nhập KML / GeoJSON / WKT hoặc vẽ polygon trong công cụ GIS hiện tại.
+          </p>
+          <dl class="compact-table">
+            <dt>AOI</dt>
+            <dd>Chế Tạo · sơ đồ</dd>
+            <dt>Đầu vào dự kiến</dt>
+            <dd>WGS84, kinh độ / vĩ độ</dd>
+            <dt>Độ phủ</dt>
+            <dd>Phần AOI giao với hợp các footprint đã chọn</dd>
+          </dl>
+          <div class="note">
+            Maquette chưa nhập hoặc vẽ hình thật. Khi sửa AOI, kết quả tìm cũ
+            cần được tìm lại.
+          </div>
+          <button class="full-width" style="margin-top: 18px" id="go-scenes">
+            Tìm ảnh cho AOI
+          </button>
+        </section>
+        <section
+          id="panel-scenes"
+          class="panel"
+          role="tabpanel"
+          aria-labelledby="tab-scenes"
+        >
+          <h2>Tìm cảnh ảnh</h2>
+          <form id="search">
+            <div class="fields">
+              <label class="field full"
+                >Collection<select id="collection">
+                  <option value="sar">Sentinel-1 · GRD</option>
+                  <option value="optical">Sentinel-2 · L2A</option>
+                  <option value="all">Tất cả collection mẫu</option>
+                </select></label
+              ><label class="field"
+                >Từ ngày (UTC)<input
+                  type="date"
+                  id="from"
+                  value="2026-09-15"
+                  required /></label
+              ><label class="field"
+                >Đến ngày (UTC)<input
+                  type="date"
+                  id="to"
+                  value="2026-10-07"
+                  required /></label
+              ><label class="field full" id="cloud-field" hidden
+                >Mây toàn cảnh, tối đa (%)<input
+                  type="number"
+                  id="cloud"
+                  value="30"
+                  min="0"
+                  max="100"
+              /></label>
+            </div>
+            <button class="primary full-width" type="submit">
+              <svg class="icon" viewBox="0 0 24 24">
+                <circle cx="10" cy="10" r="6" />
+                <path d="m15 15 6 6" />
+              </svg>
+              Tìm trong bộ mẫu
+            </button>
+          </form>
+          <div class="result-heading">
+            <h3>Kết quả</h3>
+            <small id="result-count">Chưa tìm</small>
+          </div>
+          <div id="results">
+            <p class="empty">Chọn collection và khoảng thời gian.</p>
+          </div>
+        </section>
+        <section
+          id="panel-layers"
+          class="panel"
+          role="tabpanel"
+          aria-labelledby="tab-layers"
+          hidden
+        >
+          <h2>Lớp bản đồ</h2>
+          <p class="muted">
+            Thứ tự hiển thị từ trên xuống. Bật/tắt không đổi bộ ảnh đã chọn.
+          </p>
+          <div class="rows">
+            <label class="layer-row"
+              ><input type="checkbox" id="aoi-visible" checked /><i
+                class="swatch aoi"
+              ></i
+              ><span>Vùng quan tâm</span></label
+            ><label class="layer-row"
+              ><input type="checkbox" id="footprints-visible" checked /><i
+                class="swatch"
+              ></i
+              ><span>Phạm vi các cảnh tìm được</span></label
+            >
+            <div class="layer-row">
+              <i class="swatch base"></i><span>Nền sơ đồ</span
+              ><small>Cố định</small>
+            </div>
+          </div>
+          <div class="note">
+            Raster và lớp kết quả sẽ có trong đợt xử lý ảnh. Sơ đồ này chỉ minh
+            họa vị trí các vùng.
+          </div>
+        </section>
+        <footer class="sidebar-footer">
+          <span id="selection-count" aria-live="polite">0 cảnh được chọn</span
+          ><button id="open-pair" disabled>Mở bộ chọn</button>
+        </footer>
+      </aside>
+      <section class="map-column" aria-label="Sơ đồ bản đồ">
+        <div class="map-toolbar">
+          <span id="map-caption">Chế Tạo · AOI mẫu</span
+          ><button
+            id="zoom-in"
+            class="icon-btn"
+            aria-label="Phóng to"
+            title="Phóng to"
+          >
+            <svg class="icon" viewBox="0 0 24 24">
+              <circle cx="10" cy="10" r="6" />
+              <path d="m15 15 6 6M7 10h6m-3-3v6" />
+            </svg></button
+          ><button
+            id="zoom-out"
+            class="icon-btn"
+            aria-label="Thu nhỏ"
+            title="Thu nhỏ"
+          >
+            <svg class="icon" viewBox="0 0 24 24">
+              <circle cx="10" cy="10" r="6" />
+              <path d="m15 15 6 6M7 10h6" />
+            </svg></button
+          ><button
+            id="fit"
+            class="icon-btn"
+            aria-label="Xem toàn vùng"
+            title="Xem toàn vùng"
+          >
+            <svg class="icon" viewBox="0 0 24 24">
+              <path d="M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5" />
+            </svg>
+          </button>
+        </div>
+        <div class="map">
+          <svg
+            id="map-svg"
+            viewBox="0 0 1000 700"
+            preserveAspectRatio="xMidYMid slice"
+            role="img"
+            aria-label="Sơ đồ vùng quan tâm và phạm vi các cảnh mẫu"
+          >
+            <rect class="land" width="1000" height="700" />
+            <g class="contours">
+              <path
+                d="M-40 150Q140-50 320 130T630 150T1040 70M-40 190Q140-10 320 170T630 190T1040 110M-40 230Q140 30 320 210T630 230T1040 150M-40 270Q140 70 320 250T630 270T1040 190M-40 310Q140 110 320 290T630 310T1040 230M-40 350Q140 150 320 330T630 350T1040 270M-40 390Q140 190 320 370T630 390T1040 310M-40 430Q140 230 320 410T630 430T1040 350M-40 470Q140 270 320 450T630 470T1040 390M-40 510Q140 310 320 490T630 510T1040 430M-40 550Q140 350 320 530T630 550T1040 470M-40 590Q140 390 320 570T630 590T1040 510M-40 630Q140 430 320 610T630 630T1040 550M-40 670Q140 470 320 650T630 670T1040 590"
+              />
+            </g>
+            <path
+              class="river"
+              d="M600-30Q670 60 560 160T570 330T440 460T420 720"
+            />
+            <path
+              class="road"
+              d="M-20 420Q130 370 210 390T340 310T460 370T600 270T780 350T1040 290"
+            />
+            <g id="footprints"></g>
+            <path
+              class="aoi"
+              id="aoi-shape"
+              d="M355 235 548 185 674 320 619 490 426 525 310 387Z"
+            />
+            <circle cx="480" cy="365" r="4" fill="var(--ink)" />
+            <text x="495" y="362">Chế Tạo</text>
+          </svg>
+          <div class="north">N<br />↑</div>
+          <div class="map-stamp">
+            Sơ đồ minh họa · Không dùng đo vị trí hoặc diện tích
+          </div>
+        </div>
+        <section
+          class="tray"
+          id="pair-tray"
+          aria-label="Bộ cảnh đã chọn"
+          hidden
+        >
+          <div class="tray-header">
+            <h2>Bộ cảnh đã chọn</h2>
+            <button class="icon-btn" id="close-pair" aria-label="Đóng bộ chọn">
+              ×
+            </button>
+          </div>
+          <div id="pair-content"></div>
+        </section>
+      </section>
+      <aside
+        class="inspector"
+        id="inspector"
+        aria-labelledby="detail-title"
+        hidden
+      >
+        <div class="inspector-header">
+          <h2 id="detail-title">Thông tin cảnh</h2>
+          <button
+            id="close-detail"
+            class="icon-btn"
+            aria-label="Đóng thông tin cảnh"
+          >
+            ×
+          </button>
+        </div>
+        <div id="detail-content"></div>
+      </aside>
+    </main>
+  </div>
+  <script>
+    // Design fixture only. No provider data, projection, raster or analysis is simulated as real.
+    const scenes = [
+      {
+        id: "DEMO-S1-BEFORE",
+        type: "sar",
+        name: "Sentinel-1 · GRD",
+        date: "2026-09-22T11:05:00Z",
+        coverage: 100,
+        orbit: 128,
+        pass: "Descending",
+        polarization: "VV + VH",
+        shape: "235,125 765,175 740,555 265,580",
+      },
+      {
+        id: "DEMO-S1-AFTER",
+        type: "sar",
+        name: "Sentinel-1 · GRD",
+        date: "2026-10-04T11:05:00Z",
+        coverage: 100,
+        orbit: 128,
+        pass: "Descending",
+        polarization: "VV + VH",
+        shape: "250,135 780,185 755,565 280,590",
+      },
+      {
+        id: "DEMO-S2-BEFORE",
+        type: "optical",
+        name: "Sentinel-2 · L2A",
+        date: "2026-09-20T03:35:00Z",
+        coverage: 94,
+        cloud: 8,
+        shape: "280,170 700,170 700,570 280,570",
+      },
+      {
+        id: "DEMO-S2-AFTER",
+        type: "optical",
+        name: "Sentinel-2 · L2A",
+        date: "2026-10-05T03:35:00Z",
+        coverage: 94,
+        cloud: 24,
+        shape: "285,175 705,175 705,575 285,575",
+      },
+    ];
+    const $ = (id) => document.getElementById(id),
+      chosen = new Set();
+    let results = [],
+      inspected = null,
+      lastFocus = null,
+      zoom = 1;
+    function setTab(name) {
+      document.querySelectorAll("[role=tab]").forEach((tab) => {
+        const active = tab.id === "tab-" + name;
+        tab.setAttribute("aria-selected", String(active));
+        tab.tabIndex = active ? 0 : -1;
+        $("panel-" + tab.id.slice(4)).hidden = !active;
+      });
+    }
+    function setView(view) {
+      document.querySelector(".layout").dataset.view = view;
+      document
+        .querySelectorAll("[data-view][aria-pressed]")
+        .forEach((b) =>
+          b.setAttribute("aria-pressed", String(b.dataset.view === view)),
+        );
+    }
+    document.querySelectorAll("[role=tab]").forEach((tab, index, tabs) => {
+      tab.onclick = () => setTab(tab.id.slice(4));
+      tab.onkeydown = (e) => {
+        const offset =
+          e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (offset) {
+          e.preventDefault();
+          const next = tabs[(index + offset + tabs.length) % tabs.length];
+          setTab(next.id.slice(4));
+          next.focus();
+        }
+      };
+    });
+    document
+      .querySelectorAll("[data-view][aria-pressed]")
+      .forEach((b) => (b.onclick = () => setView(b.dataset.view)));
+    $("go-scenes").onclick = () => {
+      setTab("scenes");
+      $("collection").focus();
+    };
+    $("theme").onclick = () =>
+      (document.documentElement.dataset.theme =
+        document.documentElement.dataset.theme === "light" ? "dark" : "light");
+    $("collection").onchange = () => {
+      $("cloud-field").hidden = $("collection").value !== "optical";
+    };
+    function dateLabel(scene) {
+      return (
+        new Date(scene.date).toLocaleString("vi-VN", {
+          timeZone: "UTC",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }) + " UTC"
+      );
+    }
+    function paintMap() {
+      const visible = $("footprints-visible").checked;
+      $("footprints").replaceChildren();
+      if (visible)
+        results.forEach((scene) => {
+          const node = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "polygon",
+          );
+          node.setAttribute("points", scene.shape);
+          node.setAttribute(
+            "class",
+            "footprint" +
+              (chosen.has(scene.id) ? " chosen" : "") +
+              (inspected === scene.id ? " inspected" : ""),
+          );
+          $("footprints").append(node);
+        });
+      $("aoi-shape").hidden = !$("aoi-visible").checked;
+      $("aoi-shape").style.display = $("aoi-visible").checked ? "" : "none";
+    }
+    function drawResults() {
+      const list = $("results");
+      list.replaceChildren();
+      $("result-count").textContent = results.length + " cảnh mẫu";
+      if (!results.length) {
+        const p = document.createElement("p");
+        p.className = "empty";
+        p.textContent = "Không có cảnh mẫu trong điều kiện này.";
+        list.append(p);
+      }
+      results.forEach((scene) => {
+        const row = document.createElement("div");
+        row.className = "result" + (chosen.has(scene.id) ? " selected" : "");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = chosen.has(scene.id);
+        checkbox.setAttribute("aria-label", "Chọn " + scene.id);
+        checkbox.onchange = () => {
+          if (checkbox.checked) chosen.add(scene.id);
+          else chosen.delete(scene.id);
+          row.classList.toggle("selected", checkbox.checked);
+          updateSelection();
+        };
+        const button = document.createElement("button");
+        button.className = "scene-button";
+        button.setAttribute("aria-label", "Thông tin " + scene.id);
+        button.innerHTML =
+          '<span class="thumb ' +
+          (scene.type === "sar" ? "sar" : "") +
+          '" aria-hidden="true"></span><span class="scene-text"><strong>' +
+          scene.name +
+          "</strong><small>" +
+          dateLabel(scene) +
+          "</small><small>Phủ AOI " +
+          scene.coverage +
+          "% · " +
+          (scene.type === "sar" ? "VV/VH · Descending" : "B2/B3/B4: 10 m") +
+          "</small><small>" +
+          (scene.type === "sar"
+            ? "Relative orbit " + scene.orbit
+            : "Mây toàn cảnh " + scene.cloud + "%") +
+          "</small></span>";
+        button.onclick = () => openDetail(scene, button);
+        row.append(checkbox, button);
+        list.append(row);
+      });
+      paintMap();
+    }
+    function updateSelection() {
+      const outside = [...chosen].filter(
+        (id) => !results.some((scene) => scene.id === id),
+      ).length;
+      $("selection-count").textContent =
+        chosen.size +
+        " cảnh được chọn" +
+        (outside ? " · " + outside + " ngoài kết quả" : "");
+      $("open-pair").disabled = !chosen.size;
+      paintMap();
+      if (!$("pair-tray").hidden) renderPair();
+    }
+    $("search").onsubmit = (e) => {
+      e.preventDefault();
+      if ($("from").value > $("to").value) {
+        $("to").setCustomValidity("Ngày kết thúc phải từ ngày bắt đầu trở đi.");
+        $("to").reportValidity();
+        return;
+      }
+      $("to").setCustomValidity("");
+      const type = $("collection").value;
+      results = scenes.filter(
+        (scene) =>
+          (type === "all" || scene.type === type) &&
+          scene.date.slice(0, 10) >= $("from").value &&
+          scene.date.slice(0, 10) <= $("to").value &&
+          (type !== "optical" || scene.cloud <= Number($("cloud").value)),
+      );
+      drawResults();
+      updateSelection();
+    };
+    $("from").oninput = $("to").oninput = () => {
+      $("to").setCustomValidity("");
+    };
+    function openDetail(scene, origin) {
+      lastFocus = origin;
+      inspected = scene.id;
+      $("inspector").hidden = false;
+      const data = [
+        ["ID", scene.id],
+        ["Thu nhận", dateLabel(scene)],
+        ["Collection", scene.name],
+        ["Nguồn", "Fixture thiết kế, không phải catalog nhà cung cấp"],
+        ["Phủ AOI", scene.coverage + "% (giả lập, chỉ hình học)"],
+      ];
+      if (scene.type === "sar")
+        data.push(
+          ["Pass", scene.pass],
+          ["Rel. orbit", String(scene.orbit)],
+          ["Polarization", scene.polarization],
+          ["Pixel spacing", "10 m (giả lập)"],
+          ["Độ phân giải", "Chưa cung cấp"],
+        );
+      else
+        data.push(
+          ["Band B2/3/4", "10 m (giả lập)"],
+          ["Mây toàn cảnh", scene.cloud + "% (giả lập)"],
+          ["Mây trong AOI", "Chưa xác định"],
+        );
+      data.push(
+        ["CRS asset", "Chưa cung cấp"],
+        ["Giấy phép", "Chưa cung cấp"],
+        ["Raster", "Chưa có asset"],
+      );
+      $("detail-content").innerHTML =
+        '<dl class="compact-table">' +
+        data.map(([k, v]) => "<dt>" + k + "</dt><dd>" + v + "</dd>").join("") +
+        '</dl><div class="note">Metadata mẫu chỉ kiểm cách trình bày. Chưa đánh giá chất lượng, đồng đăng ký hoặc tính phù hợp phân tích.</div>';
+      paintMap();
+      $("close-detail").focus();
+    }
+    function closeDetail() {
+      inspected = null;
+      $("inspector").hidden = true;
+      paintMap();
+      if (lastFocus?.isConnected) lastFocus.focus();
+    }
+    $("close-detail").onclick = closeDetail;
+    function renderPair() {
+      const selected = scenes
+        .filter((scene) => chosen.has(scene.id))
+        .sort((a, b) => a.date.localeCompare(b.date));
+      let message = "Chọn hai cảnh để xem cặp trước/sau.";
+      if (selected.length === 2) {
+        message =
+          selected[0].type === selected[1].type
+            ? "Cặp mẫu theo thời gian. Chưa có raster/QA để xác nhận khả năng so ảnh."
+            : "Khác loại cảm biến. Không ghép trực tiếp thành cặp phát hiện biến động.";
+      } else if (selected.length > 2)
+        message =
+          "Đang chọn nhiều hơn hai cảnh. Giữ hai cảnh cho cặp trước/sau.";
+      $("pair-content").innerHTML =
+        '<div class="pair">' +
+        selected
+          .map(
+            (scene, index) =>
+              "<div><small>" +
+              (selected.length === 2
+                ? index === 0
+                  ? "Trước · theo thời gian"
+                  : "Sau · theo thời gian"
+                : "Cảnh " + (index + 1)) +
+              "</small><strong>" +
+              scene.name +
+              "</strong><small>" +
+              dateLabel(scene) +
+              "</small></div>",
+          )
+          .join("") +
+        '</div><p class="note">' +
+        message +
+        "</p>";
+    }
+    $("open-pair").onclick = () => {
+      closeDetail();
+      setView("map");
+      $("pair-tray").hidden = false;
+      renderPair();
+      $("close-pair").focus();
+    };
+    $("close-pair").onclick = () => {
+      $("pair-tray").hidden = true;
+      setView("data");
+      $("open-pair").focus();
+    };
+    $("aoi-visible").onchange = $("footprints-visible").onchange = paintMap;
+    function zoomMap(factor) {
+      zoom = Math.max(1, Math.min(4, zoom * factor));
+      const w = 1000 / zoom,
+        h = 700 / zoom;
+      $("map-svg").setAttribute(
+        "viewBox",
+        `${(1000 - w) / 2} ${(700 - h) / 2} ${w} ${h}`,
+      );
+    }
+    $("zoom-in").onclick = () => zoomMap(1.3);
+    $("zoom-out").onclick = () => zoomMap(1 / 1.3);
+    $("fit").onclick = () => {
+      zoom = 1;
+      zoomMap(1);
+    };
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (!$("inspector").hidden) closeDetail();
+        else if (!$("pair-tray").hidden) $("close-pair").click();
+      }
+    });
+  </script>
+</html>
