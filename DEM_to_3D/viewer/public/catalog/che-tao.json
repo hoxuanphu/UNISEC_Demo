@@ -1,0 +1,910 @@
+{
+  "type": "FeatureCollection",
+  "catalogVersion": 1,
+  "source": {
+    "provider": "Copernicus Data Space Ecosystem",
+    "retrievedAt": "2026-10-08",
+    "region": "Chế Tạo",
+    "license": "https://sentinel.esa.int/documents/247904/690755/Sentinel_Data_Legal_Notice",
+    "queries": [
+      "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd/items?limit=6&bbox=103.81,21.54,104.30,22.02&datetime=2026-09-01T00:00:00Z/2026-10-08T00:00:00Z",
+      "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a/items?limit=6&bbox=103.81,21.54,104.30,22.02"
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "S1D_IW_GRDH_1SDV_20261006T110603_20261006T110628_004894_00935B_8984_COG",
+      "collection": "sentinel-1-grd",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              103.631477,
+              23.325991
+            ],
+            [
+              103.934685,
+              21.813393
+            ],
+            [
+              106.357552,
+              22.237213
+            ],
+            [
+              106.081306,
+              23.746277
+            ],
+            [
+              103.631477,
+              23.325991
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-10-06T11:06:03.263814Z",
+        "start_datetime": "2026-10-06T11:06:03.263814Z",
+        "end_datetime": "2026-10-06T11:06:28.262447Z",
+        "platform": "sentinel-1d",
+        "instruments": [
+          "sar"
+        ],
+        "processing:level": "L1",
+        "processing:version": "01.00",
+        "product:type": "IW_GRDH_1S",
+        "sat:orbit_state": "ascending",
+        "sat:relative_orbit": 128,
+        "sar:instrument_mode": "IW",
+        "sar:polarizations": [
+          "VV",
+          "VH"
+        ],
+        "sar:pixel_spacing_range": 10.0,
+        "sar:pixel_spacing_azimuth": 10.0
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd/items/S1D_IW_GRDH_1SDV_20261006T110603_20261006T110628_004894_00935B_8984_COG"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(5e69ba8b-de30-49d5-a1a1-d0d4a51732ac)/$value",
+          "type": "image/png",
+          "roles": [
+            "thumbnail"
+          ],
+          "title": "Thumbnail"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S1D_IW_GRDH_1SDV_20261006T110538_20261006T110603_004894_00935B_EF15_COG",
+      "collection": "sentinel-1-grd",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              103.9347,
+              21.813301
+            ],
+            [
+              104.248695,
+              20.302584
+            ],
+            [
+              106.645882,
+              20.729668
+            ],
+            [
+              106.357185,
+              22.237059
+            ],
+            [
+              103.9347,
+              21.813301
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-10-06T11:05:38.263690Z",
+        "start_datetime": "2026-10-06T11:05:38.263690Z",
+        "end_datetime": "2026-10-06T11:06:03.262323Z",
+        "platform": "sentinel-1d",
+        "instruments": [
+          "sar"
+        ],
+        "processing:level": "L1",
+        "processing:version": "01.00",
+        "product:type": "IW_GRDH_1S",
+        "sat:orbit_state": "ascending",
+        "sat:relative_orbit": 128,
+        "sar:instrument_mode": "IW",
+        "sar:polarizations": [
+          "VV",
+          "VH"
+        ],
+        "sar:pixel_spacing_range": 10.0,
+        "sar:pixel_spacing_azimuth": 10.0
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd/items/S1D_IW_GRDH_1SDV_20261006T110538_20261006T110603_004894_00935B_EF15_COG"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(2eb15fa2-29df-46fa-bbde-28786b22b2bf)/$value",
+          "type": "image/png",
+          "roles": [
+            "thumbnail"
+          ],
+          "title": "Thumbnail"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S1D_IW_GRDH_1SDV_20260929T111413_20260929T111438_004792_008FC8_810C_COG",
+      "collection": "sentinel-1-grd",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              101.616898,
+              23.10961
+            ],
+            [
+              101.92765,
+              21.598396
+            ],
+            [
+              104.353401,
+              22.023693
+            ],
+            [
+              104.069656,
+              23.531523
+            ],
+            [
+              101.616898,
+              23.10961
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-09-29T11:14:13.194795Z",
+        "start_datetime": "2026-09-29T11:14:13.194795Z",
+        "end_datetime": "2026-09-29T11:14:38.193094Z",
+        "platform": "sentinel-1d",
+        "instruments": [
+          "sar"
+        ],
+        "processing:level": "L1",
+        "processing:version": "01.00",
+        "product:type": "IW_GRDH_1S",
+        "sat:orbit_state": "ascending",
+        "sat:relative_orbit": 26,
+        "sar:instrument_mode": "IW",
+        "sar:polarizations": [
+          "VV",
+          "VH"
+        ],
+        "sar:pixel_spacing_range": 10.0,
+        "sar:pixel_spacing_azimuth": 10.0
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd/items/S1D_IW_GRDH_1SDV_20260929T111413_20260929T111438_004792_008FC8_810C_COG"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(3bb1b03d-2ae0-411d-9710-4935b0feca71)/$value",
+          "type": "image/png",
+          "roles": [
+            "thumbnail"
+          ],
+          "title": "Thumbnail"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S1D_IW_GRDH_1SDV_20260929T111348_20260929T111413_004792_008FC8_BC0E_COG",
+      "collection": "sentinel-1-grd",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              101.927666,
+              21.598307
+            ],
+            [
+              102.244202,
+              20.088089
+            ],
+            [
+              104.644554,
+              20.516647
+            ],
+            [
+              104.352943,
+              22.023523
+            ],
+            [
+              101.927666,
+              21.598307
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-09-29T11:13:48.195003Z",
+        "start_datetime": "2026-09-29T11:13:48.195003Z",
+        "end_datetime": "2026-09-29T11:14:13.193302Z",
+        "platform": "sentinel-1d",
+        "instruments": [
+          "sar"
+        ],
+        "processing:level": "L1",
+        "processing:version": "01.00",
+        "product:type": "IW_GRDH_1S",
+        "sat:orbit_state": "ascending",
+        "sat:relative_orbit": 26,
+        "sar:instrument_mode": "IW",
+        "sar:polarizations": [
+          "VV",
+          "VH"
+        ],
+        "sar:pixel_spacing_range": 10.0,
+        "sar:pixel_spacing_azimuth": 10.0
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd/items/S1D_IW_GRDH_1SDV_20260929T111348_20260929T111413_004792_008FC8_BC0E_COG"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(be907ac6-0d83-4339-a723-dd73cc815a4b)/$value",
+          "type": "image/png",
+          "roles": [
+            "thumbnail"
+          ],
+          "title": "Thumbnail"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S1D_IW_GRDH_1SDV_20260926T225833_20260926T225903_004755_008E7F_5226_COG",
+      "collection": "sentinel-1-grd",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              104.710793,
+              19.630911
+            ],
+            [
+              105.083786,
+              21.39999
+            ],
+            [
+              102.683167,
+              21.822016
+            ],
+            [
+              102.338524,
+              20.056799
+            ],
+            [
+              104.710793,
+              19.630911
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-09-26T22:58:33.768275Z",
+        "start_datetime": "2026-09-26T22:58:33.768275Z",
+        "end_datetime": "2026-09-26T22:59:03.056243Z",
+        "platform": "sentinel-1d",
+        "instruments": [
+          "sar"
+        ],
+        "processing:level": "L1",
+        "processing:version": "01.00",
+        "product:type": "IW_GRDH_1S",
+        "sat:orbit_state": "descending",
+        "sat:relative_orbit": 164,
+        "sar:instrument_mode": "IW",
+        "sar:polarizations": [
+          "VV",
+          "VH"
+        ],
+        "sar:pixel_spacing_range": 10.0,
+        "sar:pixel_spacing_azimuth": 10.0
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd/items/S1D_IW_GRDH_1SDV_20260926T225833_20260926T225903_004755_008E7F_5226_COG"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(09796a2a-2d49-4e07-a0d8-541efd33c4d6)/$value",
+          "type": "image/png",
+          "roles": [
+            "thumbnail"
+          ],
+          "title": "Thumbnail"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S1D_IW_GRDH_1SDV_20260924T110603_20260924T110628_004719_008D42_87E8_COG",
+      "collection": "sentinel-1-grd",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              103.631821,
+              23.325945
+            ],
+            [
+              103.934998,
+              21.813343
+            ],
+            [
+              106.357872,
+              22.237139
+            ],
+            [
+              106.081657,
+              23.746204
+            ],
+            [
+              103.631821,
+              23.325945
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-09-24T11:06:03.193660Z",
+        "start_datetime": "2026-09-24T11:06:03.193660Z",
+        "end_datetime": "2026-09-24T11:06:28.192286Z",
+        "platform": "sentinel-1d",
+        "instruments": [
+          "sar"
+        ],
+        "processing:level": "L1",
+        "processing:version": "01.00",
+        "product:type": "IW_GRDH_1S",
+        "sat:orbit_state": "ascending",
+        "sat:relative_orbit": 128,
+        "sar:instrument_mode": "IW",
+        "sar:polarizations": [
+          "VV",
+          "VH"
+        ],
+        "sar:pixel_spacing_range": 10.0,
+        "sar:pixel_spacing_azimuth": 10.0
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-1-grd/items/S1D_IW_GRDH_1SDV_20260924T110603_20260924T110628_004719_008D42_87E8_COG"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(b179c6cd-9ca9-4708-abbd-db42cb59f62f)/$value",
+          "type": "image/png",
+          "roles": [
+            "thumbnail"
+          ],
+          "title": "Thumbnail"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S2C_MSIL2A_20261007T033621_N0513_R061_T48QVK_20261007T083708",
+      "collection": "sentinel-2-l2a",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              104.55621099625267,
+              22.605535489730183
+            ],
+            [
+              104.02667284983126,
+              22.60408679564427
+            ],
+            [
+              104.03345512508169,
+              21.612247363899485
+            ],
+            [
+              104.29982715905581,
+              21.612945773743608
+            ],
+            [
+              104.55621099625267,
+              22.605535489730183
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-10-07T03:36:21.025000Z",
+        "start_datetime": "2026-10-07T03:36:21.025000Z",
+        "end_datetime": "2026-10-07T03:36:21.025000Z",
+        "platform": "sentinel-2c",
+        "instruments": [
+          "msi"
+        ],
+        "gsd": 10,
+        "grid:code": "MGRS-48QVK",
+        "processing:level": "L2",
+        "processing:version": "05.13",
+        "product:type": "S2MSI2A",
+        "eo:cloud_cover": 5.29,
+        "sat:orbit_state": "descending",
+        "sat:relative_orbit": 61
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a/items/S2C_MSIL2A_20261007T033621_N0513_R061_T48QVK_20261007T083708"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(a33d51d9-e64e-4223-8e3a-507227723d9f)/$value",
+          "roles": [
+            "thumbnail",
+            "overview"
+          ],
+          "type": "image/jpeg",
+          "title": "Quicklook"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S2C_MSIL2A_20261007T033621_N0513_R061_T48QVJ_20261007T083708",
+      "collection": "sentinel-2-l2a",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              104.32385920195607,
+              21.70136239392851
+            ],
+            [
+              104.03286652659101,
+              21.70059646984541
+            ],
+            [
+              104.03930401532992,
+              20.70864745221514
+            ],
+            [
+              104.07312535299297,
+              20.708732597683422
+            ],
+            [
+              104.32385920195607,
+              21.70136239392851
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-10-07T03:36:21.025000Z",
+        "start_datetime": "2026-10-07T03:36:21.025000Z",
+        "end_datetime": "2026-10-07T03:36:21.025000Z",
+        "platform": "sentinel-2c",
+        "instruments": [
+          "msi"
+        ],
+        "gsd": 10,
+        "grid:code": "MGRS-48QVJ",
+        "processing:level": "L2",
+        "processing:version": "05.13",
+        "product:type": "S2MSI2A",
+        "eo:cloud_cover": 5.53,
+        "sat:orbit_state": "descending",
+        "sat:relative_orbit": 61
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a/items/S2C_MSIL2A_20261007T033621_N0513_R061_T48QVJ_20261007T083708"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(8d050a3d-529d-42cf-b6ed-e4b6e096c79f)/$value",
+          "roles": [
+            "thumbnail",
+            "overview"
+          ],
+          "type": "image/jpeg",
+          "title": "Quicklook"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S2C_MSIL2A_20261007T033621_N0513_R061_T48QUK_20261007T083708",
+      "collection": "sentinel-2-l2a",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              103.0544472417316,
+              22.595248168848308
+            ],
+            [
+              103.06799638611811,
+              21.603835506172878
+            ],
+            [
+              104.12851629352538,
+              21.61277258045447
+            ],
+            [
+              104.12240084614325,
+              22.60463866037775
+            ],
+            [
+              103.0544472417316,
+              22.595248168848308
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-10-07T03:36:21.025000Z",
+        "start_datetime": "2026-10-07T03:36:21.025000Z",
+        "end_datetime": "2026-10-07T03:36:21.025000Z",
+        "platform": "sentinel-2c",
+        "instruments": [
+          "msi"
+        ],
+        "gsd": 10,
+        "grid:code": "MGRS-48QUK",
+        "processing:level": "L2",
+        "processing:version": "05.13",
+        "product:type": "S2MSI2A",
+        "eo:cloud_cover": 14.53,
+        "sat:orbit_state": "descending",
+        "sat:relative_orbit": 61
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a/items/S2C_MSIL2A_20261007T033621_N0513_R061_T48QUK_20261007T083708"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(47db310c-b029-4e99-a5f9-1e9acdc7969c)/$value",
+          "roles": [
+            "thumbnail",
+            "overview"
+          ],
+          "type": "image/jpeg",
+          "title": "Quicklook"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S2C_MSIL2A_20261007T033621_N0513_R061_T48QUJ_20261007T083708",
+      "collection": "sentinel-2-l2a",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              104.13244135427779,
+              20.939647671791718
+            ],
+            [
+              104.12798556574816,
+              21.70112404546395
+            ],
+            [
+              103.06682051971562,
+              21.692146831688227
+            ],
+            [
+              103.07968101088468,
+              20.7006194715763
+            ],
+            [
+              104.0731067700416,
+              20.70865768525698
+            ],
+            [
+              104.07854356851448,
+              20.730574750917576
+            ],
+            [
+              104.11724812025811,
+              20.87816377696756
+            ],
+            [
+              104.13244135427779,
+              20.939647671791718
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-10-07T03:36:21.025000Z",
+        "start_datetime": "2026-10-07T03:36:21.025000Z",
+        "end_datetime": "2026-10-07T03:36:21.025000Z",
+        "platform": "sentinel-2c",
+        "instruments": [
+          "msi"
+        ],
+        "gsd": 10,
+        "grid:code": "MGRS-48QUJ",
+        "processing:level": "L2",
+        "processing:version": "05.13",
+        "product:type": "S2MSI2A",
+        "eo:cloud_cover": 9.11,
+        "sat:orbit_state": "descending",
+        "sat:relative_orbit": 61
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a/items/S2C_MSIL2A_20261007T033621_N0513_R061_T48QUJ_20261007T083708"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(85d372c9-a307-4c02-bff2-3606ccd8ae57)/$value",
+          "roles": [
+            "thumbnail",
+            "overview"
+          ],
+          "type": "image/jpeg",
+          "title": "Quicklook"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S2A_MSIL2A_20261006T033151_N0513_R018_T48QVK_20261006T071005",
+      "collection": "sentinel-2-l2a",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              104.15182350517368,
+              22.60442917893708
+            ],
+            [
+              104.03345512508169,
+              21.612247363899485
+            ],
+            [
+              105.09430211461176,
+              21.615028834497366
+            ],
+            [
+              105.09496396113373,
+              22.607009393431486
+            ],
+            [
+              104.15182350517368,
+              22.60442917893708
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-10-06T03:31:51.024000Z",
+        "start_datetime": "2026-10-06T03:31:51.024000Z",
+        "end_datetime": "2026-10-06T03:31:51.024000Z",
+        "platform": "sentinel-2a",
+        "instruments": [
+          "msi"
+        ],
+        "gsd": 10,
+        "grid:code": "MGRS-48QVK",
+        "processing:level": "L2",
+        "processing:version": "05.13",
+        "product:type": "S2MSI2A",
+        "eo:cloud_cover": 35.97,
+        "sat:orbit_state": "descending",
+        "sat:relative_orbit": 18
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a/items/S2A_MSIL2A_20261006T033151_N0513_R018_T48QVK_20261006T071005"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(8b4d8b76-0b34-47f0-9160-ae5a31a11f35)/$value",
+          "roles": [
+            "thumbnail",
+            "overview"
+          ],
+          "type": "image/jpeg",
+          "title": "Quicklook"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S2A_MSIL2A_20261006T033151_N0513_R018_T48QVJ_20261006T071005",
+      "collection": "sentinel-2-l2a",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              104.03286652659101,
+              21.70059646984541
+            ],
+            [
+              104.03930401532992,
+              20.708647452215143
+            ],
+            [
+              105.09373135431976,
+              20.711301980857524
+            ],
+            [
+              105.09435955273455,
+              21.7033904338919
+            ],
+            [
+              104.03286652659101,
+              21.70059646984541
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-10-06T03:31:51.024000Z",
+        "start_datetime": "2026-10-06T03:31:51.024000Z",
+        "end_datetime": "2026-10-06T03:31:51.024000Z",
+        "platform": "sentinel-2a",
+        "instruments": [
+          "msi"
+        ],
+        "gsd": 10,
+        "grid:code": "MGRS-48QVJ",
+        "processing:level": "L2",
+        "processing:version": "05.13",
+        "product:type": "S2MSI2A",
+        "eo:cloud_cover": 60.47,
+        "sat:orbit_state": "descending",
+        "sat:relative_orbit": 18
+      },
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a/items/S2A_MSIL2A_20261006T033151_N0513_R018_T48QVJ_20261006T071005"
+        }
+      ],
+      "assets": {
+        "thumbnail": {
+          "href": "https://datahub.creodias.eu/odata/v1/Assets(12609d59-5e6b-4891-b12f-19dd58570644)/$value",
+          "roles": [
+            "thumbnail",
+            "overview"
+          ],
+          "type": "image/jpeg",
+          "title": "Quicklook"
+        }
+      }
+    }
+  ]
+}

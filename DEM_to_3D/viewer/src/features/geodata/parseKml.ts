@@ -8,6 +8,7 @@ function coordinates(element: Element): number[][] {
   if (!value) throw new GeometryError('coordinates');
   return value.split(/\s+/).map(tuple=>{
     const parts = tuple.split(',');
+    if (parts.length === 3 && parts[2] === '') parts[2]='0';
     if (parts.some(part=>!(/^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/).test(part))) throw new GeometryError('coordinates');
     return parts.map(part=>Number(part));
   });
@@ -19,7 +20,7 @@ function geometry(element: Element, depth=0): VectorGeometry[] {
     if (points.length !== 1) throw new GeometryError('coordinates');
     return [{type:'Point',coordinates:points[0]}];
   }
-  if (element.localName === 'LineString') return [{type:'LineString',coordinates:coordinates(element)}];
+  if (element.localName === 'LineString' || element.localName === 'LinearRing') return [{type:'LineString',coordinates:coordinates(element)}];
   if (element.localName === 'Polygon') {
     const boundaries=[...children(element,'outerBoundaryIs'),...children(element,'innerBoundaryIs')];
     if (children(element,'outerBoundaryIs').length !== 1) throw new GeometryError('ring-points');
@@ -46,7 +47,7 @@ export function parseKml(text: string): VectorFeature[] {
   if (placemarks.length > 100) throw new GeometryError('feature-limit');
   const features=placemarks.flatMap(placemark=>{
     const geometries=[...placemark.children].filter(child=>['Point','LineString','Polygon','MultiGeometry','Model','Track','MultiTrack','LinearRing'].includes(child.localName));
-    if (!geometries.length) throw new GeometryError('empty');
+    if (!geometries.length) return [];
     const properties: Record<string, unknown> = { name:content(placemark,'name'), description:content(placemark,'description') };
     const extended=children(placemark,'ExtendedData')[0];
     if (extended) for (const item of [...extended.getElementsByTagNameNS('*','Data'),...extended.getElementsByTagNameNS('*','SimpleData')]) {

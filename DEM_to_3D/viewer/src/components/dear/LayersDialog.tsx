@@ -37,7 +37,7 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
   return <section className="layers-panel" id="map-layers-panel" ref={panelRef} role="dialog" aria-modal="false" aria-labelledby="map-layers-title">
     <div className="layers-heading floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={t('Vị trí bảng lớp', 'Layers panel position')} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home" title={t('Kéo để đổi vị trí. Nhấp đúp để đặt lại.', 'Drag to move. Double-click to reset.')}><h2 id="map-layers-title">{t('Lớp bản đồ', 'Map layers')}</h2><button className="icon-button" onClick={onClose} aria-label={t('Đóng lớp bản đồ', 'Close map layers')}><UiIcon name="close" /></button></div>
     <div className="layers-content">
-      <button className="geodata-entry" onClick={onImportGeometry}><UiIcon name="plus"/>{t('Nhập KML / polygon','Import KML / polygon')}</button>
+      <button className="geodata-entry" onClick={onImportGeometry}><UiIcon name="polygon"/>{t('Dữ liệu GIS','GIS data')}</button>
       <fieldset className="basemap-choices"><legend>{t('Bản đồ nền', 'Base map')}</legend>
         {bases.map(([imagery, label]) => <label className={'basemap-choice ' + (layers.imagery === imagery ? 'is-active' : '')} key={String(imagery)}>
           <span className={'basemap-preview ' + (imagery ? 'is-imagery' : 'is-terrain')} aria-hidden="true">

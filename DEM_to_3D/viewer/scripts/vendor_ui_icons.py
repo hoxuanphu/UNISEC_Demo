@@ -19,6 +19,8 @@ ICONS = {
     'priority': 'flag',
     'panelOpen': 'panel-left-open', 'panelClose': 'panel-left-close',
     'location': 'locate-fixed',
+    'pointer': 'mouse-pointer-2', 'polygon': 'pentagon', 'rectangle': 'rectangle-horizontal',
+    'edit': 'square-pen', 'redo': 'redo-2', 'image': 'image',
 }
 
 def fetch(item):

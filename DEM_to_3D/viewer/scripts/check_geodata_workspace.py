@@ -46,6 +46,7 @@ def check_controls(page, theme):
 
 
 def paste(page, text, role='reference'):
+    page.get_by_role('tab', name='Lớp', exact=True).click()
     panel = page.locator('.geodata-import')
     toggle = panel.get_by_role('button', name='Nhập dữ liệu', exact=True)
     if toggle.get_attribute('aria-expanded') == 'false':
@@ -107,12 +108,18 @@ def run(url, chrome, captures):
         page.reload()
         paste(page,'AOI: POLYGON((104 21,106 21,106 22,104 22,104 21))','aoi')
         paste(page,'Left: POLYGON((104 21,105.5 21,105.5 22,104 22,104 21))\nRight: POLYGON((104.5 21,106 21,106 22,104.5 22,104.5 21))','footprint')
+        page.get_by_role('tab', name='AOI', exact=True).click()
         expect(page.locator('[data-coverage-total]')).to_have_text('100%')
+        page.get_by_role('tab', name='Lớp', exact=True).click()
         page.get_by_role('checkbox', name='Hiện Left', exact=True).uncheck()
+        page.get_by_role('tab', name='AOI', exact=True).click()
         expect(page.locator('[data-coverage-total]')).to_have_text('100%')
+        page.get_by_role('tab', name='Lớp', exact=True).click()
         page.locator('.geodata-feature').filter(has_text='Right').click()
         page.get_by_role('textbox', name='Tên đối tượng').fill('Right renamed')
+        page.get_by_role('tab', name='AOI', exact=True).click()
         expect(page.locator('.geodata-coverage table')).to_contain_text('Right renamed')
+        page.get_by_role('tab', name='Lớp', exact=True).click()
         page.get_by_role('button', name='Sao chép WKT').click()
         expect(page.get_by_role('status')).to_contain_text('Đã sao chép WKT')
         assert page.evaluate('navigator.clipboard.readText()').startswith('POLYGON')
@@ -136,24 +143,27 @@ def run(url, chrome, captures):
         for x,y in [(170,130),(270,130),(270,230),(190,240)]:
             surface.click(position={'x':x,'y':y})
         expect(page.locator('.geodata-drawing-bar')).to_contain_text('4 đỉnh')
+        page.locator('.geodata-map-surface').focus()
         page.keyboard.press('Backspace')
         expect(page.locator('.geodata-drawing-bar')).to_contain_text('3 đỉnh')
         page.keyboard.press('Enter')
-        expect(page.locator('.geodata-drawing-bar')).to_have_count(0)
-        expect(page.locator('.geodata-layers li')).to_have_count(4)
+        expect(page.locator('.geodata-drawing-bar')).not_to_be_visible()
+        expect(page.locator('.geodata-layers li')).to_have_count(3)
         records = json.loads(page.evaluate("localStorage.getItem('dear.geodata.v1')"))
         assert len([r for r in records if r['role'] == 'aoi']) == 1
-        assert records[-1]['feature']['geometry']['coordinates'][0][0] == records[-1]['feature']['geometry']['coordinates'][0][-1]
+        drawn=next(record for record in records if record['role'] == 'aoi')
+        assert drawn['feature']['geometry']['coordinates'][0][0] == drawn['feature']['geometry']['coordinates'][0][-1]
         page.get_by_role('button', name='Vẽ vùng quan tâm', exact=True).click()
         surface.click(position={'x':160,'y':130})
-        page.get_by_role('button', name='Bỏ đỉnh cuối', exact=True).focus()
+        page.get_by_role('button', name='Hoàn tác GIS', exact=True).focus()
         page.keyboard.press('Escape')
-        expect(page.locator('.geodata-drawing-bar')).to_have_count(0)
+        expect(page.locator('.geodata-drawing-bar')).not_to_be_visible()
         expect(page.locator('.geodata-workspace')).to_be_visible()
-        expect(page.locator('.geodata-layers li')).to_have_count(4)
+        expect(page.locator('.geodata-layers li')).to_have_count(3)
         # Geometry and UI round trip through exported KML, including polygon holes.
+        page.get_by_role('tab', name='Lớp', exact=True).click()
         page.locator('input[type=file]').set_input_files(root / 'dear-all.kml')
-        expect(page.locator('.geodata-layers li')).to_have_count(7)
+        expect(page.locator('.geodata-layers li')).to_have_count(6)
         for width in [1366,1024,390,320]:
             page.set_viewport_size({'width':width,'height':740})
             for theme in ['light','dark']:
@@ -178,9 +188,9 @@ def run(url, chrome, captures):
         expect(page.locator('.incident-priority-row').first).to_be_visible(timeout=25000)
         for iteration in range(3):
             page.get_by_role('button', name='Lớp bản đồ', exact=True).click()
-            page.get_by_role('button', name='Nhập KML / polygon', exact=True).click()
+            page.get_by_role('button', name='Dữ liệu GIS', exact=True).click()
             expect(page.locator('.geodata-workspace')).to_have_attribute('aria-modal','true')
-            expect(page.locator('.geodata-layers li')).to_have_count(7)
+            expect(page.locator('.geodata-layers li')).to_have_count(6)
             check_controls(page, page.locator('html').get_attribute('data-theme'))
             assert page.locator('.geodata-header button').count() == 1, 'Duplicate exit controls'
             if iteration == 0:
@@ -205,9 +215,9 @@ def run(url, chrome, captures):
                 draw_surface.dblclick(position={'x':270,'y':230})
             else:
                 draw_surface.click(position={'x':170,'y':130})
-            expect(drawing_page.locator('.geodata-drawing-bar')).to_have_count(0)
+            expect(drawing_page.locator('.geodata-drawing-bar')).not_to_be_visible()
             assert not drawing_page.locator('[role=alert]').count()
-        expect(drawing_page.locator('.geodata-layers li')).to_have_count(2)
+        expect(drawing_page.locator('.geodata-layers li')).to_have_count(1)
         assert not any(record['visible'] is False for record in json.loads(drawing_page.evaluate("localStorage.getItem('dear.geodata.v1')")))
         drawing_context.close()
         context.close();browser.close()

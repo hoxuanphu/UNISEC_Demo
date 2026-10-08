@@ -10,6 +10,7 @@ Phạm vi: `DEM_to_3D/viewer`. Công nghệ ở [kiến trúc GIS](geospatial-pl
 | `features/incident`, `features/routes` | Snapshot và quy tắc ưu tiên/tiếp cận. Hàm tính độc lập React |
 | `features/map` | Contract chung cho renderer, lớp, chọn đối tượng và điều khiển map |
 | `features/measurement`, `comparison`, `briefing`, `geodata` | State và thao tác của từng công cụ; CSS nằm cạnh feature |
+| `features/catalog` | Repository metadata prepared, tìm theo AOI, kiểm cặp và bộ chọn. Phép tính/validation độc lập React; không sở hữu lớp ứng phó hoặc job raster |
 | `geo/vector` | Kiểu hình học, validation và độ phủ; không phụ thuộc DOM/React/Leaflet |
 | `terrain/`, `components/TerrainViewer.tsx` | Địa hình và renderer cũ, đang chuyển dần sang ranh giới geo/adapter |
 | `data/`, `types/` | Manifest, schema, loader và contract hiện tại; kiểm payload/checksum trước khi hiển thị |

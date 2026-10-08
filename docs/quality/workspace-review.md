@@ -1,13 +1,13 @@
 # Kiểm tra workspace
 
-Mốc đối chiếu: commit `4ecba47`, dữ liệu mô phỏng Chế Tạo v0.2. Đây là kết quả kiểm tra phần mềm, chưa phải nghiệm thu dữ liệu hoặc thử với cán bộ trực.
+Mốc đối chiếu: batch GIS/catalog prepared ngày 08/10/2026, dữ liệu ứng phó mô phỏng Chế Tạo v0.2. Đây là kết quả kiểm tra phần mềm, chưa phải nghiệm thu dữ liệu hoặc thử với cán bộ trực.
 
 ## Phạm vi đã kiểm
 
 | Nhóm | Phạm vi |
 |---|---|
 | Nghiệp vụ | Sự kiện → địa bàn → tuyến/căn cứ → áp dụng tin → bản xuất; cùng snapshot giữa map, panel và file |
-| Công cụ | Đo, tọa độ, mặt cắt, lớp/nguồn, tổng quan, so ảnh, nhập KML/GeoJSON/WKT, AOI và độ phủ |
+| Công cụ | Đo, tọa độ, mặt cắt, lớp/nguồn, tổng quan, so ảnh; nhập/xuất GIS, vẽ/chỉnh AOI theo bản nháp, bắt đỉnh/hoàn tác; catalog prepared, metadata, bộ chọn và độ phủ |
 | Giao diện | Sáng/tối, Việt/Anh, các bộ chữ, desktop/mobile, bàn phím, giữ lựa chọn và vị trí panel |
 | Khi lỗi | Thiếu dữ liệu, API/file/GPU lỗi, khôi phục 2D, gói offline giải nén sạch |
 | Phát hành | Cài sạch, unit/Python/browser tests, audit, build và đóng gói đạt trên Linux/Node 22 |

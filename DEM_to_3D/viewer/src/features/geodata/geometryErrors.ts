@@ -31,5 +31,6 @@ const messages: Record<string,[string,string]> = {
 
 export function geometryErrorText(error: unknown, locale: Locale): string {
   const key=error instanceof GeometryError ? error.code : 'file';
-  return (messages[key] ?? messages.file)[locale === 'vi' ? 0 : 1];
+  const text=(messages[key] ?? messages.file)[locale === 'vi' ? 0 : 1];
+  return error instanceof GeometryError && error.detail ? `${error.detail.slice(0,160)}: ${text}` : text;
 }

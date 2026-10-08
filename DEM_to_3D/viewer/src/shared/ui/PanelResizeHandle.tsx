@@ -5,10 +5,10 @@ const minimum = 320, defaultWidth = 384;
 const maximum = () => window.innerWidth > 900 ? Math.max(minimum, Math.min(560, window.innerWidth - 480)) : 560;
 const clamp = (width: number) => Math.max(minimum, Math.min(maximum(), width));
 
-export function PanelResizeHandle({ locale }: { locale: Locale }): JSX.Element {
+export function PanelResizeHandle({ locale, storageKey='dear.panel-width' }: { locale: Locale; storageKey?:string }): JSX.Element {
   const handle = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(() => {
-    try { const saved = Number(localStorage.getItem('dear.panel-width')); return clamp(saved >= minimum && saved <= 560 ? saved : defaultWidth); }
+    try { const saved = Number(localStorage.getItem(storageKey)); return clamp(saved >= minimum && saved <= 560 ? saved : defaultWidth); }
     catch { return clamp(defaultWidth); }
   });
   const [dragging, setDragging] = useState(false);
@@ -18,7 +18,7 @@ export function PanelResizeHandle({ locale }: { locale: Locale }): JSX.Element {
     const resize = () => setWidth(current => clamp(current));
     window.addEventListener('resize', resize); return () => window.removeEventListener('resize', resize);
   }, []);
-  const save = (value: number) => { try { localStorage.setItem('dear.panel-width', String(value)); } catch { /* Session resizing still works. */ } };
+  const save = (value: number) => { try { localStorage.setItem(storageKey, String(value)); } catch { /* Session resizing still works. */ } };
   const finish = () => { drag.current = null; setDragging(false); save(width); };
   return <div ref={handle} className="panel-resize-handle" role="separator" aria-orientation="vertical"
     aria-label={locale === 'vi' ? 'Độ rộng bảng thông tin' : 'Information panel width'}
