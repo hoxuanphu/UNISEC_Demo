@@ -1,6 +1,6 @@
 # Rà soát giao diện và luồng ứng phó
 
-Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture kiểm chọn dataset và API snapshot cục bộ. Chưa thử với người trực thực tế.
+Cập nhật: 2026-10-08. Phạm vi: web React, gói Chế Tạo v0.2, công cụ dữ liệu GIS, fixture kiểm chọn dataset và API snapshot cục bộ. Chưa thử với người trực thực tế.
 
 ## Sửa sau phản hồi sử dụng
 
@@ -108,7 +108,7 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Kiểm tra | Kết quả |
 |---|---|
 | TypeScript và build | Đạt. Chia chunk app, React, Leaflet và validation. 2D không tải Three.js/GLB, 3D còn chunk lớn hơn 500 KB |
-| TypeScript unit tests | 190 kiểm thử đạt. Có snapshot độc lập React, giữ ngữ cảnh điều hướng, một công cụ nhận input, callback cũ, chọn manifest, dataset khác và lỗi không đổi về mặc định. Các kiểm tra nguồn/thời gian, tuyến/ưu tiên, đo, tọa độ, so ảnh, GeoJSON, timeout và checksum vẫn đạt |
+| TypeScript unit tests | 207 kiểm thử đạt. Thêm 17 kiểm thử parser, CRS, topology, lỗ polygon, hợp footprint, độ phủ, session và bản xuất. Các kiểm tra snapshot, điều hướng, nguồn/thời gian, tuyến/ưu tiên, đo, so ảnh, timeout và checksum vẫn đạt |
 | Python | 18 kiểm thử đạt: dữ liệu, API đọc, đóng gói, chờ HTTP và cấu hình manifest |
 | Chrome: prepared và API | Sự kiện, AOI, địa bàn, tuyến, nguồn, đọc/áp dụng tin và mặt cắt đạt |
 | Chrome: lỗi dữ liệu và GPU | Chặn Internet, lỗi GLB, không có WebGL, mất context 3D: 2D tiếp tục dùng được. API lỗi không hiện dữ liệu mô phỏng thay thế |
@@ -119,18 +119,19 @@ Cập nhật: 2026-10-07. Phạm vi: web React, gói Chế Tạo v0.2, fixture k
 | Chrome: công cụ và biến thể | 6 kiểu đo, xem trước, kéo đỉnh, hoàn tác/làm lại, đơn vị, sao chép, giữ/ẩn/xóa hình, đo trực tiếp tuyến/AOI, thu gọn và 12 vòng đóng/mở. Đổi tối/Anh/font và qua 3D về 2D giữ phép đo. Mobile 390/320 px không tràn hoặc đè hướng Bắc |
 | Chrome: công cụ phụ | Thông báo, xem dữ liệu cũ/về bản mới, độ rõ/lọc/nhãn, so GeoTIFF có tọa độ, mở lại cặp ảnh, GeoJSON, bản in và đặt lại phiên |
 | Chrome: static delivery | Luồng chính và công cụ phụ đạt qua server tĩnh, không cần API. Lỗi CRS khi so ảnh cho phép chọn lại và thử tiếp |
+| Chrome: dữ liệu GIS | Ba polygon và tọa độ trong ảnh, KML MultiGeometry/lỗ/Z, lỗi lô giữ dữ liệu, chống chèn HTML, độ phủ không đếm trùng, ẩn lớp, vẽ/Enter/nhấp đúp/đỉnh đầu/Esc, refresh, copy và xuất đạt. Standalone không tải tình huống/DEM/API. Desktop/mobile 320–1366 px, sáng/tối, mở/đóng và trả focus đạt |
 | Chrome: nguồn lớp | Đạt: nguồn/ngày theo bản dữ liệu cũ/mới, ngày ảnh chưa có, giới hạn H, nguồn riêng cho Imagery/Terrain Light, bàn phím và chiều rộng 320–1366 px |
 | Chrome: dataset khác | Fixture riêng thay ID/tên sự kiện, địa bàn, AOI và trạng thái đường. Panel, lựa chọn, quay lại và JSON xuất khớp. Manifest lỗi không hiện bộ mặc định. Dùng lại địa hình cục bộ, chưa phải thử khu vực/CRS khác |
 | Chrome: gói offline | Giải nén thư mục mới, checksum, luồng ứng phó, PNG, 3D/2D và đặt lại đạt. Không phát sinh request mạng ngoài |
 | Vòng đời 3D | Sửa gỡ listener trước khi React tháo canvas. Giải phóng tài nguyên GPU của renderer cũ, giữ dữ liệu để mở lại. 25 vòng thử nhanh không tăng DOM/listener |
 | Phiên 30 phút | Đạt: 58 vòng chọn địa bàn/tuyến, mặt cắt, 3D/2D, áp dụng tin và đặt lại. 20 PNG, không lỗi JavaScript. Sau vòng 10: DOM/listener không tăng, JS heap tăng 0,70 MB |
-| Lặp phiên trên build cuối | Linux sau tách panel/hộp thoại: 2 vòng trong 45,4 giây, DOM/listener giữ nguyên ở 676/368. Thử dài 30 phút ở hàng trên là kết quả của build trước |
-| Kiểm workflow trên Linux | Container Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0 đạt: cài sạch, 190 unit/18 Python tests, audit, build, đóng gói và chín bộ browser checks gồm chọn dataset/gói offline, so ảnh/xuất/in. Panel kiểm cả chữ, metadata, sáng/tối và giữ ngữ cảnh. Kết quả bản làm việc cục bộ không thay xác nhận GitHub Actions của commit mới |
+| Lặp phiên trên build cuối | Linux sau thêm dữ liệu GIS: 4 vòng trong 35,2 giây, DOM/listener giữ nguyên ở 676/368. Thử dài 30 phút ở hàng trên là kết quả của build trước |
+| Kiểm workflow trên Linux | Container Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0 đạt: cài sạch, 207 unit/18 Python tests, audit, build, đóng gói và mười bộ browser checks. Kết quả cục bộ không thay xác nhận GitHub Actions của commit mới |
 | GitHub Actions | Đã sửa ảnh xem trước tải chậm và khoảng trễ khóa ký hiệu. Browser kiểm tra trạng thái ngay khi đổi chế độ/tạo lớp, trước khung hình tiếp theo. [Theo dõi workflow](https://github.com/hoxuanphu/UNISEC_Demo/actions/workflows/dear-web.yml) |
 | Source dùng khi deploy | Import kiểm đúng chữ hoa/thường. Thư mục sạch với file được Git theo dõi chuẩn bị đủ dữ liệu, kiểm checksum đạt |
 | Dependency audit | Vite 7.3.6, plugin React 5.2.0, Vitest 4.1.11. `source-map-js` cập nhật riêng lên 1.2.2 theo [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q). `npm audit`: 0 cảnh báo, gồm cả công cụ phát triển |
 
-CI chạy chín bộ kiểm tra: workspace, đo, tương tác bản đồ, nguồn lớp, công cụ phụ/so ảnh, panel, chọn dataset, gói offline và vòng lặp phiên. Script nằm trong `scripts/`, tên `check_*.py`. Cài Playwright từ `scripts/requirements-browser.txt`, dùng Chromium hoặc `--chrome` trỏ đến Chrome đã cài.
+CI chạy mười bộ kiểm tra: workspace, đo, tương tác bản đồ, dữ liệu GIS, nguồn lớp, công cụ phụ/so ảnh, panel, chọn dataset, gói offline và vòng lặp phiên. Script nằm trong `scripts/`, tên `check_*.py`. Cài Playwright từ `scripts/requirements-browser.txt`, dùng Chromium hoặc `--chrome` trỏ đến Chrome đã cài.
 
 Bước in PDF trong kiểm tra Chrome tự động có một lần timeout. Hai lần chạy lại đạt, chưa xác định nguyên nhân. Cần kiểm tra bản in trên máy trình chiếu.
 

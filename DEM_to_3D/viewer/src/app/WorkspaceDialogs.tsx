@@ -12,6 +12,7 @@ import type { ComparisonPair } from '../features/comparison/comparison';
 import { DecisionExportDialog } from '../features/briefing/DecisionExportDialog';
 import type { DecisionSnapshot } from '../features/briefing/decisionSnapshot';
 import { TerrainUploadDialog } from '../features/terrain/TerrainUploadDialog';
+import { GeometryWorkspace } from '../features/geodata/GeometryWorkspace';
 import type { Locale } from '../types/dear';
 import type { TerrainData, TerrainMetadata } from '../types/terrain';
 import type { WorkspaceDialog } from './workspaceInteraction';
@@ -19,6 +20,7 @@ import type { WorkspaceDialog } from './workspaceInteraction';
 type Props = {
   dialog: WorkspaceDialog;
   locale: Locale;
+  offline: boolean;
   packet: IncidentPacket;
   snapshot: IncidentWorkspaceSnapshot;
   updated: boolean;
@@ -40,7 +42,7 @@ type Props = {
 };
 
 /** Global dialogs share the workspace's focus boundary; Layers stays attached to the map. */
-export function WorkspaceDialogs({ dialog, locale, packet, snapshot, updated, reportApplied,
+export function WorkspaceDialogs({ dialog, locale, offline, packet, snapshot, updated, reportApplied,
   historical, comparisonPair, onComparisonPair, decisionSnapshot, evidenceId, terrain,
   terrainMetadata, manifest, upload, onClose, onOpenReport, onApplyReport, onRevision,
   onInspectObject }: Props): JSX.Element | null {
@@ -51,6 +53,8 @@ export function WorkspaceDialogs({ dialog, locale, packet, snapshot, updated, re
       return null;
     case 'comparison':
       return <ImageCompareDialog pair={comparisonPair} onPair={onComparisonPair} triggeredAt={incident.triggeredAt} locale={locale} onClose={onClose} />;
+    case 'geodata':
+      return <GeometryWorkspace locale={locale} offline={offline} onClose={onClose}/>;
     case 'exportDecision':
       return decisionSnapshot ? <DecisionExportDialog snapshot={decisionSnapshot} terrain={terrain} imageUrl={manifest?.terrain.image?.url} locale={locale} onClose={onClose} /> : null;
     case 'alerts':

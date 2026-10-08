@@ -7,7 +7,7 @@ import { useFloatingPanel } from '../../shared/hooks/useFloatingPanel';
 type Props = { locale: Locale; layers: Record<string, boolean>; appearance: LayerAppearance; mapMode: '2d' | '3d'; onAppearance: (appearance: LayerAppearance) => void; onCompare: () => void; renderInfo: (id: string) => ReactNode; hasFloodData: boolean; hasHLZData?: boolean; hasSelectedRoute: boolean; hasIncidentLayers: boolean; onToggleLayer: (id: string) => void; onClose: () => void };
 type PreviewProps = { imageryPreview?: string };
 
-export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance, onCompare, renderInfo, hasFloodData, hasHLZData, hasSelectedRoute, hasIncidentLayers, onToggleLayer, onClose, imageryPreview }: Props & PreviewProps): JSX.Element {
+export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance, onCompare, onImportGeometry, renderInfo, hasFloodData, hasHLZData, hasSelectedRoute, hasIncidentLayers, onToggleLayer, onClose, imageryPreview }: Props & PreviewProps & {onImportGeometry:()=>void}): JSX.Element {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const [infoId, setInfoId] = useState<string | null>(null);
   const info = (id: string, label: string) => <button type="button" className="layer-info-button" aria-label={t('Nguồn lớp ', 'Layer source: ') + label} aria-expanded={infoId === id} aria-controls={infoId === id ? `layer-info-${id}` : undefined} onClick={() => setInfoId(current => current === id ? null : id)}><UiIcon name="info"/></button>;
@@ -37,6 +37,7 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
   return <section className="layers-panel" id="map-layers-panel" ref={panelRef} role="dialog" aria-modal="false" aria-labelledby="map-layers-title">
     <div className="layers-heading floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={t('Vị trí bảng lớp', 'Layers panel position')} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home" title={t('Kéo để đổi vị trí. Nhấp đúp để đặt lại.', 'Drag to move. Double-click to reset.')}><h2 id="map-layers-title">{t('Lớp bản đồ', 'Map layers')}</h2><button className="icon-button" onClick={onClose} aria-label={t('Đóng lớp bản đồ', 'Close map layers')}><UiIcon name="close" /></button></div>
     <div className="layers-content">
+      <button className="geodata-entry" onClick={onImportGeometry}><UiIcon name="plus"/>{t('Nhập KML / polygon','Import KML / polygon')}</button>
       <fieldset className="basemap-choices"><legend>{t('Bản đồ nền', 'Base map')}</legend>
         {bases.map(([imagery, label]) => <label className={'basemap-choice ' + (layers.imagery === imagery ? 'is-active' : '')} key={String(imagery)}>
           <span className={'basemap-preview ' + (imagery ? 'is-imagery' : 'is-terrain')} aria-hidden="true">

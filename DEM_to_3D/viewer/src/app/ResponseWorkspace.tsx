@@ -377,6 +377,7 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
               mapMode={mapMode}
               onAppearance={setLayerAppearance}
               onCompare={() => setActiveDialog('comparison')}
+              onImportGeometry={() => setActiveDialog('geodata')}
               renderInfo={id => <LayerDetails id={id} locale={locale} packet={packet} updated={updated} evidence={evidence} terrain={mapTerrain?.metadata} route={activeRoute} imagery={layers.imagery}/>}
               hasFloodData={hazards.some(hazard => hazard.kind === 'flood')}
               hasHLZData={responseSites.some(site => site.kind === 'hlz')}
@@ -408,6 +409,7 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
 
       <WorkspaceDialogs
         dialog={interaction.dialog}
+        offline={offlineMode}
         locale={locale}
         packet={packet}
         snapshot={incidentSnapshot}

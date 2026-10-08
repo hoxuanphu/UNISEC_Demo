@@ -40,10 +40,4 @@ export function snapshotFilename(snapshot: DecisionSnapshot): string {
   return `${snapshot.incidentId}_${snapshot.community.id}_${snapshot.route?.id ?? 'no-route'}_${snapshot.asOf.replace(/[^0-9]/g, '').slice(0, 14)}`;
 }
 
-export function downloadBlob(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a'); anchor.href = url; anchor.download = filename;
-  document.body.appendChild(anchor); anchor.click(); anchor.remove();
-  // Give the browser time to start consuming the file before releasing its URL.
-  setTimeout(() => URL.revokeObjectURL(url), 30000);
-}
+export { downloadBlob } from '../../shared/downloadBlob';

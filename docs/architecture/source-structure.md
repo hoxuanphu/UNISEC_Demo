@@ -1,6 +1,6 @@
 # Cấu trúc mã và ranh giới trách nhiệm
 
-Cập nhật: 2026-10-07. Phạm vi: `DEM_to_3D/viewer`. Đích công nghệ ở [kiến trúc GIS](geospatial-platform.md), thứ tự triển khai ở [kế hoạch platform](../plans/platform.md).
+Cập nhật: 2026-10-08. Phạm vi: `DEM_to_3D/viewer`. Đích công nghệ ở [kiến trúc GIS](geospatial-platform.md), thứ tự triển khai ở [kế hoạch platform](../plans/platform.md).
 
 ## Kết quả rà soát
 
@@ -12,6 +12,7 @@ Code đã có `features/`, TypeScript strict, kiểm tra schema/checksum, quy t�
 | 2D và đo lấy kiểu từ `TerrainViewer.tsx`, sự kiện chọn lấy kiểu từ lớp Three.js | Đổi renderer kéo theo công cụ và UI | Đã tách `features/map/mapContracts.ts`: scene, lựa chọn, điều khiển và trạng thái nền dùng chung |
 | Tính snapshot nằm trong hook React | Khó chạy và kiểm tra nghiệp vụ độc lập | Đã tách `deriveIncidentWorkspace.ts`. Hook chỉ ghi nhớ kết quả. Kiểm thử cập nhật đồng thời đường/căn cứ/tuyến, AOI và không đổi đầu vào |
 | `terrain/` chứa cả toán địa lý và renderer; `types/terrain.ts` chứa dữ liệu lẫn mô hình Three.js | Khó dùng lại thuật toán ngoài web hoặc đổi engine | Tách dần `geo/` và adapter renderer theo từng chức năng, giữ lớp tương thích trong thời gian chuyển |
+| Dữ liệu vector mới cần độc lập với DEM | Footprint lớn hơn khu vực terrain không thể phụ thuộc scene cũ | `geo/vector` sở hữu kiểu, validation và coverage không import DOM/React/Leaflet. `features/geodata` sở hữu parser, storage, export và UI. `GeometryMap` chỉ hiển thị/nhận thao tác, `app/StandaloneGeometryWorkspace` chỉ đọc cấu hình khởi chạy |
 | `TerrainViewer.tsx` khoảng 600 dòng, ghép camera, scene, overlay, picking và cleanup | Sửa một tương tác có thể ảnh hưởng vòng đời tài nguyên | Tách runtime scene/camera/overlay, giữ kiểm tra fallback, lựa chọn và giải phóng tài nguyên |
 | `components/dear/` giữ panel của nhiều tính năng, `shared/` còn wrapper cũ | Chưa rõ chủ sở hữu khi sửa UI | Chuyển panel về feature sở hữu. `shared/ui` chỉ giữ thành phần không hiểu nghiệp vụ |
 | CSS workspace còn lớn và một số control có rule ghi đè | Dễ sửa một nơi ảnh hưởng màn khác | Panel tiếp cận sở hữu `features/routes/access-panel.css`, sự kiện sở hữu `features/incident/incident-panel.css`. Chú giải đã gom vào `features/map/map-legend.css`, bỏ rule rải ở ba stylesheet và CSS `map-actions` không còn dùng. Toolbar sở hữu `styles/map-controls.css`. Tiếp tục tách theo thành phần, giữ token chung |

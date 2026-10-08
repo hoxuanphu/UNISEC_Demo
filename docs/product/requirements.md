@@ -33,12 +33,12 @@ Phạm vi theo [S02](../../references/SIC2026/DEAR_SIC2026.docx) và [S03](../..
 
 ## Chức năng nhập và phân tích
 
-Phạm vi mở rộng để nghiên cứu, chưa triển khai trong đợt demo hiện tại. Các chức năng xem đã có không thay cho tiếp nhận, lưu và công bố dữ liệu.
+Nhập KML/GeoJSON/WKT và AOI/footprint đã có trong [công cụ dữ liệu GIS](geodata-workspace.md), chạy tại trình duyệt. Tiếp nhận, lưu và công bố dữ liệu dùng chung vẫn là phần cần xây.
 
 | Chức năng | Hiện tại | Phần cần xây |
 |---|---|---|
 | Vẽ đo trên bản đồ | Hình đo tạm trong phiên | Giữ là công cụ đo, không tự đưa vào lớp nghiệp vụ |
-| Chọn/vẽ vùng phân tích | AOI cố định trong gói | Tạo AOI bản nháp, kiểm nguồn phủ vùng, gửi yêu cầu và mở kết quả |
+| Chọn/vẽ vùng phân tích | AOI bản nháp, nhập polygon và tính độ phủ footprint. AOI ứng phó vẫn theo gói | Catalog ảnh theo AOI, yêu cầu phân tích và kết quả có phiên bản |
 | Nhập tin tại vị trí/đoạn đường | Tin cố định trong kịch bản | Form hiện trường, lưu server, kiểm tra và công bố |
 | Nhập lớp của admin/chuyên viên | Chuẩn bị file trong repo | Quản lý dữ liệu theo sự kiện, upload/metadata, xem trước và lỗi kiểm tra |
 | Nạp địa hình / cặp ảnh | Nạp để xem trong phiên | Nhập vào kho dữ liệu có phiên bản khi cần dùng chung hoặc phân tích |

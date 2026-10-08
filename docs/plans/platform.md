@@ -1,13 +1,13 @@
 # Lộ trình nền tảng viễn thám
 
-Cập nhật: 2026-10-07. Định hướng đã chọn, các đợt sau SIC chưa chốt lịch. [SIC](sic-2026.md) tiếp tục là bản bàn giao gần nhất. [Rà source](../architecture/source-structure.md) ghi việc cần sửa trong code.
+Cập nhật: 2026-10-08. Định hướng đã chọn, các đợt sau SIC chưa chốt lịch. [SIC](sic-2026.md) tiếp tục là bản bàn giao gần nhất. [Rà source](../architecture/source-structure.md) ghi việc cần sửa trong code.
 
 ## Hiện tại tới đâu?
 
 | Phần | Đã có | Còn thiếu |
 |---|---|---|
 | Workspace ứng phó | Sự kiện, đường ảnh hưởng, ưu tiên, tuyến, căn cứ, bản xuất, 2D/3D | Thử với cán bộ trực, dữ liệu và quy tắc được duyệt |
-| Công cụ GIS | Tìm kiếm, sáu kiểu đo, tọa độ, mặt cắt, lớp/nhãn, so GeoTIFF | Sửa/lưu lớp nghiệp vụ, catalog nhiều bộ dữ liệu, CRS được kiểm bằng điểm chuẩn |
+| Công cụ GIS | Tìm kiếm, sáu kiểu đo, tọa độ, mặt cắt, lớp/nhãn, so GeoTIFF; nhập KML/GeoJSON/WKT, AOI/footprint và độ phủ | Sửa/lưu lớp nghiệp vụ, catalog nhiều bộ dữ liệu, CRS được kiểm bằng điểm chuẩn |
 | Kiến trúc frontend | Feature, repository, schema/checksum, snapshot độc lập, contract map chung, reducer điều hướng/công cụ, cấu hình dataset, module ghép panel/hộp thoại riêng | Tách geo/domain/renderer, phân tích địa hình và phần CSS còn chung. Catalog nhiều bộ dữ liệu thực |
 | Nguồn và viễn thám | Metadata/manifest, kiểm file, cấu trúc dự kiến cho nguồn và phương pháp | Ảnh/DEM có nguồn và quyền dùng, SAR/quang học, job tái lập và QA chuyên môn |
 | Backend | Kế hoạch NestJS/PostGIS/Python, contract ghi dự kiến | Chưa triển khai API ghi, lưu trữ, tài khoản, duyệt/công bố hoặc worker |
@@ -54,4 +54,4 @@ Catalog ảnh định hướng theo [OGC STAC](https://www.ogc.org/standards/sta
 
 Đợt nền frontend đã có điều hướng/công cụ và cấu hình dataset. Fixture thứ hai kiểm tên sự kiện, AOI, tình trạng đường, quay lại địa bàn và JSON xuất; vẫn dùng địa hình Chế Tạo, chưa chứng minh hỗ trợ nhiều CRS hoặc khu vực thực.
 
-Đã tách panel/hộp thoại khỏi composition. Kiểm tra giữ vị trí cuộn, tab căn cứ, quay lại từ đoạn đường và focus hộp thoại đạt. Tiếp theo: tách chọn/phân tích địa hình và toán địa lý khỏi renderer, rồi chốt contract catalog v2 bằng metadata một bộ dữ liệu thực. Duyệt dữ liệu và chạy trên máy trình chiếu vẫn là việc cần chốt cho SIC. Backend tiếp tục ở mức kế hoạch.
+Đã tách panel/hộp thoại khỏi composition và có `geo/vector` độc lập renderer cho kiểm hình học/phần giao/độ phủ. [Công cụ dữ liệu GIS](../product/geodata-workspace.md) mở riêng không cần DEM hoặc API tình huống. Tiếp theo: catalog adapter theo AOI, contract v2 bằng metadata một bộ ảnh thực, rồi QA mây/nodata và phương pháp phân tích. Tách địa hình khỏi renderer và duyệt dữ liệu SIC vẫn cần làm. Backend tiếp tục ở mức kế hoạch.

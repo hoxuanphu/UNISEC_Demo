@@ -11,6 +11,7 @@
 | Màn hình và thao tác thế nào? | [Thiết kế giao diện](product/interface.md) | Cả nhóm |
 | Quy tắc màu, thành phần và bản đồ lấy từ đâu? | [Design system](product/design-system.md) | PO, SW |
 | Ký hiệu, nhãn và mặt cắt theo quy tắc nào? | [Hiển thị bản đồ](product/cartography.md) | SW, RS, AI |
+| Nhập KML/polygon, chọn AOI và kiểm độ phủ thế nào? | [Công cụ dữ liệu GIS](product/geodata-workspace.md) | RS, SW, PO |
 | Khi nào bàn giao, cần đầu vào gì? | [Kế hoạch SIC](plans/sic-2026.md) | Cả nhóm |
 | Ai đang làm gì, còn thiếu gì? | [Danh sách công việc](tasks/sic-2026.md) | Cả nhóm |
 | Thế nào là hoàn thành? | [Tiêu chí nghiệm thu](quality/acceptance.md) | Cả nhóm |

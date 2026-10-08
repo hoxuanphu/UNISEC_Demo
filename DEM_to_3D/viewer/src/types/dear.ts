@@ -142,6 +142,7 @@ export type ActiveDialog =
   | 'timeline'
   | 'data'
   | 'layers'
+  | 'geodata'
   | 'alerts'
   | 'notificationCenter'
   | 'comparison'
