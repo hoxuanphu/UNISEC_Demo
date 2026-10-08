@@ -1,27 +1,21 @@
-# Cấu trúc mã và ranh giới trách nhiệm
+# Cấu trúc mã và trách nhiệm
 
-Cập nhật: 2026-10-08. Phạm vi: `DEM_to_3D/viewer`. Đích công nghệ ở [kiến trúc GIS](geospatial-platform.md), thứ tự triển khai ở [kế hoạch platform](../plans/platform.md).
+Phạm vi: `DEM_to_3D/viewer`. Công nghệ ở [kiến trúc GIS](geospatial-platform.md), thứ tự triển khai ở [lộ trình platform](../plans/platform.md).
 
-## Kết quả rà soát
+## Ranh giới hiện tại
 
-Code đã có `features/`, TypeScript strict, kiểm tra schema/checksum, quy tắc tính tuyến và kiểm thử trình duyệt. Có thể tiếp tục phát triển từ đây. Những điểm dưới đây cần xử lý trước khi mở rộng sang nhiều sự kiện và dữ liệu vệ tinh thực.
+| Phần | Trách nhiệm |
+|---|---|
+| `app/` | Khởi động, cấu hình, preferences, điều hướng/công cụ và ghép panel/map/dialog. Không đặt thuật toán mới tại shell |
+| `features/incident`, `features/routes` | Snapshot và quy tắc ưu tiên/tiếp cận. Hàm tính độc lập React |
+| `features/map` | Contract chung cho renderer, lớp, chọn đối tượng và điều khiển map |
+| `features/measurement`, `comparison`, `briefing`, `geodata` | State và thao tác của từng công cụ; CSS nằm cạnh feature |
+| `geo/vector` | Kiểu hình học, validation và độ phủ; không phụ thuộc DOM/React/Leaflet |
+| `terrain/`, `components/TerrainViewer.tsx` | Địa hình và renderer cũ, đang chuyển dần sang ranh giới geo/adapter |
+| `data/`, `types/` | Manifest, schema, loader và contract hiện tại; kiểm payload/checksum trước khi hiển thị |
+| `shared/`, `styles/` | UI/hook không hiểu nghiệp vụ; token và điều khiển dùng chung |
 
-| Vấn đề có trong source | Hệ quả | Xử lý |
-|---|---|---|
-| Trước đây App giữ lựa chọn, công cụ, modal, lịch sử và xuất đánh giá | Dễ mất ngữ cảnh và xung đột thao tác | Đã tách reducer điều hướng/công cụ, preferences, khởi động, `ResponsePanel` và `WorkspaceDialogs`. `App.tsx` chỉ ghép khởi động; `ResponseWorkspace.tsx` còn khoảng 440 dòng, giữ state phiên và ghép map. Phân tích địa hình còn cần tách |
-| 2D và đo lấy kiểu từ `TerrainViewer.tsx`, sự kiện chọn lấy kiểu từ lớp Three.js | Đổi renderer kéo theo công cụ và UI | Đã tách `features/map/mapContracts.ts`: scene, lựa chọn, điều khiển và trạng thái nền dùng chung |
-| Tính snapshot nằm trong hook React | Khó chạy và kiểm tra nghiệp vụ độc lập | Đã tách `deriveIncidentWorkspace.ts`. Hook chỉ ghi nhớ kết quả. Kiểm thử cập nhật đồng thời đường/căn cứ/tuyến, AOI và không đổi đầu vào |
-| `terrain/` chứa cả toán địa lý và renderer; `types/terrain.ts` chứa dữ liệu lẫn mô hình Three.js | Khó dùng lại thuật toán ngoài web hoặc đổi engine | Tách dần `geo/` và adapter renderer theo từng chức năng, giữ lớp tương thích trong thời gian chuyển |
-| Dữ liệu vector mới cần độc lập với DEM | Footprint lớn hơn khu vực terrain không thể phụ thuộc scene cũ | `geo/vector` sở hữu kiểu, validation và coverage không import DOM/React/Leaflet. `features/geodata` sở hữu parser, storage, export và UI. `GeometryMap` chỉ hiển thị/nhận thao tác, `app/StandaloneGeometryWorkspace` chỉ đọc cấu hình khởi chạy |
-| `TerrainViewer.tsx` khoảng 600 dòng, ghép camera, scene, overlay, picking và cleanup | Sửa một tương tác có thể ảnh hưởng vòng đời tài nguyên | Tách runtime scene/camera/overlay, giữ kiểm tra fallback, lựa chọn và giải phóng tài nguyên |
-| `components/dear/` giữ panel của nhiều tính năng, `shared/` còn wrapper cũ | Chưa rõ chủ sở hữu khi sửa UI | Chuyển panel về feature sở hữu. `shared/ui` chỉ giữ thành phần không hiểu nghiệp vụ |
-| CSS workspace còn lớn và một số control có rule ghi đè | Dễ sửa một nơi ảnh hưởng màn khác | Panel tiếp cận sở hữu `features/routes/access-panel.css`, sự kiện sở hữu `features/incident/incident-panel.css`. Chú giải đã gom vào `features/map/map-legend.css`, bỏ rule rải ở ba stylesheet và CSS `map-actions` không còn dùng. Toolbar sở hữu `styles/map-controls.css`. Tiếp tục tách theo thành phần, giữ token chung |
-| Trước đây loader chọn đường dẫn Chế Tạo cố định; hook địa hình import dữ liệu mẫu | Không thay bộ dữ liệu độc lập | Đã chọn manifest qua `workspace-config.json`, bỏ packet mẫu khỏi khởi tạo. Tên sự kiện/AOI và mô hình lấy từ bộ đã kiểm tra. Fixture thứ hai kiểm AOI, đường, panel và bản xuất; dùng lại địa hình cục bộ, chưa phải khu vực thực thứ hai |
-| Packet v1 dùng EPSG:32648 và một report trước/sau | Không đại diện catalog viễn thám hoặc lịch sử công bố | Giữ adapter v1 cho SIC. Thiết kế v2 với dataset/assets/layers/revisions riêng |
-| Kế hoạch có metadata khoa học, nhưng gói thực còn thiếu nguồn DEM, chứng cứ gốc và duyệt | Có màn hình không đồng nghĩa với kết quả khoa học được kiểm chứng | Duyệt dữ liệu, phương pháp và quyền dùng theo [nghiệm thu](../quality/acceptance.md) |
-| CI có kiểm dữ liệu/unit/browser nhưng chưa có lint hoặc kiểm ranh giới import | Quy tắc kiến trúc mới chưa được chặn tự động | Bổ sung lint và kiểm phụ thuộc khi tách domain/geo/contracts. Không đặt luật mới làm lỗi toàn bộ mã cũ giữa đợt demo |
-
-Số dòng chỉ dùng xác định nơi tập trung trách nhiệm. Không chia file theo một giới hạn dòng tùy ý.
+`components/dear/` còn chứa panel của nhiều feature. Khi sửa lớn, chuyển về feature sở hữu thay vì tạo thêm wrapper. Không chia file theo một giới hạn dòng tùy ý.
 
 ## Cấu trúc frontend đích
 
@@ -69,37 +63,17 @@ flowchart TD
 
 Các quy tắc này là đích refactor. Source hiện tại vẫn có phụ thuộc cũ trong `data/cheTaoScenario.ts`, kiểu dữ liệu và renderer, cần chuyển theo từng đợt có kiểm thử.
 
-## Trạng thái workspace hiện tại
+## Quy tắc bảo trì
 
-| Module trong `src/app/` | Sở hữu |
+| Thay đổi | Nơi sửa |
 |---|---|
-| `workspaceNavigation.ts` | Tab, địa bàn, tuyến chọn, đối tượng và nơi quay về. Xem đường từ địa bàn rồi đóng giữ nguyên địa bàn/tuyến |
-| `workspaceInteraction.ts` | Một công cụ nhận thao tác: xem, đo, tọa độ hoặc mặt cắt. Dialog và chuyển 3D đóng công cụ không tương thích; callback công cụ đã đóng không đổi trạng thái mới |
-| `useWorkspacePreferences.ts` | Ngôn ngữ, giao diện, font và lưu tùy chọn |
-| `WorkspaceStartup.tsx` | Đang tải/lỗi/thử lại. Chưa có dữ liệu hợp lệ thì chưa hiển thị sự kiện, timestamp hoặc đối tượng mẫu |
-| `ResponseWorkspace.tsx` | State phiên/revision, lựa chọn dùng chung với map, mô hình, phân tích địa hình và snapshot bản xuất |
-| `ResponsePanel.tsx` | Chọn panel theo điều hướng, nối các thao tác danh sách/chi tiết, giữ vị trí cuộn riêng từng màn. Không sở hữu renderer hoặc hộp thoại |
-| `WorkspaceDialogs.tsx` | Chọn một hộp thoại toàn workspace theo reducer. Dùng snapshot/revision đã tính. Layers vẫn nằm ở map; focus chung giữ tại shell |
+| Màu/font/kích thước dùng chung | `styles/tokens.css` |
+| Bố cục thành phần | CSS feature; không thêm override vào cuối stylesheet chung |
+| Công cụ/panel | Feature và composition `app/`; dùng lại focus/floating panel, nhận pointer qua reducer tương tác |
+| Thuật toán/dữ liệu | Hàm domain/geo và repository/contracts; không tính từ câu chữ trong JSX |
 
-Cửa sổ nạp mô hình thuộc `features/terrain/TerrainUploadDialog.tsx`. `IncidentWorkspaceSnapshot` là kiểu kết quả tính toán độc lập React dùng chung cho panel và hộp thoại.
+Phần còn cần tách: phân tích địa hình khỏi shell, toán địa lý khỏi renderer và vòng đời scene/camera. Kiểm phụ thuộc chưa được lint toàn bộ; mỗi đợt cần giữ kiểm tra tương tác, fallback và tài nguyên.
 
-Reducer không phụ thuộc React hoặc renderer. Dữ liệu đo nằm trong measurement session; đóng công cụ tạm dừng thao tác, không xóa kết quả.
+Giữ đường dẫn web hiện tại cho CI/Vercel. Chỉ chuyển monorepo hoặc tạo package khi có bên sử dụng cụ thể. Backend chưa triển khai, xem [kế hoạch](../plans/backend.md).
 
-## Repo và triển khai
-
-Hiện giữ web tại `DEM_to_3D/viewer` để không đổi đường dẫn build, CI và Vercel giữa đợt SIC. Khi bắt đầu backend, có thể chuyển trong một đợt riêng sang `apps/web`, `services/api`, `services/processing`, `packages/contracts`, `packages/geo-core`, `packages/ui`. Chỉ tạo package khi đã có trách nhiệm và bên sử dụng cụ thể.
-
-Backend NestJS, PostGIS và worker Python vẫn ở mức kế hoạch. Chưa tạo service, DB hoặc thay engine map trong lần rà soát này.
-
-Kết quả build, kiểm thử và giới hạn ở [kết quả kiểm tra](../quality/workspace-review.md). Quy tắc phụ thuộc trong tài liệu chưa được lint tự động toàn bộ.
-
-## Khi đổi giao diện hoặc thêm tính năng
-
-| Loại thay đổi | Nơi sửa | Giới hạn |
-|---|---|---|
-| Màu, font, bán kính, kích thước dùng chung | `styles/tokens.css` | Giữ đủ sáng/tối. Màu ký hiệu chuyên môn theo renderer và chú giải |
-| Bố cục một thành phần | CSS của thành phần/feature | Không thêm rule ghi đè vào cuối `workspace.css`. Quy tắc responsive nằm cùng file sở hữu |
-| Công cụ hoặc panel mới | Feature + composition trong `app/` | Dùng lại focus, popover và floating panel. Công cụ nhận pointer qua reducer tương tác |
-| Thuật toán hoặc nguồn dữ liệu | Domain/geo và repository/contracts | Không tính kết quả nghiệp vụ trong JSX hoặc từ câu chữ hiển thị |
-
-Ưu tiên tách tiếp: chọn/phân tích địa hình khỏi `ResponseWorkspace`, toán địa lý khỏi renderer, rồi vòng đời scene/camera của `TerrainViewer`. Mỗi đợt giữ nguyên API renderer và chạy kiểm tra tương tác, fallback và tài nguyên. Chưa có số đo hiệu năng để kết luận toàn bộ source đã tối ưu.
+Không duy trì danh sách từng file, số dòng hoặc nhật ký refactor ở đây. Git giữ lịch sử; tài liệu chỉ đổi khi trách nhiệm hoặc hướng phụ thuộc đổi.

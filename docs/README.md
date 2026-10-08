@@ -48,10 +48,17 @@
 
 ## Quy tắc cập nhật
 
-- Mỗi file phụ trách một chủ đề. Kế hoạch ghi mốc; danh sách công việc ghi tiến độ; nghiệm thu ghi cách kiểm tra. Các file khác dẫn link, không chép lại.
-- Viết tiếng Việt; giữ tên công nghệ và tên trường trong phần kỹ thuật. Mỗi dòng bảng hoặc gạch đầu dòng nêu một việc, một quy tắc hoặc một kết quả cần có.
-- `Đề xuất`: chưa chốt. `Hiện hành`: đang dùng để phối hợp. Trạng thái tài liệu không phải trạng thái hoàn thành phần mềm.
-- Giữ nguyên ID P/D/A khi sửa tên. Công việc hoàn thành phải có link đầu ra hoặc kết quả kiểm tra.
-- Dùng ngày `YYYY-MM-DD`. Cập nhật ngày khi sửa nội dung; Git lưu lịch sử. Giữ nguyên tài liệu gốc trong [`references`](../references/).
-- Ảnh/sơ đồ đặt trong `assets/` cạnh file sử dụng, có chú thích; phân biệt ảnh minh họa với dữ liệu thực.
-- Chỉ commit ảnh tham chiếu được dẫn trong docs. Ảnh kiểm thử phát sinh đặt ở `references/SIC2026/DEAR-review-captures/` đã ignore, không cập nhật hàng loạt ảnh sau mỗi lần chỉnh CSS.
+| Thay đổi | Tài liệu cần sửa |
+|---|---|
+| CSS, icon, câu chữ, bug nhỏ, refactor nội bộ | Không cần nếu cách dùng và trách nhiệm không đổi |
+| Luồng hoặc hành vi người dùng | `product/interface.md` hoặc tài liệu công cụ liên quan |
+| Nguyên tắc UI dùng chung | `product/design-system.md`; thông số cụ thể nằm trong code |
+| Contract/phương pháp/trách nhiệm module | Tài liệu tương ứng trong `architecture/` |
+| Phạm vi, thứ tự hoặc trạng thái công việc | `plans/` hoặc `tasks/`, không chép tiến độ sang nơi khác |
+| Chốt bản demo/phát hành | `quality/workspace-review.md` ghi mốc và giới hạn kiểm chứng; log chi tiết ở CI |
+
+- Mỗi nội dung có một nơi sở hữu; tài liệu khác dẫn link. Không thêm bảng tóm tắt trùng hoặc nhật ký sửa lỗi.
+- Git lưu ngày và lịch sử. Không đổi ngày trên mọi tài liệu theo từng commit, không chép số test, phiên bản dependency hoặc từng giá trị CSS.
+- Giữ ID P/D/A và điều kiện nghiệm thu. Phân biệt phần triển khai, đề xuất và dữ liệu chưa được duyệt.
+- Tài liệu gốc trong [`references`](../references/) và bản lưu trữ không cập nhật theo sản phẩm hiện tại.
+- Chỉ commit ảnh được dẫn trong docs. Ảnh/log kiểm thử phát sinh ở `references/SIC2026/DEAR-review-captures/` đã ignore; không cập nhật hàng loạt sau khi chỉnh UI.

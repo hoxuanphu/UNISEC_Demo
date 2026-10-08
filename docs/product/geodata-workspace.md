@@ -51,17 +51,4 @@ flowchart LR
 | Lưu/chia sẻ | LocalStorage theo origin, kiểm dữ liệu khi mở lại. Xuất tệp để giữ/chia sẻ. Chưa có tài khoản, đồng bộ, checksum tệp gốc hoặc lịch sử nhập |
 | Nhập lại bản xuất | Đọc hình học/tên/thuộc tính. Vai trò theo lựa chọn nhập, có thể gán lại tại Thuộc tính |
 
-Đã kiểm ba polygon và tọa độ trong ảnh trao đổi. Hai tệp KML trong ảnh chưa được cung cấp, chưa xác nhận nội dung thực tế.
-
-## Các bước viễn thám tiếp theo
-
-| Ưu tiên | Chức năng | Đầu vào cần có |
-|---|---|---|
-| Tiếp theo | Catalog ảnh theo AOI, thời gian, sensor | STAC Item: footprint, acquisition time, collection, provider, license, asset link. Tách ảnh có sẵn khỏi yêu cầu đặt chụp |
-| Tiếp theo | So các cảnh phủ AOI | Độ phủ từng cảnh/tổ hợp, thời điểm trước/sau sự kiện, độ phân giải, processing level |
-| Sau catalog | Phần AOI có ảnh dùng được | Mask mây/bóng mây/nodata trên AOI. Cloud cover toàn cảnh chỉ là bộ lọc |
-| Sau dữ liệu thực | SAR/chuỗi thời gian | Orbit, polarization, acquisition geometry, hiệu chỉnh bức xạ/địa hình và chất lượng. Không dùng quy tắc mây quang học cho SAR |
-| Sau chọn phương pháp | Chỉ số và phát hiện thay đổi | Band, reflectance/scaling, mask, resampling, baseline, method version. Không suy ra ngập/sạt lở từ footprint |
-| Khi xây platform | Job, lưu và công bố | NestJS/PostGIS, object storage, worker Python/GDAL/PROJ. Input/output có version và người duyệt |
-
-[Copernicus STAC](https://documentation.dataspace.copernicus.eu/APIs/STAC.html) hỗ trợ tìm theo vùng và thời gian. Catalog adapter là bước tiếp của [lộ trình platform](../plans/platform.md). Backend vẫn ở mức kế hoạch.
+Catalog ảnh, QA ảnh và xử lý viễn thám tiếp theo nằm ở [lộ trình platform](../plans/platform.md) và [kiến trúc GIS](../architecture/geospatial-platform.md).
