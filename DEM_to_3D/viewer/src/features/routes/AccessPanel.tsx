@@ -8,6 +8,7 @@ import { RouteOption } from './RouteOption';
 import { RoadConstraint } from './RoadConstraint';
 import { routeNextAction, selectAccessRoute } from './routeReview';
 import { roadStatusLabels } from './roadStatus';
+import { RouteVerification } from './RouteVerification';
 import './access-panel.css';
 
 type Props = {
@@ -54,6 +55,7 @@ export function AccessPanel({ locale, hazards, evidence, candidate, direct, sele
         <div><dt>{t('Quãng đường', 'Distance')}</dt><dd>{active.lengthKm} <small>km</small></dd><span>{t('Từ điểm tập kết', 'From staging point')}</span></div>
         {active.eta && <div className="route-travel-estimate"><dt>{t('Thời gian dự kiến', 'Estimated time')}</dt><dd>{active.eta.minMinutes}–{active.eta.maxMinutes} <small>{t('phút', 'min')}</small></dd><span>{active.eta.mode === 'foot' ? t('Đi bộ, nếu thông tuyến', 'On foot, assuming passage') : t('Xe 4x4, nếu thông tuyến', '4WD, assuming passage')}</span></div>}
       </dl>
+      <RouteVerification route={active} evidence={evidence} locale={locale}/>
     </section>}
     <section className={'next-action ' + tone} aria-label={t('Việc cần làm', 'Next action')}>
       <div id="route-next-action" className={'assessment-action route-action ' + tone}>{active && <UiIcon name={blocked ? 'blocked' : 'uncertain'} size={18}/>}<span>{action}</span></div>

@@ -1,4 +1,4 @@
-/* Incident summary: fixed event context, followed by two clearly bounded lists. */
+/* Fixed incident context and compact operational lists share one inset and heading rhythm. */
 .sidebar-top.incident-head {
   padding: 20px 24px 16px;
   border-bottom: 1px solid var(--ws-line);
@@ -110,3 +110,10 @@
 
 .incident-detail-actions .text-button { min-height: 36px; padding: 4px 0; font-size: 12px; line-height: 1.5; }
 .incident-detail-actions .text-button + .text-button { padding-left: 12px; border-left: 1px solid var(--ws-line); border-radius: 0; }
+.incident-pending-report { display: flex; align-items: start; gap: 8px; width: 100%; margin-top: 12px; padding: 8px 10px; border: 1px solid var(--ws-line); border-left: 2px solid var(--warning); border-radius: var(--radius-control); color: var(--ws-text); background: var(--ws-bg); text-align: left; font-size: 12px; }
+.incident-pending-report svg { flex: none; margin-top: 1px; color: var(--warning-ink); }
+.incident-context-note { margin-top: 8px; font-size: 12px; color: var(--warning-ink); }
+.incident-work-row { display: block; width: calc(100% + 24px); margin-inline: -12px; padding: 10px 12px; border: 0; border-bottom: 1px solid var(--ws-line); border-radius: 0; background: transparent; text-align: left; }
+.incident-work-row strong { display: block; font-size: 13px; font-weight: 550; }
+.incident-work-row small { display: block; margin-top: 2px; font-size: 11px; color: var(--ws-muted); }
+.incident-work-row:hover { background: var(--hover); }

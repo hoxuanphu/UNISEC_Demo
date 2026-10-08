@@ -32,6 +32,8 @@ import { PanelResizeHandle } from '../shared/ui/PanelResizeHandle';
 import { useIncidentWorkspace } from '../features/incident/useIncidentWorkspace';
 import { effectiveRevision } from '../features/incident/workspaceRevision';
 import { RevisionNotice } from '../features/incident/RevisionNotice';
+import { useResponseWork } from '../features/incident/useResponseWork';
+import { responseWork } from '../features/incident/responseWork';
 import type { ComparisonPair } from '../features/comparison/comparison';
 import { defaultLayerAppearance } from '../features/map/layerAppearance';
 import { LayerDetails } from '../features/map/LayerDetails';
@@ -64,6 +66,9 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
   const [comparisonPair, setComparisonPair] = useState<ComparisonPair | null>(null);
   const [layerAppearance, setLayerAppearance] = useState(defaultLayerAppearance);
   const [reportApplied, setReportApplied] = useState(false);
+  const [appliedAt, setAppliedAt] = useState<string | null>(null);
+  const [workTaskId,setWorkTaskId] = useState<string | null>(null);
+  const work = useResponseWork(runtime.packet.datasetVersion);
   const [historical, setHistorical] = useState(false);
   const updated = effectiveRevision({ applied: reportApplied, historical });
   const [alertRead, setAlertRead] = useState<boolean>(false);
@@ -112,6 +117,7 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
     changeMode: handleUploadModeChange, changeGeographicMerge: handleGeographicMergeChange
   } = runtime;
   const incidentSnapshot = useIncidentWorkspace(packet, updated);
+  const workTasks = useMemo(() => responseWork(packet, incidentSnapshot, reportApplied), [packet,incidentSnapshot,reportApplied]);
   const { roads, hazards, evidence, routes, assessments, communities, incident, responseSites } = incidentSnapshot;
   useEffect(() => { if (offlineMode) setLayers(previous => ({ ...previous, context: false })); }, [offlineMode]);
 
@@ -168,7 +174,7 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
   const handleSimulateUpdate = useCallback(() => {
     if (reportApplied && !historical) return;
     resetTools();
-    setReportApplied(true); setHistorical(false);
+    setReportApplied(true); setHistorical(false);if(!reportApplied)setAppliedAt(new Date().toISOString());
     setActiveDialog(null);
     showToast(['Đã cập nhật bản đồ', 'Map updated']);
   }, [showToast, reportApplied, historical, resetTools]);
@@ -215,6 +221,7 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
         onOpenTimeline={() => setActiveDialog('timeline')}
         onOpenNotifications={() => { setAlertRead(true); setActiveDialog('notificationCenter'); }}
         onReset={() => {
+          work.reset();setAppliedAt(null);
           dispatchMeasureSession({ type: 'reset' }); setPanelCollapsed(false);
           setLocationPoint(null);
           setReportApplied(false); setHistorical(false); setAlertRead(false);
@@ -238,6 +245,12 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
           snapshot={incidentSnapshot}
           aoi={packet.aoi}
           updated={updated}
+          workTasks={workTasks}
+          workEntries={work.entries}
+          reportPending={!reportApplied}
+          historical={historical && reportApplied}
+          onOpenWork={id => {setWorkTaskId(id ?? null);setActiveDialog('responseWork');}}
+          onOpenReport={() => setActiveDialog('alerts')}
           ready={snapshotReady}
           unavailable={startupError}
           onRetry={retryTerrain}
@@ -416,6 +429,12 @@ export function ResponseWorkspace({ preferences, interaction, runtime }: Props):
         updated={updated}
         reportApplied={reportApplied}
         historical={historical}
+        workTasks={workTasks}
+        workTaskId={workTaskId}
+        workEntries={work.entries}
+        workStorageError={work.error}
+        onRecordWork={work.record}
+        appliedAt={appliedAt}
         comparisonPair={comparisonPair}
         onComparisonPair={setComparisonPair}
         decisionSnapshot={decisionSnapshot}

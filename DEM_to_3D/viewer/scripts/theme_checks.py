@@ -11,7 +11,7 @@ def check_themes(browser, url, captures=None):
         try:
             page.goto(url)
             expect(page.locator('.incident-priority-row').first).to_be_visible(timeout=25000)
-            expect(page.locator('.incident-timing dt')).to_have_text(['Cảnh báo', 'Tổng hợp'])
+            expect(page.locator('.incident-timing dt')).to_have_text(['Mở đánh giá', 'Tổng hợp'])
             metrics_reader = """() => {
               const rgba = color => color.match(/[\\d.]+/g).map(Number);
               const blend = (top, bottom) => top.slice(0, 3).map((c, i) => c * (top[3] ?? 1) + bottom[i] * (1 - (top[3] ?? 1)));

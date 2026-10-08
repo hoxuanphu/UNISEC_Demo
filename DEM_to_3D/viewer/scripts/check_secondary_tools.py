@@ -50,7 +50,8 @@ def run(url, chrome, captures):
         page.locator('.incident-priority-row').first.click()
         page.get_by_role('button', name='Thông báo sự kiện', exact=True).click()
         page.get_by_role('button', name='Tất cả thông báo', exact=True).click()
-        expect(page.locator('.notification-history > li')).to_have_count(7)
+        expect(page.locator('.notification-history > li')).to_have_count(6)
+        assert page.locator('.journal-list > li').evaluate_all("nodes=>nodes.every(node=>node.dataset.journalKind === 'report')")
         page.locator('.notification-history summary').first.click()
         expect(page.locator('.notification-record').first).to_contain_text('Ghi nhận')
         if captures:

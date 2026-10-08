@@ -1,6 +1,6 @@
 # Thiết kế giao diện
 
-Cập nhật: 2026-10-07. Áp dụng cho web React tại `DEM_to_3D/viewer`.
+Cập nhật: 2026-10-08. Áp dụng cho web React tại `DEM_to_3D/viewer`.
 
 ## Luồng ứng phó
 
@@ -30,7 +30,8 @@ Hướng dẫn dân tới nơi an toàn cần nơi trú được xác nhận và
 
 | Vị trí | Thông tin chính | Mở khi cần |
 |---|---|---|
-| Sự kiện | Sự kiện, giờ cảnh báo, dữ liệu đến, địa bàn ưu tiên, số đoạn bị chặn/cần xác minh | Diễn biến phân tích, nguồn dữ liệu |
+| Sự kiện | Mốc mở đánh giá, dữ liệu đến, địa bàn ưu tiên, số đoạn bị chặn/cần xác minh | Nhật ký sự kiện, nguồn dữ liệu |
+| Việc cần xử lý | Báo cáo mới, mất liên lạc, thiếu đường hoặc điểm cần xác minh; hai việc nổi bật trong tổng quan | Danh sách/chi tiết, người phụ trách, trạng thái và kết quả. Lưu tại trình duyệt, không gửi điều động |
 | Chi tiết địa bàn | Tình trạng tiếp cận, tên/trạng thái tuyến, khoảng cách/ETA có điều kiện, việc cần kiểm tra | So tuyến, lý do ưu tiên và nguồn trong Căn cứ, dân số tham chiếu |
 | Tuyến | Danh sách so sánh phương án, khoảng cách, ETA có điều kiện, tình trạng từng đoạn | Địa hình dọc tuyến, nguồn của đoạn đường |
 | Đường sá | Tên, trạng thái, chiều dài. Đoạn bị chặn xếp trước | Ghi nhận, việc cần xử lý, bản ghi nguồn |
@@ -38,7 +39,7 @@ Hướng dẫn dân tới nơi an toàn cần nơi trú được xác nhận và
 | Lưu đánh giá | Xem trước bản đồ 2D và nhận định theo tuyến đang chọn | PNG; PDF, GeoJSON và JSON trong Định dạng khác |
 | Chuông thông báo | Hộp xem nhanh tin mới | Chi tiết tin, cập nhật bản đồ, lịch sử thông báo |
 | Cài đặt | Ngôn ngữ, sáng/tối, font | Quản lý mô hình địa hình, đặt lại phiên |
-| Thời điểm dữ liệu trên header | Mốc bản đồ đang xem | Diễn biến và chọn bản dữ liệu trước/sau tin đã áp dụng |
+| Thời điểm dữ liệu trên header | Mốc bản đồ đang xem | Nhật ký sự kiện và chọn bản dữ liệu trước/sau tin đã áp dụng |
 | Lớp bản đồ | Nền và nhóm lớp nghiệp vụ | Độ rõ, lọc đường, nhãn địa danh, so ảnh trước/sau |
 
 Panel bên trái chỉnh độ rộng hoặc thu gọn bằng nút đầu toolbar. Giữ tab, đối tượng và tuyến khi thu gọn. Chọn đối tượng sẽ mở lại panel. Ba tab **Sự kiện / Đường sá / Địa bàn** nằm trên panel, cùng hàng với thanh công cụ bản đồ. Mobile chuyển giữa **Thông tin** và **Bản đồ**.
@@ -65,13 +66,16 @@ Toolbar cố định: tìm kiếm và **Lớp / Đo / Vị trí** bên trái, đ
 | Mở Lớp bản đồ | Đóng mặt cắt, tạm ẩn chú giải. Click ngoài hoặc Escape đóng lớp |
 | Điều chỉnh hiển thị | Không thay kết quả đánh giá. Lọc đường vẫn giữ đoạn bị ảnh hưởng và tuyến đang chọn. Độ rõ không làm mờ cảnh báo |
 | Xem lại thời điểm | Đường, căn cứ, tuyến và ưu tiên cùng một bản dữ liệu. Không hủy tin đã áp dụng. Có nút về dữ liệu mới nhất |
+| Công việc | Chưa xử lý / Đang xử lý / Chờ hỗ trợ / Hoàn tất. Có người phụ trách khi xử lý; chờ hỗ trợ và hoàn tất cần ghi lý do/kết quả. Hoàn tất không xác nhận thông đường hoặc an toàn. Căn cứ đổi mở lại việc, giữ ghi nhận trước trong nhật ký |
+| Nhật ký | Chung một màn cho báo cáo, phân tích, công việc và cập nhật bản đồ. Phân biệt giờ quan sát, nhận tin và thao tác tại trình duyệt; có lọc và xuất JSON. Không coi mốc phân tích là cảnh báo được ban hành |
+| Xác minh tuyến | Hiện phương thức dự kiến, tình trạng xác minh toàn tuyến và giờ ghi nhận mới nhất trên tuyến. Ghi nhận tại một điểm không xác nhận đã kiểm tra toàn tuyến |
 | So ảnh | Chọn hai GeoTIFF có ngày, nguồn và vùng chung. Pan/zoom cùng bản đồ, kéo thanh để so. Vùng thiếu ảnh để trống. Không tự xác nhận sạt lở |
-| Đặt lại phiên | Về dữ liệu ban đầu, bỏ lựa chọn/bộ lọc/hình đo và cặp ảnh tạm. Giữ font, theme và chiều rộng panel |
+| Đặt lại phiên | Về dữ liệu ban đầu, bỏ lựa chọn/bộ lọc/hình đo, cặp ảnh tạm và lịch sử công việc cục bộ. Giữ font, theme và chiều rộng panel |
 | Đổi tuyến khi mở mặt cắt | Lấy mẫu tuyến mới, đặt vị trí đọc về đầu tuyến |
 | Nhiều điểm quá gần nhau | Số đếm cho nhóm cùng loại trên 2D. Nhóm khác loại hoặc 3D có danh sách chọn. Giữ tên địa bàn ưu tiên và đối tượng đang xem khi có chỗ. Xem khu vực để tách các điểm |
 | GLB hoặc GPU lỗi | Chuyển về 2D, giữ lựa chọn. 2D không tải mô hình GLB |
 | Lưu đánh giá | Chụp snapshot khi mở xem trước. Mọi định dạng dùng cùng snapshot. Đóng và mở lại sau khi đổi tuyến hoặc cập nhật tin để lấy đánh giá mới |
 
-Không có nút điều động, giao nhiệm vụ hay xác nhận cứu hộ khi chưa có quy trình và dữ liệu tương ứng. Dữ liệu mô phỏng được ghi trong **Nguồn dữ liệu**, không gắn nhãn cuộc thi lên màn thao tác.
+Thời điểm `triggeredAt` là **Mở đánh giá**, chưa phải giờ ban hành cảnh báo. Công việc dùng nguồn hiện có và thao tác nhập của người trực; lịch sử tối đa 500 bản ghi theo dataset, không đồng bộ hoặc xác thực người nhập. Khi xem bản cũ, công việc chỉ đọc. Không có nút điều động, phát cảnh báo hay xác nhận cứu hộ khi chưa có quy trình và dữ liệu tương ứng. Dữ liệu mô phỏng được ghi trong **Nguồn dữ liệu** và nhật ký.
 
 Quy tắc tính ưu tiên và tuyến: [phân tích ứng phó](../architecture/response-analysis.md). Thành phần: [design system](design-system.md). Ký hiệu và mặt cắt: [hiển thị bản đồ](cartography.md). Luồng trình diễn: [walkthrough](../operations/walkthrough.md).

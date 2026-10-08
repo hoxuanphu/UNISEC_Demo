@@ -1,11 +1,12 @@
 import type { ComponentProps } from 'react';
 import { NotificationDialog } from '../components/dear/NotificationDialog';
 import { DataDialog } from '../components/dear/DataDialog';
-import { TimelineDialog } from '../components/dear/TimelineDialog';
 import { EvidenceDialog } from '../components/dear/EvidenceDialog';
 import type { IncidentPacket } from '../data/incidentPacket';
 import type { ScenarioManifest } from '../data/scenarioManifest';
-import { NotificationCenter } from '../features/incident/NotificationCenter';
+import { IncidentJournal } from '../features/incident/IncidentJournal';
+import { ResponseWorkDialog } from '../features/incident/ResponseWorkDialog';
+import type { ResponseWork, WorkEntry, WorkStatus } from '../features/incident/responseWork';
 import type { IncidentWorkspaceSnapshot } from '../features/incident/deriveIncidentWorkspace';
 import { ImageCompareDialog } from '../features/comparison/ImageCompareDialog';
 import type { ComparisonPair } from '../features/comparison/comparison';
@@ -26,6 +27,8 @@ type Props = {
   updated: boolean;
   reportApplied: boolean;
   historical: boolean;
+  workTasks:ResponseWork[];workTaskId:string | null;workEntries:WorkEntry[];workStorageError:boolean;appliedAt:string | null;
+  onRecordWork:(task:ResponseWork,status:WorkStatus,note:string,owner:string)=>void;
   comparisonPair: ComparisonPair | null;
   onComparisonPair: (pair: ComparisonPair | null) => void;
   decisionSnapshot: DecisionSnapshot | null;
@@ -43,7 +46,7 @@ type Props = {
 
 /** Global dialogs share the workspace's focus boundary; Layers stays attached to the map. */
 export function WorkspaceDialogs({ dialog, locale, offline, packet, snapshot, updated, reportApplied,
-  historical, comparisonPair, onComparisonPair, decisionSnapshot, evidenceId, terrain,
+  historical, workTasks,workTaskId,workEntries,workStorageError,onRecordWork,appliedAt,comparisonPair, onComparisonPair, decisionSnapshot, evidenceId, terrain,
   terrainMetadata, manifest, upload, onClose, onOpenReport, onApplyReport, onRevision,
   onInspectObject }: Props): JSX.Element | null {
   const { incident, roads, hazards, evidence } = snapshot;
@@ -60,9 +63,10 @@ export function WorkspaceDialogs({ dialog, locale, offline, packet, snapshot, up
     case 'alerts':
       return <NotificationDialog locale={locale} report={packet.report} road={roads.find(road => road.id === packet.report.roadId)} updated={reportApplied} historical={historical} onApplyReport={onApplyReport} onClose={onClose} onSelectRoad={onInspectObject} />;
     case 'notificationCenter':
-      return <NotificationCenter packet={packet} applied={reportApplied} locale={locale} onClose={onClose} onOpenReport={onOpenReport} onInspect={onInspectObject} />;
     case 'timeline':
-      return <TimelineDialog locale={locale} incident={incident} report={packet.report} updated={reportApplied} historical={historical} onRevision={onRevision} onClose={onClose} />;
+      return <IncidentJournal packet={packet} applied={reportApplied} historical={historical} appliedAt={appliedAt} entries={workEntries} locale={locale} onClose={onClose} onOpenReport={onOpenReport} onInspect={onInspectObject} onRevision={onRevision} initialFilter={dialog === 'notificationCenter' ? 'report' : 'all'}/>;
+    case 'responseWork':
+      return <ResponseWorkDialog tasks={workTasks} initialTaskId={workTaskId} entries={workEntries} locale={locale} readOnly={historical && reportApplied} storageError={workStorageError} onRecord={onRecordWork} onInspect={id=>{onClose();onInspectObject(id);}} onReport={onOpenReport} onClose={onClose}/>;
     case 'data':
       return <DataDialog incident={incident} locale={locale} updated={updated} manifest={terrain ? manifest : null} terrainMetadata={terrainMetadata} onClose={onClose} />;
     case 'evidence':

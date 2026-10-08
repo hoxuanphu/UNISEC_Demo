@@ -53,3 +53,7 @@
 .route-card[aria-pressed="true"] .route-option-selector { border-color: var(--select); background: var(--select); color: var(--on-primary); }
 .route-option-meta { display: grid; gap: 2px; margin-left: 26px; font-size: 12px; color: var(--ws-muted); font-variant-numeric: tabular-nums; }
 .route-card .route-bottom { margin: 0 0 0 26px; }
+.route-verification { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--ws-line); display: grid; gap: 5px; }
+.route-verification > div { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: baseline; gap: 12px; }
+.route-verification dt { color: var(--ws-muted); font-size: 11px; }
+.route-verification dd { margin: 0; font-size: 11px; color: var(--ws-text); }

@@ -145,6 +145,7 @@ export type ActiveDialog =
   | 'geodata'
   | 'alerts'
   | 'notificationCenter'
+  | 'responseWork'
   | 'comparison'
   | 'evidence'
   | 'exportDecision';

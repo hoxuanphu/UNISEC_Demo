@@ -56,6 +56,7 @@ jobs:
           python scripts/check_secondary_tools.py --url http://127.0.0.1:5213
           python scripts/check_geodata_workspace.py --url http://127.0.0.1:5213
           python scripts/check_analysis_tools.py --url http://127.0.0.1:5213
+          python scripts/check_response_operations.py --url http://127.0.0.1:5213
           python scripts/check_panel_usability.py
           python scripts/check_dataset_selection.py
           python scripts/check_offline_package.py dist-release/dear-offline.zip

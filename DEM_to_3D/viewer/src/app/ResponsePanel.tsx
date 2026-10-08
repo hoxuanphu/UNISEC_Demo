@@ -8,6 +8,7 @@ import type { IncidentPacket } from '../data/incidentPacket';
 import type { IncidentWorkspaceSnapshot } from '../features/incident/deriveIncidentWorkspace';
 import { usePanelScroll } from '../shared/hooks/usePanelScroll';
 import type { Community, Locale, ScenarioRoutePair } from '../types/dear';
+import type { ResponseWork, WorkEntry } from '../features/incident/responseWork';
 import { selectedMapObject, type NavigationAction, type WorkspaceNavigation } from './workspaceNavigation';
 
 type Props = {
@@ -17,6 +18,8 @@ type Props = {
   snapshot: IncidentWorkspaceSnapshot;
   aoi: IncidentPacket['aoi'];
   updated: boolean;
+  workTasks:ResponseWork[];workEntries:WorkEntry[];reportPending:boolean;historical:boolean;
+  onOpenWork:(id?:string)=>void;onOpenReport:()=>void;
   ready: boolean;
   unavailable: boolean;
   onRetry: () => void;
@@ -37,7 +40,7 @@ type Props = {
 };
 
 /** Chooses panel content and restores each screen's scroll position. No map or modal state. */
-export function ResponsePanel({ locale, navigation, onNavigate, snapshot, aoi, updated,
+export function ResponsePanel({ locale, navigation, onNavigate, snapshot, aoi, updated,workTasks,workEntries,reportPending,historical,onOpenWork,onOpenReport,
   ready, unavailable, onRetry, community, routePair, terrainCoverage, hasTerrainProfile, profileOpen,
   onToggleProfile, onChangeRoute, onSelectCommunity, onInspectObject, onRevealPanel, onResetTools,
   onOpenDialog, onOpenEvidence, onExport }: Props): JSX.Element {
@@ -114,6 +117,12 @@ export function ResponsePanel({ locale, navigation, onNavigate, snapshot, aoi, u
       onOpenArea={() => onInspectObject(`aoi:${aoi.id}`)}
       locale={locale}
       updated={updated}
+      tasks={workTasks}
+      entries={workEntries}
+      reportPending={reportPending}
+      historical={historical}
+      onOpenWork={onOpenWork}
+      onOpenReport={onOpenReport}
       communities={communities}
       routes={routes}
       assessments={assessments}
