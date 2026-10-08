@@ -92,7 +92,8 @@
 .incident-priority-row > span { grid-column: 1; grid-row: 1; min-width: 0; }
 .incident-priority-row strong { display: block; font-size: 14px; line-height: 1.5; }
 .incident-priority-row .priority-next-action { display: block; margin-top: 4px; color: var(--ws-muted); font-size: 13px; line-height: 1.5; }
-.incident-priority-row:hover, .road-count-row:hover { background: var(--hover); }
+.incident-priority-row:hover, .road-count-row:hover { background: transparent; }
+.road-count-row:hover > span:last-child { color: var(--select-ink); }
 .incident-priority-row:hover strong { color: var(--select-ink); }
 
 .road-count-row { grid-template-columns: minmax(0, 1fr) auto 16px; min-height: 44px; }

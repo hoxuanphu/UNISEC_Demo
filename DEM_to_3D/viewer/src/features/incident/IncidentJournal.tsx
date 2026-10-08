@@ -174,7 +174,7 @@ export function IncidentJournal({
                       <dl className="journal-work-detail">
                         <div>
                           <dt>{t('Người phụ trách', 'Owner')}</dt>
-                          <dd>{record.entry.owner || t('Chưa ghi', 'Not recorded')}</dd>
+                          <dd>{record.entry.owner || t('Chưa ghi nhận', 'Not recorded')}</dd>
                         </div>
                         {record.entry.note && (
                           <div>
@@ -191,7 +191,7 @@ export function IncidentJournal({
                     ) : (
                       record.objectId && (
                         <button className="text-button" onClick={() => onInspect(record.objectId!)}>
-                          {t('Xem đối tượng', 'View feature')}
+                          {t('Xem trên bản đồ', 'View on map')}
                         </button>
                       )
                     )}

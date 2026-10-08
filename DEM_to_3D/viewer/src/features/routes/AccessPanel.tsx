@@ -52,7 +52,7 @@ export function AccessPanel({ locale, hazards, evidence, candidate, direct, sele
       {!(candidate && direct) && <h2>{t(...active.name)}</h2>}
       <dl className="route-metrics">
         {!(candidate && direct) && <div><dt>{t('Từ điểm tập kết', 'From staging point')}</dt><dd>{active.lengthKm} <small>km</small></dd></div>}
-        {active.eta && <div className="route-travel-estimate"><dt>{t('Thời gian dự kiến', 'Estimated time')}</dt><dd>{active.eta.minMinutes}–{active.eta.maxMinutes} <small>{t('phút', 'min')}</small></dd><span>{active.eta.mode === 'foot' ? t('Đi bộ, nếu thông tuyến', 'On foot, assuming passage') : t('Xe 4x4, nếu thông tuyến', '4WD, assuming passage')}</span></div>}
+        {active.eta && <div className="route-travel-estimate"><dt>{t('Ước tính di chuyển', 'Estimated travel')}</dt><dd>{active.eta.minMinutes}–{active.eta.maxMinutes} <small>{t('phút', 'min')}</small></dd><span>{active.eta.mode === 'foot' ? t('Đi bộ, nếu thông tuyến', 'On foot, assuming passage') : t('Xe 4x4, nếu thông tuyến', '4WD, assuming passage')}</span><span>{t('Chưa gồm kiểm tra hoặc dọn đường.', 'Excludes inspection and clearance.')}</span></div>}
       </dl>
       <div className={'next-action ' + (blocked ? 'is-blocked' : 'is-uncertain')}>
         <p id="route-next-action" className="assessment-action route-action"><UiIcon name={blocked ? 'blocked' : 'uncertain'} size={16}/><span>{action}</span></p>

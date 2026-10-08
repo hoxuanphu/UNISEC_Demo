@@ -70,6 +70,16 @@ def check_control_surfaces(browser, url, captures=None):
                 panel_heading = page.locator(selector)
                 expect(panel_heading).to_be_visible()
                 page.mouse.move(0, 0)
+                if name == 'Location information':
+                    insets = page.locator('.map-location-panel').evaluate("""panel => {
+                        const title = panel.querySelector('strong').getBoundingClientRect();
+                        const body = panel.querySelector('.map-location-body');
+                        const box = body.getBoundingClientRect(), style = getComputedStyle(body);
+                        return {title: title.left, content: box.left + parseFloat(style.paddingLeft),
+                            left: parseFloat(style.paddingLeft), right: parseFloat(style.paddingRight)};
+                    }""")
+                    assert abs(insets['title'] - insets['content']) <= 1, (theme, font, insets)
+                    assert insets['left'] == insets['right'], (theme, font, insets)
                 assert panel_heading.locator('button').last.evaluate("node => getComputedStyle(node).backgroundColor === 'rgba(0, 0, 0, 0)'")
                 panel_heading.locator('button').last.click()
         finally:

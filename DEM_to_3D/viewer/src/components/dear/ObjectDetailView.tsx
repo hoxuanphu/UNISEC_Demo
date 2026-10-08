@@ -122,7 +122,7 @@ export const ObjectDetailView: React.FC<Props> = ({
               {affectedCommunities.flatMap(community => {
                 const pair = routes.get(community.id);
                 return [pair?.candidate, pair?.direct].filter(route => route?.segs.some(segment => segment.id === road.id)).map(route => route && <button key={community.id + route.type} className="object-row linked-row" onClick={() => onSelectCommunity(community.id, route.type, road.id)}>
-                  <span><strong>{community.name}</strong><small>{t(...route.name)}</small></span><UiIcon name="expand" size={14}/>
+                  <span><strong>{community.name}</strong><small>{t(...route.name)}</small></span>
                 </button>);
               })}
             </section>}

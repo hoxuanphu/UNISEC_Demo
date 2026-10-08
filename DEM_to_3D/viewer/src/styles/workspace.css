@@ -294,8 +294,10 @@ h3 {
 .sidebar .community::after { content: ''; position: absolute; bottom: 0; left: 12px; right: 12px; border-bottom: 1px solid var(--ws-line); }
 
 .sidebar .community:hover {
-  background: var(--hover);
+  background: transparent;
 }
+.sidebar .community:hover .community-heading strong { color: var(--select-ink); }
+.sidebar .community.active:hover { background: var(--ws-tint); }
 
 .sidebar .community.active {
   background: var(--ws-tint);

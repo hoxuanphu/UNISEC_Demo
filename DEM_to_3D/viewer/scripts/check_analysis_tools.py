@@ -90,7 +90,7 @@ def run(url, chrome, captures):
         page.keyboard.press('Escape')
         expect(page.locator('.geodata-scene-detail')).to_have_count(0)
         with page.expect_download() as output:
-            page.get_by_role('button',name='Xuất bộ chọn',exact=True).click()
+            page.get_by_role('button',name='Xuất danh sách ảnh',exact=True).click()
         selection=json.loads(Path(output.value.path()).read_text(encoding='utf-8'))
         assert len(selection['scenes'])==2 and selection['rasterLoaded'] is False
         assert selection['catalogSource']['provider']=='Copernicus Data Space Ecosystem'
@@ -108,7 +108,7 @@ def run(url, chrome, captures):
         page.get_by_role('button',name='Thêm phạm vi ảnh',exact=True).click()
         expect(page.locator('.geodata-layers li')).to_have_count(3)
         page.get_by_role('tab',name='Cảnh ảnh',exact=True).click()
-        page.get_by_role('combobox',name='Collection ảnh',exact=True).select_option('optical')
+        page.get_by_role('combobox',name='Bộ sản phẩm',exact=True).select_option('optical')
         page.get_by_role('button',name='Tìm ảnh',exact=True).click()
         page.locator('.catalog-results button').first.click()
         expect(page.locator('.geodata-scene-detail')).to_contain_text('Mây toàn cảnh')
@@ -142,7 +142,7 @@ def run(url, chrome, captures):
         context.route('**/catalog/che-tao.json',lambda route:route.fulfill(status=503,body='Unavailable'))
         page.reload()
         page.get_by_role('tab',name='Cảnh ảnh',exact=True).click()
-        expect(page.get_by_role('alert')).to_contain_text('Catalog không tải được')
+        expect(page.get_by_role('alert')).to_contain_text('Không tải được danh mục ảnh')
         context.unroute('**/catalog/che-tao.json')
         page.get_by_role('button',name='Thử lại',exact=True).click()
         expect(page.get_by_role('button',name='Tìm ảnh',exact=True)).to_be_visible()
@@ -174,7 +174,7 @@ def run(url, chrome, captures):
         aoi_id=next(record['id'] for record in stored if record['role']=='aoi')
         paste(page,'POINT(103.96 21.64)','reference')
         page.locator(f'[data-geodata-id="{aoi_id}"] .geodata-feature').click()
-        page.get_by_role('button',name='Xem đối tượng',exact=True).click()
+        page.get_by_role('button',name='Xem trên bản đồ',exact=True).click()
         page.get_by_role('checkbox',name='Bắt đỉnh',exact=True).check()
         page.get_by_role('tab',name='AOI',exact=True).click()
         page.get_by_role('button',name='Chỉnh đỉnh AOI',exact=True).click()

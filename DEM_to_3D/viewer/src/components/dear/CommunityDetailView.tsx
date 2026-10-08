@@ -11,8 +11,7 @@ import { UiIcon } from './UiIcon';
 import { StatusText } from '../../shared/ui/StatusText';
 import { AccessPanel } from '../../features/routes/AccessPanel';
 import type { ResponseAssessment } from '../../features/incident/responseAssessment';
-import { CommunityFindings } from '../../features/incident/CommunityFindings';
-import { selectAccessRoute } from '../../features/routes/routeReview';
+import { CommunityEvidence } from '../../features/incident/CommunityEvidence';
 
 type Props = {
   community: Community;
@@ -62,7 +61,6 @@ export const CommunityDetailView: React.FC<Props> = ({
   onExport
 }) => {
   const t = (vi: string, en: string) => (locale === 'en' ? en : vi);
-  const activeRoute = selectAccessRoute({ candidate: candidateRoute, direct: directRoute }, selectedRouteType);
 
   return (
     <>
@@ -103,19 +101,8 @@ export const CommunityDetailView: React.FC<Props> = ({
           onFindings={() => onChangeDetailTab('evidence')} onExport={onExport}/>}
 
         {detailTab === 'evidence' && (
-          <div>
-            <section className="assessment-basis">
-              <dl className="fact-rows">
-                <div><dt>{assessment.priority === 1 ? t('Lý do ưu tiên', 'Priority basis') : t('Lý do theo dõi', 'Monitoring basis')}</dt><dd>{t(...assessment.reason)}</dd></div>
-                <div><dt>{t('Dân số tham chiếu', 'Baseline population')}</dt><dd>{community.pop} {t('người', 'residents')}, {community.hh} {t('hộ', 'households')}</dd></div>
-                <div><dt>{t('Dữ liệu địa hình', 'Terrain coverage')}</dt><dd>{terrainCovered === false ? t('Ngoài phạm vi DEM', 'Outside DEM coverage') : terrainCovered === true ? t('Có dữ liệu DEM', 'DEM available') : t('Chưa đánh giá', 'Not assessed')}</dd></div>
-                {activeRoute?.eta && <div><dt>{t('Giả định di chuyển', 'Travel assumptions')}</dt><dd>{activeRoute.eta.mode === 'foot' ? t('Đi bộ', 'On foot') : t('Xe 4x4', '4WD')}. {t('Giả định đi qua được. Không gồm kiểm tra, dọn đường.', 'Assumes passage. Excludes inspection and clearance.')}</dd></div>}
-              </dl>
-              <button className="text-button" onClick={onOpenSources}>{t('Phương pháp và nguồn dữ liệu', 'Method and data sources')}</button>
-            </section>
-            <CommunityFindings facts={community.facts} evidence={evidence} locale={locale} onOpenEvidence={onOpenEvidence}/>
-
-          </div>
+          <CommunityEvidence community={community} assessment={assessment} terrainCovered={terrainCovered}
+            evidence={evidence} locale={locale} onSources={onOpenSources} onEvidence={onOpenEvidence}/>
         )}
       </div>
     </>

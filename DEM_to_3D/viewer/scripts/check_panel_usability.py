@@ -26,6 +26,18 @@ def check_panel(page):
       panel.querySelectorAll('dd').forEach(value => {
         if (value.scrollWidth > value.clientWidth + 1) errors.push('clipped value: ' + value.textContent);
       });
+      const basis = panel.querySelector('.community-evidence');
+      if (basis) {
+        const first = basis.querySelector('.assessment-facts > div');
+        if (getComputedStyle(first).borderTopWidth !== '0px') errors.push('duplicate rule below evidence tab');
+        basis.querySelectorAll('.fact-rows').forEach(rows => {
+          if (getComputedStyle(rows).borderBottomWidth !== '0px') errors.push('table duplicates section boundary');
+        });
+        const reference = basis.querySelector('.community-reference-section');
+        if (getComputedStyle(reference).borderTopWidth !== '1px') errors.push('reference section missing boundary');
+        const facts = reference.querySelector('.fact-rows > div');
+        if (getComputedStyle(facts).borderTopWidth !== '0px') errors.push('duplicate rule below reference heading');
+      }
       return errors;
     }""")
     assert not problems, problems
@@ -205,7 +217,7 @@ def run(url, chrome, captures):
                 expect(panel.get_by_text('Chưa có tuyến để đánh giá', exact=True)).to_have_count(0)
                 expect(panel.locator('.sidebar-intro')).to_have_count(0)
                 if name == 'Nậm Lắt':
-                    expect(panel.get_by_role('heading', name='Thông tin còn thiếu', exact=True)).to_be_visible()
+                    expect(panel.get_by_role('heading', name='Dữ liệu cần bổ sung', exact=True)).to_be_visible()
                     flood = panel.locator('.community-finding').filter(has_text='Phạm vi ngập')
                     expect(flood.locator('p')).to_have_text('Chưa khoanh vùng ngập.')
                     households = panel.locator('.community-finding').filter(has_text='Hộ bị ảnh hưởng')
@@ -240,7 +252,7 @@ def run(url, chrome, captures):
         # No fabricated observation on an unreported road; the check remains actionable.
         search.fill('E1')
         search.press('Enter')
-        expect(page.locator('.detail-priority .status-text')).to_have_text('Chưa ghi nhận tắc đường')
+        expect(page.locator('.detail-priority .status-text')).to_have_text('Chưa ghi nhận đường bị chặn')
         expect(page.locator('.object-observation')).to_have_count(0)
         expect(page.locator('.object-next-action')).to_contain_text('Kiểm tra khả năng đi qua')
         # Contact time is metadata rather than repeated in the finding sentence.

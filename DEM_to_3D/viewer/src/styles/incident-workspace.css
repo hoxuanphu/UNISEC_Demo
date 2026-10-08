@@ -60,7 +60,7 @@
 .object-source-section p { margin: 10px 0; color: var(--ws-muted); font-size: 12px; line-height: 1.65; }
 .assessment-action { display: grid; gap: 6px; margin: 20px 0 0; font-size: 13px; }
 .assessment-action span { color: var(--ws-muted); }
-.assessment-basis { display: grid; gap: 10px; margin-bottom: 20px; }
+.assessment-basis { margin-bottom: 8px; }
 .assessment-method { display: grid; gap: 12px; margin: 12px 0; }
 .assessment-method dt { font-weight: 600; margin-bottom: 4px; }
 .assessment-method dd { margin: 0; color: var(--ws-muted); font-size: 13px; }
@@ -162,7 +162,6 @@
 .object-reference { border-top: 1px solid var(--ws-line); padding: 16px 0; font-size: 13px; }
 .object-reference summary { cursor: pointer; color: var(--ws-muted); }
 .object-reference p { margin-top: 12px; line-height: 1.65; }
-.assessment-basis .community-reference { border: 0; padding-bottom: 0; }
 .incident-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .incident-facts dt { min-height: 36px; font-size: 12px; line-height: 1.5; }
 .incident-facts dd { font-size: 20px; font-variant-numeric: tabular-nums; }
@@ -268,9 +267,9 @@
 .object-row:last-child::after { display: none; }
 
 .object-row:hover {
-  background: var(--hover);
+  background: transparent;
 }
-.object-row:hover strong { color: var(--ws-text); }
+.object-row:hover strong { color: var(--select-ink); }
 
 .object-row > span:first-child, .object-row > strong {
   margin-right: auto;
@@ -333,7 +332,6 @@
 .community-reference > div { display: grid; grid-template-columns: var(--meta-label) minmax(0, 1fr); gap: 12px; align-items: baseline; }
 .community-reference dt { color: var(--ws-muted); font-size: 12px; line-height: 1.5; }
 .community-reference dd { margin: 0; font-size: 13px; line-height: 1.5; }
-.assessment-basis .community-reference + .community-reference { margin-top: -4px; padding-top: 0; }
 
 .decision-tabs button {
   flex: 1;
@@ -464,8 +462,9 @@
 }
 
 .notification-item:hover {
-  background: var(--fill);
+  background: transparent;
 }
+.notification-item:is(button,a):hover strong { color: var(--select-ink); }
 
 .notification-item strong {
   display: block;
@@ -538,9 +537,15 @@
 .fact-rows dt { min-height: 0; margin: 0; color: var(--ws-muted); font-size: 12px; line-height: 1.5; }
 .fact-rows dd { margin: 0; color: var(--ws-text); font-size: 13px; font-weight: 400; line-height: 1.5; white-space: normal; }
 .fact-rows.area-facts dd small { font-size: 12px; }
-.assessment-basis { gap: 12px; margin-bottom: 8px; }
 .assessment-basis .fact-rows { margin-top: 0; }
-.assessment-basis .text-button { justify-self: start; padding: 0; font-size: 13px; }
+.community-evidence .fact-rows { border-bottom: 0; }
+.community-evidence .assessment-facts > div:first-child { border-top: 0; padding-top: 0; }
+.community-reference-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--ws-line); }
+.community-reference-section .fact-rows { margin-top: 0; }
+.community-reference-section .fact-rows > div:first-child { border-top: 0; padding-top: 0; }
+.community-evidence .workflow-section { padding: 16px 0 0; margin-top: 16px; }
+.community-evidence-actions { padding-top: 16px; }
+.community-evidence-actions .text-button { font-size: 12px; }
 .detail-actions .road-profile-action { margin-top: 0; }
 .detail-actions .button { white-space: nowrap; }
 .fact-rows.object-facts { display: block; gap: 0; margin: 16px 0 0; }

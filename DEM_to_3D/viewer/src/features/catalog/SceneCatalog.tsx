@@ -59,13 +59,13 @@ export function SceneCatalog({
       : 'count';
   const pairText = {
     count: t(
-      'Chọn hai cảnh để kiểm cặp thời gian.',
+      'Chọn hai ảnh khác thời điểm để đối chiếu.',
       'Select two scenes to review a temporal pair.'
     ),
-    sensor: t('Khác collection hoặc mức xử lý.', 'Different collections or processing levels.'),
+    sensor: t('Khác bộ sản phẩm hoặc mức xử lý.', 'Different collections or processing levels.'),
     time: t('Hai cảnh cùng thời điểm thu nhận.', 'Both scenes have the same acquisition time.'),
     orbit: t(
-      'Thông số SAR thiếu hoặc không khớp.',
+      'Thiếu hoặc khác thông số thu nhận SAR.',
       'SAR acquisition metadata is missing or incompatible.'
     ),
     coverage: t(
@@ -73,14 +73,14 @@ export function SceneCatalog({
       'The pair has no common extent inside the AOI.'
     ),
     'metadata-only': t(
-      'Metadata phù hợp. Chưa kiểm raster, mask và đồng đăng ký.',
+      'Thông số thu nhận phù hợp; chưa kiểm tra ảnh, pixel hợp lệ và đồng đăng ký.',
       'Metadata is compatible. Raster, masks and coregistration are not checked.'
     )
   }[pair];
   if (error)
     return (
       <section className="geodata-section" role="alert">
-        <h2>{t('Catalog không tải được', 'Catalog unavailable')}</h2>
+        <h2>{t('Không tải được danh mục ảnh', 'Catalog unavailable')}</h2>
         <button className="button" onClick={onRetry}>
           {t('Thử lại', 'Retry')}
         </button>
@@ -89,7 +89,7 @@ export function SceneCatalog({
   if (!catalog)
     return (
       <section className="geodata-section" role="status">
-        {t('Đang tải catalog…', 'Loading catalog…')}
+        {t('Đang tải danh mục ảnh…', 'Loading catalog…')}
       </section>
     );
   return (
@@ -97,7 +97,7 @@ export function SceneCatalog({
       <section className="geodata-section">
         <h2>{t('Tìm cảnh ảnh', 'Find imagery')}</h2>
         <p className="geodata-hint">
-          {t('Catalog cục bộ', 'Local catalog')} · {catalog.source.region} · {catalog.scenes.length}{' '}
+          {t('Danh mục ảnh', 'Imagery catalog')} · {catalog.source.region} · {catalog.scenes.length}{' '}
           {t('cảnh', 'scenes')}
         </p>
         <form
@@ -129,9 +129,9 @@ export function SceneCatalog({
           }}
         >
           <label className="geodata-field">
-            Collection
+            {t('Bộ sản phẩm', 'Collection')}
             <select
-              aria-label={t('Collection ảnh', 'Imagery collection')}
+              aria-label={t('Bộ sản phẩm', 'Imagery collection')}
               value={sensor}
               onChange={(event) => setSensor(event.target.value)}
             >
@@ -210,7 +210,7 @@ export function SceneCatalog({
           !results.length && (
             <p className="geodata-empty">
               {t(
-                'Không có cảnh trong bộ cục bộ phù hợp điều kiện.',
+                'Không có ảnh phù hợp bộ lọc trong danh mục này.',
                 'No matching scene in the local catalog.'
               )}
             </p>
@@ -282,7 +282,7 @@ export function SceneCatalog({
       </section>
       <section className="geodata-section catalog-selection">
         <h2>
-          {t('Bộ chọn', 'Selection')}
+          {t('Ảnh đã chọn', 'Selected imagery')}
           <span>{scenes.length}</span>
         </h2>
         <p className="geodata-hint" data-pair-review={pair}>
@@ -318,15 +318,15 @@ export function SceneCatalog({
           <button
             className="icon-button"
             disabled={!scenes.length || !aoi || stale}
-            title={t('Xuất bộ chọn', 'Export selection')}
-            aria-label={t('Xuất bộ chọn', 'Export selection')}
+            title={t('Xuất danh sách ảnh', 'Export scene list')}
+            aria-label={t('Xuất danh sách ảnh', 'Export scene list')}
             onClick={onExport}
           >
             <UiIcon name="download" />
           </button>
         </div>
         <p className="geodata-hint">
-          {catalog.source.provider} · {t('Lấy metadata', 'Metadata retrieved')}{' '}
+          {catalog.source.provider} · {t('Thu thập danh mục', 'Catalog retrieved')}{' '}
           {catalog.source.retrievedAt}.{' '}
           <a href={catalog.source.license} target="_blank" rel="noreferrer">
             {t('Quyền sử dụng', 'Terms')}
@@ -360,7 +360,7 @@ export function SceneDetails({
     }) + ' UTC';
   const values: [[string, string], ...[string, string][]] = [
     [t('Thu nhận', 'Acquired'), acquired],
-    ['Collection', scene.collection],
+    [t('Bộ sản phẩm', 'Collection'), scene.collection],
     [t('Mức xử lý', 'Processing level'), scene.level]
   ];
   if (scene.sensor === 'sar')
@@ -411,7 +411,7 @@ export function SceneDetails({
         </div>
         <p className="geodata-hint">
           {t(
-            'Chưa tải raster. Độ phủ là giao hình học, chưa kiểm pixel hợp lệ hoặc chất lượng trong AOI.',
+            'Chưa tải dữ liệu ảnh. Độ phủ tính theo phạm vi cảnh, chưa trừ pixel không hợp lệ hoặc đánh giá chất lượng trong AOI.',
             'Raster not loaded. Coverage is geometric; valid pixels and AOI quality are not checked.'
           )}
         </p>

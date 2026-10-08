@@ -110,8 +110,8 @@ export function GeometryLayers({
             <span className="geodata-actions">
               <button
                 className="icon-button"
-                aria-label={t('Xem đối tượng', 'Fit feature')}
-                title={t('Xem đối tượng', 'Fit feature')}
+                aria-label={t('Xem trên bản đồ', 'Fit feature')}
+                title={t('Xem trên bản đồ', 'Fit feature')}
                 onClick={() => onFit(selected.id)}
               >
                 <UiIcon name="fit" />

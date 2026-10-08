@@ -72,6 +72,7 @@ def check_themes(browser, url, captures=None):
             expect(page.locator('.modal-dialog')).to_have_css('opacity', '1')
             expect(page.locator('.evidence-metadata dt')).to_have_text(['Báo cáo', 'Ghi nhận', 'Tiếp nhận'])
             page.locator('.evidence-road').first.hover()
+            expect(page.locator('.evidence-road').first).to_have_css('background-color', 'rgba(0, 0, 0, 0)')
             metrics = page.evaluate(metrics_reader)
             assert not [item for item in metrics['text'] if item['ratio'] < 4.5], (theme, 'report row hover', metrics['text'])
             if captures: page.screenshot(path=str(captures / f'workspace-report-hover-{theme}.png'), animations='disabled')
