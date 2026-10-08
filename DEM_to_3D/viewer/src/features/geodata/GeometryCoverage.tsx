@@ -14,7 +14,7 @@ export function GeometryCoverage({coverage,locale,onSelect}: {coverage:ReturnTyp
       <p className="geodata-empty">{t('Nhập hoặc chọn polygon làm phạm vi ảnh để đối chiếu với ','Import or assign image footprints to compare with ')}<strong>{coverage.aoiName}</strong>.</p> : <>
       <div className="geodata-coverage-summary"><span>{coverage.aoiName}</span><strong data-coverage-total>{percent(coverage.fraction ?? 0)}</strong><small>≈ {formatArea(coverage.coveredArea ?? 0,locale)} / {formatArea(coverage.aoiArea,locale)}</small></div>
       <table><thead><tr><th>{t('Phạm vi ảnh','Image footprint')}</th><th>{t('Phủ AOI','AOI covered')}</th></tr></thead><tbody>
-        {coverage.rows.map(row=><tr key={row.id}><td><button onClick={()=>onSelect(row.id)}>{row.name}</button></td><td>{percent(row.fraction)}</td></tr>)}
+        {coverage.rows.map(row=><tr key={row.id}><td><button className="geodata-coverage-link" onClick={()=>onSelect(row.id)}>{row.name}</button></td><td>{percent(row.fraction)}</td></tr>)}
       </tbody></table>
       <p className="geodata-hint">{t('Tổng độ phủ đã loại phần chồng lấn.','Combined coverage excludes double counting.')}</p>
     </>}

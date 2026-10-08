@@ -31,7 +31,7 @@
 .map-measure-panel .text-button { font-size: 12px; line-height: 20px; }
 .measure-feature { display: block; margin: 8px 0 0; padding: 4px 0; }
 .measure-details { margin-top: 12px; border-top: 1px solid var(--ws-line); font-size: 12px; }
-.measure-detail-toggle { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; padding: 10px 0; color: var(--ws-muted); font: inherit; background: none; border: 0; text-align: left; }
+.measure-detail-toggle { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; padding: 10px; color: var(--ws-muted); font: inherit; background: none; border: 0; text-align: left; }
 .measure-checkbox { display: flex; align-items: center; gap: 8px; min-height: 32px; }
 .map-measure-panel input[type=checkbox] { accent-color: var(--select); width: 15px; height: 15px; flex: none; margin: 0; }
 .measure-details table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }

@@ -18,6 +18,33 @@ KML = '''<?xml version="1.0"?><kml xmlns="http://www.opengis.net/kml/2.2"><Docum
 </MultiGeometry></Placemark></Folder></Document></kml>'''
 
 
+def check_controls(page, theme):
+    """Check the reported flush disclosure and consistent standalone/embedded form paint."""
+    toggle = page.locator('.geodata-section-toggle')
+    before = toggle.bounding_box()
+    toggle.hover()
+    assert toggle.bounding_box() == before, 'Disclosure shifted on hover'
+    metrics = toggle.evaluate('''node => {
+      const style = getComputedStyle(node), row = node.getBoundingClientRect();
+      const label = node.querySelector('span').getBoundingClientRect();
+      const icon = node.querySelector('svg').getBoundingClientRect();
+      return {height: row.height, left: label.left - row.left, right: row.right - icon.right};
+    }''')
+    assert metrics['height'] >= 36 and metrics['left'] >= 9 and metrics['right'] >= 9, metrics
+    toggle.focus()
+    page.keyboard.press('Tab'); page.keyboard.press('Shift+Tab')
+    assert toggle.evaluate("node => node.matches(':focus-visible') && getComputedStyle(node).outlineWidth === '2px'")
+    assert page.locator('.geodata-workspace select').first.evaluate('''node => {
+      const style = getComputedStyle(node);
+      return style.appearance === 'none' && parseFloat(style.paddingRight) >= 30 && style.backgroundImage.includes('svg');
+    }''')
+    checkbox = page.locator('.geodata-workspace input[type=checkbox]:checked').first
+    if checkbox.count():
+        paint = checkbox.evaluate("node => ({appearance: getComputedStyle(node).appearance, image: getComputedStyle(node).backgroundImage})")
+        assert paint['appearance'] == 'none', paint
+        assert ('13201e' if theme == 'dark' else 'white') in paint['image'], paint
+
+
 def paste(page, text, role='reference'):
     panel = page.locator('.geodata-import')
     toggle = panel.get_by_role('button', name='Nhập dữ liệu', exact=True)
@@ -42,6 +69,7 @@ def run(url, chrome, captures):
         page.on('request', lambda request: requests.append(request.url))
         page.goto(url + '/?workspace=geodata&offline=1')
         expect(page.locator('.geodata-workspace')).to_be_visible()
+        expect(page).to_have_title('DEAR | Dữ liệu GIS')
         paste(page, STRIPS, 'footprint')
         expect(page.locator('.geodata-layers li')).to_have_count(3)
         expect(page.locator('.geodata-layers')).to_contain_text('Strix-2')
@@ -53,7 +81,7 @@ def run(url, chrome, captures):
         assert not any('/datasets/' in request or '/assets/che_tao' in request or '/api/' in request for request in requests), requests
         if captures:
             captures.mkdir(parents=True, exist_ok=True)
-            page.screenshot(path=str(captures / 'gis-strips-dark.png'))
+            page.screenshot(path=str(captures / 'gis-strips-dark.png'), animations='disabled')
         # Invalid batches are atomic and retain existing data.
         before = page.evaluate("localStorage.getItem('dear.geodata.v1')")
         paste(page, 'POLYGON((104 21,105 22,105 21,104 22,104 21))')
@@ -130,6 +158,9 @@ def run(url, chrome, captures):
             page.set_viewport_size({'width':width,'height':740})
             for theme in ['light','dark']:
                 page.evaluate('(theme)=>document.documentElement.dataset.theme=theme',theme)
+                if width < 761:
+                    page.locator('.geodata-mobile-tabs').get_by_role('button', name='Dữ liệu', exact=True).click()
+                check_controls(page, theme)
                 expect(page.locator('.geodata-header')).to_be_visible()
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), (width,theme)
                 assert page.locator('.geodata-sidebar').evaluate('node=>node.scrollWidth <= node.clientWidth'), (width,theme)
@@ -139,7 +170,7 @@ def run(url, chrome, captures):
                     surface.click(position={'x':60,'y':80})
                     page.locator('.geodata-mobile-tabs').get_by_role('button', name='Dữ liệu', exact=True).click()
                 if captures and width in [1366,320]:
-                    page.screenshot(path=str(captures / f'gis-{theme}-{width}.png'))
+                    page.screenshot(path=str(captures / f'gis-{theme}-{width}.png'), animations='disabled')
         assert not errors, errors
         # The tool also opens from Layers and returns keyboard focus on close.
         page.set_viewport_size({'width':1366,'height':768})
@@ -150,6 +181,8 @@ def run(url, chrome, captures):
             page.get_by_role('button', name='Nhập KML / polygon', exact=True).click()
             expect(page.locator('.geodata-workspace')).to_have_attribute('aria-modal','true')
             expect(page.locator('.geodata-layers li')).to_have_count(7)
+            check_controls(page, page.locator('html').get_attribute('data-theme'))
+            assert page.locator('.geodata-header button').count() == 1, 'Duplicate exit controls'
             if iteration == 0:
                 page.get_by_role('button', name='Vẽ vùng quan tâm', exact=True).click()
                 surface.click(position={'x':100,'y':100});page.keyboard.press('Escape')

@@ -24,7 +24,9 @@ export function useWorkspacePreferences() {
   }, [fontChoice]);
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.title = locale === 'vi' ? 'DEAR | Bản đồ ứng phó' : 'DEAR | Response map';
+    const geodata = new URLSearchParams(window.location.search).get('workspace') === 'geodata';
+    document.title = geodata ? (locale === 'vi' ? 'DEAR | Dữ liệu GIS' : 'DEAR | GIS data')
+      : (locale === 'vi' ? 'DEAR | Bản đồ ứng phó' : 'DEAR | Response map');
   }, [locale]);
   return { locale, setLocale, theme, setTheme, fontChoice, setFontChoice };
 }

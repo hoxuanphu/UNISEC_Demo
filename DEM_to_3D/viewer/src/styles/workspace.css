@@ -1,3 +1,4 @@
+@import './workspace-controls.css';
 @import './app-header.css';
 
 * {
@@ -27,7 +28,7 @@ button, input, textarea, select {
   font: inherit;
 }
 
-:is(.workspace, .modal-overlay, dialog) :is(input, textarea)::placeholder {
+:is(.workspace, .modal-overlay, dialog, .geodata-workspace) :is(input, textarea)::placeholder {
   color: var(--ws-muted);
   opacity: 1;
 }
@@ -122,7 +123,7 @@ h3 {
   filter: brightness(0.92);
 }
 
-[data-theme="dark"] :is(.sidebar, .modal-overlay, .settings-menu, .notification-popover) .button.primary:hover { filter: brightness(1.05); }
+[data-theme="dark"] .button.primary:hover { filter: brightness(1.05); }
 
 .button.primary:active { filter: brightness(0.86); }
 
@@ -447,14 +448,20 @@ h3 {
 }
 
 .profile-heading .icon-button {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 4px;
   margin-left: auto;
   border-color: transparent;
   background: transparent;
   color: var(--ws-muted);
 }
 .profile-heading .icon-button:hover { background: var(--fill); color: var(--ws-text); }
-.profile-heading > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; min-width: 0; }
-.profile-heading .profile-target-name { max-width: min(340px, 35vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-heading > div { display: flex; flex: 1; align-items: baseline; gap: 12px; min-width: 0; }
+.profile-heading .profile-target-name { flex: 1; min-width: 0; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-heading strong, .profile-heading > div > span:last-child { flex: none; }
 .road-profile-action { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; }
 .profile-heading strong { font-size: 14px; }
 .profile-stats { display: flex; flex-wrap: wrap; gap: 12px 28px; margin: 0; padding: 10px 18px 0; font-size: 12px; }
@@ -752,51 +759,11 @@ dialog.timeline-dialog::backdrop { background: rgba(12, 23, 35, .45); }
  .profile-chart-container { min-height: 170px; height: 170px; }
  .profile-controls { border-left: 0; padding: 0; }
  .profile-heading { padding: 8px 12px; height: auto; min-height: 52px; }
+ .profile-heading > div { flex-wrap: wrap; gap: 4px 12px; }
+ .profile-heading .profile-target-name { flex-basis: 100%; max-width: 100%; order: 1; }
  .profile-heading .small { display: block; margin-left: 0 !important; }
  .modal-dialog { max-width: calc(100vw - 24px); }
 }
-
-/* Form controls. Native elements keep keyboard and screen reader behavior; only the paint changes. */
-.workspace input[type="checkbox"], .workspace input[type="radio"], .modal-overlay input[type="checkbox"], .modal-overlay input[type="radio"], dialog input[type="radio"] {
-  -webkit-appearance: none; appearance: none; flex: none; display: inline-grid; place-items: center;
-  width: 16px; height: 16px; margin: 0; border: 1.5px solid var(--control-border); background: var(--ws-surface);
-  cursor: pointer; transition: background 0.12s ease, border-color 0.12s ease;
-}
-.workspace input[type="checkbox"], .modal-overlay input[type="checkbox"] { border-radius: var(--radius-control); }
-.workspace input[type="radio"], .modal-overlay input[type="radio"], dialog input[type="radio"] { border-radius: 50%; }
-:is(.workspace, .modal-overlay) input[type="checkbox"]:checked { border-color: var(--select); background: var(--select) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 8.2 2.6 2.6L12 5.4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px no-repeat; }
-[data-theme="dark"] :is(.sidebar, .modal-overlay) input[type="checkbox"]:checked { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 8.2 2.6 2.6L12 5.4' fill='none' stroke='%2313201e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-[data-theme="dark"] :is(.workspace, .modal-overlay, dialog) input[type="radio"]:checked { border-color: var(--select); }
-:is(.workspace, .modal-overlay, dialog) input[type="radio"]:checked { border-color: var(--select); background: radial-gradient(circle, var(--select) 0 3.5px, transparent 4px); }
-:is(.workspace, .modal-overlay, dialog) :is(input[type="checkbox"], input[type="radio"]):hover:not(:checked) { border-color: var(--ws-muted); }
-:is(.workspace, .modal-overlay, dialog) :is(input[type="checkbox"], input[type="radio"]):focus-visible { outline: 2px solid var(--select); outline-offset: 2px; }
-
-.workspace select:not([multiple]), .modal-overlay select:not([multiple]) {
-  -webkit-appearance: none; appearance: none; min-height: 32px; padding: 4px 30px 4px 10px;
-  border: 1px solid var(--ws-line); border-radius: var(--radius-control); color: var(--ws-text); font: inherit;
-  background: var(--ws-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%238a9a9b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 9px center / 14px no-repeat;
-  cursor: pointer;
-}
-.workspace select:not([multiple]):hover, .modal-overlay select:not([multiple]):hover { border-color: var(--control-border); }
-.workspace select:not([multiple]):focus-visible, .modal-overlay select:not([multiple]):focus-visible { outline: 0; border-color: var(--select); box-shadow: 0 0 0 3px var(--select-soft); }
-
-.modal-dialog input[type="file"]::file-selector-button { margin-right: 12px; padding: 6px 10px; border: 1px solid var(--ws-line); border-radius: var(--radius-control); background: var(--ws-bg); color: var(--ws-text); font: inherit; cursor: pointer; }
-.modal-dialog input[type="file"]::file-selector-button:hover { background: var(--ws-tint); }
-[data-theme="dark"] .modal-dialog input[type="datetime-local"] { color-scheme: dark; }
-
-.workspace input[type="range"] { -webkit-appearance: none; appearance: none; height: 20px; background: transparent; cursor: pointer; }
-.workspace input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--ws-line); }
-.workspace input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--ws-line); }
-.workspace input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border: 2px solid var(--ws-surface); border-radius: 50%; background: var(--select); box-shadow: 0 0 0 1px var(--select), 0 1px 3px rgba(0, 0, 0, 0.2); }
-.workspace input[type="range"]::-moz-range-thumb { width: 10px; height: 10px; border: 2px solid var(--ws-surface); border-radius: 50%; background: var(--select); box-shadow: 0 0 0 1px var(--select); }
-.workspace input[type="range"]:focus-visible { outline: 0; }
-.workspace input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 1px var(--select), 0 0 0 4px var(--select-soft); }
-
-/* Scrollbars: thin, tinted, visible only as a guide. */
-.workspace ::-webkit-scrollbar, .modal-overlay ::-webkit-scrollbar { width: 10px; height: 10px; }
-.workspace ::-webkit-scrollbar-thumb, .modal-overlay ::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 6px; background: var(--ws-line) padding-box; }
-.workspace ::-webkit-scrollbar-thumb:hover, .modal-overlay ::-webkit-scrollbar-thumb:hover { background-color: var(--control-border); }
-.workspace ::-webkit-scrollbar-track, .modal-overlay ::-webkit-scrollbar-track { background: transparent; }
 
 ::selection { background: var(--select-soft); color: var(--ws-text); }
 

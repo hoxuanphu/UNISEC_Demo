@@ -91,6 +91,13 @@ def run(url, chrome, captures):
         page.locator('.comparison-form input[type=file]').nth(1).set_input_files(fixture_dir / 'after.tif')
         page.get_by_role('button', name='Mở so ảnh', exact=True).click()
         expect(page.locator('.comparison-map .leaflet-image-layer')).to_have_count(2, timeout=25000)
+        for width in [1366, 390, 320]:
+            page.set_viewport_size({'width': width, 'height': 768})
+            assert page.locator('.comparison-captions').evaluate('''node => {
+              const [left, right] = [...node.children].map(child => child.getBoundingClientRect());
+              return left.right + 7 <= right.left && node.scrollWidth <= node.clientWidth;
+            }'''), ('Comparison dates overlap', width)
+        page.set_viewport_size({'width': 1366, 'height': 768})
         before = page.locator('.comparison-map .leaflet-image-layer').nth(1)
         page.wait_for_function("!!document.querySelector('.comparison-map .leaflet-image-layer:nth-child(2)')?.style.clipPath")
         clip = before.evaluate('(element) => element.style.clipPath')

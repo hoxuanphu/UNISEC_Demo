@@ -46,7 +46,7 @@ export function GeometryWorkspace({locale,onClose,offline=false,standalone=false
   };
   const error=session.error || analysis.error;
   return <div className="geodata-workspace" role={standalone ? undefined : 'dialog'} aria-modal={standalone ? undefined : true} aria-labelledby="geodata-title" data-mobile-tab={mobileTab}>
-    <header className="geodata-header"><button className="icon-button" onClick={onClose} aria-label={t('Về bản đồ ứng phó','Back to response map')} title={t('Về bản đồ ứng phó','Back to response map')}><UiIcon name="back"/></button>
+    <header className="geodata-header">{standalone ? <button className="icon-button" onClick={onClose} aria-label={t('Về bản đồ ứng phó','Back to response map')} title={t('Về bản đồ ứng phó','Back to response map')}><UiIcon name="back"/></button> : <UiIcon name="layers" size={24}/>}
       <div><h1 id="geodata-title">{t('Dữ liệu GIS','GIS data')}</h1><span>{t('Vùng quan tâm và phạm vi ảnh','Areas of interest and image footprints')}</span></div>
       <span className="geodata-local">{t('Lưu tại trình duyệt','Browser storage')}</span>
       {!standalone && <button className="icon-button" onClick={onClose} aria-label={t('Đóng dữ liệu GIS','Close GIS data')}><UiIcon name="close"/></button>}
@@ -56,7 +56,7 @@ export function GeometryWorkspace({locale,onClose,offline=false,standalone=false
     </nav>
     {error && <div className="geodata-error" role="alert"><UiIcon name="uncertain"/><span>{geometryErrorText(error,locale)}</span><button className="icon-button" onClick={()=>session.setError(null)} aria-label={t('Đóng lỗi nhập','Dismiss import error')}><UiIcon name="close"/></button></div>}
     {drawing && <div className="geodata-drawing-bar"><strong>{t('Vẽ vùng quan tâm','Draw area of interest')} · {vertices.length} {t('đỉnh','vertices')}</strong>
-      <button onClick={()=>setVertices(previous=>previous.slice(0,-1))} disabled={!vertices.length}>{t('Bỏ đỉnh cuối','Undo vertex')}</button><button onClick={cancel}>{t('Hủy','Cancel')}</button><button className="geodata-primary" disabled={vertices.length < 3} onClick={finish}>{t('Kết thúc','Finish')}</button>
+      <button className="button" onClick={()=>setVertices(previous=>previous.slice(0,-1))} disabled={!vertices.length}>{t('Bỏ đỉnh cuối','Undo vertex')}</button><button className="button" onClick={cancel}>{t('Hủy','Cancel')}</button><button className="button primary" disabled={vertices.length < 3} onClick={finish}>{t('Kết thúc','Finish')}</button>
     </div>}
     <div className="geodata-body">
       <aside className="geodata-sidebar" aria-label={t('Quản lý dữ liệu GIS','GIS data controls')}>
@@ -66,7 +66,7 @@ export function GeometryWorkspace({locale,onClose,offline=false,standalone=false
           <GeometryLayers records={session.records} selectedId={session.selectedId} locale={locale} disabled={drawing || session.busy} onSelect={select} onUpdate={session.update} onRemove={session.remove}/>
         </div>
         <footer className="geodata-export"><label className="geodata-field">{t('Xuất dữ liệu','Export data')}<select aria-label={t('Phạm vi xuất GIS','GIS export scope')} value={exportScope} onChange={event=>setExportScope(event.target.value)}><option value="all">{t('Tất cả đối tượng','All features')}</option><option value="aoi">{t('Vùng quan tâm','Area of interest')}</option></select></label>
-          <div className="geodata-actions">{(['geojson','kml'] as const).map(format=><button key={format} disabled={!exportRecords.length || drawing || session.busy} onClick={()=>exportFile(format)}><UiIcon name="download"/>{format === 'geojson' ? 'GeoJSON' : 'KML'}</button>)}</div>
+          <div className="geodata-actions">{(['geojson','kml'] as const).map(format=><button className="button" key={format} disabled={!exportRecords.length || drawing || session.busy} onClick={()=>exportFile(format)}><UiIcon name="download"/>{format === 'geojson' ? 'GeoJSON' : 'KML'}</button>)}</div>
         </footer>
       </aside>
       <GeometryMap records={session.records} selectedId={session.selectedId} locale={locale} offline={offline} viewRequest={session.viewRequest} onSelect={select}

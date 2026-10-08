@@ -38,7 +38,7 @@
 .constraint-source { color: var(--ws-muted); font-size: 11px; line-height: 1.5; }
 
 .access-supplementary { margin-top: 8px; border-block: 1px solid var(--ws-line); }
-.access-disclosure { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 42px; padding: 10px 0; border: 0; background: transparent; color: var(--ws-muted); text-align: left; font-size: 12px; }
+.access-disclosure { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 42px; padding: 10px; border: 0; background: transparent; color: var(--ws-muted); text-align: left; font-size: 12px; }
 .access-disclosure svg { flex: none; }
 .access-disclosure:hover { color: var(--select-ink); }
 .access-tools { flex-wrap: wrap; }

@@ -3,6 +3,7 @@ import area from '@turf/area';
 import { geometryPositions, isPolygon, type GeometryRecord, type GeometryRole } from '../../geo/vector/types';
 import type { Locale } from '../../types/dear';
 import { UiIcon } from '../../shared/ui/UiIcon';
+import { DisclosureTrigger } from '../../shared/ui/DisclosureTrigger';
 import { roleLabel, roleColors, formatArea } from './geometryPresentation';
 import { exportGeometryWkt } from './geometryExports';
 
@@ -39,11 +40,11 @@ export function GeometryLayers({records,selectedId,locale,disabled,onSelect,onRe
         {isPolygon(selected.feature.geometry) && <div><dt>{t('Diện tích','Area')}</dt><dd>≈ {formatArea(area(selected.feature),locale)}</dd></div>}
         {selected.feature.geometry.type === 'Point' && <div><dt>WGS84</dt><dd className="geodata-coordinate">{selected.feature.geometry.coordinates[1].toFixed(6)}°, {selected.feature.geometry.coordinates[0].toFixed(6)}°</dd></div>}
       </dl>
-      <div className="geodata-actions"><button aria-expanded={metadata} onClick={()=>setMetadata(value=>!value)}><UiIcon name={metadata ? 'collapse' : 'expand'}/>{t('Nguồn và tọa độ','Source and coordinates')}</button>
+      <div className="geodata-actions"><DisclosureTrigger expanded={metadata} aria-controls="geodata-metadata" onClick={()=>setMetadata(value=>!value)}>{t('Nguồn và tọa độ','Source and coordinates')}</DisclosureTrigger>
         <button className="icon-button" aria-label={t('Sao chép WKT','Copy WKT')} title={t('Sao chép WKT','Copy WKT')} onClick={()=>void copy()}><UiIcon name="copy"/></button></div>
       {copied === selected.id && <p className="geodata-hint" role="status">{t('Đã sao chép WKT','WKT copied')}</p>}
       {copyError && <p className="geodata-hint" role="status">{t('Không truy cập được bộ nhớ tạm. Xuất GeoJSON để lấy tọa độ.','Clipboard unavailable. Export GeoJSON to get coordinates.')}</p>}
-      {metadata && <div className="geodata-metadata"><dl className="geodata-properties">
+      {metadata && <div id="geodata-metadata" className="geodata-metadata"><dl className="geodata-properties">
         <div><dt>{t('Tệp / đầu vào','File / input')}</dt><dd>{selected.source.name}</dd></div>
         <div><dt>{t('Định dạng','Format')}</dt><dd>{selected.source.format}</dd></div><div><dt>CRS</dt><dd>WGS84 · OGC:CRS84</dd></div>
         <div><dt>{t('Đỉnh','Vertices')}</dt><dd>{geometryPositions(selected.feature.geometry).length}</dd></div>

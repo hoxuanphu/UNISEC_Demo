@@ -6,6 +6,9 @@ Cập nhật: 2026-10-08. Phạm vi: web React, gói Chế Tạo v0.2, công c�
 
 | Vấn đề | Thay đổi |
 |---|---|
+| Tiêu đề Nhập dữ liệu sát nền hover, điều khiển GIS khác nhau khi mở riêng | Dùng hàng mở rộng có đệm, chevron cuối hàng và focus bên trong. Checkbox/select/scrollbar dùng chung với workspace; dấu chọn dark mode có màu tương phản. Bỏ hover chung cho mọi nút GIS và nút thoát trùng chức năng |
+| Nhãn GIS trắng ở dark mode, đầu vào mang tên Việt/Anh lẫn lộn | Nhãn theo token theme. Nội dung dán mang nhãn định dạng WKT/GeoJSON/WGS84; giữ tên tệp và thuộc tính đầu vào. Trang GIS có tiêu đề riêng |
+| Tên tuyến và ngày so ảnh chen nhau ở khung nhỏ | Tên tuyến dài rút gọn, giữ nút đóng mặt cắt 28 px. Mobile tên tuyến xuống hàng. Ngày so ảnh có khoảng cách và cho xuống dòng trong từng nhãn |
 | Workspace ghép mọi panel và hộp thoại trong một file | Tách `ResponsePanel`, `WorkspaceDialogs` và `TerrainUploadDialog`. Giữ reducer điều hướng/công cụ và một snapshot dùng chung. Kiểm tra quay lại từ báo cáo/đường giữ tab Căn cứ và vị trí cuộn; danh sách giữ vị trí; hộp thoại giữ/trả focus |
 | Tổng quan sự kiện dàn trải, tiêu đề/nút lệch hàng | Bỏ margin trên nút Tất cả, rút nhãn và giữ tên truy cập đầy đủ. Tách hai nhóm bằng thanh tiêu đề cùng nền toolbar. Hai mốc giờ cùng dòng, lề nội dung 24 px, hàng đệm 12 px, tra cứu chia hai cột. Style chuyển về `incident-panel.css`. Kiểm tra căn hàng, ranh giới, khoảng đệm trên Việt/Anh, hai theme và ba bộ chữ |
 | Nút tiêu đề công cụ thành các ô trắng, tab tiếng Anh sát viền | Nút tiêu đề dùng nền trong suốt, cách nhau 4 px, chỉ đổi nền khi hover hoặc bật tùy chọn. Tab chia theo nội dung. Kiểm tra panel 320 px, bốn viewport, ba font và hai theme. Tách nền hàng kiểu đo khỏi thanh tab |
@@ -125,7 +128,8 @@ Cập nhật: 2026-10-08. Phạm vi: web React, gói Chế Tạo v0.2, công c�
 | Chrome: gói offline | Giải nén thư mục mới, checksum, luồng ứng phó, PNG, 3D/2D và đặt lại đạt. Không phát sinh request mạng ngoài |
 | Vòng đời 3D | Sửa gỡ listener trước khi React tháo canvas. Giải phóng tài nguyên GPU của renderer cũ, giữ dữ liệu để mở lại. 25 vòng thử nhanh không tăng DOM/listener |
 | Phiên 30 phút | Đạt: 58 vòng chọn địa bàn/tuyến, mặt cắt, 3D/2D, áp dụng tin và đặt lại. 20 PNG, không lỗi JavaScript. Sau vòng 10: DOM/listener không tăng, JS heap tăng 0,70 MB |
-| Lặp phiên trên build cuối | Linux sau thêm dữ liệu GIS: 4 vòng trong 35,2 giây, DOM/listener giữ nguyên ở 676/368. Thử dài 30 phút ở hàng trên là kết quả của build trước |
+| Lặp phiên trên build cuối | Linux sau đồng bộ điều khiển: 3 vòng trong 54,7 giây, DOM/listener giữ nguyên ở 676/368. Thử dài 30 phút ở hàng trên là kết quả của build trước |
+| Chrome: điều khiển dùng chung | Nhập dữ liệu có đệm hai bên ≥9 px, cao ≥36 px; hover không dịch hàng, focus bàn phím rõ. GIS mở riêng/embedded dùng cùng select và dấu checkbox sáng/tối. Ngày so ảnh không chồng nhau ở 320/390/1366 px |
 | Kiểm workflow trên Linux | Container Ubuntu 24.04, Node 22.23.2, Python 3.12.3, Playwright 1.63.0 đạt: cài sạch, 207 unit/18 Python tests, audit, build, đóng gói và mười bộ browser checks. Kết quả cục bộ không thay xác nhận GitHub Actions của commit mới |
 | GitHub Actions | Đã sửa ảnh xem trước tải chậm và khoảng trễ khóa ký hiệu. Browser kiểm tra trạng thái ngay khi đổi chế độ/tạo lớp, trước khung hình tiếp theo. [Theo dõi workflow](https://github.com/hoxuanphu/UNISEC_Demo/actions/workflows/dear-web.yml) |
 | Source dùng khi deploy | Import kiểm đúng chữ hoa/thường. Thư mục sạch với file được Git theo dõi chuẩn bị đủ dữ liệu, kiểm checksum đạt |

@@ -1,6 +1,7 @@
 import { useState, type Dispatch } from 'react';
 import type { Locale } from '../../types/dear';
 import { UiIcon } from '../../shared/ui/UiIcon';
+import { DisclosureTrigger } from '../../shared/ui/DisclosureTrigger';
 import { horizontalLength } from './measurement';
 import type { MeasureAction, MeasurementSession } from './measurementSession';
 import { formatDistance, measurementResults, modeNames, type MeasureUnits } from './measurementResults';
@@ -13,7 +14,7 @@ export function MeasurementDetails({ session, units, locale }: Props) {
   const hasCoordinates = session.mode === 'location' && session.points.length > 0;
   if (!hasSegments && !hasCoordinates) return null;
   return <div className="measure-details">
-    <button className="measure-detail-toggle" aria-expanded={open} aria-controls="measurement-details" onClick={() => setOpen(value => !value)}>{hasSegments ? t('Chi tiết từng đoạn', 'Segment details') : 'UTM 48N'}<UiIcon name={open ? 'collapse' : 'expand'} size={14}/></button>
+    <DisclosureTrigger className="measure-detail-toggle" expanded={open} aria-controls="measurement-details" onClick={() => setOpen(value => !value)}>{hasSegments ? t('Chi tiết từng đoạn', 'Segment details') : 'UTM 48N'}</DisclosureTrigger>
     {open && <div id="measurement-details">{hasSegments ? <table><thead><tr><th>{t('Đoạn', 'Segment')}</th><th>{t('Chiều dài', 'Length')}</th></tr></thead><tbody>{session.points.slice(1).map((point, index) => <tr key={index}><td>{t('Đoạn ', 'Segment ') + (index + 1)}</td><td>{formatDistance(horizontalLength([session.points[index], point]), units, locale)}</td></tr>)}</tbody></table> : <dl className="measure-coordinate-grid"><div><dt>E</dt><dd>{session.points[0].x.toFixed(1)} m</dd></div><div><dt>N</dt><dd>{session.points[0].y.toFixed(1)} m</dd></div></dl>}</div>}
   </div>;
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Hazard, IncidentEvidence, Locale, ScenarioRoute } from '../../types/dear';
 import { UiIcon } from '../../shared/ui/UiIcon';
+import { DisclosureTrigger } from '../../shared/ui/DisclosureTrigger';
 import { StatusText } from '../../shared/ui/StatusText';
 import { communityAccessText } from './accessAssessment';
 import { RouteOption } from './RouteOption';
@@ -65,13 +66,13 @@ export function AccessPanel({ locale, hazards, evidence, candidate, direct, sele
     </section>}
     {active && <div className="access-supplementary">
       {candidate && direct && <>
-        <button className="access-disclosure" aria-expanded={compare} aria-controls="access-route-options" onClick={() => setCompare(open => !open)}>{t('So sánh tuyến', 'Compare routes')}<UiIcon name={compare ? 'collapse' : 'expand'} size={16}/></button>
+        <DisclosureTrigger className="access-disclosure" expanded={compare} aria-controls="access-route-options" onClick={() => setCompare(open => !open)}>{t('So sánh tuyến', 'Compare routes')}</DisclosureTrigger>
         {compare && <div id="access-route-options" className="route-options" role="group" aria-label={t('Chọn tuyến tiếp cận', 'Select access route')}>
           <RouteOption route={candidate} selected={active === candidate} locale={locale} onSelect={() => onSelectRoute('candidate')}/>
           <RouteOption route={direct} selected={active === direct} locale={locale} onSelect={() => onSelectRoute('direct')}/>
         </div>}
       </>}
-      <button className="access-disclosure" aria-expanded={allSections} aria-controls="access-route-sections" onClick={() => setAllSections(open => !open)}><span>{t('Các đoạn trên tuyến', 'Route sections')} ({active.segs.length})</span><UiIcon name={allSections ? 'collapse' : 'expand'} size={16}/></button>
+      <DisclosureTrigger className="access-disclosure" expanded={allSections} aria-controls="access-route-sections" onClick={() => setAllSections(open => !open)}><span>{t('Các đoạn trên tuyến', 'Route sections')} ({active.segs.length})</span></DisclosureTrigger>
       {allSections && <div id="access-route-sections">{roadRows(active.segs)}</div>}
       {active.eta && <button className="access-disclosure" onClick={onFindings}>{t('Căn cứ ước tính thời gian', 'Travel estimate basis')}<UiIcon name="info" size={16}/></button>}
     </div>}

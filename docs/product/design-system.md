@@ -74,6 +74,8 @@ Tham khảo: [QGIS](https://docs.qgis.org/3.40/en/docs/user_manual/introduction/
 
 ## Kiểm soát thay đổi
 
+Điều khiển native dùng chung `styles/workspace-controls.css` cho workspace, modal và GIS mở riêng. Hàng mở rộng dùng `DisclosureTrigger`: chevron cuối hàng, đệm ngang 10 px, cao tối thiểu 36 px, focus nằm trong khung. Nút hành động dùng `.button`, nút icon dùng `.icon-button`; tránh áp nền hover của nút hành động cho mọi `button` trong một feature.
+
 | Thay đổi | Cập nhật cùng nhau | Kiểm tra |
 |---|---|---|
 | Màu, chữ, khoảng cách | Token và component sử dụng | Sáng/tối, Việt/Anh |

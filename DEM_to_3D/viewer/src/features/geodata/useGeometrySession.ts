@@ -36,7 +36,11 @@ export function useGeometrySession() {
     latest.current=combined; setRecords(combined); setSelectedId(additions[0]?.id ?? null); setError(null); fit();
   };
   const importText=(text:string,role:GeometryRole)=>{
-    try { add(createGeometryRecords(parseSpatialInput(text),'Văn bản / Text',role)); return true; }
+    try {
+      const parsed = parseSpatialInput(text);
+      add(createGeometryRecords(parsed, parsed.format === 'coordinate' ? 'WGS84' : parsed.format, role));
+      return true;
+    }
     catch (reason) { setError(reason); return false; }
   };
   const importFiles=async(files:File[],role:GeometryRole)=>{
