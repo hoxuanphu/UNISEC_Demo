@@ -24,7 +24,7 @@ Luồng này phục vụ bước phân tích và bản đồ hỗ trợ quyết 
 | Tiếp cận thế nào, vướng ở đâu? | Chi tiết địa bàn: phương án, đoạn bị chặn/chưa rõ. Mở tuyến hoặc đoạn cần kiểm tra |
 | Căn cứ đã đủ chưa? | Bản ghi nguồn và mặt cắt khi cần. Tin mới phải được áp dụng trước khi lưu đánh giá mới |
 
-Hướng dẫn dân tới nơi an toàn cần nơi trú được xác nhận và tuyến sơ tán theo phương thức. Đây là phần chưa có trong demo, không thay bằng H đề xuất. Phạm vi mở rộng ở [nền tảng GIS](../architecture/geospatial-platform.md#ứng-phó-và-hướng-dẫn-tới-nơi-an-toàn).
+Hướng dẫn dân tới nơi an toàn cần nơi trú được xác nhận và tuyến sơ tán theo phương thức. Đây là phần chưa có trong demo, không thay bằng H đề xuất. Phạm vi mở rộng ở [nền tảng GIS](../../../vsp-eo-platform/docs/architecture/geospatial-platform.md#ứng-phó-và-hướng-dẫn-tới-nơi-an-toàn).
 
 ## Màn hình và thông tin
 

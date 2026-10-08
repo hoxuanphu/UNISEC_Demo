@@ -1,5 +1,7 @@
 # Vùng quan tâm và phạm vi ảnh
 
+Phạm vi: công cụ thử nghiệm trong demo, lưu dữ liệu cục bộ tại trình duyệt. AOI nhập/vẽ ở đây không sửa AOI sự kiện hoặc kết quả tuyến/ưu tiên của DEAR. Luồng có project, quyền, xử lý và công bố được xây tại [Workbench của platform](../../../vsp-eo-platform/docs/product/workspaces.md).
+
 Cập nhật: 08/10/2026. Mở **Lớp bản đồ → Dữ liệu GIS**, hoặc `/?workspace=geodata`. Công cụ độc lập với DEM và chạy tại trình duyệt, dùng được trên Vercel. Thêm `&offline=1` để không tải nền ngoài.
 
 ```mermaid
@@ -18,7 +20,7 @@ flowchart LR
 | Nhập tệp | Tab Lớp: chọn một/nhiều KML, GeoJSON hoặc WKT. Giữ tên và thuộc tính; bỏ Placemark chỉ chứa ghi chú. KML MultiGeometry được tách thành đối tượng. Lỗi chỉ rõ tệp |
 | Nhập văn bản | Nhiều WKT có tên như `Strix-2: POLYGON((…))`. Tọa độ `21.782919° N, 104.053554° E` tạo một điểm |
 | Vai trò | Tham chiếu: nâu. AOI: xanh lá. Phạm vi ảnh: xanh dương nét đứt. Điểm/đường chỉ làm tham chiếu |
-| Chọn đối tượng | Giữ vùng nhìn; nút Xem đối tượng đưa hình vào map. Đổi tên/vai trò, xem tọa độ và thuộc tính. Một AOI mỗi workspace, gán AOI mới chuyển AOI cũ thành tham chiếu |
+| Chọn đối tượng | Giữ vùng nhìn; nút Xem trên bản đồ đưa hình vào map. Đổi tên/vai trò, xem tọa độ và thuộc tính. Một AOI mỗi workspace, gán AOI mới chuyển AOI cũ thành tham chiếu |
 | Vẽ AOI | Thanh công cụ: polygon hoặc hình chữ nhật qua hai góc đối diện. Polygon kết thúc bằng Enter, nút Kết thúc, nhấp đúp hoặc đỉnh đầu. Vẽ lại cập nhật AOI hiện tại. Thanh công cụ không làm map dịch chuyển |
 | Chỉnh hình | Kéo đỉnh hoặc nhập kinh/vĩ độ tại tab AOI. Áp dụng mới cập nhật bản lưu; hình lỗi giữ nguyên bản cũ. Hủy/Esc bỏ bản nháp. Bắt đỉnh trong 12 pixel tới các đối tượng đang hiện |
 | Hoàn tác | Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z hoặc các nút Hoàn tác/Làm lại. Trong lúc chỉnh chỉ tác động bản nháp; ngoài lúc chỉnh tác động lớp. Lịch sử 25 bước, trong phiên |
@@ -79,7 +81,7 @@ flowchart LR
 | Lớp và pointer | Từ dưới lên: nền → footprint → tham chiếu → AOI → phần giao → đối tượng chọn → điểm → bản nháp. Chỉ một chế độ nhận thao tác chỉnh; chưa có raster catalog |
 | Màn nhỏ | Chuyển **Dữ liệu / Bản đồ**. Inspector thay vùng map/data; Xem phạm vi đóng inspector và mở map. Không chồng ba panel nổi |
 
-Catalog này có phạm vi/ngày hữu hạn; không có kết quả không có nghĩa là kho ảnh vệ tinh không có ảnh. Độ phủ footprint không thay độ phủ pixel hợp lệ hay tỷ lệ không mây trong AOI. GSD sản phẩm chưa mô tả độ phân giải từng band Sentinel-2. Những bước còn lại của đợt 3 gồm contract v2 đầy đủ, nguồn trực tiếp, asset raster/QA và truy nguyên đầu vào phân tích. Worker/job, chỉ số phổ và công bố theo các đợt sau của [lộ trình](../plans/platform.md); backend vẫn tạm hoãn.
+Catalog này có phạm vi/ngày hữu hạn; không có kết quả không có nghĩa là kho ảnh vệ tinh không có ảnh. Độ phủ footprint không thay độ phủ pixel hợp lệ hay tỷ lệ không mây trong AOI. GSD sản phẩm chưa mô tả độ phân giải từng band Sentinel-2. Contract sản phẩm, nguồn trực tiếp, asset raster/QA, worker và công bố thuộc [lộ trình platform](../../../vsp-eo-platform/docs/plans/roadmap.md), không mở rộng thành backend trong repo demo.
 
 ### Tham chiếu và lựa chọn
 

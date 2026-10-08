@@ -70,10 +70,10 @@ Liên hệ cần truy được: **địa bàn, tuyến, đoạn đường, đi�
 
 Chạy bằng `npm run serve:workspace` sau build. Đây là dịch vụ cục bộ chỉ đọc. Chưa có tiếp nhận tin, xử lý ảnh, phân quyền hoặc lưu thay đổi. `workspace-config.json` chọn nguồn `prepared` hoặc `api`; API lỗi phải báo lỗi, không lấy bộ mô phỏng thay thế.
 
-Luồng ghi cần hợp đồng v2 cho nhiều báo cáo và revision công bố, xem [tiếp nhận dữ liệu](data-ingestion.md). Đây là thiết kế dự kiến, thuộc [kế hoạch nghiên cứu backend](../plans/backend.md), không triển khai trong đợt demo hiện tại. Không thêm báo cáo tùy ý vào packet v1 hoặc đổi cờ `updated` rồi coi là đã lưu backend.
+Luồng ghi sản phẩm cần contract riêng cho nhiều báo cáo và assessment có phiên bản, xem [tiếp nhận dữ liệu](../../../vsp-eo-platform/docs/architecture/response-publication.md). Đây là thiết kế dự kiến, thuộc [kế hoạch nghiên cứu backend](../../../vsp-eo-platform/docs/plans/backend.md), không triển khai trong đợt demo hiện tại. Không thêm báo cáo tùy ý vào packet v1 hoặc đổi cờ `updated` rồi coi là đã lưu backend.
 
 ## Mở rộng cho dữ liệu thực
 
-[Danh mục trường dự kiến](data-fields.md) bổ sung GeoJSON WGS84, sensor/ngày ảnh, footprint, mây/nodata, provenance DEM và hệ độ cao, quyền dùng, trạng thái duyệt, người kiểm tra và điều kiện phương tiện. Đường được xác nhận đi được cần nguồn, thời điểm và loại phương tiện. AOI, vùng quan sát và vùng ảnh hưởng là ba hình học khác nhau.
+[Danh mục trường dự kiến](../../../vsp-eo-platform/docs/architecture/response-fields.md) bổ sung GeoJSON WGS84, sensor/ngày ảnh, footprint, mây/nodata, provenance DEM và hệ độ cao, quyền dùng, trạng thái duyệt, người kiểm tra và điều kiện phương tiện. Đường được xác nhận đi được cần nguồn, thời điểm và loại phương tiện. AOI, vùng quan sát và vùng ảnh hưởng là ba hình học khác nhau.
 
 RS/PO duyệt nội dung trước công bố. Kiểm tra schema không thay cho kiểm chứng dữ liệu hoặc nghiệm thu nghiệp vụ.

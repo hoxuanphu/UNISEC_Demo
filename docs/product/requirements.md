@@ -13,7 +13,7 @@ DEAR hỗ trợ cán bộ ứng phó và chính quyền địa phương đánh g
 | Địa bàn | Nơi nào cần chú ý trước, vì sao? | Lý do ưu tiên, dân số tham chiếu và khả năng tiếp cận |
 | Tuyến trong chi tiết địa bàn | Đường chính và đường vòng khác nhau thế nào? | Tình trạng từng đoạn, điểm cần xác minh và nguồn khi cần |
 
-Định hướng theo [proposal, trang 1–3](../../references/SIC2026/VinSpace_SIC2026_proposal.pdf). QTT là đối tác/nhà tài trợ tiềm năng; vai trò cụ thể nằm trong [kế hoạch sau SIC](../plans/pilot.md).
+Định hướng theo [proposal, trang 1–3](../../../references/SIC2026/VinSpace_SIC2026_proposal.pdf). QTT là đối tác/nhà tài trợ tiềm năng; vai trò cụ thể nằm trong [kế hoạch sau SIC](../../../vsp-eo-platform/docs/plans/dear-pilot.md).
 
 ## Chức năng cần bàn giao
 
@@ -27,7 +27,7 @@ DEAR hỗ trợ cán bộ ứng phó và chính quyền địa phương đánh g
 | P06 | So hai tuyến | Xem cùng điểm đầu/cuối; so chiều dài, ETA, tình trạng đường và biểu đồ độ cao |
 | P07 | Xuất bản tóm tắt | Xem trước và lưu PNG cùng dữ liệu JSON khớp bản đồ, tuyến chọn, bằng chứng, nguồn/ngày và điểm chưa xác minh |
 
-Phạm vi theo [S02](../../references/SIC2026/DEAR_SIC2026.docx) và [S03](../../references/SIC2026/DEAR_SIC2026_WebApp.pdf). Cách kiểm tra từng chức năng: [A01–A10](../quality/acceptance.md). Bố cục màn hình: [thiết kế giao diện](interface.md).
+Phạm vi theo [S02](../../../references/SIC2026/DEAR_SIC2026.docx) và [S03](../../../references/SIC2026/DEAR_SIC2026_WebApp.pdf). Cách kiểm tra từng chức năng: [A01–A10](../quality/acceptance.md). Bố cục màn hình: [thiết kế giao diện](interface.md).
 
 **Bản chạy 05/10:** có bản đồ 2D/3D, tuyến/ưu tiên theo quy tắc, ETA có điều kiện, bản ghi nguồn, cập nhật tin và xem dữ liệu cũ. Có xem trước và xuất PNG, JSON, GeoJSON, in/lưu PDF. Công cụ so GeoTIFF đã có, chưa có cặp ảnh thiên tai được duyệt. API hiện chỉ đọc snapshot, chưa phải backend vận hành.
 
@@ -46,7 +46,7 @@ Nhập KML/GeoJSON/WKT và AOI/footprint đã có trong [công cụ dữ liệu 
 | Nhập kết quả AI/viễn thám | Chưa có pipeline | Nhập sản phẩm có nguồn/phương pháp, kiểm tra rồi đưa vào đánh giá |
 | Duyệt và lịch sử | Hai mốc mô phỏng | Bản nháp, người duyệt, revision bất biến, lịch sử và nhiều người dùng |
 
-Luồng và dữ liệu dự kiến: [tiếp nhận và công bố dữ liệu](../architecture/data-ingestion.md). Thứ tự triển khai và lựa chọn công nghệ: [kế hoạch backend](../plans/backend.md).
+Luồng và dữ liệu dự kiến: [tiếp nhận và công bố dữ liệu](../../../vsp-eo-platform/docs/architecture/response-publication.md). Thứ tự triển khai và lựa chọn công nghệ: [kế hoạch backend](../../../vsp-eo-platform/docs/plans/backend.md).
 
 ## Phạm vi SIC
 

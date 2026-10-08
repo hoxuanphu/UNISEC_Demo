@@ -2,7 +2,7 @@
 
 > Lưu trữ, 2026-09-29. Tài liệu ghi nhận vấn đề của prototype cũ; không dùng làm đặc tả cho web hiện tại. Xem [yêu cầu sản phẩm](../product/requirements.md), [thiết kế giao diện](../product/interface.md) và [design system](../product/design-system.md).
 
-**Cập nhật 2026-09-30:** đã áp dụng hướng một workspace vào [bản mẫu DEAR](../../references/SIC2026/DEAR/index.html). Các quan sát lỗi ở mục 2 mô tả bản cũ ngày 29/09. Quy tắc giao diện mới nằm trong [README của bản mẫu](../../references/SIC2026/DEAR/design-system/README.md); chưa thay đổi app terrain hoặc phạm vi bàn giao SIC. `references/` được ignore cục bộ nên các liên kết này chỉ có trên máy giữ tài liệu.
+**Cập nhật 2026-09-30:** đã áp dụng hướng một workspace vào [bản mẫu DEAR](../../../references/SIC2026/DEAR/index.html). Các quan sát lỗi ở mục 2 mô tả bản cũ ngày 29/09. Quy tắc giao diện mới nằm trong [README của bản mẫu](../../../references/SIC2026/DEAR/design-system/README.md); chưa thay đổi app terrain hoặc phạm vi bàn giao SIC. `references/` được ignore cục bộ nên các liên kết này chỉ có trên máy giữ tài liệu.
 
 **Đề xuất:** một không gian bản đồ để nắm tình hình, chọn nơi cần chú ý, xem khả năng tiếp cận và cập nhật thông tin. Bằng chứng mở theo địa điểm/đoạn đường; xuất bản tin là thao tác chia sẻ. Không cần bốn menu ngang hàng.
 
@@ -10,7 +10,7 @@
 
 ## 1. Mục tiêu và người dùng
 
-[Proposal](../../references/SIC2026/VinSpace_SIC2026_proposal.pdf), trang 1–4, tập trung vào khoảng trống thông tin sau thiên tai: cộng đồng nào có thể bị cô lập, đường nào còn tiếp cận được, nơi nào cần ưu tiên nguồn lực. Bản đồ ưu tiên là sản phẩm chính; PDF/GeoPackage là cách đưa thông tin tới người sử dụng. Proposal không quy định phải có bốn màn hình.
+[Proposal](../../../references/SIC2026/VinSpace_SIC2026_proposal.pdf), trang 1–4, tập trung vào khoảng trống thông tin sau thiên tai: cộng đồng nào có thể bị cô lập, đường nào còn tiếp cận được, nơi nào cần ưu tiên nguồn lực. Bản đồ ưu tiên là sản phẩm chính; PDF/GeoPackage là cách đưa thông tin tới người sử dụng. Proposal không quy định phải có bốn màn hình.
 
 Mục tiêu **3–6 giờ** là tạo sản phẩm phân tích nhanh; proposal chưa định nghĩa đầy đủ điểm bắt đầu phép đo và có nêu giới hạn chờ ảnh. Không được biến mục tiêu này thành cam kết có tuyến cứu hộ khả dụng trong 3–6 giờ kể từ khi thiên tai xảy ra. Cần ghi riêng giờ sự kiện, giờ chụp, giờ nhận dữ liệu, giờ phân tích và giờ xác minh thực địa. Trong thời gian chờ ảnh, vẫn hiển thị dữ liệu nền và tin hiện trường đang có.
 

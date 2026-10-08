@@ -1,64 +1,23 @@
-# Tài liệu DEAR
+# Tài liệu UNISEC Demo / DEAR
 
-## Tài liệu theo công việc
+Repo này sở hữu bản demo SIC và các công cụ thử nghiệm đang chạy. Thiết kế sản phẩm EO lâu dài nằm ở [VSP EO Platform](../../vsp-eo-platform/docs/README.md); phần chuyển giao ở [handoff](../../vsp-eo-platform/docs/plans/handoff.md).
 
-| Cần biết | Đọc tài liệu | Người dùng chính |
-|---|---|---|
-| Trình diễn bản hiện hành thế nào? | [Luồng trình diễn](operations/walkthrough.md) | Cả nhóm |
-| Chạy gói offline thế nào? | [Gói offline](operations/offline.md) | SW, PO |
-| Đưa web lên Vercel thế nào? | [Deploy Vercel](operations/vercel.md) | SW |
-| Đích bàn giao SIC là gì? | [Yêu cầu sản phẩm](product/requirements.md) | Cả nhóm |
-| Màn hình và thao tác thế nào? | [Thiết kế giao diện](product/interface.md) | Cả nhóm |
-| Quy tắc màu, thành phần và bản đồ lấy từ đâu? | [Design system](product/design-system.md) | PO, SW |
-| Ký hiệu, nhãn và mặt cắt theo quy tắc nào? | [Hiển thị bản đồ](product/cartography.md) | SW, RS, AI |
-| Nhập KML/polygon, chọn AOI và kiểm độ phủ thế nào? | [Công cụ dữ liệu GIS](product/geodata-workspace.md) | RS, SW, PO |
-| Khi nào bàn giao, cần đầu vào gì? | [Kế hoạch SIC](plans/sic-2026.md) | Cả nhóm |
-| Ai đang làm gì, còn thiếu gì? | [Danh sách công việc](tasks/sic-2026.md) | Cả nhóm |
-| Thế nào là hoàn thành? | [Tiêu chí nghiệm thu](quality/acceptance.md) | Cả nhóm |
-| Luồng ứng phó hiện tại đã ổn chưa? | [Rà soát giao diện](quality/workspace-review.md) | PO, SW, RS |
-| Cần cải thiện gì về GIS, viễn thám và skill hỗ trợ? | [Đánh giá GIS và viễn thám](quality/gis-review.md) | PO, SW, RS, AI |
-| Dùng công nghệ gì, chia phần mềm thế nào? | [Kiến trúc hệ thống](architecture/overview.md) | SW, AI |
-| Source đã chia hợp lý chưa, sửa theo nguyên tắc nào? | [Cấu trúc mã](architecture/source-structure.md) | SW, AI |
-| Từ demo lên platform viễn thám theo thứ tự nào? | [Lộ trình platform](plans/platform.md) | Cả nhóm |
-| Công cụ GIS/viễn thám dài hạn dùng gì, quản lý CRS và nguồn ảnh thế nào? | [Nền tảng GIS và viễn thám](architecture/geospatial-platform.md) | SW, RS, AI, PO |
-| Backend cần xây gì, chọn công nghệ và triển khai thế nào? | [Kế hoạch backend](plans/backend.md), chỉ nghiên cứu | SW, AI, RS, PO |
-| Luồng nhập trên bản đồ/admin cần dữ liệu và API gì? | [Tiếp nhận và công bố dữ liệu](architecture/data-ingestion.md), thiết kế dự kiến | SW, AI, RS, PO |
-| Mức ưu tiên và tuyến được tính từ đâu? | [Phân tích ứng phó](architecture/response-analysis.md) | Cả nhóm |
-| Bản đồ và nhận định được lưu thế nào? | [Bản xuất đánh giá](architecture/decision-export.md) | SW, PO, RS |
-| Dữ liệu bàn giao theo định dạng nào? | [Đặc tả dữ liệu](architecture/data-contract.md) | SW, AI, RS |
-| Khi viết schema cần những trường nào? | [Danh mục trường](architecture/data-fields.md) | SW, AI |
-| Sau SIC phát triển gì với QTT? | [Kế hoạch thử nghiệm thực tế](plans/pilot.md) | PO, RS |
-| Thông tin lấy từ đâu, điểm nào cần sửa? | [Nguồn tham chiếu](sources.md), [rà soát nguồn](quality/source-review.md) | PO, RS, AI |
-
-[Đánh giá prototype ngày 29/09](quality/dear-ux-review.md) là tài liệu lưu trữ. Quy tắc hiện hành nằm ở yêu cầu sản phẩm, thiết kế giao diện và design system.
-
-## Thuật ngữ chung
-
-| Tên dùng trong tài liệu | Nghĩa |
+| Công việc | Tài liệu |
 |---|---|
-| PO / SW / AI / RS | Phụ trách sản phẩm / phần mềm / xử lý dữ liệu bằng AI / BA kiêm viễn thám |
-| AOI | Khu vực được chọn để phân tích và trình diễn |
-| Bộ dữ liệu, phiên bản | Các file dùng cho một tình huống; thay nội dung đã công bố thì tạo phiên bản mới |
-| Nhận định / bằng chứng | Điều app kết luận / ảnh, báo cáo hoặc kết quả kiểm tra làm căn cứ |
-| Biểu đồ độ cao dọc tuyến | Độ cao lấy mẫu theo chiều dài tuyến; tài liệu kỹ thuật gọi là `profile` |
-| ETA | Thời gian di chuyển ước tính, kèm phương tiện và giả định |
-| SAR / DEM | Ảnh radar vệ tinh / dữ liệu độ cao; phân biệt DSM và DTM trong đặc tả dữ liệu |
-| Bản tóm tắt | Bản đồ, tuyến chọn, bằng chứng và điểm chưa rõ để bàn giao; giao diện gọi là `Briefing` |
-| G1–G4 / Pxx / Dxx / Axx | Mốc kiểm tra / yêu cầu sản phẩm / công việc / tiêu chí nghiệm thu |
+| Chạy và trình diễn | [README](../README.md), [walkthrough](operations/walkthrough.md), [offline](operations/offline.md), [Vercel](operations/vercel.md) |
+| Phạm vi và bàn giao SIC | [Yêu cầu](product/requirements.md), [kế hoạch](plans/sic-2026.md), [công việc](tasks/sic-2026.md), [nghiệm thu](quality/acceptance.md) |
+| Giao diện và bản đồ hiện tại | [Interface](product/interface.md), [design system](product/design-system.md), [cartography](product/cartography.md) |
+| Công cụ AOI/KML/catalog thử nghiệm | [Dữ liệu GIS](product/geodata-workspace.md) |
+| Kiến trúc và code đang chạy | [Overview](architecture/overview.md), [source](architecture/source-structure.md) |
+| Dữ liệu và phương pháp demo | [Contract v1](architecture/data-contract.md), [response analysis](architecture/response-analysis.md), [decision export](architecture/decision-export.md) |
+| Kiểm chứng và nguồn | [Workspace review](quality/workspace-review.md), [GIS review](quality/gis-review.md), [sources](sources.md), [source review](quality/source-review.md) |
+
+[Đánh giá prototype 29/09](quality/dear-ux-review.md) và tài liệu lưu trữ giữ bối cảnh cũ, không thay quy tắc hiện hành. PO/SW/AI/RS lần lượt là sản phẩm/phần mềm/xử lý AI/viễn thám.
 
 ## Quy tắc cập nhật
 
-| Thay đổi | Tài liệu cần sửa |
-|---|---|
-| CSS, icon, câu chữ, bug nhỏ, refactor nội bộ | Không cần nếu cách dùng và trách nhiệm không đổi |
-| Luồng hoặc hành vi người dùng | `product/interface.md` hoặc tài liệu công cụ liên quan |
-| Nguyên tắc UI dùng chung | `product/design-system.md`; thông số cụ thể nằm trong code |
-| Contract/phương pháp/trách nhiệm module | Tài liệu tương ứng trong `architecture/` |
-| Phạm vi, thứ tự hoặc trạng thái công việc | `plans/` hoặc `tasks/`, không chép tiến độ sang nơi khác |
-| Chốt bản demo/phát hành | `quality/workspace-review.md` ghi mốc và giới hạn kiểm chứng; log chi tiết ở CI |
+Mỗi nội dung có một nơi sở hữu. Chỉ sửa tài liệu khi cách dùng, trách nhiệm, contract, phương pháp hoặc phạm vi bàn giao đổi. CSS/icon/câu chữ nhỏ/refactor không đổi hành vi không cần cập nhật hàng loạt. Git và CI giữ lịch sử, log và số test.
 
-- Mỗi nội dung có một nơi sở hữu; tài liệu khác dẫn link. Không thêm bảng tóm tắt trùng hoặc nhật ký sửa lỗi.
-- Git lưu ngày và lịch sử. Không đổi ngày trên mọi tài liệu theo từng commit, không chép số test, phiên bản dependency hoặc từng giá trị CSS.
-- Giữ ID P/D/A và điều kiện nghiệm thu. Phân biệt phần triển khai, đề xuất và dữ liệu chưa được duyệt.
-- Tài liệu gốc trong [`references`](../references/) và bản lưu trữ không cập nhật theo sản phẩm hiện tại.
-- Chỉ commit ảnh được dẫn trong docs. Ảnh/log kiểm thử phát sinh ở `references/SIC2026/DEAR-review-captures/` đã ignore; không cập nhật hàng loạt sau khi chỉnh UI.
+Định dạng đang chạy theo schema/source; quy tắc giao diện theo tài liệu sản phẩm; trạng thái bàn giao theo bảng công việc. Kiến trúc/backend/contract platform sửa tại repo platform, không tạo bản sao tại đây.
+
+[Context chung](../../docs/README.md) và [references](../../references) nằm ngoài repo, cấp riêng tại máy; không phải phụ thuộc build. Chỉ commit ảnh được dẫn trong docs; capture/log kiểm thử không đưa vào tài liệu nguồn.

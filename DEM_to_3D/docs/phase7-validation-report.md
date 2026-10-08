@@ -46,7 +46,7 @@ Recorded values:
   WebGL context, so it does not claim the `30 FPS` target.
 
 The machine-readable raw output is in
-[`phase7-benchmark.json`](./phase7-benchmark.json).
+[`phase7-benchmark.json`](phase7-benchmark.json).
 
 ## Full verification commands
 

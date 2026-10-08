@@ -1,6 +1,6 @@
 # Task Tracker — Terrain 3D Viewer và Profile địa hình
 
-Tài liệu này chuyển các quyết định trong [`terrain-3d-profile-plan.md`](./terrain-3d-profile-plan.md) thành danh sách công việc có thể triển khai và theo dõi.
+Tài liệu này chuyển các quyết định trong [`terrain-3d-profile-plan.md`](terrain-3d-profile-plan.md) thành danh sách công việc có thể triển khai và theo dõi.
 
 ## Quy ước
 

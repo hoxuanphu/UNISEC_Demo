@@ -1,6 +1,6 @@
 # Cấu trúc mã và trách nhiệm
 
-Phạm vi: `DEM_to_3D/viewer`. Công nghệ ở [kiến trúc GIS](geospatial-platform.md), thứ tự triển khai ở [lộ trình platform](../plans/platform.md).
+Phạm vi: `DEM_to_3D/viewer`. Công nghệ ở [kiến trúc GIS](../../../vsp-eo-platform/docs/architecture/geospatial-platform.md), thứ tự triển khai ở [lộ trình platform](../../../vsp-eo-platform/docs/plans/roadmap.md).
 
 ## Ranh giới hiện tại
 
@@ -18,7 +18,7 @@ Phạm vi: `DEM_to_3D/viewer`. Công nghệ ở [kiến trúc GIS](geospatial-pl
 
 `components/dear/` còn chứa panel của nhiều feature. Khi sửa lớn, chuyển về feature sở hữu thay vì tạo thêm wrapper. Không chia file theo một giới hạn dòng tùy ý.
 
-## Cấu trúc frontend đích
+## Hướng refactor frontend demo
 
 Đây là cấu trúc chuyển dần, chưa phải các thư mục đã triển khai hết.
 
@@ -75,6 +75,6 @@ Các quy tắc này là đích refactor. Source hiện tại vẫn có phụ thu
 
 Phần còn cần tách: phân tích địa hình khỏi shell, toán địa lý khỏi renderer và vòng đời scene/camera. Kiểm phụ thuộc chưa được lint toàn bộ; mỗi đợt cần giữ kiểm tra tương tác, fallback và tài nguyên.
 
-Giữ đường dẫn web hiện tại cho CI/Vercel. Chỉ chuyển monorepo hoặc tạo package khi có bên sử dụng cụ thể. Backend chưa triển khai, xem [kế hoạch](../plans/backend.md).
+Giữ đường dẫn web hiện tại cho CI/Vercel. Backend và monorepo sản phẩm thuộc [platform](../../../vsp-eo-platform/docs/architecture/source-structure.md), không xây tại repo demo. Kế thừa code theo [handoff](../../../vsp-eo-platform/docs/plans/handoff.md); không import source qua hai repo.
 
 Không duy trì danh sách từng file, số dòng hoặc nhật ký refactor ở đây. Git giữ lịch sử; tài liệu chỉ đổi khi trách nhiệm hoặc hướng phụ thuộc đổi.

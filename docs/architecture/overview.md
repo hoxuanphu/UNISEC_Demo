@@ -57,7 +57,7 @@ Renderer không quyết định ưu tiên. Component không giữ một bản b�
 
 `workspace-config.json` chọn nguồn prepared/API và URL manifest. Loader chỉ trả về khi packet và địa hình khớp manifest. App nhận một bộ hoàn chỉnh hoặc lỗi, không ghép hai phiên bản hoặc thay bộ lỗi bằng bộ mặc định. Build, server thử và gói offline đọc cùng cấu hình. React, Leaflet và bộ kiểm tra schema có chunk riêng; 3D và so ảnh tải khi mở.
 
-[Rà cấu trúc mã](source-structure.md) ghi các phụ thuộc còn cần tách và cấu trúc frontend đích. [Lộ trình platform](../plans/platform.md) phân biệt phần demo đã có với catalog, xử lý ảnh và backend chưa triển khai.
+[Rà cấu trúc mã](source-structure.md) ghi các phụ thuộc còn cần tách và cấu trúc frontend đích. [Lộ trình platform](../../../vsp-eo-platform/docs/plans/roadmap.md) phân biệt phần demo đã có với catalog, xử lý ảnh và backend chưa triển khai.
 
 ## Pipeline theo proposal
 
@@ -68,8 +68,8 @@ Renderer không quyết định ưu tiên. Component không giữ một bản b�
 | 3. Phân tích sau sự kiện | Báo cáo ảnh hưởng, tính tuyến và ưu tiên bằng quy tắc. Có công cụ so GeoTIFF | So SAR trước/sau, AI nhận diện tác động, Community Isolation Score và kiểm chứng mạng đường |
 | 4. Sản phẩm hỗ trợ quyết định | Bản đồ ưu tiên, tuyến, căn cứ, H đề xuất. Xuất PNG/PDF/JSON/GeoJSON, chạy online/offline | Điểm và vùng tác động được duyệt, điểm số rủi ro/ưu tiên theo phương pháp thống nhất, GeoPackage |
 
-Ưu tiên hiện tại là demo SIC, deploy Vite trên Vercel bằng dữ liệu prepared và không cần backend. Định hướng phần mở rộng là NestJS/TypeScript, PostgreSQL/PostGIS và worker Python khi tích hợp xử lý ảnh, chưa triển khai. Kiến trúc và phương án deploy ở [kế hoạch backend](../plans/backend.md). LLM không nằm trong đường tính ưu tiên hiện tại.
+Ưu tiên hiện tại là demo SIC, deploy Vite trên Vercel bằng dữ liệu prepared và không cần backend. Phần mở rộng được thiết kế và triển khai tại repo platform; không biến API snapshot demo thành backend sản phẩm. Kiến trúc và phương án deploy ở [kế hoạch backend](../../../vsp-eo-platform/docs/plans/backend.md). LLM không nằm trong đường tính ưu tiên hiện tại.
 
-[Tiếp nhận và công bố dữ liệu](data-ingestion.md) mô tả nghiệp vụ và contract dự kiến cho luồng ghi. Các luồng này không thuộc bản demo hiện tại.
+[Tiếp nhận và công bố dữ liệu](../../../vsp-eo-platform/docs/architecture/response-publication.md) mô tả nghiệp vụ và contract dự kiến cho luồng ghi. Các luồng này không thuộc bản demo hiện tại.
 
-[Nền tảng GIS và viễn thám](geospatial-platform.md) chốt hướng OpenLayers/Cesium, NestJS/PostGIS/Python, tích hợp QGIS/Copernicus/GEE và quản lý CRS/nguồn ảnh. Demo chưa chuyển engine.
+[Nền tảng GIS và viễn thám](../../../vsp-eo-platform/docs/architecture/geospatial-platform.md) đề xuất baseline công nghệ và quy tắc CRS/nguồn ảnh của platform, cần kiểm chứng trước triển khai. Demo chưa chuyển engine.

@@ -101,7 +101,7 @@ Mở rộng tiếp theo: mặt cắt theo đường tự vẽ và lưu/xuất h�
 
 ## Căn cứ
 
-CRS, datum, dữ liệu ảnh và định hướng engine: [nền tảng GIS và viễn thám](../architecture/geospatial-platform.md). Demo chưa có nhập VN2000 hoặc pipeline phân tích ảnh được kiểm chứng, không ghi là đã đạt chuẩn vận hành.
+CRS, datum, dữ liệu ảnh và định hướng engine: [nền tảng GIS và viễn thám](../../../vsp-eo-platform/docs/architecture/geospatial-platform.md). Demo chưa có nhập VN2000 hoặc pipeline phân tích ảnh được kiểm chứng, không ghi là đã đạt chuẩn vận hành.
 
 | Nguồn | Phạm vi áp dụng |
 |---|---|

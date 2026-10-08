@@ -1,5 +1,7 @@
 # UNISEC_Demo
 
+Repo demo phục vụ SIC, giữ build/deploy độc lập. Sản phẩm EO lâu dài được thiết kế tại [VSP EO Platform](../vsp-eo-platform/README.md); cách chuyển giao ở [handoff](../vsp-eo-platform/docs/plans/handoff.md). [Context chung](../docs/README.md) chỉ dẫn nơi đọc giữa hai repo.
+
 ## Web DEAR
 
 Web ứng phó sạt lở/lũ quét tại `DEM_to_3D/viewer`. Hiện dùng gói dữ liệu mô phỏng Chế Tạo và có API snapshot cục bộ để thử tích hợp. Bắt đầu đọc [tài liệu dự án](docs/README.md); [luồng trình diễn](docs/operations/walkthrough.md) có thao tác và lời dẫn tiếng Anh.
