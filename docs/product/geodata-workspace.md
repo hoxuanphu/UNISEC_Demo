@@ -1,6 +1,6 @@
 # Vùng quan tâm và phạm vi ảnh
 
-Phạm vi: công cụ thử nghiệm trong demo, lưu dữ liệu cục bộ tại trình duyệt. AOI nhập/vẽ ở đây không sửa AOI sự kiện hoặc kết quả tuyến/ưu tiên của DEAR. Luồng có project, quyền, xử lý và công bố được xây tại [Workbench của platform](../../../vsp-eo-platform/docs/product/workspaces.md).
+Phạm vi: công cụ thử nghiệm trong demo, lưu dữ liệu cục bộ tại trình duyệt. AOI nhập/vẽ ở đây không sửa AOI sự kiện hoặc kết quả tuyến/ưu tiên của DEAR. Luồng có project, quyền, xử lý và công bố được xây tại [Workbench của platform](../../../vsp-eo-platform/docs/architecture/overview.md#workspace).
 
 Cập nhật: 08/10/2026. Mở **Lớp bản đồ → Dữ liệu GIS**, hoặc `/?workspace=geodata`. Công cụ độc lập với DEM và chạy tại trình duyệt, dùng được trên Vercel. Thêm `&offline=1` để không tải nền ngoài.
 
@@ -55,7 +55,7 @@ flowchart LR
 | Lưu/chia sẻ | LocalStorage theo origin, kiểm dữ liệu khi mở lại. Xuất tệp để giữ/chia sẻ. Chưa có tài khoản, đồng bộ, checksum tệp gốc hoặc lịch sử nhập |
 | Nhập lại bản xuất | Lựa chọn Theo tệp giữ `geometryRole` từ GeoJSON/KML của công cụ; tệp không có vai trò dùng Tham chiếu. Chọn vai trò khác để ghi đè khi nhập |
 
-## Thiết kế bước tiếp theo: tìm và chọn ảnh
+## Catalog prepared
 
 **Bước catalog prepared đã tích hợp.** Tab Cảnh ảnh dùng 12 bản ghi STAC thật: sáu Sentinel-1 GRD và sáu Sentinel-2 L2A, thu nhận 24/09–07/10/2026 quanh Chế Tạo. Snapshot metadata lấy từ Copernicus Data Space ngày 08/10/2026; `public/catalog/che-tao.json` giữ truy vấn gốc, nguồn và giấy phép. App đọc tệp cùng origin, chạy trên Vercel và trong gói offline, chưa truy vấn catalog trực tiếp. [Maquette](assets/analysis-workspace.html) là bản nghiên cứu bố cục trước triển khai.
 

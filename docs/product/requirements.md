@@ -46,7 +46,7 @@ Nhập KML/GeoJSON/WKT và AOI/footprint đã có trong [công cụ dữ liệu 
 | Nhập kết quả AI/viễn thám | Chưa có pipeline | Nhập sản phẩm có nguồn/phương pháp, kiểm tra rồi đưa vào đánh giá |
 | Duyệt và lịch sử | Hai mốc mô phỏng | Bản nháp, người duyệt, revision bất biến, lịch sử và nhiều người dùng |
 
-Luồng và dữ liệu dự kiến: [tiếp nhận và công bố dữ liệu](../../../vsp-eo-platform/docs/architecture/response-publication.md). Thứ tự triển khai và lựa chọn công nghệ: [kế hoạch backend](../../../vsp-eo-platform/docs/plans/backend.md).
+Luồng và dữ liệu dự kiến: [tiếp nhận và công bố dữ liệu](../../../vsp-eo-platform/docs/architecture/response-publication.md). Thứ tự triển khai và lựa chọn công nghệ: [kế hoạch backend](../../../vsp-eo-platform/docs/plans/roadmap.md#backend-và-worker).
 
 ## Phạm vi SIC
 

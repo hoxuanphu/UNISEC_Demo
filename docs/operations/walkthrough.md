@@ -1,8 +1,10 @@
 # Luồng trình diễn DEAR
 
-Cập nhật: 2026-10-05. Thời lượng: sáu phút. Dùng dữ liệu mô phỏng Chế Tạo.
+Thời lượng: sáu phút. Dùng dữ liệu mô phỏng Chế Tạo.
 
-Mở đầu: “This prepared incident demonstrates how an operator reviews impacts, prioritises communities and checks access routes.”
+Mở đầu tiếng Việt: “Đây là tình huống mô phỏng để trình diễn cách đánh giá tác động, ưu tiên địa bàn và kiểm tra phương án tiếp cận.”
+
+Tiếng Anh: “This prepared incident demonstrates how an operator reviews impacts, prioritises communities and checks access routes.”
 
 | Thời gian | Thao tác | Ý chính để trình bày bằng tiếng Anh |
 |---|---|---|
@@ -38,4 +40,12 @@ Demo chứng minh luồng ứng phó trên web. Chưa chứng minh pipeline vệ
 | Dự phòng | Nếu 3D lỗi, dùng 2D. Nếu mất mạng, dùng gói offline |
 | Lặp lại | Trong Cài đặt, chọn Đặt lại phiên làm việc |
 
-Trước buổi demo: duyệt nội dung với RS/PO, thử đúng máy trình chiếu và URL Vercel, chuẩn bị gói offline/video. Xem [cách chạy offline](offline.md), [cách tính tuyến và ưu tiên](../architecture/response-analysis.md), [hướng dẫn demo tiếng Việt](demo.md).
+Trước buổi demo: duyệt nội dung với RS/PO, thử đúng máy trình chiếu và URL Vercel, chuẩn bị gói offline/video. Xem [cách chạy offline](offline.md), [cách tính tuyến và ưu tiên](../architecture/response-analysis.md).
+
+## Chuẩn bị và chạy
+
+Cài/build theo [README](../../README.md), sau đó chạy `npm run serve:workspace` trong `DEM_to_3D/viewer` và mở `http://127.0.0.1:5212`. Có thể trình diễn gói prepared với `npm run dev` mà không có API riêng. Tập trên đúng máy/browser, thử mất mạng và lỗi 3D, xuất bản đánh giá rồi đặt lại phiên để chạy lượt thứ hai.
+
+Mã NR-18/PR-7/T-5 là mã mô phỏng, không phải số hiệu đường chính thức. H là vị trí đề xuất chưa khảo sát. Nếu rút ngắn, giữ địa bàn, so tuyến, tin mới và bản xuất; chỉ mở mặt cắt/3D khi cần. So ảnh cần cặp được duyệt; GeoPackage chưa triển khai.
+
+Trình diễn KML/AOI/catalog là phần mở rộng sau luồng ứng phó, tại [workspace GIS](../product/geodata-workspace.md). Import không sửa tình huống hoặc công bố kết quả phân tích. [Kế hoạch và công việc](../tasks/sic-2026.md) giữ các điều kiện bàn giao còn thiếu.

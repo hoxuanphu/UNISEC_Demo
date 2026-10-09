@@ -1,5 +1,7 @@
 # 3D Upload and Geographic Terrain Merge Design
 
+> Historical design/implementation record. Not the current task list; see [SIC plan](../../tasks/sic-2026.md). Do not update this record for routine viewer changes.
+
 ## Goal
 
 Add an upload workflow to the DEM viewer that can display one uploaded 3D

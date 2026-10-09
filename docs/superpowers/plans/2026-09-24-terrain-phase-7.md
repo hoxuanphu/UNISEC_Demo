@@ -1,5 +1,7 @@
 # Terrain 3D Phase 7 Implementation Plan
 
+> Historical design/implementation record. Not the current task list; see [SIC plan](../../tasks/sic-2026.md). Do not update this record for routine viewer changes.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add deterministic Phase 7 tests, offline performance evidence, and asset/lifecycle hardening for the Terrain 3D exporter and viewer.

@@ -57,4 +57,4 @@ Workflow [DEAR web](../../.github/workflows/dear-web.yml) kiểm tra dữ liệu
 
 Demo giữ `dataSource: "prepared"` và để trống `VITE_DEAR_API_BASE`. Không cần API ghi, DB hoặc worker để trình diễn bộ đã chuẩn bị. Các biến `VITE_*` đọc được từ trình duyệt, không chứa khóa bí mật.
 
-Backend sản phẩm được thiết kế tại [platform](../../../vsp-eo-platform/docs/plans/backend.md), có cấu hình và artifact riêng; không bổ sung vào project Vercel demo theo tài liệu này.
+Backend sản phẩm được thiết kế tại [platform](../../../vsp-eo-platform/docs/plans/roadmap.md#backend-và-worker), có cấu hình và artifact riêng; không bổ sung vào project Vercel demo theo tài liệu này.

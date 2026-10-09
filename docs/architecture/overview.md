@@ -68,7 +68,7 @@ Renderer không quyết định ưu tiên. Component không giữ một bản b�
 | 3. Phân tích sau sự kiện | Báo cáo ảnh hưởng, tính tuyến và ưu tiên bằng quy tắc. Có công cụ so GeoTIFF | So SAR trước/sau, AI nhận diện tác động, Community Isolation Score và kiểm chứng mạng đường |
 | 4. Sản phẩm hỗ trợ quyết định | Bản đồ ưu tiên, tuyến, căn cứ, H đề xuất. Xuất PNG/PDF/JSON/GeoJSON, chạy online/offline | Điểm và vùng tác động được duyệt, điểm số rủi ro/ưu tiên theo phương pháp thống nhất, GeoPackage |
 
-Ưu tiên hiện tại là demo SIC, deploy Vite trên Vercel bằng dữ liệu prepared và không cần backend. Phần mở rộng được thiết kế và triển khai tại repo platform; không biến API snapshot demo thành backend sản phẩm. Kiến trúc và phương án deploy ở [kế hoạch backend](../../../vsp-eo-platform/docs/plans/backend.md). LLM không nằm trong đường tính ưu tiên hiện tại.
+Ưu tiên hiện tại là demo SIC, deploy Vite trên Vercel bằng dữ liệu prepared và không cần backend. Phần mở rộng được thiết kế và triển khai tại repo platform; không biến API snapshot demo thành backend sản phẩm. Kiến trúc và phương án deploy ở [kế hoạch backend](../../../vsp-eo-platform/docs/plans/roadmap.md#backend-và-worker). LLM không nằm trong đường tính ưu tiên hiện tại.
 
 [Tiếp nhận và công bố dữ liệu](../../../vsp-eo-platform/docs/architecture/response-publication.md) mô tả nghiệp vụ và contract dự kiến cho luồng ghi. Các luồng này không thuộc bản demo hiện tại.
 

@@ -39,3 +39,13 @@ Quy tắc thiết kế dùng chung. Giá trị màu, font, kích thước và br
 Tham khảo: [QGIS](https://docs.qgis.org/3.40/en/docs/user_manual/introduction/qgis_gui.html), [Earth Engine](https://developers.google.com/earth-engine/guides/playground), [SkyFi](https://learn.skyfi.com/how-to/tasking-a-satellite-to-capture-a-new-image/) và ảnh UNOSAT do nhóm cung cấp. Luồng nghiệp vụ nằm ở [interface](interface.md).
 
 Chỉ sửa tài liệu này khi đổi nguyên tắc hoặc hành vi dùng chung. Chỉnh màu, đệm, cỡ chữ hoặc sửa lỗi một component chỉ cần code và kiểm tra liên quan.
+
+## Căn cứ thao tác
+
+| Câu hỏi | Quyết định cho DEAR | Căn cứ |
+|---|---|---|
+| Dấu cộng để mở rộng có sai chuẩn GIS? | Không. Dùng chevron nét mảnh để phân biệt mở nội dung với zoom/thêm hình | [Calcite Accordion](https://developers.arcgis.com/calcite-design-system/components/accordion/) hỗ trợ chevron, caret và plus-minus. [W3C Disclosure](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/) quy định hành vi và trạng thái, không bắt buộc một hình icon |
+| Cái gì được thu gọn? | Từng đoạn đo, nguồn và tùy chọn. Kết quả, trạng thái đường và hành động tiếp theo luôn thấy | [Calcite Block](https://developers.arcgis.com/calcite-design-system/components/block/) tổ chức nhóm điều khiển trong panel và khuyến cáo không giấu thông tin thiết yếu |
+| Kết thúc phép đo thế nào? | Nhấp đúp, Enter hoặc nút Kết thúc. Kéo bản đồ không kết thúc phép đo | [ArcGIS Map Viewer](https://doc.arcgis.com/en/arcgis-online/get-started/measure-mv.htm) dùng click để thêm đỉnh, nhấp đúp để kết thúc và vẫn cho pan |
+| Có cần ghi mọi giới hạn trên bản đồ? | Chỉ hiện cảnh báo ảnh hưởng trực tiếp tới thao tác/kết luận. CRS, cách tính và nguồn ở thông tin công cụ/lớp | Quyết định thiết kế của DEAR. Không xóa nguồn hoặc giới hạn khỏi metadata/bản xuất |
+| Có cần bản đồ nhỏ? | Có trên 2D desktop, thu gọn mặc định. Giúp định hướng khi xem gần, hiển thị đúng khung nhìn, ẩn khi mở công cụ | [ArcGIS Overview map](https://developers.arcgis.com/javascript/latest/sample-code/overview-map/) là mẫu tham khảo. Đây là lựa chọn thiết kế, không phải yêu cầu bắt buộc của GIS |

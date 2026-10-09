@@ -1,5 +1,7 @@
 # Terrain 3D Phase 7 Design
 
+> Historical design/implementation record. Not the current task list; see [SIC plan](../../tasks/sic-2026.md). Do not update this record for routine viewer changes.
+
 ## Goal
 
 Complete the Phase 7 P0 verification and the reproducible offline portion of
