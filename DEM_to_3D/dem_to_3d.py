@@ -375,7 +375,7 @@ def rasterize_commune_geometries(
     return inside
 
 
-def load_commune_mask(shp_path, commune_query, transform, crs, grid_shape, buffer_m, verbose):
+def load_commune_mask(shp_path, commune_query, transform, crs, grid_shape, buffer_m, verbose, return_metadata=False):
     """
     Trả về mask (True = pixel NGOÀI ranh giới xã, sẽ bị coi là nodata).
 
@@ -426,7 +426,7 @@ def load_commune_mask(shp_path, commune_query, transform, crs, grid_shape, buffe
             sys.exit(0)
 
     # ----- Tìm xã khớp truy vấn (tên HOẶC mã, kèm tỉnh nếu trùng tên) -----
-    matches = []  # [(shape, ten_xa, ten_tinh)]
+    matches = []  # [(shape, ten_xa, ten_tinh, attributes)]
     for i, shape in enumerate(r.iterShapes()):
         rec = r.record(i)
         ten = str(rec["ten_xa"] or "").strip()
@@ -436,19 +436,19 @@ def load_commune_mask(shp_path, commune_query, transform, crs, grid_shape, buffe
             if "|" in q:
                 q_xa, _, q_tinh = q.partition("|")
                 if q_xa.strip() == ten.lower() and q_tinh.strip() == tinh.lower():
-                    matches.append((shape, ten, tinh))
+                    matches.append((shape, ten, tinh, rec.as_dict()))
                     break
             elif q == ten.lower() or q == ma:
-                matches.append((shape, ten, tinh))
+                matches.append((shape, ten, tinh, rec.as_dict()))
                 break
 
     if not matches:
         print(f"Lỗi: không tìm thấy xã nào khớp truy vấn: {', '.join(queries)}", file=sys.stderr)
         sys.exit(1)
 
-    log(f"Khớp {len(matches)} xã: " + ", ".join(f"{t} ({p})" for _, t, p in matches), verbose)
+    log(f"Khớp {len(matches)} xã: " + ", ".join(f"{t} ({p})" for _, t, p, _ in matches), verbose)
 
-    geometries = [shape.__geo_interface__ for shape, _, _ in matches]
+    geometries = [shape.__geo_interface__ for shape, _, _, _ in matches]
     inside = rasterize_commune_geometries(
         geometries,
         transform,
@@ -461,7 +461,28 @@ def load_commune_mask(shp_path, commune_query, transform, crs, grid_shape, buffe
     outside = ~inside
     log(f"Giữ lại {(~outside).sum():,}/{outside.size:,} pixel "
         f"({(~outside).mean()*100:.1f}%) bên trong ranh giới xã.", verbose)
-    return outside
+    if not return_metadata:
+        return outside
+    field_map = {
+        "commune_code": "ma_xa",
+        "commune_name": "ten_xa",
+        "province_code": "ma_tinh",
+        "province_name": "ten_tinh",
+        "headquarters": "tru_so",
+        "type": "loai",
+        "area_km2": "dtich_km2",
+        "population": "dan_so",
+        "density_per_km2": "matdo_km2",
+    }
+    administrative_units = []
+    for _, _, _, attributes in matches:
+        unit = {}
+        for output_key, input_key in field_map.items():
+            value = attributes.get(input_key)
+            if value is not None and value != "":
+                unit[output_key] = value
+        administrative_units.append(unit)
+    return outside, administrative_units
 
 
 # --------------------------------------------------------------------------
@@ -770,11 +791,12 @@ def main():
     if args.keep_geographic:
         analysis_supported = False
 
+    administrative_units = []
     # 3. Cắt theo ranh giới xã/phường (nếu có) — đánh dấu pixel ngoài xã thành nodata
     if args.commune_shp:
-        outside_mask = load_commune_mask(
+        outside_mask, administrative_units = load_commune_mask(
             args.commune_shp, args.commune, transform, crs, array.shape,
-            args.commune_buffer, verbose,
+            args.commune_buffer, verbose, return_metadata=True,
         )
         nodata_mask = nodata_mask | outside_mask
 
@@ -888,6 +910,11 @@ def main():
             "triangle_count": int(faces.shape[0]),
         },
     }
+    if administrative_units:
+        metadata["administrative"] = {
+            "source": os.path.basename(args.commune_shp),
+            **(administrative_units[0] if len(administrative_units) == 1 else {"units": administrative_units}),
+        }
     validate_metadata(metadata)
     dump_metadata(metadata, json_path)
     # Validate the just-written pair, including its byte length, before

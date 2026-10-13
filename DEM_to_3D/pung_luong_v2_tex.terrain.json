@@ -52,6 +52,18 @@
   },
   "analysis_supported": true,
   "hole_mode": "mask",
+  "administrative": {
+    "source": "Việt Nam (phường xã) - 34.shp",
+    "commune_code": "04492",
+    "commune_name": "Púng Luông",
+    "province_code": "15",
+    "province_name": "Lào Cai",
+    "headquarters": "đang cập nhật",
+    "type": "Xã",
+    "area_km2": 253.24,
+    "population": 19516,
+    "density_per_km2": 77.07
+  },
   "mesh": {
     "file": "pung_luong_v2_tex.glb",
     "vertex_count": 308434,

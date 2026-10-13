@@ -68,6 +68,20 @@ export function validateMetadata(value: unknown): TerrainMetadata {
     errors.push('elevation metadata is invalid');
   }
   if (metadata.hole_mode !== undefined && metadata.hole_mode !== 'mask' && metadata.hole_mode !== 'fill') errors.push('hole_mode must be mask or fill');
+  if (metadata.administrative !== undefined) {
+    const administrative = metadata.administrative;
+    if (!administrative || typeof administrative !== 'object') errors.push('administrative must be an object');
+    else {
+      if (administrative.source !== undefined && typeof administrative.source !== 'string') errors.push('administrative.source must be a string');
+      for (const key of ['commune_code', 'commune_name', 'province_code', 'province_name', 'headquarters', 'type'] as const) {
+        if (administrative[key] !== undefined && typeof administrative[key] !== 'string') errors.push(`administrative.${key} must be a string`);
+      }
+      for (const key of ['area_km2', 'population', 'density_per_km2'] as const) {
+        if (administrative[key] !== undefined && !finite(administrative[key])) errors.push(`administrative.${key} must be finite`);
+      }
+      if (administrative.units !== undefined && (!Array.isArray(administrative.units) || administrative.units.length === 0)) errors.push('administrative.units must be a non-empty array');
+    }
+  }
   if (metadata.mesh !== undefined && (!metadata.mesh || typeof metadata.mesh !== 'object' || !safeAssetFilename(metadata.mesh.file) || !Number.isInteger(metadata.mesh.vertex_count) || metadata.mesh.vertex_count < 0 || !Number.isInteger(metadata.mesh.triangle_count) || metadata.mesh.triangle_count < 0)) errors.push('mesh metadata is invalid');
   if (errors.length) throw new TerrainAssetError(`Asset contract validation failed:\n- ${errors.join('\n- ')}`);
   return metadata as TerrainMetadata;

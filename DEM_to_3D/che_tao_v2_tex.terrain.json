@@ -52,6 +52,18 @@
   },
   "analysis_supported": true,
   "hole_mode": "mask",
+  "administrative": {
+    "source": "Việt Nam (phường xã) - 34.shp",
+    "commune_code": "04489",
+    "commune_name": "Chế Tạo",
+    "province_code": "15",
+    "province_name": "Lào Cai",
+    "headquarters": "đang cập nhật",
+    "type": "Xã",
+    "area_km2": 234.44,
+    "population": 2650,
+    "density_per_km2": 11.3
+  },
   "mesh": {
     "file": "che_tao_v2_tex.glb",
     "vertex_count": 283908,

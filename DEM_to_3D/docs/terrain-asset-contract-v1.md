@@ -28,3 +28,14 @@ python terrain_contract.py terrain.terrain.json --grid terrain.grid.bin
 
 Asset có `analysis_supported: true` phải dùng projected CRS với đơn vị mét.
 `--keep-geographic` tạo asset visual-only (`analysis_supported: false`).
+
+
+## Tiled texture pyramid v1
+
+Texture độ phân giải cao là nguồn riêng theo từng model và không thay thế preview toàn model. Generator tạo sidecar MODEL.tiles.json cạnh MODEL.terrain.json và thư mục không track MODEL_tiles/z<zoom>/<column>_<row>.webp.
+
+```powershell
+python DEM_to_3D/tools/tile_texture.py --input DEM_to_3D/lao_chai_v2_tex.tif --terrain-json DEM_to_3D/lao_chai_v2_tex.terrain.json --output DEM_to_3D/lao_chai_v2_tex_tiles --tile-size 512 --format webp --quality 88
+```
+
+`bounds_projected` lấy từ outer bounds của grid_transform và grid.shape; generator đọc source theo từng window bounded, tạo gutter 2 pixel và dựng level thấp từ tile con. Viewer validate metadata, ghép tile theo asset_id, giữ tile z0 làm preview và không decode TIFF lớn khi pyramid hợp lệ. Khi nhiều model cùng hiển thị, detail được phân bổ theo ngân sách CPU/GPU và request toàn scene.

@@ -45,6 +45,23 @@ export type ElevationMetadata = {
   max: number;
 };
 
+export type AdministrativeUnit = {
+  commune_code?: string;
+  commune_name?: string;
+  province_code?: string;
+  province_name?: string;
+  headquarters?: string;
+  type?: string;
+  area_km2?: number;
+  population?: number;
+  density_per_km2?: number;
+};
+
+export type AdministrativeMetadata = AdministrativeUnit & {
+  source?: string;
+  units?: AdministrativeUnit[];
+};
+
 export type MeshMetadata = {
   file: string;
   vertex_count: number;
@@ -63,6 +80,7 @@ export type TerrainMetadata = {
   analysis_supported: boolean;
   hole_mode?: 'mask' | 'fill';
   mesh?: MeshMetadata;
+  administrative?: AdministrativeMetadata;
 };
 
 export type LoadedTerrain = {
@@ -83,6 +101,9 @@ export type LoadedModel = {
   released?: boolean;
   bvhDisposed?: boolean;
   preserveResources?: boolean;
+  tilePyramid?: import('../terrain/tileMetadata').TilePyramidMetadata;
+  tileFiles?: Map<string, File>;
+  tileObject?: import('three').Object3D;
 };
 
 export type HoverInfo = {

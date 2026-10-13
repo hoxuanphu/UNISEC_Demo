@@ -40,6 +40,32 @@
       "properties": {"base_elevation": {"type": "number"}, "exaggeration": {"type": "number", "exclusiveMinimum": 0}, "normalize_base": {"type": "boolean"}, "min": {"type": "number"}, "max": {"type": "number"}}
     },
     "analysis_supported": {"type": "boolean"},
+    "administrative": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "source": {"type": "string"},
+        "commune_code": {"type": "string"}, "commune_name": {"type": "string"},
+        "province_code": {"type": "string"}, "province_name": {"type": "string"},
+        "headquarters": {"type": "string"}, "type": {"type": "string"},
+        "area_km2": {"type": "number", "minimum": 0},
+        "population": {"type": "number", "minimum": 0},
+        "density_per_km2": {"type": "number", "minimum": 0},
+        "units": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "properties": {
+              "commune_code": {"type": "string"}, "commune_name": {"type": "string"},
+              "province_code": {"type": "string"}, "province_name": {"type": "string"},
+              "headquarters": {"type": "string"}, "type": {"type": "string"},
+              "area_km2": {"type": "number", "minimum": 0},
+              "population": {"type": "number", "minimum": 0},
+              "density_per_km2": {"type": "number", "minimum": 0}
+            }
+          }
+        }
+      }
+    },
     "mesh": {
       "type": "object", "required": ["file", "vertex_count", "triangle_count"],
       "properties": {

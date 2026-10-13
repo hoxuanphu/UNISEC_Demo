@@ -19,6 +19,12 @@ DEM_to_3D/Shapefile_PX_VN_34/
 !DEM_to_3D/lao_chai_v2_tex.texture.tif
 !DEM_to_3D/pung_luong_v2_tex.texture.tif
 !DEM_to_3D/che_tao_v2_tex.tif
+DEM_to_3D/Shapefile_QH_VN_63/
+DEM_to_3D/commune_dem/
+*.tif.aux.xml
+
+# MODFI is not approved for publication yet
+MODFI/
 
 # Generated terrain assets — keep only the canonical sample (che_tao_v2_tex)
 DEM_to_3D/*.glb
@@ -45,3 +51,5 @@ run_log.txt
 DEM_to_3D/viewer/node_modules/
 DEM_to_3D/viewer/dist/
 DEM_to_3D/viewer/tsconfig.tsbuildinfo
+DEM_to_3D/*_tiles/
+DEM_to_3D/*.tiles.json
