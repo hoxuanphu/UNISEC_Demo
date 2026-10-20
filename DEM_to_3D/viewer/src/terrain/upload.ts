@@ -4,7 +4,7 @@ import type { LoadedModel, TerrainMetadata } from '../types/terrain';
 import { assetUrlMatchesFilename, validateGltfMeshCounts } from './loadTerrain';
 import { disposeObjectResources } from './raycast';
 import { TerrainAssetError, validateGridBuffer, validateMetadata } from './validation';
-import { applyTextureToModel, basename as textureBasename, decodeTextureFile, isTextureFile } from './texture';
+import { applyTextureToModel, basename as textureBasename, decodeTextureFile, isImageFile, isTextureFile } from './texture';
 import { tileLevel, validateTilePyramidMetadata, type TilePyramidMetadata } from './tileMetadata';
 
 const modelExtensions = new Set(['.glb', '.gltf']);
@@ -28,7 +28,7 @@ export function selectUploadedFiles(files: readonly File[], mode: 'single' | 'me
   return files.filter((file) => {
     if (file === model) return true;
     if (isSidecar(file)) return basename(file) === key;
-    if (isTextureFile(file)) return textureMatchesModel(file, key);
+    if (isTextureFile(file)) return isImageFile(file) || textureMatchesModel(file, key);
     return !isModel(file);
   });
 }
@@ -68,8 +68,8 @@ function isSafeRelativePath(value: string): boolean { return value.startsWith('/
 function isTileMetadata(file: File): boolean { return file.name.toLowerCase().endsWith(tileMetadataSuffix); }
 function tileRootFor(file: File): string | undefined {
   const parts = relativePath(file).split('/').filter(Boolean);
-  const index = parts.findIndex((part) => part.toLowerCase().endsWith('_tiles'));
-  return index >= 0 ? parts.slice(0, index + 1).join('/') : undefined;
+  const reversedIndex = [...parts].reverse().findIndex((part) => part.toLowerCase().endsWith('_tiles'));
+  return reversedIndex >= 0 ? parts.slice(0, parts.length - reversedIndex).join('/') : undefined;
 }
 function isPyramidTile(file: File): boolean {
   const raw = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
@@ -134,13 +134,24 @@ export function pairUploadedFiles(files: readonly File[]): UploadedFilePair[] {
     const tileMetadataFile = findUniqueByName(tileMetadataFiles, `${key}.tiles.json`);
     let tilePyramid: UploadedFilePair['tilePyramid'];
     if (tileMetadataFile) {
-      const tileRoot = files.map(tileRootFor).find((root) => root?.toLowerCase() === `${key}_tiles`) ?? `${key}_tiles`;
+      const roots = [...new Set(files.map(tileRootFor).filter((root): root is string => root?.split('/').at(-1)?.toLowerCase() === `${key}_tiles`))];
+      const manifestRoot = tileRootFor(tileMetadataFile);
+      const metadataRoot = roots.find((root) => root === manifestRoot);
+      if (!metadataRoot && roots.length > 1) throw new TerrainAssetError(`Multiple tile folders match model ${model.name}`);
+      const tileRoot = metadataRoot ?? roots[0] ?? `${key}_tiles`;
       const owned = new Map<string, File>();
-      files.filter((file) => tileRootFor(file) === tileRoot && ((file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name).toLowerCase().endsWith('.webp') && !isPyramidTile(file)).forEach((file) => { throw new TerrainAssetError(`Unsafe tile path ${(file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name}`); });
-      files.filter((file) => tileRootFor(file) === tileRoot && isPyramidTile(file)).forEach((file) => { const relative = relativePath(file).split(`${tileRoot}/`)[1]; if (relative && /^z\d+\/\d+_\d+\.webp$/i.test(relative)) owned.set(relative, file); });
+      for (const file of files) {
+        if (tileRootFor(file) !== tileRoot || !relativePath(file).toLowerCase().endsWith('.webp')) continue;
+        if (!isPyramidTile(file)) throw new TerrainAssetError(`Unsafe tile path ${relativePath(file)}`);
+        const relative = relativePath(file).slice(tileRoot.length + 1);
+        if (!/^z\d+\/\d+_\d+\.webp$/i.test(relative)) throw new TerrainAssetError(`Invalid tile path ${relative}`);
+        const canonical = relative.toLowerCase().replace(/\d+/g, (value) => String(Number(value)));
+        if (owned.has(canonical)) throw new TerrainAssetError(`Duplicate uploaded tile path ${relative}`);
+        owned.set(canonical, file);
+      }
       tilePyramid = { metadataFile: tileMetadataFile, rootPath: tileRoot, files: owned };
     }
-    return { model, metadata, grid, texture, tilePyramid, resources: files.filter((file) => !isModel(file) && !isSidecar(file) && !isTextureFile(file) && !isTileMetadata(file)) };
+    return { model, metadata, grid, texture, tilePyramid, resources: files.filter((file) => !isModel(file) && !isSidecar(file) && (!isTextureFile(file) || (isImageFile(file) && !isPyramidTile(file))) && !isTileMetadata(file)) };
   });
 
   const pairedNames = new Set(pairs.flatMap((pair) => [pair.metadata?.name.toLowerCase(), pair.grid?.name.toLowerCase()].filter((name): name is string => Boolean(name))));
@@ -195,12 +206,23 @@ export function releaseUploadedModels(models: readonly LoadedModel[]): void {
   });
 }
 
+async function applyUploadedTexture(gltf: GLTF, modelName: string, file: File): Promise<void> {
+  const decoded = await decodeTextureFile(file);
+  try {
+    applyTextureToModel(gltf.scene, modelName, decoded);
+  } catch (error) {
+    decoded.texture.dispose();
+    throw error;
+  }
+}
+
 export async function loadUploadedModels(files: readonly File[]): Promise<LoadedModel[]> {
   const pairs = pairUploadedFiles(files);
   const loaded: LoadedModel[] = [];
   try {
     for (const pair of pairs) {
       const objectUrls: string[] = [];
+      let gltf: GLTF | undefined;
       try {
         const resources = resourceUrlMap([pair.model, ...pair.resources], objectUrls);
         let metadata: TerrainMetadata | undefined;
@@ -221,16 +243,10 @@ export async function loadUploadedModels(files: readonly File[]): Promise<Loaded
         }
         const manager = new LoadingManager();
         manager.setURLModifier((url) => resolveResourceUrl(url, resources));
-        const gltf = await parseGltf(new GLTFLoader(manager), await pair.model.arrayBuffer());
-        try {
-          if (metadata?.mesh) validateGltfMeshCounts(gltf.scene, metadata.mesh);
-        } catch (error) {
-          disposeObjectResources(gltf.scene);
-          throw error;
-        }
+        gltf = await parseGltf(new GLTFLoader(manager), await pair.model.arrayBuffer());
+        if (metadata?.mesh) validateGltfMeshCounts(gltf.scene, metadata.mesh);
         if (pair.texture && !pair.tilePyramid) {
-          const decoded = await decodeTextureFile(pair.texture);
-          applyTextureToModel(gltf.scene, pair.model.name, decoded);
+          await applyUploadedTexture(gltf, pair.model.name, pair.texture);
         }
         let tilePyramid = pair.tilePyramid;
         if (tilePyramid) {
@@ -239,12 +255,12 @@ export async function loadUploadedModels(files: readonly File[]): Promise<Loaded
           validateUploadedTileInventory(parsed, tilePyramid.files);
           const preview = tilePyramid.files.get('z0/0_0.webp');
           if (!preview) throw new TerrainAssetError('Tile pyramid ' + pair.model.name + ' is missing z0/0_0.webp preview');
-          const decoded = await decodeTextureFile(preview);
-          applyTextureToModel(gltf.scene, pair.model.name, decoded);
+          await applyUploadedTexture(gltf, pair.model.name, preview);
           tilePyramid = { ...tilePyramid, metadata: parsed };
         }
         loaded.push({ id: pair.model.name + '-' + loaded.length, name: pair.model.name, metadata, grid, gridBuffer, gltf, objectUrls, tilePyramid: tilePyramid?.metadata, tileFiles: tilePyramid?.files });
       } catch (error) {
+        if (gltf) disposeObjectResources(gltf.scene);
         objectUrls.forEach((url) => URL.revokeObjectURL(url));
         throw error;
       }

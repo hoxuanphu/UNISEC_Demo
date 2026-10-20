@@ -27,7 +27,7 @@ export function validateMetadata(value: unknown): TerrainMetadata {
   if (metadata.schema_version !== 1) errors.push('schema_version must be 1');
   if (typeof metadata.asset_id !== 'string' || metadata.asset_id.length === 0) errors.push('asset_id is required');
   if (typeof metadata.analysis_supported !== 'boolean') errors.push('analysis_supported must be boolean');
-  if (JSON.stringify(metadata.scene_axes) !== JSON.stringify({ x: 'east', y: 'up', z: 'negative_north' })) {
+  if (!metadata.scene_axes || Object.keys(metadata.scene_axes).length !== 3 || metadata.scene_axes.x !== 'east' || metadata.scene_axes.y !== 'up' || metadata.scene_axes.z !== 'negative_north') {
     errors.push('scene_axes must be X=east, Y=up, Z=negative_north');
   }
   const origin = metadata.world_origin;
@@ -36,7 +36,8 @@ export function validateMetadata(value: unknown): TerrainMetadata {
   if (!crs || typeof crs.authority !== 'string' || !Number.isInteger(crs.code) || crs.code < (metadata.analysis_supported ? 1 : 0) || typeof crs.linear_unit !== 'string') {
     errors.push('crs authority/code/linear_unit are required');
   }
-  if (!crs?.proj4 && !crs?.wkt) errors.push('crs.proj4 or crs.wkt is required');
+  const hasDefinition = [crs?.proj4, crs?.wkt].some((definition) => typeof definition === 'string' && definition.trim().length > 0);
+  if (!hasDefinition || (crs?.proj4 !== undefined && typeof crs.proj4 !== 'string') || (crs?.wkt !== undefined && typeof crs.wkt !== 'string')) errors.push('crs.proj4 or crs.wkt must be a non-empty definition string');
   if (metadata.analysis_supported && (!crs || !['m', 'metre', 'meter', 'metres', 'meters'].includes((crs.linear_unit ?? '').toLowerCase()))) {
     errors.push('analysis_supported assets require metre units');
   }

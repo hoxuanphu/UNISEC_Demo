@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { ModelUploadPanel, type UploadMode } from './components/ModelUploadPanel';
+import { ProcessingPanel } from './components/ProcessingPanel';
+import { KmlPanel } from './components/KmlPanel';
+import type { KmlLayer } from './terrain/kml';
 import { AdministrativeInfoPanel, HoverInfoPanel } from './components/HoverInfo';
 import { MeasureToolbar } from './components/MeasureToolbar';
 import { ProfileChart } from './components/ProfileChart';
@@ -17,11 +20,15 @@ import { projectedToScene } from './terrain/coordinate';
 import type { HoverInfo, LoadedModel, TerrainPoint } from './types/terrain';
 import type { TileStreamingStats } from './terrain/tileCoordinator';
 import { readSarRaster, type SarRaster } from './terrain/sarOverlay';
+import { ImageLayersPanel } from './components/ImageLayersPanel';
+import type { ImageControl, ImageLayer } from './terrain/imageLayers';
 
 const analysisConfig = { profileSampleIntervalM: 10, smoothingWindowM: 50, extremaMinProminenceM: 8, extremaMinDistanceM: 100, slopeRegressionWindowM: 50 };
 
 export default function App(): JSX.Element {
   const [models, setModels] = useState<LoadedModel[]>([]);
+  const [kmlLayers, setKmlLayers] = useState<KmlLayer[]>([]);
+  const [kmlStatus, setKmlStatus] = useState<string | null>(null);
   const [uploadMode, setUploadMode] = useState<UploadMode>('single');
   const [geographicMerge, setGeographicMerge] = useState(true);
   const [showAdministrativeInfo, setShowAdministrativeInfo] = useState(true);
@@ -30,6 +37,19 @@ export default function App(): JSX.Element {
   const [uploadBusy, setUploadBusy] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [tileStats, setTileStats] = useState<TileStreamingStats | null>(null);
+  const [imageLayers, setImageLayers] = useState<ImageLayer[]>([]);
+  const [imageControls, setImageControls] = useState<Record<string, ImageControl>>({});
+  const [imageErrors, setImageErrors] = useState<Record<string, string | null>>({});
+  const handleImageControl = useCallback((id: string, control: ImageControl): void => {
+    setImageControls((current) => ({ ...current, [id]: control }));
+  }, []);
+  const handleImageErrors = useCallback((errors: Record<string, string | null>): void => setImageErrors(errors), []);
+  const handleImageLayers = useCallback((next: ImageLayer[]): void => {
+    setImageLayers(next);
+    setImageControls((current) => Object.fromEntries(next.filter((layer) => current[layer.id]).map((layer) => [layer.id, current[layer.id]])));
+    setImageErrors({});
+  }, []);
+  const sarRequest = useRef(0);
   const [sarRaster, setSarRaster] = useState<SarRaster | null>(null);
   const [sarBand, setSarBand] = useState(0);
   const [sarVisible, setSarVisible] = useState(true);
@@ -54,9 +74,11 @@ export default function App(): JSX.Element {
     if (previous.length > 0) releaseUploadedModels(previous);
   }, []);
   const handleSarFile = useCallback(async (file: File | null): Promise<void> => {
-    if (!file) { setSarRaster(null); return; }
-    try { setSarRaster(await readSarRaster(file)); setSarBand(0); setSarError(null); }
-    catch (reason) { setSarRaster(null); setSarError(reason instanceof Error ? reason.message : String(reason)); }
+    const request = ++sarRequest.current;
+    setSarError(null); setSarRaster(null);
+    if (!file) return;
+    try { const raster = await readSarRaster(file); if (request !== sarRequest.current) return; setSarRaster(raster); setSarBand(0); }
+    catch (reason) { if (request === sarRequest.current) setSarError(reason instanceof Error ? reason.message : String(reason)); }
   }, []);
 
   const clearUploadedModels = useCallback((): void => {
@@ -67,24 +89,26 @@ export default function App(): JSX.Element {
     dispatchMeasurement({ type: 'clear' });
   }, [replaceModels]);
 
-  const handleUpload = useCallback(async (files: File[]): Promise<void> => {
+  const handleUpload = useCallback(async (files: File[], mode = uploadMode, reportFailure = false): Promise<void> => {
     if (files.length === 0) return;
     setUploadBusy(true);
     setUploadError(null);
     try {
-      const next = await loadUploadedModels([...selectUploadedFiles(files, uploadMode), ...tileFiles]);
+      const next = await loadUploadedModels([...selectUploadedFiles(files, mode), ...(reportFailure ? [] : tileFiles)]);
       try {
-        if (uploadMode === 'merge' && geographicMerge) createGeographicPlacements(next);
+        if (mode === 'merge' && geographicMerge) createGeographicPlacements(next);
       } catch (reason) {
         releaseUploadedModels(next);
         throw reason;
       }
       replaceModels(next);
-      setUploadedNames(selectUploadedFiles(files, uploadMode).map((file) => file.name));
+      setUploadMode(mode);
+      setUploadedNames(selectUploadedFiles(files, mode).map((file) => file.name));
       dispatchMeasurement({ type: 'clear' });
       setFocusDistance(null);
     } catch (reason: unknown) {
       setUploadError(reason instanceof Error ? reason.message : String(reason));
+      if (reportFailure) throw reason;
     } finally {
       setUploadBusy(false);
     }
@@ -111,6 +135,7 @@ export default function App(): JSX.Element {
   }, [geographicMerge, models]);
 
   useEffect(() => () => {
+    sarRequest.current++;
     if (modelsRef.current.length > 0) releaseUploadedModels(modelsRef.current);
   }, []);
 
@@ -159,7 +184,10 @@ export default function App(): JSX.Element {
         <div><span className='eyebrow'>Terrain 3D</span><h1>DEM surface explorer</h1></div>
         {analysisTerrain && <span className='asset-badge'>{analysisTerrain.metadata.asset_id} · schema v{analysisTerrain.metadata.schema_version}</span>}
       </header>
+      <ProcessingPanel viewerBusy={uploadBusy} onImport={(files) => handleUpload(files, files.filter((file) => /\.glb$/i.test(file.name)).length > 1 ? 'merge' : 'single', true)} />
       <ModelUploadPanel mode={uploadMode} geographicMerge={geographicMerge} fileNames={uploadedNames} busy={uploadBusy} error={uploadError ?? sarError} showAdministrativeInfo={showAdministrativeInfo} onModeChange={handleUploadModeChange} onGeographicMergeChange={handleGeographicMergeChange} onShowAdministrativeInfoChange={setShowAdministrativeInfo} onFiles={handleUpload} onTileFiles={setTileFiles} onClear={clearUploadedModels} onSarFile={handleSarFile} sarFileName={sarRaster?.name} />
+      <KmlPanel layers={kmlLayers} onLayers={setKmlLayers} available={models.some((model) => Boolean(model.metadata))} status={kmlStatus} />
+      <ImageLayersPanel layers={imageLayers} controls={imageControls} onLayers={handleImageLayers} onControl={handleImageControl} errors={imageErrors} />
       {tileStats && <section className='tile-status' aria-live='polite'><strong>Streaming: {tileStats.activeSources} model detail · {tileStats.loadedTiles} tiles · queue {tileStats.queuedRequests}</strong><span>CPU {(tileStats.cpuBytes / 1048576).toFixed(1)} MB · GPU estimate {(tileStats.gpuBytes / 1048576).toFixed(1)} MB</span></section>}
       <section className='sar-controls' aria-label='Texture controls'><button type='button' aria-pressed={!colorTextureVisible} onClick={() => setColorTextureVisible((visible) => !visible)}>{colorTextureVisible ? 'Tắt color texture' : 'Bật color texture'}</button></section>
       <section className='sar-controls' aria-label='Đường đồng mức'>
@@ -170,7 +198,7 @@ export default function App(): JSX.Element {
         <span role='status'>{!contourAvailable ? 'Cần tải model cùng .terrain.json và .grid.bin để tạo đồng mức từ cao độ DEM.' : !validContourInterval ? 'Khoảng cao độ phải là số hữu hạn lớn hơn 0 mét.' : contoursVisible ? contourStatus : 'Lớp đang tắt. Khoảng cao độ tính bằng mét, không phải độ dày nét.'}</span>
       </section>
       {sarRaster && <section className='sar-controls' aria-label='SAR overlay controls'><label><input type='checkbox' checked={sarVisible} onChange={(e) => setSarVisible(e.target.checked)} /> Show SAR overlay</label><label>Band <select value={sarBand} onChange={(e) => setSarBand(Number(e.target.value))}>{sarRaster.bands.map((band) => <option key={band.index} value={band.index}>{band.label}</option>)}</select></label><label>Opacity <input type='range' min='0' max='1' step='0.05' value={sarOpacity} onChange={(e) => setSarOpacity(Number(e.target.value))} /> {Math.round(sarOpacity * 100)}%</label></section>}
-       <section className='viewer-layout'><div className='canvas-card'><TerrainViewer models={viewerModels} geographicPlacements={geographicPlacements} showAdministrativeInfo={showAdministrativeInfo} onTileStats={setTileStats} onHover={handleHover} measureMode={Boolean(analysisTerrain) ? measurement.active : false} onPick={handlePick} profile={profile} profileMetadata={analysisTerrain?.metadata} focusPoint={focusPoint} sarRaster={sarRaster} sarBand={sarBand} sarVisible={sarVisible} sarOpacity={sarOpacity} onSarError={setSarError} colorTextureVisible={colorTextureVisible} contoursVisible={contoursVisible && contourAvailable && validContourInterval} contourInterval={contourInterval} onContourStatus={setContourStatus} />{viewerModels.length === 0 && <div className='viewer-empty-state' aria-live='polite'><strong>Tải file 3D lên để bắt đầu</strong><span>Chọn file GLB/GLTF ở khung bên trên để hiển thị model.</span></div>}<div className='viewer-hint'>Drag to orbit · right-drag to pan · wheel to zoom</div>{analysisTerrain && <MeasureToolbar measuring={measurement.active} hasProfile={Boolean(profile)} profile={profile} onToggle={toggleMeasure} onClear={clearMeasurement} />}</div><div className='viewer-side-panel'><HoverInfoPanel info={hover} /><AdministrativeInfoPanel info={analysisTerrain?.metadata.administrative} visible={showAdministrativeInfo} /></div></section>
+       <section className='viewer-layout'><div className='canvas-card'><TerrainViewer models={viewerModels} kmlLayers={kmlLayers} onKmlStatus={setKmlStatus} geographicPlacements={geographicPlacements} showAdministrativeInfo={showAdministrativeInfo} onTileStats={setTileStats} onHover={handleHover} measureMode={Boolean(analysisTerrain) ? measurement.active : false} onPick={handlePick} profile={profile} profileMetadata={analysisTerrain?.metadata} focusPoint={focusPoint} imageLayers={imageLayers} imageControls={imageControls} onImageErrors={handleImageErrors} sarRaster={sarRaster} sarBand={sarBand} sarVisible={sarVisible} sarOpacity={sarOpacity} onSarError={setSarError} colorTextureVisible={colorTextureVisible} contoursVisible={contoursVisible && contourAvailable && validContourInterval} contourInterval={contourInterval} onContourStatus={setContourStatus} />{viewerModels.length === 0 && <div className='viewer-empty-state' aria-live='polite'><strong>Tải file 3D lên để bắt đầu</strong><span>Chọn file GLB/GLTF ở khung bên trên để hiển thị model.</span></div>}<div className='viewer-hint'>Drag to orbit · right-drag to pan · wheel to zoom</div>{analysisTerrain && <MeasureToolbar measuring={measurement.active} hasProfile={Boolean(profile)} profile={profile} onToggle={toggleMeasure} onClear={clearMeasurement} />}</div><div className='viewer-side-panel'><HoverInfoPanel info={hover} /><AdministrativeInfoPanel info={analysisTerrain?.metadata.administrative} visible={showAdministrativeInfo} /></div></section>
       {profile && <section className='analysis-layout'><ProfileChart profile={profile} vertices={vertices} extrema={extrema} smoothed={smoothed} onHoverDistance={setFocusDistance} /><SlopeTable slopes={segmentSlopes} extrema={extrema} /></section>}
     </main>
   );

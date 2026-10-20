@@ -53,10 +53,19 @@ async function decodeGeoTiffFile(file: File): Promise<DecodedTexture> {
   const { fromBlob } = await import('geotiff');
   const tiff = await fromBlob(file);
   const image = await tiff.getImage();
-  // `readRGB()` defaults to interleave=false and returns three separate
-  // channel arrays. The canvas expects one interleaved RGB/RGBA byte stream;
-  // reading interleaved here avoids uploading an almost entirely black image.
-  const rgb = await image.readRGB({ interleave: true });
+  const directory = image.getFileDirectory();
+  const color = directory.getValue('PhotometricInterpretation') === 2;
+  const bits = directory.getValue('BitsPerSample') ?? [8];
+  const formats = directory.getValue('SampleFormat') ?? [1];
+  const extras = directory.getValue('ExtraSamples') ?? [];
+  const alpha = color && (extras[0] === 1 || extras[0] === 2);
+  if (alpha && extras.length !== 1) throw new TerrainAssetError('GeoTIFF texture chỉ hỗ trợ một sample alpha.');
+  const channels = alpha ? 4 : 3;
+  if (color && Array.from({ length: channels }, (_, i) => i).some((i) =>
+    (formats[i] ?? formats[0]) !== 1 || !Number.isInteger(bits[i] ?? bits[0]) || (bits[i] ?? bits[0]) < 1 || (bits[i] ?? bits[0]) > 32)) {
+    throw new TerrainAssetError('GeoTIFF texture RGB cần unsigned integer 1–32 bit; float/signed cần chuyển scale trước khi tải.');
+  }
+  const rgb = await image.readRGB({ interleave: true, enableAlpha: alpha });
   const width = image.getWidth();
   const height = image.getHeight();
   const canvas = document.createElement('canvas');
@@ -67,16 +76,17 @@ async function decodeGeoTiffFile(file: File): Promise<DecodedTexture> {
   const imageData = context.createImageData(width, height);
   const pixels = rgb as unknown as { length: number; [index: number]: number };
   const pixelCount = width * height;
-  const channelCount = pixels.length >= pixelCount * 4 ? 4 : 3;
+  if (pixels.length !== pixelCount * channels) throw new TerrainAssetError('GeoTIFF texture có số sample không khớp kích thước ảnh.');
   for (let index = 0; index < pixelCount; index += 1) {
-    const source = index * channelCount;
+    const source = index * channels;
     const target = index * 4;
-    imageData.data[target] = pixels[source] ?? 0;
-    imageData.data[target + 1] = pixels[source + 1] ?? 0;
-    imageData.data[target + 2] = pixels[source + 2] ?? 0;
-    // readRGB() normally returns RGB, not RGBA. Leaving this at zero makes
-    // the canvas fully transparent and the imported terrain look grey/blank.
-    imageData.data[target + 3] = channelCount === 4 ? (pixels[source + 3] ?? 255) : 255;
+    const opacity = alpha ? pixels[source + 3] / (2 ** (bits[3] ?? bits[0]) - 1) : 1;
+    for (let channel = 0; channel < 3; channel += 1) {
+      // readRGB returns native sample values for RGB, but already-scaled bytes for other photometrics.
+      const value = color ? pixels[source + channel] * 255 / (2 ** (bits[channel] ?? bits[0]) - 1) : pixels[source + channel];
+      imageData.data[target + channel] = extras[0] === 1 && alpha ? (opacity > 0 ? value / opacity : 0) : value;
+    }
+    imageData.data[target + 3] = Math.round(opacity * 255);
   }
   context.putImageData(imageData, 0, 0);
   const bitmap = await createImageBitmap(canvas);

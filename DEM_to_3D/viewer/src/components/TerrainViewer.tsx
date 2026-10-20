@@ -6,13 +6,16 @@ import { bilinearElevation } from '../terrain/elevationGrid';
 import { formatHover, projectedToScene, projectedToPixel, sceneToProjected } from '../terrain/coordinate';
 import { buildBvh, disposeBvh } from '../terrain/raycast';
 import type { SurfaceProfile } from '../terrain/profile';
+import type { KmlLayer } from '../terrain/kml';
+import { createKmlOverlay, type KmlOverlay } from '../terrain/kmlOverlay';
 import type { GeographicPlacement } from '../terrain/geographic';
 import { applyElevationColorRamp } from '../terrain/colorRamp';
 import { createModelTileState, disposeModelTileState, updateModelDetail, type ModelTileState } from '../terrain/tileAtlas';
 import { SceneTileCoordinator, type TileStreamingStats } from '../terrain/tileCoordinator';
 import { tileLevel } from '../terrain/tileMetadata';
 import { TileRequestQueue } from '../terrain/tileTexture';
-import { createSarOverlay, type SarRaster, type SarSurface } from '../terrain/sarOverlay';
+import { createGeoOverlay, type GeoLayer, type SarRaster, type GeoSurface } from '../terrain/sarOverlay';
+import { DEFAULT_IMAGE_CONTROL, type ImageControl, type ImageLayer } from '../terrain/imageLayers';
 import { renderWithoutColorTexture } from '../terrain/textureVisibility';
 import { buildContours, createContourBudget } from '../terrain/contours';
 import { buildContourLabels, formatContourElevation, labelCollides, MAX_LABEL_CANDIDATES, MAX_VISIBLE_LABELS, projectContourLabel, projectContourTangent, rotatedLabelBox, terrainOccludesLabel, type LabelBox } from '../terrain/contourLabels';
@@ -21,6 +24,8 @@ type ContourScreenLabel = { element: HTMLDivElement; point: THREE.Vector3; tange
 
 type Props = {
   models: LoadedModel[];
+  kmlLayers?: KmlLayer[];
+  onKmlStatus?: (message: string | null) => void;
   geographicPlacements?: GeographicPlacement[];
   showAdministrativeInfo?: boolean;
   onHover: (info: HoverInfo | null) => void;
@@ -30,6 +35,9 @@ type Props = {
   profile?: SurfaceProfile | null;
   profileMetadata?: LoadedModel['metadata'];
   onTileStats?: (stats: TileStreamingStats) => void;
+  imageLayers?: ImageLayer[];
+  imageControls?: Record<string, ImageControl>;
+  onImageErrors?: (errors: Record<string, string | null>) => void;
   sarRaster?: SarRaster | null;
   sarBand?: number;
   sarVisible?: boolean;
@@ -100,10 +108,12 @@ function sampleModel(model: LoadedModel, localPoint: THREE.Vector3): { projected
   return { projected: converted.projected, elevation: sampled.elevation ?? converted.elevation, row: sampled.row, column: sampled.column, interpolated: sampled.interpolated };
 }
 
-export function TerrainViewer({ models, geographicPlacements, showAdministrativeInfo = true, onTileStats, onHover, measureMode = false, onPick, focusPoint, profile = null, profileMetadata, sarRaster, sarBand = 0, sarVisible = true, sarOpacity = 0.65, onSarError, colorTextureVisible = true, contoursVisible = false, contourInterval = 20, onContourStatus }: Props): JSX.Element {
+export function TerrainViewer({ models, kmlLayers, onKmlStatus, geographicPlacements, showAdministrativeInfo = true, onTileStats, onHover, measureMode = false, onPick, focusPoint, profile = null, profileMetadata, imageLayers, imageControls, onImageErrors, sarRaster, sarBand = 0, sarVisible = true, sarOpacity = 0.65, onSarError, colorTextureVisible = true, contoursVisible = false, contourInterval = 20, onContourStatus }: Props): JSX.Element {
   const hostRef = useRef<HTMLDivElement>(null);
   const contourEntriesRef = useRef<ModelEntry[]>([]);
   const contourLabelsRef = useRef<ContourScreenLabel[]>([]);
+  const imageControlsRef = useRef(imageControls);
+  imageControlsRef.current = imageControls;
   const sarControlsRef = useRef({ visible: sarVisible, opacity: sarOpacity });
   sarControlsRef.current = { visible: sarVisible, opacity: sarOpacity };
   const colorTextureVisibleRef = useRef(colorTextureVisible);
@@ -164,16 +174,26 @@ export function TerrainViewer({ models, geographicPlacements, showAdministrative
       return { model, root, group, meshes, label, tileState };
     });
     contourEntriesRef.current = entries;
-    let sarSurface: SarSurface | null = null;
+    let sarSurface: GeoSurface | null = null;
     let cancelled = false;
-    if (sarRaster) {
+    const layers: GeoLayer[] = [
+      ...(sarRaster ? [{ raster: sarRaster, band: sarBand, kind: 'sar' as const }] : []),
+      ...(imageLayers ?? []).map((layer) => ({ raster: layer.raster, band: layer.band, kind: 'image' as const })),
+    ];
+    if (layers.length) {
       const supported = entries.flatMap((entry) => entry.model.metadata ? [{ root: entry.root, metadata: entry.model.metadata }] : []);
-      if (!supported.length) onSarError?.('SAR requires a model with .terrain.json metadata; an elevation grid is not required.');
-      else void createSarOverlay(sarRaster, sarBand, supported).then((surface) => {
+      const report = (message: string | null): void => {
+        if (sarRaster) onSarError?.(message);
+        onImageErrors?.(Object.fromEntries((imageLayers ?? []).map((layer) => [layer.id, message])));
+      };
+      if (!supported.length) report('Cần model với .terrain.json để định vị GeoTIFF; không cần .grid.bin.');
+      else void createGeoOverlay(layers, supported, () => cancelled).then((surface) => {
         if (cancelled) { surface.dispose(); return; }
         sarSurface = surface;
-        onSarError?.(entries.some((entry) => !entry.model.metadata) ? 'Models without terrain metadata do not receive SAR.' : null);
-      }).catch((error: unknown) => { if (!cancelled) onSarError?.(error instanceof Error ? error.message : String(error)); });
+        const messages = layers.map((_, i) => surface.layerStatus[i] ?? (entries.some((entry) => !entry.model.metadata) ? 'Model không có terrain metadata không nhận GeoTIFF.' : null));
+        if (sarRaster) onSarError?.(messages[0]);
+        onImageErrors?.(Object.fromEntries((imageLayers ?? []).map((layer, i) => [layer.id, messages[i + (sarRaster ? 1 : 0)]])));
+      }).catch((error: unknown) => { if (!cancelled) report(error instanceof Error ? error.message : String(error)); });
     }
     scene.updateMatrixWorld(true);
     entries.forEach((entry) => {
@@ -423,7 +443,10 @@ export function TerrainViewer({ models, geographicPlacements, showAdministrative
       controls.update();
       updateAdministrativeLabels();
       updateContourLabels();
-      if (sarSurface) sarSurface.render(colorTextureVisibleRef.current, sarControlsRef.current.visible, sarControlsRef.current.opacity, () => renderer.render(scene, camera));
+      if (sarSurface) sarSurface.renderLayers(colorTextureVisibleRef.current, layers.map((layer, index) => layer.kind === 'sar' ? sarControlsRef.current : imageControlsRef.current?.[(imageLayers ?? [])[index - (sarRaster ? 1 : 0)].id] ?? DEFAULT_IMAGE_CONTROL), () => {
+        if (colorTextureVisibleRef.current) renderer.render(scene, camera);
+        else renderWithoutColorTexture(entries.filter((entry) => !entry.model.metadata).map((entry) => entry.root), neutralMaterial, () => renderer.render(scene, camera));
+      });
       else if (colorTextureVisibleRef.current) renderer.render(scene, camera);
       else renderWithoutColorTexture(entries.map((entry) => entry.root), neutralMaterial, () => renderer.render(scene, camera));
     };
@@ -459,7 +482,23 @@ export function TerrainViewer({ models, geographicPlacements, showAdministrative
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [geographicPlacements, models, onHover, onTileStats, showAdministrativeInfo, sarBand, sarRaster]);
+  }, [geographicPlacements, models, onHover, onTileStats, showAdministrativeInfo, sarBand, sarRaster, imageLayers, onImageErrors, onSarError]);
+
+  useEffect(() => {
+    onKmlStatus?.(null);
+    if (!kmlLayers?.length) return;
+    let cancelled = false;
+    let overlay: KmlOverlay | undefined;
+    const surfaces = contourEntriesRef.current.flatMap((entry) => entry.model.metadata ? [{ root: entry.root, group: entry.group, meshes: entry.meshes, metadata: entry.model.metadata }] : []);
+    if (!surfaces.length) { onKmlStatus?.('Cần terrain có .terrain.json để định vị KML / KMZ.'); return; }
+    onKmlStatus?.('Đang phủ KML / KMZ lên địa hình…');
+    void createKmlOverlay(kmlLayers, surfaces, () => cancelled).then((result) => {
+      if (cancelled) { result.dispose(); return; }
+      overlay = result;
+      onKmlStatus?.(result.message ?? 'Đã phủ KML / KMZ lên địa hình.');
+    }).catch((reason) => { if (!cancelled) onKmlStatus?.(reason instanceof Error ? reason.message : String(reason)); });
+    return () => { cancelled = true; overlay?.dispose(); };
+  }, [kmlLayers, models, geographicPlacements, showAdministrativeInfo, sarBand, sarRaster, imageLayers, onHover, onTileStats, onKmlStatus, onImageErrors, onSarError]);
 
   useEffect(() => {
     onContourStatus?.(null);
@@ -520,7 +559,7 @@ export function TerrainViewer({ models, geographicPlacements, showAdministrative
       if (!controller.signal.aborted) onContourStatus?.(error instanceof Error ? error.message : String(error));
     });
     return () => { controller.abort(); clear(); };
-  }, [contoursVisible, contourInterval, onContourStatus, geographicPlacements, models, onHover, onTileStats, showAdministrativeInfo, sarBand, sarRaster]);
+  }, [contoursVisible, contourInterval, onContourStatus, geographicPlacements, models, onHover, onTileStats, showAdministrativeInfo, sarBand, sarRaster, imageLayers, onImageErrors, onSarError]);
 
   return <div ref={hostRef} className="terrain-viewer" aria-label="3D terrain viewer" />;
 }

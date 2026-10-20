@@ -51,5 +51,7 @@ run_log.txt
 DEM_to_3D/viewer/node_modules/
 DEM_to_3D/viewer/dist/
 DEM_to_3D/viewer/tsconfig.tsbuildinfo
+DEM_to_3D/.api-jobs/
+DEM_to_3D/.api-test-*/
 DEM_to_3D/*_tiles/
 DEM_to_3D/*.tiles.json

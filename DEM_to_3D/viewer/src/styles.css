@@ -88,4 +88,20 @@ dd { margin: 0 0 7px; font-variant-numeric: tabular-nums; }
 @media (max-width: 980px) { .analysis-layout { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .upload-modes { grid-template-columns: 1fr; } }
 
+.image-layers-panel { max-width: 1400px; margin: 0 auto 14px; display: grid; gap: 10px; padding: 16px; border: 1px solid #26344c; border-radius: 14px; background: rgba(12, 20, 35, .88); }
+.image-layers-panel > label { display: grid; gap: 8px; }
+.image-layers-panel small { color: #b9c9df; line-height: 1.5; }
+.image-layers-panel input[type='file'] { max-width: 100%; }
+.image-layers-panel button { justify-self: start; min-height: 32px; padding: 6px 10px; color: #dbeafe; background: #12233a; border: 1px solid #3d5578; border-radius: 6px; cursor: pointer; }
+.image-layers-panel button:hover { border-color: #7dd3fc; }
+.image-layers-panel :focus-visible { outline: 2px solid #7dd3fc; outline-offset: 3px; }
+.image-layers-panel input:disabled { opacity: .6; cursor: not-allowed; }
+.image-layers-panel [role='alert'] { color: #ffc5ce; overflow-wrap: anywhere; }
+.image-layer-list { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; min-width: 0; }
+.image-layer-list li { min-width: 0; }
+.image-layer-controls { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px; border: 1px solid #293952; border-radius: 8px; }
+.image-layer-controls legend { max-width: 100%; padding: 0 6px; overflow-wrap: anywhere; }
+.image-layer-controls label { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 32px; }
+.image-layer-controls [role='status'] { flex-basis: 100%; color: #ffc5ce; overflow-wrap: anywhere; }
+
 .tile-status { max-width: 1400px; margin: 0 auto 12px; display: flex; justify-content: space-between; gap: 12px; padding: 9px 12px; border: 1px solid #26344c; border-radius: 8px; background: rgba(12,20,35,.82); color: #b9c9df; font-size: .76rem; } .tile-status span { color: #8190a8; } @media (max-width: 620px) { .tile-status { flex-direction: column; } }

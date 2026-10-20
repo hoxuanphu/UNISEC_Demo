@@ -53,7 +53,8 @@ async function fetchBuffer(url: string): Promise<ArrayBuffer> {
 }
 
 function parseGltf(loader: GLTFLoader, buffer: ArrayBuffer, url: string): Promise<GLTF> {
-  return new Promise((resolve, reject) => loader.parse(buffer, new URL(url, window.location.href).href, resolve, reject));
+  const resourcePath = new URL('.', new URL(url, window.location.href)).href;
+  return new Promise((resolve, reject) => loader.parse(buffer, resourcePath, resolve, reject));
 }
 
 export async function loadTerrain(urls: TerrainAssetUrls): Promise<LoadedTerrain> {

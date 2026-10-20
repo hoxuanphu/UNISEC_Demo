@@ -1,5 +1,98 @@
 # UNISEC_Demo
 
+## KML / KMZ terrain overlays
+
+In the viewer, use **Điểm, đường và vùng KML / KMZ** to select up to eight files
+at once. Each selection replaces the current set of vector layers. Points,
+LineStrings and polygon boundaries/fills (including holes and MultiGeometry)
+are positioned using KML WGS84 coordinates and draped over the loaded terrain
+mesh; KML altitude values are ignored. Load the terrain GLB with its matching
+`.terrain.json` first (`.grid.bin` is not required). Geometry outside the terrain
+or over holes is not drawn. Layers can be hidden or removed without unloading
+models. A color is assigned per file; custom KML styles and labels are not rendered.
+
+KMZ reads embedded KML locally; network links, external resources, GroundOverlay
+images and 3D models are not loaded. Use georeferenced GeoTIFF controls for image
+overlays instead. Large inputs and draping workloads are limited with an explicit
+message. Importing KML does not fix an incorrectly georeferenced terrain: both
+inputs must describe the same geographic area.
+
+## Local terrain processing API + viewer
+
+From the repository root (Windows PowerShell):
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r .\DEM_to_3D\requirements-api.txt
+Set-Location .\DEM_to_3D\viewer
+npm run dev
+```
+
+`npm run dev` starts the terrain backend on **127.0.0.1:5175**, waits for its
+health check, then starts Vite (port 5173, or its next available port). The viewer
+proxies `/api` to port 5175; unrelated services on port 8000 are left untouched.
+Press **Ctrl+C** to stop both services. If port 5175 is occupied, startup fails
+rather than connecting to an unknown backend. The launcher uses the repository
+`.venv` Python by default; set `TERRAIN_PYTHON` to an executable path to override it.
+Backend startup failure also stops the viewer, and vice versa.
+
+For backend-only development, from the repository root:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn DEM_to_3D.api:app --host 127.0.0.1 --port 5175
+```
+
+Open the Vite URL and expand **Generate Terrain**. Upload a DEM and, when needed,
+matching `.shp`, `.shx`, `.dbf`, `.prj` files (optional `.cpg`); archives are not
+accepted. Browser uploads are copied into server-owned job directories, never
+interpreted as local filesystem paths. Split selectors use the existing script's
+`ma_huyen` / `ten_huyen` fields and optional `Commune|Province` name syntax.
+Generated GLB + `.terrain.json` + `.grid.bin` can be opened directly in the viewer;
+other formats and split GeoTIFFs can be downloaded. V1/V2 and all core conversion
+options are available; lattice creation and texture-crop-bbox workflows remain CLI-only.
+
+API endpoints (also documented at `http://127.0.0.1:5175/docs`):
+
+- `GET /api/health`: API readiness and missing processing dependencies.
+- `POST /api/jobs/terrain`: multipart `dem`, repeated `shapes`, optional `texture`,
+  `options` JSON string. Supports version, formats, colormap, step, max_vertices,
+  exaggeration, target_epsg, keep_geographic, normalize_base, commune,
+  commune_buffer and hole_mode.
+- `POST /api/jobs/split`: multipart `dem`, repeated `shapes`, `options` JSON with
+  optional `code` OR `name` (neither means split all).
+- `GET /api/jobs/{id}`: queued/running/succeeded/failed, structured errors and files.
+- `GET /api/jobs/{id}/files/{name}`: only registered output files, downloadable.
+- `DELETE /api/jobs/{id}`: remove completed/failed jobs; active jobs return 409.
+
+Processing runs in one background subprocess at a time, with a 30-minute timeout,
+512 MiB combined upload limit, 1-million-vertex ceiling and 16 retained jobs.
+Delete finished jobs to free capacity. Job records/files persist under ignored
+`DEM_to_3D\\.api-jobs`; results expire after 24 hours and are cleaned on startup,
+submission and idle worker ticks. Jobs interrupted by restart become failed rather
+than resuming. No percentage progress is emitted by the scripts: the panel shows
+actual lifecycle status, not an invented percentage. Run exactly **one Uvicorn
+worker**, without reload when processing, and bind only to loopback. CORS and
+origin/host checks permit the local Vite ports 5173/5174. Production Vite builds
+need a same-origin `/api` reverse proxy; the API serves files independently of Vite.
+This is a trusted local-user tool, not an authenticated public service or a sandbox
+for hostile GDAL inputs. Native raster processing may consume significant memory
+and disk; there is no OS memory/disk quota. Rasterio wheels supply GDAL; `osgeo`
+Python bindings are not required. ASC/IMG multi-file datasets may need the CLI;
+prefer a self-contained GeoTIFF. Texture GeoTIFFs retain georeferencing.
+
+Validation commands from repository root:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest DEM_to_3D.tests.test_api -q
+curl.exe http://127.0.0.1:5175/api/health
+Set-Location .\DEM_to_3D\viewer
+npm test
+npm run typecheck
+npm run build
+```
+
+The backend tests generate only an 8×8 in-memory DEM, verify real V2 GLB/sidecar
+export, download/cleanup, validation, subprocess failure and restart recovery.
+
 ## Cài đặt toàn bộ repository
 
 Các bước dưới đây dành cho Windows PowerShell và cài đủ môi trường cho cả
@@ -271,10 +364,57 @@ Nút `Tắt color texture` trộn SAR với nền xám trung tính; `Bật color
 trộn với màu/texture gốc, kể cả tile chi tiết. Tắt SAR hoặc opacity 0 giữ
 nguyên nền đã chọn. NoData và vùng ngoài raster để lộ nền, không xóa tam giác.
 Tọa độ dùng origin của từng model, transform GeoTIFF (kể cả ảnh xoay) và
-chuyển CRS trước khi tạo UV. Hỗ trợ CRS có sẵn trong proj4 và WGS84 UTM;
-CRS thiếu/không hỗ trợ báo lỗi thay vì mặc định là kinh/vĩ độ. Model thiếu
+chuyển CRS trước khi tạo UV. Hỗ trợ CRS có sẵn trong proj4, WGS84 UTM
+(zone 1–60, Bắc/Nam) và CRS tùy chỉnh GeoTIFF `32767` dùng Equirectangular
+(`ProjCoordTransGeoKey=17`) trên hình cầu, đơn vị mét/độ, kinh tuyến gốc
+Greenwich; lấy tâm chiếu, vĩ tuyến chuẩn, bán kính và false easting/northing
+từ GeoKeys, không tự gán WGS84. Cả importer SAR và ảnh GeoTIFF độc lập dùng
+chung bộ đọc CRS. CRS thiếu/không hỗ trợ bị từ chối ngay trước giải mã pixel,
+kèm hướng dẫn reproject sang EPSG:4326 hoặc WGS84 UTM (không chỉ gán CRS).
+Không dùng CRS địa lý nền thay cho CRS phẳng thiếu hoặc không hỗ trợ. Model thiếu
 metadata không nhận SAR. Stretch percentile 2–98% chỉ phục vụ hiển thị;
 không hiệu chỉnh hay ghi lại giá trị SAR nguồn.
+
+### Ảnh GeoTIFF độc lập (RGB / thang xám)
+
+Ô **Ảnh GeoTIFF (RGB / thang xám)** cho phép chọn nhiều file `.tif/.tiff`
+cùng lúc và thêm vào danh sách hiện tại, tối đa **4 ảnh** để giới hạn bộ nhớ/GPU.
+Ảnh không cần trùng tên model. Nạp GLB cùng `.terrain.json` trước hoặc sau ảnh.
+Mỗi ảnh có **Hiện ảnh GeoTIFF**, **Độ đậm ảnh**, **Band** (ảnh grayscale
+nhiều band) và **Xóa ảnh** riêng. **Xóa tất cả ảnh** cũng hủy lượt nhập đang
+chờ. File lỗi không loại bỏ các ảnh hợp lệ hoặc ảnh đã nhập; lỗi hiển thị kèm
+tên file. Vượt 4 ảnh bị từ chối cả lượt chọn, không âm thầm bỏ bớt file.
+Thứ tự trộn: nền màu/tile (hoặc nền xám khi tắt color texture), SAR, rồi các
+ảnh GeoTIFF theo thứ tự thêm; ảnh thêm sau nằm trên ảnh trước tại vùng giao.
+Toggle/độ đậm từng ảnh không dựng lại scene. Đồng mức và nhãn vẫn là lớp riêng.
+
+Nhận RGB theo `PhotometricInterpretation=2`, dùng ba sample màu đầu tiên;
+ảnh hai band VV/VH không bị nhận nhầm là RGB. RGB unsigned integer ≤32 bit
+scale theo toàn bộ bit depth (8 bit giữ nguyên, 16 bit chia 65535), không
+stretch từng kênh hay tự suy đoán scale reflectance. RGB float/signed và
+palette/CMYK báo chưa hỗ trợ. `Photometric=0/1` hiển thị grayscale, stretch
+percentile 2–98% trên mẫu hợp lệ của ảnh đã giảm độ phân giải; WhiteIsZero
+đảo màu. Đây chỉ là hiển thị, không thay đổi giá trị nguồn hay cao độ DEM.
+
+NoData/NaN/Infinity và alpha theo `ExtraSamples` (associated/unassociated)
+trong suốt. Shader chỉ lấy mẫu bên trong footprint nên không kéo màu cạnh
+ra ngoài ảnh. Dùng affine đầy đủ, PixelIsPoint, CRS và hierarchy của từng
+model khi ghép; không phủ toàn bộ model khi ảnh chỉ giao một phần.
+Không giao địa hình, thiếu metadata hoặc CRS không hỗ trợ có thông báo.
+
+Cả SAR và ảnh độc lập giới hạn cạnh texture ở 2048 pixel, giảm mẫu nearest
+để không nội suy NoData vào giá trị hợp lệ. Tối đa 64 triệu sample nguồn
+(tổng tất cả band), tối đa 256 MiB file và 256 MiB sample giải mã; ảnh lớn hơn
+cần cắt trước khi tải. Các lượt giải mã được tuần tự hóa; lượt upload cũ đang
+chờ không giải mã. Bộ giải mã có thể cần thêm bộ nhớ cho strip/tile nén.
+Texture lấy mẫu nearest để không trộn màu hợp lệ vào lỗ NoData; orientation
+khác top-left cần chuẩn hóa trước khi tải. Texture GeoTIFF sidecar cùng tên
+model giữ cách gán UV của GLB, scale RGB unsigned 1–32 bit về byte và đọc
+alpha khai báo (kể cả premultiplied); RGB float/signed cần chuyển scale trước.
+GLTF rời cần chọn kèm các tài nguyên được tham chiếu. Thư mục tile có thể nằm
+trong nhiều tầng thư mục; các tile trùng cùng đường dẫn logic bị từ chối. Toggle/opacity không dựng lại scene;
+đổi file/band dựng lại như SAR hiện tại. Upload cũ không được thay thế upload
+mới; texture/material/geometry tạm được giải phóng khi thay hoặc xóa lớp.
 
 ### Lớp đường đồng mức cao độ
 

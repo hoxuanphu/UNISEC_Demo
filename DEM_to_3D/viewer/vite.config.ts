@@ -3,6 +3,6 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  server: { host: '127.0.0.1', port: 5173, watch: { ignored: ['**/dist/**'] } },
+  server: { host: '127.0.0.1', port: 5173, watch: { ignored: ['**/dist/**'] }, proxy: { '/api': 'http://127.0.0.1:5175' } },
   build: { target: 'es2022' },
 });

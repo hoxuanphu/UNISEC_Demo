@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
+import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { bilinearElevation } from './elevationGrid';
 import { pixelToProjected, projectedToPixel } from './coordinate';
 import { createSurfaceProfile } from './profile';
@@ -121,6 +122,15 @@ describe('Phase 7 asset and lifecycle hardening', () => {
     expect(() => validateMetadata({ ...metadata, mesh: null })).toThrow(/mesh/);
   });
 
+  it('accepts scene axes independent of JSON property order', () => {
+    expect(validateMetadata({ ...metadata, scene_axes: { z: 'negative_north', x: 'east', y: 'up' } })).toMatchObject({ scene_axes: metadata.scene_axes });
+  });
+
+  it('requires a usable CRS definition string', () => {
+    expect(() => validateMetadata({ ...metadata, crs: { ...metadata.crs, proj4: {} } })).toThrow(/crs/);
+    expect(() => validateMetadata({ ...metadata, crs: { ...metadata.crs, proj4: '   ' } })).toThrow(/crs/);
+  });
+
   it('matches asset URLs by exact basename and rejects mismatched files', () => {
     expect(assetUrlMatchesFilename('/assets/phase7.grid.bin?cache=1', 'phase7.grid.bin')).toBe(true);
     expect(assetUrlMatchesFilename('/assets/other.grid.bin', 'phase7.grid.bin')).toBe(false);
@@ -139,6 +149,23 @@ describe('Phase 7 asset and lifecycle hardening', () => {
     await expect(loadTerrain({ glb: '/phase7.glb', metadata: '/phase7.terrain.json', grid: '/wrong.grid.bin' })).rejects.toThrow(/grid.file/);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     vi.unstubAllGlobals();
+  });
+
+  it('resolves GLB external resources relative to its containing directory', async () => {
+    vi.stubGlobal('window', { location: { href: 'https://viewer.test/app/' } });
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => url.endsWith('.json')
+      ? { ok: true, json: async () => metadata }
+      : { ok: true, arrayBuffer: async () => new ArrayBuffer(metadata.grid.byte_length) }));
+    const parse = vi.spyOn(GLTFLoader.prototype, 'parse').mockImplementation((_buffer, _path, resolve) => {
+      resolve({ scene: new THREE.Group() } as GLTF);
+    });
+    try {
+      await loadTerrain({ glb: '/assets/model.glb?cache=1', grid: '/assets/phase7.grid.bin', metadata: '/assets/phase7.terrain.json' });
+      expect(parse.mock.calls[0][1]).toBe('https://viewer.test/assets/');
+    } finally {
+      parse.mockRestore();
+      vi.unstubAllGlobals();
+    }
   });
 
   it('rejects a GLB whose geometry counts do not match metadata', () => {
