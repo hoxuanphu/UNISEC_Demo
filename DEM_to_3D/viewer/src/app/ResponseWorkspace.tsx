@@ -1271,6 +1271,7 @@ export function ResponseWorkspace({
             onToggleTimeline={() => setTimelineExpanded(open => !open)}
             headerCollapsed={headerCollapsed}
             onShowHeader={() => {setHeaderCollapsed(false);requestAnimationFrame(() => workspaceRef.current?.querySelector<HTMLButtonElement>('.settings-anchor > button')?.focus());}}
+            networkControl={<a title={locale === "vi" ? "Mạng đường Chế Tạo" : "Chế Tạo road network"} aria-label={locale === "vi" ? "Mạng đường Chế Tạo" : "Chế Tạo road network"} className="icon-button map-network-launcher" href={(() => {const url=new URL(location.href);url.searchParams.set("workspace","routes");return url.href;})()}><UiIcon name="route"/><span>{locale === "vi" ? "Mạng đường Chế Tạo" : "Chế Tạo road network"}</span></a>}
             journeyControl={<button
               className="icon-button map-journey-trigger"
               title={

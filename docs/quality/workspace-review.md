@@ -24,3 +24,8 @@ Chỉ sửa tài liệu sản phẩm khi thay đổi quy tắc, hợp đồng d�
 - Fixture ảnh, tọa độ và polygon chỉ để kiểm phần mềm; thử trên máy trình chiếu và dữ liệu thực vẫn cần RS/PO xác nhận.
 
 Chi tiết bền vững nằm ở [bản đồ](../product/cartography.md), [GIS](../product/geodata-workspace.md), [hợp đồng dữ liệu](../architecture/data-contract.md) và [nghiệm thu](acceptance.md). Đối chiếu proposal tại [walkthrough](../operations/walkthrough.md#đối-chiếu-proposal), nguồn tại [tài liệu gốc](../sources.md#tài-liệu-gốc).
+
+
+## Mạng đường địa phương và phim A–B
+
+`test_local_network.py` kiểm tra gắn đầu đường, chia cạnh đích, giữ nguồn gốc và không nối giao cắt nội bộ. Vitest kiểm tra ba cặp làng, tuyến vòng tránh đường đỏ, giới hạn nối điểm, tỉ lệ khung và nội suy theo chiều dài đường. `check_local_route_film.py` kiểm tra canvas/MP4 dùng cùng khung 1920×1080, tuyến hiện dần, giữ đường đỏ, tốc độ, Anh/Việt và 320–1440 px. Kiểm tra bàn giao dùng tile offline thật và chặn mọi yêu cầu ngoài localhost; tùy chọn xuất MP4 giải mã ba khung từ file thực. CI chỉ thay ảnh nền ngoài bằng tile fixture, không thay graph hay thuật toán tuyến.

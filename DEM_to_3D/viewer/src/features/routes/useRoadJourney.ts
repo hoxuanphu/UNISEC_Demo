@@ -8,7 +8,7 @@ export {
 } from "./journeyAnalysis";
 
 /** Keep chosen locations; derive their road connections from current geometry/status. */
-export function useRoadJourney(roads: RoadSegment[]) {
+export function useRoadJourney(roads: RoadSegment[], accessLimitM?: number) {
   const [open, setOpenState] = useState(false),
     [picking, setPicking] = useState<"start" | "end" | null>(null),
     [startSelection, setStart] = useState<JourneySelection | null>(null),
@@ -36,8 +36,8 @@ export function useRoadJourney(roads: RoadSegment[]) {
     if (picking) setPoint(picking, roadProjected(latitude, longitude));
   };
   const analysis = useMemo(
-    () => analyseRoadJourney(roads, startSelection, endSelection, avoidBlocked),
-    [roads, startSelection, endSelection, avoidBlocked],
+    () => analyseRoadJourney(roads, startSelection, endSelection, avoidBlocked, accessLimitM),
+    [roads, startSelection, endSelection, avoidBlocked, accessLimitM],
   );
   return {
     open,

@@ -26,11 +26,11 @@ type Props = {
   mappedAreas?: GeometryRecord[];
   timelineExpanded?: boolean; onToggleTimeline?: () => void;
   headerCollapsed?: boolean; onShowHeader?: () => void;
-  journeyControl?: ReactNode; flyoverControl?: ReactNode;
+  networkControl?: ReactNode; journeyControl?: ReactNode; flyoverControl?: ReactNode;
   children?: ReactNode; onMeasure: () => void; measuring: boolean; onDraw: () => void; drawing: boolean;
 };
 
-export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [], locale, mapMode, onChangeMapMode, onZoomIn, onZoomOut, onResetView, gisObservations=[], onOpenGis, onOpenLayers, layersOpen, layers, hasSelectedRoute, hazards, hasHLZData, affectedOnly, timelineExpanded, onToggleTimeline, headerCollapsed, onShowHeader, journeyControl, flyoverControl, children, onMeasure, measuring, onDraw, drawing, panelCollapsed, onTogglePanel, locating, onLocation }: Props): JSX.Element {
+export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [], locale, mapMode, onChangeMapMode, onZoomIn, onZoomOut, onResetView, gisObservations=[], onOpenGis, onOpenLayers, layersOpen, layers, hasSelectedRoute, hazards, hasHLZData, affectedOnly, timelineExpanded, onToggleTimeline, headerCollapsed, onShowHeader, networkControl, journeyControl, flyoverControl, children, onMeasure, measuring, onDraw, drawing, panelCollapsed, onTogglePanel, locating, onLocation }: Props): JSX.Element {
   const [toolsExpanded, setToolsExpanded] = useState(false);
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [legendMinimized, setLegendMinimized] = useState(true);
@@ -69,6 +69,7 @@ export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [],
       {headerCollapsed && <button className="icon-button map-header-restore" onClick={onShowHeader} aria-label={t('Hiện tiêu đề', 'Show header')} title={t('Hiện tiêu đề', 'Show header')}><UiIcon name="expand"/></button>}
       {children}
       <div className="map-tool-group map-primary-actions">
+        {networkControl}
         <button className="icon-button map-layer-trigger map-layer-launcher" data-map-layers-trigger aria-label={t('Lớp bản đồ', 'Layers')} title={t('Lớp bản đồ', 'Layers')} aria-expanded={layersOpen} aria-controls="map-layers-panel" onClick={onOpenLayers}><UiIcon name="layers"/><span>{t('Lớp', 'Layers')}</span></button>
         <button className="icon-button map-tool-toggle" aria-label={t('Công cụ bổ sung', 'Additional map tools')} title={t('Công cụ bổ sung', 'Additional map tools')} aria-expanded={toolsExpanded} aria-controls="map-advanced-tools" onClick={() => setToolsExpanded(open => !open)}><UiIcon name="settings"/><span>{t('Công cụ', 'Tools')}</span></button>
         {onToggleTimeline && <button className="icon-button map-timeline-toggle" aria-label={t('Diễn biến sự kiện', 'Incident timeline')} title={t('Diễn biến sự kiện', 'Incident timeline')} aria-expanded={timelineExpanded} aria-controls="assessment-timeline" onClick={onToggleTimeline}><UiIcon name="history"/><span>{t('Diễn biến', 'Timeline')}</span></button>}

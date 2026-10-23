@@ -126,13 +126,18 @@ changed, extract a fresh copy of the ZIP.
 
 Incident data, Planet imagery, field photos, terrain and fonts are included.
 """ + ('Rectangular regional Sentinel-2 context and terrain are local. Coverage, dates, sources, attribution and display resolution: dist/offline-map/map.json. Context is historical background; Planet remains the separate evidence layer. Outside packaged bounds, a neutral background is shown.\n' if local_map else 'Online basemaps are disabled offline; prepared local imagery remains available.\n') + """
-The local map appears first. When connected, all views can refine automatically from the same Internet imagery as the web app; a network failure retains the included base. No source selection is needed. Video uses packaged imagery.
+The local map appears first. When connected, all views can refine automatically from the same Internet imagery as the web app; a network failure retains the included base. No source selection is needed. The 3D corridor film uses packaged imagery; the A-B film freezes the currently loaded background at playback/export.
 Context imagery and relief are separate from the Planet evidence and analysis DEM.
 Switch between English and Vietnamese in Settings > Language.
 Place names keep their original spelling. Original survey notes and imported
 source attributes may retain their source language.
 Reports and GIS edits are stored in this browser, without cross-device sync.
 Export anything you need before resetting the session. PDF uses browser Print.
+
+Chế Tạo road network: open the map toolbar link, choose A/B or pick on the map,
+then Play journey or Export MP4 (25 seconds by default, fixed top-down view).
+Direct link after launch: http://127.0.0.1:5212/?workspace=routes
+Road colours in this separate KMZ demonstration are not field verified.
 
 Take a copy of the ZIP and the English backup MP4 on a USB drive. Rehearse on
 the actual laptop and projector with Wi-Fi disabled.

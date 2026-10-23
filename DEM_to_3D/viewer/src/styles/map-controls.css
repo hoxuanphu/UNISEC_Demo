@@ -158,3 +158,5 @@
  .map-area .map-canvas, .map-area:has(.map-advanced-tools:not([hidden])) .map-canvas { top:var(--map-toolbar-height); }
  .map-area:has(.map-advanced-tools:not([hidden])) :is(.layers-panel,.map-location-panel,.map-tool-panel,.basemap-status,.revision-notice) { top:calc(var(--map-toolbar-height) + 12px); }
 }
+
+@media(max-width:600px){.map-network-launcher span{display:none}}

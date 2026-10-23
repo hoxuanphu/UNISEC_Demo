@@ -35,6 +35,7 @@ export function analyseRoadJourney(
   a: JourneySelection | null,
   b: JourneySelection | null,
   avoidBlocked: boolean,
+  accessLimitM = JOURNEY_ACCESS_LIMIT_M,
 ): JourneyAnalysis {
   const eligible = avoidBlocked
     ? roads.filter((r) => r.status !== "blocked")
@@ -46,13 +47,13 @@ export function analyseRoadJourney(
     const anchor = nearestRoadAnchor(
       eligible,
       selection.origin,
-      JOURNEY_ACCESS_LIMIT_M,
+      accessLimitM,
     );
     if (anchor) return { ...selection, anchor, problem: null };
     const nearby = nearestRoadAnchor(
       roads,
       selection.origin,
-      JOURNEY_ACCESS_LIMIT_M,
+      accessLimitM,
     );
     return {
       ...selection,

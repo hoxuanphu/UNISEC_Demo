@@ -11,11 +11,16 @@ import { WorkspaceStartup } from './app/WorkspaceStartup';
 import { useWorkspaceInteraction } from './app/useWorkspaceInteraction';
 import { useWorkspacePreferences } from './app/useWorkspacePreferences';
 import { useTerrainWorkspace } from './features/terrain/useTerrainWorkspace';
+import { lazy, Suspense } from 'react';
 import { StandaloneGeometryWorkspace } from './app/StandaloneGeometryWorkspace';
+
+const RouteFilmWorkspace = lazy(() => import('./features/route-film/RouteFilmWorkspace').then(module => ({default:module.RouteFilmWorkspace})));
 
 export default function App(): JSX.Element {
   const preferences = useWorkspacePreferences();
   const query = new URLSearchParams(window.location.search);
+  if (query.get('workspace') === 'routes')
+    return <Suspense fallback={<p role="status">{preferences.locale === "vi" ? "Đang mở bản đồ…" : "Opening map…"}</p>}><RouteFilmWorkspace locale={preferences.locale} onChangeLocale={preferences.setLocale} /></Suspense>;
   if (query.get('workspace') === 'geodata')
     return <StandaloneGeometryWorkspace locale={preferences.locale} />;
   return <ResponseEntry preferences={preferences} />;

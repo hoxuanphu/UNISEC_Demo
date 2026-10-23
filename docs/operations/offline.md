@@ -22,7 +22,7 @@ Trước ngày thi, thử đúng laptop và màn chiếu với Wi-Fi tắt, đó
 | Tình huống, tuyến, GIS, mặt cắt | Dữ liệu đóng gói; mặt cắt chỉ dùng DEM phân tích có sẵn |
 | Ảnh Planet và hiện trường | Tệp gốc đã chuẩn bị kèm ngày/nguồn; có so ảnh, xem ảnh lớn |
 | Nền 2D, 3D và GIS | XYZ cục bộ từ composite Sentinel-2 ESA WorldCover 2021 khoảng 10 m, hình chữ nhật liên tục, mức zoom 7–14; không tải Esri/Google để đóng gói |
-| Chi tiết khi có Internet | Tự bổ sung cùng nguồn Esri World Imagery của web ở cả góc tổng quan và zoom gần; nền cục bộ luôn giữ bên dưới. Mạng lỗi thì giữ ảnh offline và chờ trước khi thử lại. Không có bộ chọn nguồn. Video dùng dữ liệu đóng gói để không phụ thuộc mạng |
+| Chi tiết khi có Internet | Tự bổ sung cùng nguồn Esri World Imagery của web ở cả góc tổng quan và zoom gần; nền cục bộ luôn giữ bên dưới. Mạng lỗi thì giữ ảnh offline và chờ trước khi thử lại. Không có bộ chọn nguồn. Video 3D dùng dữ liệu đóng gói; phim A–B chốt ảnh nền đang hiển thị khi bắt đầu phát/xuất |
 | Địa hình xung quanh | Mapzen Terrain Tiles (SRTM/GMTED2010), lưu cục bộ; chỉ để hiển thị, không đưa vào lưới phân tích |
 | Phủ ảnh trong vùng demo | Bắt buộc đủ pixel ảnh nền trong phạm vi đóng gói; không dùng hillshade xám thay ảnh bị thiếu |
 | Ngoài phạm vi bản đồ đóng gói | Khi không có Internet: nền trung tính. Giới hạn và checksum ở `dist/offline-map/map.json` |
@@ -65,3 +65,26 @@ python scripts/check_demo_package.py dist-release/DEAR-Offline-Windows-x64.zip -
 Bộ kiểm tra giải nén mới vào đường dẫn có dấu/khoảng trắng, kiểm checksum, chạy bằng runtime đi kèm từ thư mục khác, thử mở launcher hai lần, chặn Internet và xác nhận không có yêu cầu ngoài localhost. Luồng kiểm tra gồm phản ứng/PNG/reset, 2D/3D, GIS sửa/áp dụng/bỏ nháp, ảnh Planet/ảnh hiện trường và phục hồi lỗi tải, mặt cắt, camera hành trình, ảnh/ghi âm/báo cáo người dân. MP4 được giải mã để kiểm tra bản đồ chuyển động và đủ ba ảnh tương ứng.
 
 Kiểm thử phần mềm không thay nghiệm thu dữ liệu hoặc thử phần cứng trình chiếu. Xác thực, đồng bộ nhiều máy và tiếp nhận tin thực tế thuộc giai đoạn vận hành, xem [kiến trúc](../architecture/overview.md).
+
+
+## Phim A–B trên mạng đường Chế Tạo
+
+Trong màn hình điều phối, chọn **Chế Tạo road network / Mạng đường Chế Tạo** trên thanh công cụ bản đồ. Có thể mở trực tiếp `http://127.0.0.1:5212/?workspace=routes` sau khi chạy launcher. Bản web dùng cùng đường dẫn `/?workspace=routes`.
+
+Chọn hai làng hoặc bấm chọn A/B trên bản đồ. **Avoid blocked roads** loại các cạnh đỏ khỏi phép tìm tuyến nhưng vẫn giữ chúng trên bản đồ. **Fit route** căn khung tuyến; kéo và các nút +/- cho phép chỉnh khung trước khi phát. Phim giữ nguyên góc từ trên xuống, khung và tỉ lệ trong suốt hành trình; tuyến hiện dần và có điểm di chuyển. Mặc định 25 giây, có tốc độ 0.75×–1.5×; **Export MP4** xuất 1920×1080, 30 fps bằng cùng bộ vẽ với bản xem trước. Bản đồ/ảnh nền được chốt khi bắt đầu phát hoặc xuất để thay đổi mạng không làm đổi cảnh giữa phim.
+
+Nguồn riêng: `resources/kml/xa che tao demo2.kmz`, 21 đường địa phương, Village A/B/C và bãi đáp. Màu đường, vùng sạt và vùng nước là ký hiệu từ nguồn demo, chưa phải đánh giá đường đã xác minh hoặc kết quả đối chiếu ảnh Planet. Không nhập đè hồ sơ sự kiện hiện có. JSON giữ tọa độ WGS84 gốc, tên nguồn, SHA-256, chỉ số Placemark và graph EPSG:32648. Khi chuẩn bị graph chỉ gắn đầu đường vào đường khác trong 15 m; không nối mọi giao cắt. Điểm làng giữ tọa độ thật, phần cách đường hiển thị nét đứt và số mét chưa xác minh; điểm quá 250 m không được coi là đã nối mạng đường. Đường nằm ngoài Chế Tạo bị loại có ghi lý do trong metadata.
+
+Chuẩn bị lại nguồn trong môi trường numpy/rasterio:
+
+```powershell
+python ../tools/prepare_local_network.py '../../../resources/kml/xa che tao demo2.kmz'
+```
+
+Kiểm tra bản chạy thật với Internet bị chặn, có thể xuất luôn video dự phòng:
+
+```powershell
+python scripts/check_local_route_film.py --url http://127.0.0.1:5212 --chrome 'C:/Program Files/Google/Chrome/Application/chrome.exe' --output dist-release/DEAR-Che-Tao-A-B.mp4
+```
+
+`--fixture` chỉ dùng trên CI để thay ảnh nền qua mạng bằng tile kiểm thử cố định; kiểm tra offline bàn giao không dùng cờ này.
