@@ -34,7 +34,7 @@ describe('prepared analysis imagery', () => {
   });
 
   it('keeps optical parts and SAR modes with resolved, checksummed assets', () => {
-    expect(layers.map(layer => layer.id)).toEqual(['planet-post', 'planet-pre', 'planet-sep01', 'sentinel1']);
+    expect(layers.map(layer => layer.id)).toEqual(['planet-post', 'planet-pre', 'planet-sep01', 'sentinel1', 'sentinel1-oct11']);
     const post = layers[0];
     expect(post.kind === 'optical' && post.parts).toHaveLength(3);
     expect(selectedRasters(layers,{layer:'planet-post',sarMode:'vv',opacity:1})).toHaveLength(1);

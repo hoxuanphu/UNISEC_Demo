@@ -139,6 +139,7 @@ def run(archive, chrome=None, captures=None, video=None):
     from check_cartographic_evidence import run as evidence
     from check_flyover import run as film
     from check_local_route_film import run as local_film
+    from check_prepared_comparison import run as comparison
 
     with tempfile.TemporaryDirectory(prefix='DEAR offline kiểm thử ') as temporary:
         root = Path(temporary).resolve()
@@ -208,6 +209,7 @@ def run(archive, chrome=None, captures=None, video=None):
                              ('role presentation and fullscreen', lambda: roles(base, chrome, captures)),
                              ('local map in all workspaces', lambda: check_local_map(base, chrome, captures)),
                              ('local A–B road network and film', lambda: local_film(base, chrome, captures=captures)),
+                             ('Planet/SAR comparison', lambda: comparison(base, chrome, captures=captures)),
                              ('profile and film camera', lambda: profile(base, chrome, captures)),
                              ('GIS edit/publish', lambda: gis(base, chrome, captures)),
                              ('resident photo/audio/report', lambda: resident(base, chrome, captures)),

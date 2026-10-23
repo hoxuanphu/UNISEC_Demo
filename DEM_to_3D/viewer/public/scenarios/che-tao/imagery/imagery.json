@@ -488,12 +488,22 @@
      15.0
     ]
    },
+   "sourceFiles": [
+    {
+     "file": "s1gee_04489_2026-09-20_2026-10-20.tif",
+     "sha256": "cde54721c9258536c80d2640e81f86cff3d91445ffa75532f7a3f7deffcc3109"
+    },
+    {
+     "file": "s1gee_S1D_IW_GRDH_1SDV_20261018T110538_2026101_2026-10-18.tif",
+     "sha256": "bcba595f738b8e53238ba84962e21dbea835c0f9ce30862c31fca049549792b3"
+    }
+   ],
    "modes": {
     "vv": {
      "terrain": {
       "url": "sentinel1-vv.utm.webp",
-      "byteLength": 613630,
-      "sha256": "e502d4fab73299abd5de54fe820aece9cb564fd1dcc722799ee2050fc171c3b3",
+      "byteLength": 613632,
+      "sha256": "9e881b36eb121a5a0583875733e33bb295a51dc1d9b4c034e7d185c03ada2399",
       "width": 1945,
       "height": 1604,
       "crs": "EPSG:32648",
@@ -506,8 +516,8 @@
      },
      "web": {
       "url": "sentinel1-vv.web.webp",
-      "byteLength": 531068,
-      "sha256": "d760e49027c68a53b19309da2d8fba961ef166d7e33ab6c8db08459eea218b1b",
+      "byteLength": 531048,
+      "sha256": "c202a9d25b9ab73aafdb0a129ad455840cc3e51b1479cd903b8410c704a32cc9",
       "width": 1951,
       "height": 1606,
       "latLngBounds": [
@@ -525,8 +535,8 @@
     "vh": {
      "terrain": {
       "url": "sentinel1-vh.utm.webp",
-      "byteLength": 632940,
-      "sha256": "13657f5ab415f3050bb1920f0942928e0485613e5e889ea5b1eb1814bf92e393",
+      "byteLength": 632942,
+      "sha256": "658adf8b89ca10fb3767e7c54ef0475aa5d02330acbd4f4a432c9835cb7a2181",
       "width": 1945,
       "height": 1604,
       "crs": "EPSG:32648",
@@ -539,8 +549,8 @@
      },
      "web": {
       "url": "sentinel1-vh.web.webp",
-      "byteLength": 550578,
-      "sha256": "f63b44c24488265e1da4f8fc72f7956d72252cac92a5a170fc8a2e63fedceaec",
+      "byteLength": 550394,
+      "sha256": "ad6c826477d85293048a04c75c9fafb8891e6f9a8501550fbffd3813c3f75f75",
       "width": 1951,
       "height": 1606,
       "latLngBounds": [
@@ -558,8 +568,8 @@
     "rgb": {
      "terrain": {
       "url": "sentinel1-rgb.utm.webp",
-      "byteLength": 753686,
-      "sha256": "7b66288eedecf2458af28091845191bdc274ba1b0cfb8d01929065e4d967bf05",
+      "byteLength": 753688,
+      "sha256": "312059af8bf03840af482f78a793315d2b9cdcfe608de3c88c76f8c7bbfda610",
       "width": 1945,
       "height": 1604,
       "crs": "EPSG:32648",
@@ -572,8 +582,8 @@
      },
      "web": {
       "url": "sentinel1-rgb.web.webp",
-      "byteLength": 667144,
-      "sha256": "119cb66c2a1cf8c75cab3003f1055e7815ce5204162f8011436c477a5de80a2a",
+      "byteLength": 667076,
+      "sha256": "a2045a689f1bc5fb7c30584bf20907657ca33afc3b7085d22b2f93516fa76c66",
       "width": 1951,
       "height": 1606,
       "latLngBounds": [
@@ -584,6 +594,144 @@
        [
         21.7864135,
         104.1458824
+       ]
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "sentinel1-oct11",
+   "name": [
+    "Sentinel-1 SAR",
+    "Sentinel-1 SAR"
+   ],
+   "kind": "sar",
+   "acquired": "2026-10-11T11:13:48Z",
+   "source": "Copernicus Sentinel-1D IW GRDH 1SDV (Google Earth Engine COPERNICUS/S1_GRD)",
+   "pixelM": 10.0,
+   "polarizations": [
+    "VV",
+    "VH"
+   ],
+   "rangesDb": {
+    "vv": [
+     -20.0,
+     5.0
+    ],
+    "vh": [
+     -27.0,
+     -2.0
+    ],
+    "ratio": [
+     0.0,
+     15.0
+    ]
+   },
+   "sourceFiles": [
+    {
+     "file": "Sentinel1_MuCangChai_CheTao_2026-10-11_20km_VV_VH_UTM48N.tif",
+     "sha256": "621b6e98bbd87418c4026440bc062aaa99024d78a31603be5af6247a2f0708af"
+    }
+   ],
+   "sourceScene": "S1D_IW_GRDH_1SDV_20261011T111348_20261011T111413_004967_0095F5_9485",
+   "orbitPass": "ASCENDING",
+   "modes": {
+    "vv": {
+     "terrain": {
+      "url": "sentinel1-oct11-vv.utm.webp",
+      "byteLength": 1456106,
+      "sha256": "215ef8a674d2fc3dcd600cafdb80d7b258a4b29b43e8222844db8d39bc29e363",
+      "width": 2000,
+      "height": 2000,
+      "crs": "EPSG:32648",
+      "bounds": [
+       392830.0,
+       2400440.0,
+       412830.0,
+       2420440.0
+      ]
+     },
+     "web": {
+      "url": "sentinel1-oct11-vv.web.webp",
+      "byteLength": 1217698,
+      "sha256": "98744ecd0d341c63505941220e5a53deddcb9db951771346b133408a5cca9882",
+      "width": 2012,
+      "height": 2024,
+      "latLngBounds": [
+       [
+        21.7041394,
+        103.9626176
+       ],
+       [
+        21.8859266,
+        104.157239
+       ]
+      ]
+     }
+    },
+    "vh": {
+     "terrain": {
+      "url": "sentinel1-oct11-vh.utm.webp",
+      "byteLength": 1465572,
+      "sha256": "7ae84456b9da4f4c5517e228c4690a04c79835ba3283e578ddb3d7544c10ced2",
+      "width": 2000,
+      "height": 2000,
+      "crs": "EPSG:32648",
+      "bounds": [
+       392830.0,
+       2400440.0,
+       412830.0,
+       2420440.0
+      ]
+     },
+     "web": {
+      "url": "sentinel1-oct11-vh.web.webp",
+      "byteLength": 1239188,
+      "sha256": "9d991b75fe9d76000461843718ce8eb9169eb92bfb713f075d2740f6bb4eddda",
+      "width": 2012,
+      "height": 2024,
+      "latLngBounds": [
+       [
+        21.7041394,
+        103.9626176
+       ],
+       [
+        21.8859266,
+        104.157239
+       ]
+      ]
+     }
+    },
+    "rgb": {
+     "terrain": {
+      "url": "sentinel1-oct11-rgb.utm.webp",
+      "byteLength": 1760278,
+      "sha256": "c4c1596ab9137039ea7f942c4246ded7415ba585a71c4f62bb65d72fa36b4d61",
+      "width": 2000,
+      "height": 2000,
+      "crs": "EPSG:32648",
+      "bounds": [
+       392830.0,
+       2400440.0,
+       412830.0,
+       2420440.0
+      ]
+     },
+     "web": {
+      "url": "sentinel1-oct11-rgb.web.webp",
+      "byteLength": 1540342,
+      "sha256": "df061fc55b6f73cd1a71641c7f027a834422318598e163719daddb8e20276125",
+      "width": 2012,
+      "height": 2024,
+      "latLngBounds": [
+       [
+        21.7041394,
+        103.9626176
+       ],
+       [
+        21.8859266,
+        104.157239
        ]
       ]
      }

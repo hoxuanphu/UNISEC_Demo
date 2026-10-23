@@ -1,8 +1,32 @@
 .prepared-comparison { width:min(1100px,calc(100vw - 32px)); height:min(850px,calc(100dvh - 32px)); display:flex; flex-direction:column; }
+.prepared-comparison-stage { position:relative; flex:1; min-height:200px; display:flex; }
 .prepared-comparison-map { position:relative; min-height:200px; flex:1; isolation:isolate; background:var(--ws-line); }
 .prepared-comparison-map .leaflet-comparison-before-pane,.prepared-comparison-map .leaflet-comparison-after-pane { position:absolute; inset:0; width:100%; height:100%; }
-.prepared-comparison-dates { display:flex; justify-content:space-between; padding:10px 20px 0; font-size:13px; font-variant-numeric:tabular-nums; }
-.prepared-comparison-slider { display:flex; align-items:center; gap:12px; padding:10px 20px; font-size:13px; }
+/* Blink: which date is on screen, in the same place the exported GIF puts it. */
+.prepared-comparison-badge { position:absolute; z-index:500; top:12px; left:12px; display:flex; align-items:baseline; gap:10px; margin:0; padding:6px 12px; border-radius:6px; background:rgba(20,22,26,.72); color:#fff; font-size:15px; font-variant-numeric:tabular-nums; pointer-events:none; }
+.prepared-comparison-badge strong { font-size:16px; font-weight:700; }
+
+/* One control row: how to compare, its own controls, then the export. */
+.prepared-comparison-controls { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; padding:12px 20px; }
+.prepared-comparison-modes,.prepared-comparison-frames { display:inline-grid; grid-auto-flow:column; gap:2px; padding:3px; border-radius:8px; background:var(--fill); }
+.prepared-comparison-modes button,.prepared-comparison-frames button { min-height:32px; padding:4px 12px; border:0; border-radius:6px; background:none; color:var(--ws-muted); font-size:13px; font-weight:500; }
+.prepared-comparison-modes button:hover,.prepared-comparison-frames button:hover { color:var(--ws-text); }
+.prepared-comparison-modes button[aria-pressed="true"],.prepared-comparison-frames button[aria-pressed="true"] { background:var(--card); color:var(--ws-text); font-weight:600; box-shadow:0 0 0 1px var(--card-line),0 1px 2px rgba(0,0,0,.06); }
+.prepared-comparison-slider { display:flex; align-items:center; gap:12px; flex:1; min-width:280px; font-size:13px; }
+.prepared-comparison-slider > span { display:grid; gap:1px; flex:none; font-weight:600; }
+.prepared-comparison-slider > span:last-child { text-align:right; }
+.prepared-comparison-slider small { color:var(--ws-muted); font-size:12px; font-weight:400; font-variant-numeric:tabular-nums; }
 .prepared-comparison-slider input { flex:1; min-width:0; accent-color:var(--select); }
+.prepared-comparison-blink { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; flex:1; min-width:280px; }
+.prepared-comparison-blink > .button { min-width:76px; min-height:34px; border-radius:8px; font-size:13px; }
+.prepared-comparison-speed { display:inline-flex; align-items:center; gap:8px; color:var(--ws-muted); font-size:13px; }
+.prepared-comparison-speed select { min-height:32px; font-size:13px; }
+.prepared-comparison-gif { display:inline-flex; align-items:center; gap:6px; min-height:34px; margin-left:auto; border-radius:8px; font-size:13px; }
 .prepared-comparison footer { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 16px; padding:10px 20px 14px; border-top:1px solid var(--ws-line); color:var(--ws-muted); font-size:13px; }
 .prepared-comparison footer p { margin:0; flex:1; min-width:200px; }
+
+.prepared-comparison-sources { display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; padding:10px 20px; border-bottom:1px solid var(--ws-line); }
+.prepared-comparison-sources label { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ws-muted); }
+.prepared-comparison-sources select { min-height:34px; padding:4px 28px 4px 8px; }
+.prepared-comparison-sar-scale { color:var(--ws-muted); font-size:12px; font-variant-numeric:tabular-nums; }
+@media(max-width:600px) { .prepared-comparison { width:calc(100vw - 16px); height:calc(100dvh - 16px); } .prepared-comparison-sources,.prepared-comparison-controls { padding:8px 12px; gap:8px; } .prepared-comparison-slider,.prepared-comparison-blink { min-width:0; width:100%; } .prepared-comparison footer { padding:8px 12px; font-size:12px; } }

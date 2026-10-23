@@ -18,6 +18,7 @@ import { IncidentJournal } from '../features/incident/IncidentJournal';
 import { ResponseWorkDialog } from '../features/incident/ResponseWorkDialog';
 import type { ResponseWork, WorkEntry, WorkStatus } from '../features/incident/responseWork';
 import type { IncidentWorkspaceSnapshot } from '../features/incident/deriveIncidentWorkspace';
+import { preparedComparisonPair } from '../features/imagery/preparedComparison';
 import { ImageCompareDialog } from '../features/comparison/ImageCompareDialog';
 import type { ComparisonPair } from '../features/comparison/comparison';
 import { DecisionExportDialog } from '../features/briefing/DecisionExportDialog';
@@ -77,7 +78,7 @@ export function WorkspaceDialogs({ analysisImagery,comparisonRecord, identity,on
     case 'help':
       return <UserGuide locale={locale} onClose={onClose}/>;
     case 'comparison':
-      if(analysisImagery && analysisImagery.layers.filter(layer=>layer.kind==='optical').length>=2 && !comparisonPair)return <PreparedImageryComparison layers={analysisImagery.layers} records={gisSession.records} selected={comparisonRecord} locale={locale} onClose={onClose}/>;
+      if(analysisImagery && (['optical','sar'] as const).some(kind=>preparedComparisonPair(analysisImagery.layers,kind)) && !comparisonPair)return <PreparedImageryComparison layers={analysisImagery.layers} records={gisSession.records} selected={comparisonRecord} locale={locale} onClose={onClose}/>;
       return <ImageCompareDialog pair={comparisonPair} onPair={onComparisonPair} triggeredAt={incident.triggeredAt} locale={locale} onClose={onClose} />;
     case 'geodata':
       return <GeometryWorkspace analysisImagery={analysisImagery} scenarioRequest={scenarioRequest} onResponseScenario={onResponseScenario} locale={locale} offline={offline} onClose={onClose} session={gisSession} annotationProperties={(id,records)=>{const record=records.find(r=>r.id===id);return {[submissionKey]:record&&submissionOf(record) || newSubmission(identity,'manual')};}} onResponse={onGisResponse} scenario={{ datasetVersion: packet.datasetVersion, communities: snapshot.communities, responseSites: snapshot.responseSites, hazards, roads }} scenarioEdits={scenarioEdits} onRenameScenario={onRename}/>;

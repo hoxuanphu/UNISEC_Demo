@@ -100,6 +100,7 @@ jobs:
           python scripts/check_map_symbol_consistency.py --url http://127.0.0.1:5213
           python scripts/check_dataset_selection.py --url http://127.0.0.1:5213
           python scripts/check_cartographic_evidence.py --url http://127.0.0.1:5213
+          python scripts/check_prepared_comparison.py --url http://127.0.0.1:5213
           python scripts/check_selection_navigation.py --url http://127.0.0.1:5213 --captures dist-release/selection
           python scripts/check_focus_audit.py --url http://127.0.0.1:5213 --captures dist-release/focus
           python scripts/check_status_update.py --url http://127.0.0.1:5213 --captures dist-release/status

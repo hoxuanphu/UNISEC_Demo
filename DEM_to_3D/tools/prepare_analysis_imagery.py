@@ -24,7 +24,9 @@ from rasterio.warp import calculate_default_transform, reproject, transform_boun
 parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
 parser.add_argument('source', type=Path, help='folder with planet/ and sar/')
 parser.add_argument('out', type=Path)
-parser.add_argument('--optical-only', action='store_true', help='Rebuild Planet display products and retain the existing SAR catalog/assets')
+group = parser.add_mutually_exclusive_group()
+group.add_argument('--optical-only', action='store_true', help='Rebuild Planet display products and retain the existing SAR catalog/assets')
+group.add_argument('--sar-only', action='store_true', help='Rebuild SAR display products and retain the existing Planet catalog/assets')
 arguments = parser.parse_args()
 SOURCE, OUT = arguments.source, arguments.out
 OUT.mkdir(parents=True, exist_ok=True)
@@ -83,7 +85,10 @@ def output(rgba: np.ndarray, transform, crs: str, name: str, resolution: float, 
 
 
 manifest = {'layers': []}
-for layer, dates in PLANET_DATES.items():
+if arguments.sar_only:
+    previous = json.loads((OUT / 'imagery.json').read_text(encoding='utf-8'))
+    manifest['layers'].extend(layer for layer in previous['layers'] if layer['kind'] != 'sar')
+for layer, dates in ([] if arguments.sar_only else PLANET_DATES.items()):
     parts, inputs = [], []
     for part, date in dates.items():
         scene=select_scene(SOURCE,part,date)
@@ -111,31 +116,60 @@ if arguments.optical_only:
     print('Optical mosaics rebuilt; SAR products retained.')
     raise SystemExit(0)
 
-# Sentinel-1: the two downloads are the same acquisition on the same grid; merge into one footprint.
+def render_sar(db, transform, crs, layer_id, acquired, files, **metadata):
+    """Fixed dB ranges for every date; only prepared display pixels are stretched."""
+    db[~np.isfinite(db)] = np.nan
+    warped, warped_transform = warp(db, transform, crs, TERRAIN, 10.0, Resampling.bilinear, np.nan)
+    valid = np.isfinite(warped).all(0)
+    vv, vh = warped
+    scaled = {key: np.clip((value - lo) / (hi - lo), 0, 1) for key, value, (lo, hi) in
+              (('vv', vv, SAR_RANGES['vv']), ('vh', vh, SAR_RANGES['vh']), ('ratio', vv - vh, SAR_RANGES['ratio']))}
+    renders = {'vv': [scaled['vv']] * 3, 'vh': [scaled['vh']] * 3,
+               'rgb': [scaled['vv'], scaled['vh'], scaled['ratio']]}
+    products = {}
+    for mode, channels in renders.items():
+        rgba = np.zeros((4, *valid.shape), dtype=np.uint8)
+        for band, channel in enumerate(channels):
+            rgba[band] = np.where(valid, np.round(np.nan_to_num(channel) * 255), 0).astype(np.uint8)
+        rgba[3] = np.where(valid, 255, 0)
+        products[mode] = output(rgba, warped_transform, TERRAIN, f'{layer_id}-{mode}', 10.0)
+        print(layer_id, mode, products[mode]['terrain']['byteLength'], products[mode]['web']['byteLength'])
+    manifest['layers'].append({'id': layer_id, 'name': NAMES['sentinel1'], 'kind': 'sar',
+                               'acquired': acquired,
+                               'source': 'Copernicus Sentinel-1D IW GRDH 1SDV (Google Earth Engine COPERNICUS/S1_GRD)',
+                               'pixelM': 10.0, 'polarizations': ['VV', 'VH'], 'rangesDb': SAR_RANGES,
+                               'sourceFiles': [{'file': path.name, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()} for path in files],
+                               **metadata, 'modes': products})
+
+
 # These two exports belong to 18 October; do not merge other acquisitions/CRSs.
-sar_files = sorted((SOURCE / 'sar').glob('s1gee_*.tif'))
+sar_files = [SOURCE / 'sar' / name for name in (
+    's1gee_04489_2026-09-20_2026-10-20.tif',
+    's1gee_S1D_IW_GRDH_1SDV_20261018T110538_2026101_2026-10-18.tif',
+)]
 sources = [rasterio.open(path) for path in sar_files]
-db, sar_transform = merge(sources, nodata=np.nan, dtype='float32')
-for source in sources:
-    source.close()
-db[~np.isfinite(db)] = np.nan
-warped, warped_transform = warp(db, sar_transform, 'EPSG:4326', TERRAIN, 10.0, Resampling.bilinear, np.nan)
-valid = np.isfinite(warped).all(0)
-vv, vh = warped
-scaled = {key: np.clip((value - lo) / (hi - lo), 0, 1) for key, value, (lo, hi) in
-          (('vv', vv, SAR_RANGES['vv']), ('vh', vh, SAR_RANGES['vh']), ('ratio', vv - vh, SAR_RANGES['ratio']))}
-renders = {'vv': [scaled['vv']] * 3, 'vh': [scaled['vh']] * 3, 'rgb': [scaled['vv'], scaled['vh'], scaled['ratio']]}
-products = {}
-for mode, channels in renders.items():
-    rgba = np.zeros((4, *valid.shape), dtype=np.uint8)
-    for band, channel in enumerate(channels):
-        rgba[band] = np.where(valid, np.round(np.nan_to_num(channel) * 255), 0).astype(np.uint8)
-    rgba[3] = np.where(valid, 255, 0)
-    products[mode] = output(rgba, warped_transform, TERRAIN, f'sentinel1-{mode}', 10.0)
-    print('sar', mode, products[mode]['terrain']['byteLength'], products[mode]['web']['byteLength'])
-manifest['layers'].append({'id': 'sentinel1', 'name': NAMES['sentinel1'], 'kind': 'sar', 'acquired': '2026-10-18T11:05:38Z',
-                           'source': 'Copernicus Sentinel-1D IW GRDH 1SDV (Google Earth Engine COPERNICUS/S1_GRD)',
-                           'pixelM': 10.0, 'polarizations': ['VV', 'VH'], 'rangesDb': SAR_RANGES, 'modes': products})
+try:
+    if any(src.crs.to_string() != 'EPSG:4326' or src.descriptions != ('VV', 'VH') for src in sources):
+        raise ValueError('Unexpected 18 October SAR CRS/bands')
+    db, sar_transform = merge(sources, nodata=np.nan, dtype='float32')
+finally:
+    for src in sources:
+        src.close()
+render_sar(db, sar_transform, 'EPSG:4326', 'sentinel1', '2026-10-18T11:05:38Z', sar_files)
+
+# The separate UTM export has explicit source scene/date metadata. Keep its own
+# footprint and acquisition; it is not another tile of the 18 October mosaic.
+pre_path = SOURCE / 'sar' / 'Sentinel1_MuCangChai_CheTao_2026-10-11_20km_VV_VH_UTM48N.tif'
+with rasterio.open(pre_path) as src:
+    tags = src.tags()
+    scene = tags.get('SOURCE_SCENE', '')
+    if (src.crs.to_string() != TERRAIN or src.descriptions != ('VV', 'VH') or
+            tags.get('ACQUISITION_DATE') != '2026-10-11' or
+            scene != 'S1D_IW_GRDH_1SDV_20261011T111348_20261011T111413_004967_0095F5_9485'):
+        raise ValueError('Unexpected 11 October SAR source metadata')
+    render_sar(src.read(), src.transform, src.crs.to_string(), 'sentinel1-oct11',
+               '2026-10-11T11:13:48Z', [pre_path], sourceScene=scene, orbitPass='ASCENDING')
+
 # LF on every OS: the manifest checksum must match a Linux checkout (.gitattributes eol=lf).
 (OUT / 'imagery.json').write_bytes(json.dumps(manifest, ensure_ascii=False, indent=1).encode('utf-8'))
 print('total', sum(p.stat().st_size for p in OUT.glob('*.webp')) // 1024, 'KB')
