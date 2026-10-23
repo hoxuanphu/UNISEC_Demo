@@ -22,7 +22,7 @@ export type FlyoverSettings = {
 };
 export const defaultFlyoverSettings: FlyoverSettings = {
   duration: 25, introHold: 1, dive: 1.2, maxRamp: .8,
-  dwell: 2.1, arriveHold: .3, outro: 3, finalHold: 1.2
+  dwell: 1.6, arriveHold: .3, outro: 3, finalHold: 1.2
 };
 
 type Segment =

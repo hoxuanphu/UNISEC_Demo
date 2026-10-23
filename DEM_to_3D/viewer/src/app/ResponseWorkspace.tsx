@@ -1,3 +1,5 @@
+import { useLocalNetwork } from '../features/route-film/networkContext';
+import { LocalAreaCard } from '../features/route-film/LocalAreaCard';
 import { supportsBasemapTone } from '../features/imagery/basemapTone';
 import { analysisSourceInfo } from '../features/imagery/analysisImagery';
 import proj4 from 'proj4';
@@ -182,6 +184,7 @@ export function ResponseWorkspace({
     (record) => record.visible && gisGroupIds.includes(record.id)
   );
   const inspectGisRecord = (id: string, keepGroup = false) => {
+    setLocalAreaId(null);
     navigation.dispatch({type:'view',view:navigation.view,list:true});
     gis.select(id);
     setGisCardId(id);
@@ -404,6 +407,14 @@ export function ResponseWorkspace({
   }, [offlineMode,runtime.localMap]);
   const analysisImagery = useAnalysisImagery(scenarioManifest?.analysisImagery);
   const fieldPhotos = usePreparedPhotos(scenarioManifest?.fieldPhotos);
+  const localNetwork=useLocalNetwork(packet.datasetVersion.startsWith('che-tao'));
+  const [localAreaId,setLocalAreaId]=useState<string|null>(null);
+  const localContext=useMemo(()=>localNetwork.context?{areas:localNetwork.context.areas.filter(area=>area.kind==='landslide' && layers.landslide!==false),closures:[]}:undefined,[localNetwork.context,layers.landslide]);
+  const localArea=localContext?.areas.find(area=>area.id===localAreaId);
+  const inspectLocalArea=(id:string)=>{
+    navigation.dispatch({type:'view',view:navigation.view,list:true});
+    setGisCardId(null);setGisGroupIds([]);setLocalAreaId(id);resetTools();setMobileView('map');
+  };
   const analysisDisplay = useMemo(() => ({ rasters: analysisImagery.rasters, opacity: analysisImagery.selection.opacity, balanceBasemap:analysisImagery.balanceBasemap && supportsBasemapTone(analysisImagery.layers) && analysisImagery.layers.some(layer=>layer.id===analysisImagery.selection.layer && layer.kind==='optical') }),
     [analysisImagery.rasters, analysisImagery.selection.opacity,analysisImagery.balanceBasemap,analysisImagery.layers,analysisImagery.selection.layer]);
   const [flyoverState, setFlyoverState] = useState<FlyoverState>({ status: 'idle', time: 0, duration: 0 });
@@ -537,6 +548,7 @@ export function ResponseWorkspace({
     });
   };
   const rememberDetailTrigger = () => {
+    setLocalAreaId(null);
     const active = document.activeElement;
     if (
       active instanceof HTMLElement &&
@@ -1095,7 +1107,7 @@ export function ResponseWorkspace({
           )}
           <div className="map-canvas">
             {mapMode === '2d' ? (
-              <Map2D
+              <Map2D contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
                 analysisImagery={analysisDisplay}
                 gisEnabled={true}
                 gisRecords={displayedGis}
@@ -1181,7 +1193,7 @@ export function ResponseWorkspace({
                 <React.Suspense
                   fallback={terrain3DBusy ? null : terrainLoading(null)}
                 >
-                  <TerrainViewer
+                  <TerrainViewer contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
                     analysisImagery={analysisDisplay}
                     surfaceLayers={layers}
                     terrainOverlays={terrainOverlays.options}
@@ -1236,6 +1248,7 @@ export function ResponseWorkspace({
             )}
           </div>
 
+          {localArea&&<LocalAreaCard area={localArea} photos={fieldPhotos} locale={locale} onClose={()=>setLocalAreaId(null)} linkToJourney/>}
           {mapMode === '3d' && terrain3DBusy
             ? terrainLoading(progress3D)
             : !mapTerrain &&

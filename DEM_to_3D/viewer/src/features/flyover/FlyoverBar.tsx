@@ -1,3 +1,4 @@
+import { isSelectPickerEvent } from '../../shared/ui/selectKeyboard';
 import './flyover.css';
 import { createPortal } from 'react-dom';
 import { useDismissiblePopover } from '../../shared/hooks/useDismissiblePopover';
@@ -8,6 +9,8 @@ import type { FlyoverState } from '../../terrain/flyover/flyoverController';
 import { UiIcon } from '../../shared/ui/UiIcon';
 
 type Props = {
+  layout?: 'toolbar'|'journey';
+  disabled?: boolean;
   locale: Locale;
   state: FlyoverState;
   /** Route labels for the button and the file name. */
@@ -48,7 +51,7 @@ async function withCurrentFlyover<T>(ref: MutableRefObject<ViewControls | null>,
   }
 }
 
-export function FlyoverBar({ locale, state, title, fileName, mapMode, onRequest3D, controlRef }: Props): JSX.Element | null {
+export function FlyoverBar({ layout = 'toolbar', disabled = false, locale, state, title, fileName, mapMode, onRequest3D, controlRef }: Props): JSX.Element | null {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const bar = useRef<HTMLDivElement>(null);
   const [mapHost,setMapHost]=useState<HTMLElement|null>(null);
@@ -66,18 +69,20 @@ export function FlyoverBar({ locale, state, title, fileName, mapMode, onRequest3
 
   // The bar steps aside while the film plays and the pointer rests.
   useEffect(() => {
-    if (state.status !== 'playing') { setIdleUi(false); return; }
+    if (state.status !== 'playing' || layout === 'journey') { setIdleUi(false); return; }
     let timer = setTimeout(() => setIdleUi(true), 2500);
     const wake = () => { setIdleUi(false); clearTimeout(timer); timer = setTimeout(() => setIdleUi(true), 2500); };
     window.addEventListener('pointermove', wake);
     return () => { clearTimeout(timer); window.removeEventListener('pointermove', wake); };
-  }, [state.status]);
+  }, [state.status, layout]);
 
   useEffect(() => {
     if (!active) return;
     const onKey = (event: KeyboardEvent) => {
       const controls = controlRef.current?.flyover;
-      if (!controls || (event.target as HTMLElement | null)?.closest('input, textarea, select')) return;
+      if (!controls) return;
+      if(event.key==='Escape' && !event.defaultPrevented && !isSelectPickerEvent(event)){controls.exit();return;}
+      if ((event.target as HTMLElement | null)?.closest('input, textarea, select')) return;
       if (event.key === ' ') { event.preventDefault(); if (state.status === 'playing') controls.pause(); else void controls.play(); }
       else if (event.key === 'Escape') controls.exit();
       else if (event.key === 'ArrowRight') controls.seek(state.time + 5);
@@ -144,6 +149,13 @@ export function FlyoverBar({ locale, state, title, fileName, mapMode, onRequest3
     </div>);
   }
   if (state.status==='loading' || (waitingForViewer && !active)) return onMap(<div ref={bar} className="flyover-bar flyover-preparing" role="status">{t('Đang chuẩn bị chế độ xem 3D','Preparing 3D route view')}</div>);
+  if (!active && layout==='journey') {
+    return <div ref={bar} className="flyover-launch flyover-journey-launch">
+      <button type="button" className="button primary" disabled={disabled} onClick={()=>void start()}><PlayIcon/>{t('Phát hành trình','Play journey')}</button>
+      <button type="button" className="button" disabled={disabled} onClick={()=>void exportVideo()}><UiIcon name="download" size={18}/>{t('Xuất MP4','Export MP4')}</button>
+      {message&&<p role="status">{message}</p>}
+    </div>;
+  }
   if (!active) {
     return <div ref={bar} className="flyover-launch">
       <button type="button" className="icon-button" aria-label={t('Xem tuyến 3D','3D route view')}

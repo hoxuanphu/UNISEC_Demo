@@ -5,7 +5,7 @@ import type { FlyoverPlan, PathSampler } from './flyoverPlan';
  * switchback, with bounded yaw speed/acceleration. A time-indexed track gives
  * playback, seeking and MP4 export the exact same orientation. */
 export function createFlyoverBearing(path: PathSampler, plan: FlyoverPlan) {
-  const fps=60, dt=1/fps, maxSpeed=Math.PI/10, maxAcceleration=.65;
+  const fps=60, dt=1/fps, maxSpeed=Math.PI/16, maxAcceleration=.4;
   const first=path.headingAt(0), angles=[Math.atan2(first.x,first.z)];
   let angle=angles[0], velocity=0;
   for(let i=1;i<=Math.ceil(plan.duration*fps);i++) {
@@ -33,8 +33,8 @@ export function flyoverOverviewPose(points:readonly THREE.Vector3[],heading:{x:n
   const up=new THREE.Vector3().crossVectors(direction,right).normalize();
   const tanV=Math.tan(THREE.MathUtils.degToRad(fov/2))*.82,tanH=tanV*aspect;
   let distance=500;
-  for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
-    const delta=new THREE.Vector3(x,y,z).sub(target);
+  for(const point of points){
+    const delta=point.clone().sub(target);
     distance=Math.max(distance,delta.dot(direction)+Math.max(Math.abs(delta.dot(right))/tanH,Math.abs(delta.dot(up))/tanV));
   }
   return {target,position:target.clone().addScaledVector(direction,distance*1.06)};
@@ -56,7 +56,7 @@ export function createFlyoverCameraTrack(duration:number,poseAt:(time:number)=>F
  * each bend of the moving marker. The marker itself remains on the real path. */
 export function flyoverRouteAnchor(path:PathSampler,distance:number){
   const anchor=new THREE.Vector3();let weight=0;
-  for(const [offset,w] of [[-600,1],[-300,2],[0,3],[300,2],[600,1]]){
+  for(const [offset,w] of [[-1000,1],[-500,2],[0,3],[500,2],[1000,1]]){
     const point=path.pointAt(distance+offset);anchor.addScaledVector(new THREE.Vector3(point.x,point.y,point.z),w);weight+=w;
   }
   return anchor.multiplyScalar(1/weight);

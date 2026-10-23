@@ -1,5 +1,6 @@
 export type LayerAppearance = {
   imageryOpacity: number;
+  roadPalette?: 'schematic';
   networkOpacity: number;
   labels: 'auto' | 'selected' | 'none';
   roads: 'all' | 'affected';

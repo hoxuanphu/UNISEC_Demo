@@ -1,3 +1,4 @@
+import { ContextAreas2D } from './ContextAreas2D';
 import {addInternetDetail} from './internetDetail';
 import { BasemapToneFilters } from '../imagery/BasemapToneFilters';
 import { preparedToneAssetId } from '../imagery/basemapTone';
@@ -420,6 +421,7 @@ export function Map2D(props: Props): JSX.Element {
   return <div className={`terrain-viewer map-2d${interacting ? ' is-measuring' : ''}${props.locationOpen ? ' is-locating' : ''}`} ref={hostRef} aria-label={props.locale === 'en' ? '2D response map' : 'Bản đồ ứng phó 2D'}>
     <BasemapToneFilters host={hostRef} active={!!props.analysisImagery?.balanceBasemap && props.scenarioProps?.layers.imagery!==false && !imagerySource.custom} prepared={props.terrain?.metadata.asset_id===preparedToneAssetId}/>
     <ImageryStatus state={imageryState} locale={props.locale ?? 'vi'} onRetry={()=>analysisRef.current?.set(props.analysisImagery?.rasters ?? [],props.analysisImagery?.opacity ?? 1)}/>
+    {mapReady && <ContextAreas2D map={mapRef.current} geometry={props.contextGeometry} selectedId={props.selectedContextAreaId} onSelect={props.onSelectContextArea} interactive={!props.pointPickActive && !props.measurementOpen && !props.locationOpen && !props.drawOpen}/>}
     {mapReady && <DeviceLocationLayer mapRef={mapRef} location={props.userLocation ?? null} request={props.userLocationRequest ?? 0} locale={props.locale ?? 'vi'}/>}
     {mapReady && props.gisRecords && props.onGisSelect && <ResponseGisLayer mapRef={mapRef} records={props.gisRecords} roads={props.scenarioProps?.roads} networkVersion={props.scenarioProps?.datasetVersion} selectedId={props.gisSelectedId ?? null} request={props.gisRequest ?? {version:0,id:null}} enabled={props.gisEnabled !== false} interactive={!props.pointPickActive && !props.measurementOpen && !props.locationOpen && !props.drawOpen} locale={props.locale ?? 'vi'} groupIds={props.gisGroupIds} onSelect={props.onGisSelect} onGroup={props.onGisGroup}/>}
     <MapOverview mapRef={mapRef} raster={overviewRaster} area={overviewArea} locale={props.locale ?? 'vi'}

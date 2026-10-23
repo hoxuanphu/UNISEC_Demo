@@ -1,3 +1,4 @@
+import type { MapContextGeometry } from './contextGeometry';
 import type { ImageryRaster } from '../imagery/analysisImagery';
 import type { MutableRefObject } from 'react';
 import type { AnalysisArea, Community, Hazard, Locale, ResponseSite, RoadSegment, ScenarioRoute } from '../../types/dear';
@@ -62,6 +63,9 @@ export type ViewControls = {
 
 export type MapDisplayProps = {
   locale?: Locale;
+  contextGeometry?: MapContextGeometry;
+  selectedContextAreaId?: string | null;
+  onSelectContextArea?: (id:string)=>void;
   /** Prepared EO rendering drawn above the basemap and below every vector layer. */
   analysisImagery?: { rasters: ImageryRaster[]; opacity: number; balanceBasemap?: boolean };
   scenarioProps?: MapScene;

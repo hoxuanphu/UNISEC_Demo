@@ -1,8 +1,7 @@
-"""Fixed-scale Chế Tạo A–B planning/movie check, with optional real MP4 export.
+﻿"""Check shared yellow polygon context and the wide 3D A-B film/timeline.
 
-Without --fixture this exercises the actual bundled offline map, with all remote
-requests blocked. --fixture supplies only deterministic satellite tiles for CI;
-road geometry, routing, selection and movie drawing still use the shipped data.
+Normal runs block Internet and use the packaged local map. --fixture replaces
+external imagery only for Linux CI; terrain and route geometry stay unchanged.
 """
 import argparse
 import json
@@ -13,118 +12,133 @@ from playwright.sync_api import sync_playwright, expect
 
 
 def fixture_tile():
-    def chunk(kind, data):
+    def chunk(kind,data):
         return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
     pixels=b''.join(b'\x00'+bytes((42+y//5,67+y//8,48+y//7))*256 for y in range(256))
     return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',256,256,8,2,0,0,0))+chunk(b'IDAT',zlib.compress(pixels))+chunk(b'IEND',b'')
 
 
-def run(url, chrome=None, fixture=False, output=None, captures=None):
+def run(url,chrome=None,fixture=False,output=None,captures=None):
+    if captures:captures.mkdir(parents=True,exist_ok=True)
     with sync_playwright() as p:
         browser=p.chromium.launch(headless=True,**({'executable_path':chrome} if chrome else {}))
-        context=browser.new_context(viewport={'width':1600,'height':950},accept_downloads=True)
+        # CI uses a software GPU; keep the same 3D path at a normal laptop viewport.
+        context=browser.new_context(viewport={'width':960 if fixture else 1600,'height':640 if fixture else 950},accept_downloads=True)
         context.add_init_script('Object.defineProperty(navigator,"onLine",{configurable:true,get:()=>false})')
-        page=context.new_page(); errors=[];remote=[];fault={"next":False}
-        page.on('pageerror',lambda e:errors.append(str(e)))
+        page=context.new_page();errors=[];remote=[]
+        if fixture:page.set_default_timeout(60000)
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        page.on('console',lambda msg:errors.append(msg.text) if msg.type=='error' and any(word in msg.text for word in ['Shader Error','THREE.WebGLProgram','CONTEXT_LOST_WEBGL']) else None)
         def intercept(route):
             address=route.request.url
-            if fault['next'] and ('/offline-map/imagery/' in address or '/World_Imagery/MapServer/tile/' in address):
-                fault['next']=False;route.fulfill(status=503,body='temporary tile fault')
-            elif address.startswith(url+'/'):route.continue_()
+            if address.startswith(url+'/'):route.continue_()
             elif fixture and '/World_Imagery/MapServer/tile/' in address:route.fulfill(content_type='image/png',body=fixture_tile())
             else:remote.append(address);route.abort()
         page.route('**/*',intercept)
         page.goto(url+'/?workspace=routes')
         play=page.get_by_role('button',name='Play journey',exact=True)
         expect(play).to_be_enabled(timeout=60000)
+        expect(page.locator('canvas.terrain-canvas')).to_be_visible()
+        expect(page.locator('.map-context-point')).to_have_count(0)
         origin=page.get_by_role('combobox',name='Origin',exact=True)
-        end=page.get_by_role('combobox',name='Destination',exact=True)
-        expect(origin).to_have_value('place-23');expect(end).to_have_value('place-25')
+        destination=page.get_by_role('combobox',name='Destination',exact=True)
+        expect(origin).to_have_value('place-23');expect(destination).to_have_value('place-25')
         origin.select_option('place-24')
-        expect(play).to_be_enabled(timeout=60000)
+        expect(page.locator('.route-film-result')).to_contain_text('Includes difficult roads')
         detour=page.locator('.route-film-result strong').inner_text()
         avoid=page.get_by_role('checkbox',name='Avoid blocked roads',exact=True)
         avoid.uncheck();expect(page.locator('.route-film-result')).to_contain_text('Includes a blocked road')
         baseline=page.locator('.route-film-result strong').inner_text()
         assert float(detour.split()[0])>float(baseline.split()[0]),(detour,baseline)
-        avoid.check();expect(play).to_be_enabled(timeout=60000)
-        play.click();expect(origin).to_be_disabled()
-        page.wait_for_function("Number(document.querySelector('[aria-label=\"Film timeline\"]').value)>0.3")
-        page.get_by_role('button',name='Pause',exact=True).click()
-        timeline=page.get_by_role('slider',name='Film timeline',exact=True)
-        def sample(time):
-            timeline.fill(str(time))
-            page.wait_for_function('(time)=>Number(document.querySelector("[aria-label=\\"Film timeline\\"]").value)===time',arg=time)
-            page.wait_for_timeout(80)
-            return page.locator('.route-film-stage canvas').evaluate('''canvas=>{
-                const ctx=canvas.getContext('2d'),d=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-                let blue=0,red=0;for(let i=0;i<d.length;i+=4){if(d[i]===54&&d[i+1]===141&&d[i+2]===240)blue++;if(d[i]===239&&d[i+1]===101&&d[i+2]===89)red++;}
-                const corners=[];for(let i=0;i<80;i++){const x=24+(i*431)%1800,y=100+(i*271)%800,k=(y*canvas.width+x)*4;corners.push(Array.from(d.slice(k,k+3)).join(','));}
-                return {blue,red,corners,width:canvas.width,height:canvas.height};
-            }''')
-        first,middle,last=sample(0),sample(12),sample(25)
-        assert first['blue']<middle['blue']<last['blue'],(first['blue'],middle['blue'],last['blue'])
-        assert min(first['red'],middle['red'],last['red'])>50,'Blocked road disappeared'
-        assert sum(a==b==c for a,b,c in zip(first['corners'],middle['corners'],last['corners']))>=74,'Map framing changed during film'
-        assert (last['width'],last['height'])==(1920,1080)
-        if captures:
-            captures.mkdir(parents=True,exist_ok=True);page.screenshot(path=str(captures/'local-route-film.png'))
-        page.get_by_role('button',name='Pick on map A',exact=True).click();page.keyboard.press('Escape')
-        expect(page.get_by_role('button',name='Pick on map A',exact=True)).to_have_attribute('aria-pressed','false')
-        # A failed tile must not export a half-empty map or reset the selected places.
-        fault['next']=True
-        page.get_by_role('button',name='Zoom in',exact=True).click()
-        expect(page.get_by_role('alert')).to_contain_text('Map imagery unavailable.',timeout=60000)
-        expect(page.get_by_role('button',name='Export MP4',exact=True)).to_be_disabled()
-        page.get_by_role('button',name='Retry',exact=True).click()
-        expect(play).to_be_enabled(timeout=60000)
-        expect(origin).to_have_value('place-24');expect(end).to_have_value('place-25')
-        page.get_by_role('button',name='Fit route',exact=True).click()
-        expect(play).to_be_enabled(timeout=60000)
+        avoid.check();expect(play).to_be_enabled()
+        stops=page.locator('.route-film-stops button')
+        assert 1<=stops.count()<=3
+        stops.first.click()
+        card=page.get_by_role('complementary',name='Demo landslide area',exact=True)
+        expect(card.locator('img')).to_be_visible(timeout=20000)
+        expect(card).to_contain_text('Illustrative photo, not evidence')
+        page.get_by_role('button',name='Close landslide area',exact=True).click()
         page.get_by_role('button',name='Pick on map A',exact=True).click()
-        page.locator('.route-film-stage canvas').click()
-        expect(origin).to_have_value('map')
-        origin.select_option('place-24');expect(play).to_be_enabled(timeout=60000)
-        # The same canvas serves desktop and mobile; the canvas aspect is contained,
-        # never stretched, and the page has no horizontal overflow.
-        for width in (320,390,768,1440):
-            page.set_viewport_size({'width':width,'height':900})
-            assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),width
-        page.set_viewport_size({'width':1600,'height':950})
-        page.get_by_role('combobox',name='Speed',exact=True).select_option('1.25')
-        expect(page.locator('.route-film-playback output')).to_contain_text('/ 20 s')
-        page.get_by_role('combobox',name='Speed',exact=True).select_option('1')
+        page.keyboard.press('Escape')
+        expect(page.get_by_role('button',name='Pick on map A',exact=True)).to_have_attribute('aria-pressed','false')
+        if captures:page.screenshot(path=str(captures/'local-3d-ready.png'))
+        # Playback reuses the corridor timeline. It remains visible when idle,
+        # supports seeking/rates, and the final pose includes the whole network.
+        play.click()
+        pause=page.get_by_role('button',name='Pause',exact=True)
+        expect(pause).to_be_visible(timeout=60000);expect(origin).to_be_disabled()
+        timeline=page.get_by_role('slider',name='Route playback position',exact=True)
+        expect(timeline).to_have_attribute('max','25')
+        page.wait_for_timeout(2700)
+        expect(timeline).to_be_visible()
+        assert float(timeline.evaluate('el=>getComputedStyle(el.parentElement).opacity'))>.9
+        # Software-rendered Linux frames can finish the clip before a separate
+        # pointer action arrives. Pause in the browser task, then seek back;
+        # seeking an ended clip also returns it to the paused state.
+        page.evaluate("document.querySelector('.flyover-player button[aria-label=\"Pause\"]')?.click()")
+        timeline.fill('0');expect(timeline).to_have_value('0')
+        expect(page.get_by_role('button',name='Resume',exact=True)).to_be_visible()
+        speed=page.get_by_role('combobox',name='Playback speed',exact=True)
+        speed.select_option('1.25');expect(speed).to_have_value('1.25')
+        speed.select_option('1')
+        for time in [0,8,12,18,24.9]:
+            timeline.fill(str(time));expect(timeline).to_have_value(str(time))
+            page.wait_for_timeout(120)
+            if captures:page.screenshot(path=str(captures/f'local-3d-{time}.png'))
         if output:
             output.parent.mkdir(parents=True,exist_ok=True)
             with page.expect_download(timeout=240000) as download:
-                page.get_by_role('button',name='Export MP4',exact=True).click()
+                page.get_by_role('button',name='Export MP4 video',exact=True).click()
             download.value.save_as(output)
-            content=output.read_bytes();assert content[4:8]==b'ftyp' and len(content)>100000
-            # Decode the actual MP4 via the browser video decoder, not just its header.
-            page.route(url+'/__route-film.mp4',lambda route:route.fulfill(path=str(output),content_type='video/mp4'))
-            decoded=page.evaluate('''async url=>{
-                const video=document.createElement('video');video.muted=true;const blobUrl=URL.createObjectURL(await(await fetch(url)).blob());video.src=blobUrl;
-                await new Promise((resolve,reject)=>{video.onloadedmetadata=resolve;video.onerror=reject;});
-                const frames=[];for(const time of [.1,12,24.9]){
-                    await new Promise((resolve,reject)=>{video.onseeked=resolve;video.onerror=reject;video.currentTime=time;});
+            assert output.read_bytes()[4:8]==b'ftyp' and output.stat().st_size>100000
+            page.route(url+'/__local-film.mp4',lambda route:route.fulfill(path=str(output),content_type='video/mp4'))
+            decoded=page.evaluate('''async()=>{
+                const src=URL.createObjectURL(await(await fetch('/__local-film.mp4')).blob()),video=document.createElement('video');video.muted=true;
+                await new Promise((resolve,reject)=>{video.onloadedmetadata=resolve;video.onerror=reject;video.src=src;});
+                const canvas=document.createElement('canvas');canvas.width=1920;canvas.height=1080;const ctx=canvas.getContext('2d'),frames=[];
+                for(const time of [.2,8,12,18,24.8]){
+                    await new Promise(resolve=>{video.onseeked=resolve;video.currentTime=time;});
                     await new Promise(resolve=>{video.requestVideoFrameCallback(resolve);setTimeout(resolve,200);});
-                    const canvas=document.createElement('canvas');canvas.width=1920;canvas.height=1080;const ctx=canvas.getContext('2d');ctx.drawImage(video,0,0);
-                    const d=ctx.getImageData(0,0,1920,1080).data;let dark=0,bright=0,blue=0;
-                    for(let i=0;i<d.length;i+=16){if(d[i]+d[i+1]+d[i+2]>180)bright++;if(d[i]+d[i+1]+d[i+2]<30)dark++;if(d[i+2]>d[i]+40&&d[i+2]>d[i+1]+30)blue++;}
-                    frames.push({dark,bright,blue});
+                    ctx.drawImage(video,0,0);const d=ctx.getImageData(0,0,1920,1080).data;let hash=2166136261,green=0,yellow=0,red=0;
+                    for(let i=0;i<d.length;i+=16){hash=Math.imul(hash^d[i],16777619);if(d[i+1]>d[i]*1.04&&d[i+1]>d[i+2]*1.04&&d[i+1]>15)green++;if(d[i]>150&&d[i+1]>130&&d[i+2]<d[i+1]*.8)yellow++;if(d[i]>140&&d[i]>d[i+1]*1.25&&d[i]>d[i+2]*1.25)red++;}
+                    frames.push({time,hash:hash>>>0,green,yellow,red});
                 }
-                const result={duration:video.duration,width:video.videoWidth,height:video.videoHeight,frames};video.removeAttribute('src');video.load();URL.revokeObjectURL(blobUrl);return result;
-            }''',url+'/__route-film.mp4')
+                const result={duration:video.duration,width:video.videoWidth,height:video.videoHeight,frames};URL.revokeObjectURL(src);return result;
+            }''')
             assert abs(decoded['duration']-25)<.1 and (decoded['width'],decoded['height'])==(1920,1080),decoded
-            assert all(frame['bright']>1000 for frame in decoded['frames']),decoded
-            assert decoded['frames'][-1]['blue']>decoded['frames'][0]['blue'],decoded
-            print('Decoded film:',json.dumps(decoded))
+            assert len(set(frame['hash'] for frame in decoded['frames']))>=4,decoded
+            assert all(frame['green']>15000 for frame in decoded['frames']),decoded
+            assert any(frame['yellow']>100 for frame in decoded['frames']),decoded
+            assert any(frame['red']>30 for frame in decoded['frames']),decoded
+            print('Decoded 3D film:',json.dumps(decoded))
+        page.get_by_role('button',name='Exit 3D route view',exact=True).click()
+        expect(play).to_be_visible()
+        # All key controls remain reachable without horizontal page overflow.
+        for width in [320,390,768,1440]:
+            page.set_viewport_size({'width':width,'height':900})
+            assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),width
+        page.set_viewport_size({'width':1600,'height':950})
         page.get_by_role('combobox',name='Language',exact=True).select_option('vi')
         expect(page.get_by_role('button',name='Phát hành trình',exact=True)).to_be_visible()
+        # The same polygons appear on the coordination map, without installing
+        # fake incident observations or centroid icons into the GIS workspace.
+        page.goto(url+'/?map=2d&demoRole=manager&lang=en')
+        expect(page.locator('.map-context-landslide').first).to_be_attached(timeout=30000)
+        expect(page.locator('.map-context-point')).to_have_count(0)
+        candidates=page.locator('.map-context-landslide').all()
+        chosen=None
+        for candidate in candidates:
+            point=candidate.evaluate('el=>{const p=el.getPointAtLength(el.getTotalLength()*.3),m=el.getScreenCTM();return {x:p.x*m.a+p.y*m.c+m.e,y:p.x*m.b+p.y*m.d+m.f};}')
+            if 460<point['x']<1350 and 140<point['y']<800:
+                chosen=point;break
+        assert chosen,'No visible shared polygon on the main map'
+        page.mouse.click(chosen['x'],chosen['y'])
+        expect(page.locator('.local-area-card')).to_be_visible(timeout=10000)
+        expect(page.locator('.local-area-card img')).to_be_visible()
         assert not errors,errors
         if not fixture:assert not remote,remote
         browser.close()
-    print('Local A–B route film passed: connected villages, blocked detour, fixed frame, progressive route, red closures, responsive canvas, speed, EN/VI'+(', decoded 25s MP4.' if output else '.'))
+    print('Local 3D film passed: shared yellow polygons without icons, soft water, blocked detour, illustrative photos, timeline/seek/rate, complete overview, responsive EN/VI'+(', decoded MP4.' if output else '.'))
 
 
 if __name__=='__main__':

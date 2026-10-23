@@ -127,7 +127,7 @@ export function buildScenarioOverlays(options: ScenarioOverlayOptions): THREE.Gr
 
       const runs = drapedRuns(densePoints, roadSurfaceOffsetM);
 
-      let lineColor: THREE.ColorRepresentation = routeVisible ? roadColors.selected : (layers.imagery ? roadColors.networkImagery : roadColors.networkTerrain);
+      let lineColor: THREE.ColorRepresentation = routeVisible ? roadColors.selected : (options.appearance?.roadPalette === 'schematic' ? '#58c477' : layers.imagery ? roadColors.networkImagery : roadColors.networkTerrain);
       // Route selection must preserve the warning on blocked or uncertain segments.
       if (layers.status && road.status === 'blocked') lineColor = roadColors.blocked;
       if (layers.status && road.status === 'uncertain') lineColor = roadColors.uncertain;

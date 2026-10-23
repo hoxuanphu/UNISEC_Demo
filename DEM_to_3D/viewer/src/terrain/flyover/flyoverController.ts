@@ -33,7 +33,7 @@ type Deps = {
   /** Resolves when surface heights beyond the DEMs (online relief) are as complete as they will get. */
   ready: () => Promise<void>;
   cancelPreparation?:()=>void;
-  onFrame?: (target:THREE.Vector3)=>void;
+  onFrame?: (target:THREE.Vector3,activeAreaId?:string)=>void;
   onResolution?: (width:number,height:number)=>void;
   maxTextureSize: number;
   enter: () => void;
@@ -50,6 +50,8 @@ const lerp = THREE.MathUtils.lerp;
 
 type Prepared = {
   key: string;
+  cameraMode:'corridor'|'network';
+  context: {areas:Array<{id:string}>;closures:THREE.Vector3[]};
   plan: FlyoverPlan;
   path: PathSampler;
   bearing: ReturnType<typeof createFlyoverBearing>;
@@ -149,8 +151,8 @@ export function createFlyoverController(deps: Deps) {
         const photo = item.stop.photo ? await verifiedAssetBytes(item.stop.photo.image, loading.signal)
           .then(bytes => createImageBitmap(new Blob([bytes], {type: 'image/webp'}))).catch(() => undefined) : undefined;
         return {world: item.world, info: {
-          label: t(...item.stop.name), distance: item.distance, status: item.stop.status,
-          photo: photo ? {image: photo, caption: item.stop.photoCaption ? t(...item.stop.photoCaption) : ''} : undefined
+          id:item.stop.id, label: t(...item.stop.name), distance: item.distance, status: item.stop.status,
+          photo: photo ? {image: photo, caption: item.stop.photoCaption ? t(...item.stop.photoCaption) : '', illustrative:item.stop.photoRole==='illustrative'} : undefined
         }};
       }));
       if (disposed) { stops.forEach(stop=>stop.info.photo?.image.close()); throw new DOMException('Viewer replaced','AbortError'); }
@@ -168,7 +170,8 @@ export function createFlyoverController(deps: Deps) {
         const object = new Line2(geometry, material); object.renderOrder = order; object.frustumCulled = false; object.visible = false;
         scene.add(object); return object;
       };
-      const trail = { base: line('#c9c6bb', 1.5, .55, 40), glow: line('#e28b42', 7, .17, 41), done: line('#e28b42', 3, 1, 42), segments: 0 };
+      const routeColor=source.cameraMode==='network'?'#368df0':'#e28b42';
+      const trail = { base: line('#c9c6bb', 1.5, .4, 40), glow: line(routeColor, 7, .17, 41), done: line(routeColor, 3, 1, 42), segments: 0 };
       trail.segments=trail.base.geometry.getAttribute('instanceStart').count;
       const name = (label: [string, string]) => t(...label);
 
@@ -177,7 +180,10 @@ export function createFlyoverController(deps: Deps) {
         throw new DOMException('Viewer replaced','AbortError');
       }
       return {
-        key, plan, path, overviewPoints, bearing: createFlyoverBearing(path,plan), stops, areas, start: world[0], end: world[world.length - 1], trail, offset, imagery, imageryOpacity:source.imageryOpacity,
+        key, cameraMode:source.cameraMode??'corridor',context:{
+          areas:(source.context?.areas??[]).filter(area=>area.kind==='landslide').map(area=>({id:area.id})),
+          closures:(source.context?.closures??[]).flatMap(closure=>{const world=deps.surfaceWorld(closure.point);return world?[world]:[];})
+        }, plan, path, overviewPoints, bearing: createFlyoverBearing(path,plan), stops, areas, start: world[0], end: world[world.length - 1], trail, offset, imagery, imageryOpacity:source.imageryOpacity,
         text: {start: offset > 100 ? '' : name(source.start), end: name(source.end),
           attribution: [source.imagery.length ? `${source.imageryLabel[locale==='vi'?0:1]} © Planet Labs PBC` : '',imagerySource.credit,'© OpenStreetMap'].filter(Boolean).join(', ')}
       } satisfies Prepared;
@@ -209,11 +215,11 @@ export function createFlyoverController(deps: Deps) {
     const width=1+moment.overview*.4;
     // Keep enough ground in the frame to read the route and the side scars.
     // Photograph visits tighten only slightly, keeping the same corridor view.
-    let back=lerp(1280,1180,focus)*width, height=lerp(1020,1060,focus)*width;
+    let back=lerp(2250,2150,focus)*width, height=lerp(1750,1800,focus)*width;
     const P=p.path.pointAt(s), head=new THREE.Vector3(P.x,P.y,P.z);
     const anchor=flyoverRouteAnchor(p.path,s);
     const target=anchor.clone().addScaledVector(forward,220);
-    if(nearest) target.lerp(nearest.world,focus*.35);
+    if(nearest) target.lerp(nearest.world,focus*.2);
     // Frame the nearby real extents as a group, without swinging around each one.
     // Fade their influence with chainage so small side scars enter the shot gently.
     const neighbours=p.areas.map(area=>({...area,weight:Math.max(0,1-Math.abs(area.distance-s)/700)**2 * Math.max(0,1-area.world.distanceTo(head)/1100)}))
@@ -256,9 +262,15 @@ export function createFlyoverController(deps: Deps) {
 
   function prepareCameraTrack(p:Prepared){
     if(p.cameraTrack?.aspect===camera.aspect&&p.cameraTrack.fov===camera.fov)return p.cameraTrack;
-    const overview=flyoverOverviewPose(p.overviewPoints,p.bearing(p.plan.duration),camera.fov,camera.aspect);
+    const overview=flyoverOverviewPose(p.overviewPoints,p.cameraMode==='network'?{x:.25,z:.97}:p.bearing(p.plan.duration),camera.fov,camera.aspect);
+    // A network film reads as a wide oblique map. Keep its bearing and framing
+    // stable while the marker moves; only the closing shot expands to every road.
+    const networkPose=p.cameraMode==='network'?flyoverOverviewPose([
+      ...p.path.cumulative.map(s=>{const q=p.path.pointAt(s);return new THREE.Vector3(q.x,q.y,q.z);}),
+      ...p.stops.map(stop=>stop.world)
+    ],{x:.25,z:.97},camera.fov,camera.aspect):null;
     const at=createFlyoverCameraTrack(p.plan.duration,time=>{
-      const moment=p.plan.at(time),pose=followPose(p,moment);
+      const moment=p.plan.at(time),pose=networkPose?{position:networkPose.position.clone(),target:networkPose.target.clone()}:followPose(p,moment);
       if(moment.phase==='outro'||moment.phase==='final'){
         pose.position.lerp(overview.position,moment.overview);pose.target.lerp(overview.target,moment.overview);
       }
@@ -283,7 +295,7 @@ export function createFlyoverController(deps: Deps) {
     (p.trail.glow.material as LineMaterial).linewidth=lerp(7,3,closing);
     const travelled = moment.phase === 'final' || moment.phase === 'outro' ? p.trail.segments : Math.floor(moment.distance / p.path.length * p.trail.segments);
     p.trail.done.geometry.instanceCount = p.trail.glow.geometry.instanceCount = Math.max(0, Math.min(p.trail.segments, travelled));
-    finalTarget = target;deps.onFrame?.(target);
+    finalTarget = target;deps.onFrame?.(target,p.stops[moment.stop]?.info.id);
     return moment;
   }
   const projected = new THREE.Vector3(), direction = new THREE.Vector3();
@@ -310,7 +322,8 @@ export function createFlyoverController(deps: Deps) {
       ...p.text,
       start: { label: p.text.start, screen: screen(p.start) }, end: { label: p.text.end, screen: screen(p.end) },
       head: screen(new THREE.Vector3(head.x, head.y, head.z)),
-      stops: p.stops.map(stop => ({ ...stop.info, screen: screen(stop.world, 30) }))
+      stops: p.stops.map(stop => ({ ...stop.info, screen: screen(stop.world, 30) })),
+      context:{areas:p.context.areas,closures:p.context.closures.map(point=>screen(point,15))}
     };
   }
   function drawLive(p: Prepared, moment: FlyoverMoment) {
@@ -410,11 +423,11 @@ export function createFlyoverController(deps: Deps) {
         const source = new CanvasSource(canvas, { codec, bitrate: QUALITY_HIGH, keyFrameInterval: 2 });
         output.addVideoTrack(source, { frameRate: FPS });
         await output.start();
-        const frames = Math.ceil(p.plan.duration * FPS);
+        const rate=playbackRate,frames = Math.ceil(p.plan.duration / rate * FPS);
         try {
           for (let i = 0; i < frames; i++) {
             signal.throwIfAborted();loading.signal.throwIfAborted();
-            const moment = apply(p, Math.min(p.plan.duration, i / FPS));
+            const moment = apply(p, Math.min(p.plan.duration, i / FPS * rate));
             deps.render();
             ctx.drawImage(renderer.domElement, 0, 0, W, H);
             drawFlyoverOverlay(ctx, frameData(p, moment, W, H));
@@ -443,6 +456,7 @@ export function createFlyoverController(deps: Deps) {
     get active() { return status === 'playing' || status === 'paused' || status === 'ended'; },
     get exporting() { return status === 'exporting'; },
     setInput(next: FlyoverInput | null) {
+      if(input?.key!==next?.key && ['loading','playing','paused','ended'].includes(status))controls.exit();
       input = next;
       if (!next && (status === 'loading' || status === 'playing' || status === 'paused' || status === 'ended')) controls.exit();
     },

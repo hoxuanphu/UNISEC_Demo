@@ -1,7 +1,5 @@
 import type { RoadSegment } from '../../types/dear';
 import { readResponse } from '../../shared/http/readResponse';
-import { workspaceConfiguration } from '../../data/workspaceConfiguration';
-import { setLocalMapSource, validateLocalMapSource } from '../map/localMapSource';
 export type NetworkPlace = {
     id: string;
     name: string;
@@ -64,12 +62,5 @@ export function validateLocalNetwork(value: unknown): LocalNetwork {
     return d;
 }
 export async function loadLocalNetwork(signal: AbortSignal): Promise<LocalNetwork> {
-    const [data, config] = await Promise.all([
-        readResponse('/scenarios/che-tao/local-network.json', signal).then(r => r.json()).then(validateLocalNetwork),
-        workspaceConfiguration(signal)
-    ]);
-    const local = config.offline && config.localMap ? validateLocalMapSource(await (await readResponse(config.localMap, signal)).json()) : null;
-    signal.throwIfAborted();
-    setLocalMapSource(local);
-    return data;
+    return validateLocalNetwork(await (await readResponse('/scenarios/che-tao/local-network.json', signal)).json());
 }

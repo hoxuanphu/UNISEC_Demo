@@ -8,7 +8,7 @@ describe('flyover timeline', () => {
   it('stays within 20–30 seconds, with brief scar visits and a complete closing shot', () => {
     expect(plan.duration).toBe(25);
     const dwell=plan.stopWindows.reduce((sum,stop)=>sum+stop.end-stop.start,0);
-    expect(dwell).toBeCloseTo(6.3);
+    expect(dwell).toBeCloseTo(4.8);
     expect(plan.stopWindows[0].start).toBeGreaterThan(7);
     expect(plan.stopWindows[0].start).toBeLessThan(13);
     expect(planFlyover(1000,[]).duration).toBeGreaterThanOrEqual(20);

@@ -1,4 +1,5 @@
 import proj4 from 'proj4';
+import type { MapContextGeometry } from '../map/contextGeometry';
 import { geometryPositions, type GeometryRecord } from '../../geo/vector/types';
 import { landslideAreaOf } from '../landslides/landslideAreas';
 import type { Community, Hazard, ResponseSite, ScenarioRoutePair } from '../../types/dear';
@@ -10,10 +11,13 @@ type Localized = [vi: string, en: string];
 export type FlyoverInput = {
   /** Changes whenever the route, its stops or their status change. */
   key: string;
+  cameraMode?: 'corridor' | 'network';
+  retainContext?: boolean;
+  context?: MapContextGeometry;
   route: Array<{ x: number; y: number }>;
   overviewPoints?: Array<{x:number;y:number}>;
   start: Localized; end: Localized;
-  stops: Array<{ id: string; name: Localized; projected: { x: number; y: number }; areaHa?: number; status: 'reported' | 'suspected'; photo?: PreparedPhoto; photoCaption?: Localized }>;
+  stops: Array<{ id: string; name: Localized; projected: { x: number; y: number }; areaHa?: number; status: 'reported' | 'suspected'; photo?: PreparedPhoto; photoRole?: 'evidence' | 'illustrative'; photoCaption?: Localized }>;
   /** Actual mapped extents used to frame neighbouring scars, never generated evidence. */
   areas: Array<{id: string; center: {x: number; y: number}; radius: number}>;
   imagery: ImageryRaster[];
