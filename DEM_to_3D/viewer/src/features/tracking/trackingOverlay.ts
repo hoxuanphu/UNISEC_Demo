@@ -52,7 +52,9 @@ export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Lo
     const choice=positions.find(p=>p.x>=8&&p.y>=8&&p.x+width<=host.clientWidth-8&&p.y+height<=host.clientHeight-8&&!obstacles.some(box=>p.x+parent.left<box.right&&p.x+parent.left+width>box.left&&p.y+parent.top<box.bottom&&p.y+parent.top+height>box.top))??{x:12,y:Math.max(8,host.clientHeight-height-12)};
     card.style.left=`${choice.x}px`;card.style.top=`${choice.y}px`;
   }
+  let zooming=false;
   function update() {
+    if(zooming)return;
     const enabled=interactive();layer.style.pointerEvents=enabled?'':'none';
     const snapshot=feed.getSnapshot(),projected=new Map(snapshot.map(device=>[device.id,project(device.point)]));
     const groups=groupDeviceDots(snapshot.flatMap(device=>{const at=projected.get(device.id);return at?.visible&&at.x>=0&&at.y>=0&&at.x<=host.clientWidth&&at.y<=host.clientHeight?[{id:device.id,x:at.x,y:at.y}]:[];}));
@@ -94,5 +96,5 @@ export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Lo
   const escape=(event:KeyboardEvent)=>{if(selected&&event.key==='Escape'){event.preventDefault();event.stopPropagation();closeCard(true);}};
   document.addEventListener('pointerdown',outside,true);document.addEventListener('keydown',escape,true);
   const unsubscribe=feed.subscribe(update);update();
-  return {update,setZooming:(active:boolean)=>layer.classList.toggle('is-zooming',active),dispose:()=>{unsubscribe();document.removeEventListener('pointerdown',outside,true);document.removeEventListener('keydown',escape,true);layer.remove();}};
+  return {update,setZooming:(active:boolean)=>{zooming=false;layer.classList.toggle('is-zooming',active);update();zooming=active;},dispose:()=>{unsubscribe();document.removeEventListener('pointerdown',outside,true);document.removeEventListener('keydown',escape,true);layer.remove();}};
 }
