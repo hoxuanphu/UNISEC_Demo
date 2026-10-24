@@ -3,9 +3,8 @@ import type { RouteSimulation } from './routeSimulation';
 /** Constant screen-size halo identifies a demo person; it is not an accuracy radius. */
 export function simulatedResidentMarker(simulation:RouteSimulation,locale:Locale) {
   const node=document.createElement('div');node.className='simulated-resident';
-  node.setAttribute('role','img');node.setAttribute('aria-label',`${simulation.name}, ${locale==='vi'?'vị trí trên tuyến':'position on route'}`);
+  node.tabIndex=0;node.setAttribute('role','img');node.setAttribute('aria-label',`${simulation.name}, ${locale==='vi'?'vị trí trên tuyến':'position on route'}`);
   const body=document.createElement('span');body.className='simulated-resident-body';
-  body.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="7" r="3"/><path d="M5 20v-2a7 7 0 0 1 14 0v2" stroke-linecap="round"/></svg>';
   const name=document.createElement('span');name.className='simulated-resident-name';name.textContent=simulation.name;
   node.append(body,name);
   return {node,name};

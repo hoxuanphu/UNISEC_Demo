@@ -62,14 +62,14 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
     <div className="layers-heading floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={t('Vị trí bảng lớp', 'Layers panel position')} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home"><h2 id="map-layers-title">{t('Lớp bản đồ', 'Map layers')}</h2><button className="icon-button" onClick={onClose} aria-label={t('Đóng lớp bản đồ', 'Close map layers')}><UiIcon name="close" /></button></div>
     <div className="layers-content">
       {hasIncidentLayers && <fieldset className="map-layer-group response-layer-group"><legend>{t('Ưu tiên ứng phó', 'Response priorities')}</legend>
+        {hasLocalRoads && row('devices',t('Thiết bị định vị','Location devices'))}
+        {row('status', t('Tình trạng đường', 'Road status'))}
+        {hasSelectedRoute && row('route', t('Tuyến đang xem', 'Selected route'))}
+        {row('communities', t('Địa bàn dân cư', 'Communities'))}
         {row('landslide', t('Sạt lở', 'Landslides'))}
         {areaCount > 0 && <LandslideFillControl locale={locale} disabled={layers.landslide === false}/>}
-        {row('status', t('Tình trạng đường', 'Road status'))}
         {row('roads', t('Mạng đường', 'Road network'))}
         {hasLocalRoads && row('localRoads', t('Đường trong xã Chế Tạo', 'Chế Tạo local roads'))}
-        {hasLocalRoads && row('devices',t('Thiết bị định vị','Location devices'))}
-        {row('communities', t('Địa bàn dân cư', 'Communities'))}
-        {hasSelectedRoute && row('route', t('Tuyến đang xem', 'Selected route'))}
         {hasFloodData && row('flood', t('Nghi ngập lũ quét', 'Possible flash flooding'))}
       </fieldset>}
       <LayerOrderControl locale={locale}/>

@@ -10,10 +10,11 @@
 .route-simulation-progress output { color:var(--ws-text); font-variant-numeric:tabular-nums; }
 .route-simulation-progress input { width:100%; min-width:0; margin:0; accent-color:#2f80ed; }
 .route-simulation-control > p { margin:0; font-size:11px; line-height:1.4; color:var(--ws-muted); }
-.simulated-resident { display:block; pointer-events:none; }
-.simulated-resident-body { position:relative; display:grid; place-items:center; width:30px; height:30px; color:white; background:#2478d4; border:2px solid white; border-radius:50%; box-shadow:0 0 0 5px #2f80ed26,0 2px 5px #0005; }
-.simulated-resident-body > svg { width:19px; height:19px; }
-.simulated-resident-name { position:absolute; left:39px; top:5px; width:max-content; max-width:160px; padding:3px 6px; border-radius:3px; color:var(--ws-text); background:var(--ws-surface); box-shadow:0 1px 4px #0003; font:500 12px/1.4 var(--font-map,Roboto,sans-serif); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.simulated-resident { display:grid; place-items:center; width:30px; height:30px; pointer-events:auto; }
+.simulated-resident-body { display:block; width:14px; height:14px; box-sizing:border-box; background:#3186e6; border:2px solid white; border-radius:50%; box-shadow:0 0 0 3px #3186e626,0 1px 3px #0006; }
+.simulated-resident:focus-visible { outline:2px solid #d7ecff; outline-offset:0; border-radius:50%; }
+.simulated-resident-name { opacity:0; visibility:hidden; pointer-events:none; position:absolute; left:39px; top:5px; width:max-content; max-width:160px; padding:3px 6px; border-radius:3px; color:var(--ws-text); background:var(--ws-surface); box-shadow:0 1px 4px #0003; font:500 12px/1.4 var(--font-map,Roboto,sans-serif); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.simulated-resident:is(:hover,:focus-visible) .simulated-resident-name { opacity:1; visibility:visible; }
 .simulated-resident-name[hidden] { display:none; }
 .terrain-simulated-resident { position:absolute; inset:0; pointer-events:none; z-index:12; }
 .terrain-simulated-resident > .simulated-resident { position:absolute; top:0; left:0; }

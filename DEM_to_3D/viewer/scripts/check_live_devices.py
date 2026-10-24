@@ -13,7 +13,8 @@ def run(url,chrome=None,captures=None):
         page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
         page.goto(url+'/?offline=1&map=2d&demoRole=manager',wait_until='domcontentloaded')
         devices=page.locator('.tracked-device');expect(devices).to_have_count(8,timeout=30000)
-        expect(devices.locator('svg')).to_have_count(8)
+        expect(devices.locator('svg')).to_have_count(0)
+        expect(devices.locator('.tracked-device-dot')).to_have_count(8)
         expect(page.locator('.tracked-device[data-device-role="resident"]')).to_have_count(6)
         expect(page.locator('.tracked-device[data-device-role="rescue"]')).to_have_count(2)
         expect(page.locator('.tracked-device[data-device-role="resident"][data-closure-road]:not([data-closure-road=""])')).to_have_count(2)
@@ -27,6 +28,7 @@ def run(url,chrome=None,captures=None):
             page.mouse.click(box['x']+box['width']/2,box['y']+box['height']/2)
             card=page.locator('.tracked-device-card');expect(card).to_be_visible();return card
         # Fit the local network to expose its road devices independently of the initial selection.
+        page.bring_to_front()
         page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
         page.get_by_role('button',name='Xem đường trong xã Chế Tạo',exact=True).click()
         close=page.get_by_role('button',name='Đóng lớp bản đồ',exact=True)
@@ -43,8 +45,15 @@ def run(url,chrome=None,captures=None):
         expect(card).to_contain_text('Đội cứu hộ');expect(card.locator('small')).to_contain_text('CH-')
         civilian=page.locator('.tracked-device[data-device-role="resident"]').first
         rescue=page.locator('.tracked-device[data-device-role="rescue"]').first
-        assert civilian.evaluate('n=>getComputedStyle(n).backgroundColor')!=rescue.evaluate('n=>getComputedStyle(n).backgroundColor')
-        assert civilian.evaluate('n=>getComputedStyle(n).borderRadius')!=rescue.evaluate('n=>getComputedStyle(n).borderRadius')
+        assert civilian.locator('.tracked-device-dot').evaluate('n=>getComputedStyle(n).backgroundColor')=='rgb(49, 134, 230)'
+        assert rescue.locator('.tracked-device-dot').evaluate('n=>getComputedStyle(n).backgroundColor')=='rgb(38, 166, 91)'
+        assert devices.locator('.tracked-device-dot').evaluate_all('nodes=>nodes.every(n=>n.getBoundingClientRect().width<=14)')
+        def clear_symbols():
+            assert devices.evaluate_all('''nodes=>{
+                const dots=nodes.filter(n=>!n.hidden).map(n=>n.querySelector('.tracked-device-dot').getBoundingClientRect());
+                return dots.every((a,i)=>dots.slice(i+1).every(b=>Math.hypot(a.x+a.width/2-b.x-b.width/2,a.y+a.height/2-b.y-b.height/2)>=16));
+            }'''), 'Location dots overlap'
+        clear_symbols()
         page.keyboard.press('Escape')
         # Hiding just this layer preserves roads and warnings. The same IDs return afterwards.
         page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
@@ -63,6 +72,7 @@ def run(url,chrome=None,captures=None):
         at=devices.evaluate_all('nodes=>nodes.map(n=>n.dataset.worldX+","+n.dataset.worldY).join("|")')
         page.wait_for_function("""at=>Array.from(document.querySelectorAll('.tracked-device')).map(n=>n.dataset.worldX+','+n.dataset.worldY).join('|')!==at""",arg=at)
         expect(canvas).to_have_attribute('data-device-renderer','retained')
+        clear_symbols()
         card=open_device('.tracked-device[data-device-role="rescue"]');expect(card).to_contain_text('Đội cứu hộ')
         if captures:page.screenshot(path=str(captures/'live-devices-rescue-3d.png'))
         card.get_by_role('button',name='Đóng thiết bị',exact=True).click()

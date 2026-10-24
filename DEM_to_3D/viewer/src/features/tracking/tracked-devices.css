@@ -1,12 +1,15 @@
-.tracked-devices { position:absolute; inset:0; z-index:13; pointer-events:none; overflow:hidden; }
-.tracked-device { position:absolute; top:0; left:0; display:grid; place-items:center; width:26px; height:26px; min-height:26px; padding:3px; border:2px solid #fff; border-radius:50%; color:#fff; background:#2478d4; box-shadow:0 1px 4px #0007; pointer-events:auto; cursor:pointer; }
-.tracked-device.is-rescue { background:#007c74; border-radius:6px; width:29px; height:29px; min-height:29px; }
-.tracked-device[data-device-role="resident"][data-motion="waiting"],.tracked-device[data-device-role="resident"][data-motion="approaching"] { box-shadow:0 0 0 2px #e8ad3c,0 2px 5px #0006; }
-.tracked-device > svg { width:18px; height:18px; }
+/* Operational dots stay above vectors and below map controls/inspectors. */
+.tracked-devices { position:absolute; inset:0; z-index:9; pointer-events:none; overflow:hidden; }
+.tracked-device-leaders { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+.tracked-device-leaders line { stroke:#e5efe9; stroke-width:1; stroke-opacity:.7; }
+.tracked-device { position:absolute; top:0; left:0; display:grid; place-items:center; width:22px; height:22px; min-height:22px; padding:0; border:0; border-radius:50%; background:transparent; pointer-events:auto; cursor:pointer; }
+.tracked-device-dot { display:block; width:11px; height:11px; box-sizing:border-box; border:1.5px solid #fff; border-radius:50%; background:#3186e6; box-shadow:0 1px 3px #0008; pointer-events:none; }
+.tracked-device.is-rescue .tracked-device-dot { width:13px; height:13px; background:#26a65b; }
 .tracked-device[hidden],.tracked-device-card[hidden] { display:none; }
-.tracked-device.is-selected { outline:2px solid #fff; outline-offset:3px; z-index:2; }
-.tracked-device:focus-visible { outline:3px solid #d7ecff; outline-offset:3px; }
-.tracked-device-name { pointer-events:none; display:none; position:absolute; left:34px; width:max-content; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:3px 6px; border-radius:3px; background:var(--ws-surface); color:var(--ws-text); font:500 12px/1.35 var(--font-map,Roboto,sans-serif); box-shadow:0 1px 4px #0004; }
+.tracked-device.is-selected { z-index:2; }
+.tracked-device.is-selected .tracked-device-dot { box-shadow:0 0 0 3px #ffffff40,0 1px 3px #0008; }
+.tracked-device:focus-visible { outline:2px solid #d7ecff; outline-offset:0; }
+.tracked-device-name { pointer-events:none; display:none; position:absolute; left:24px; width:max-content; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:3px 6px; border-radius:3px; background:var(--ws-surface); color:var(--ws-text); font:500 12px/1.35 var(--font-map,Roboto,sans-serif); box-shadow:0 1px 4px #0004; }
 @media(hover:hover) { .tracked-device:hover .tracked-device-name { display:block; } }
 .tracked-device:focus-visible .tracked-device-name { display:block; }
 .tracked-device-card { position:absolute; width:250px; max-width:calc(100% - 24px); padding:12px; border:1px solid var(--ws-line); border-radius:8px; background:var(--ws-surface); color:var(--ws-text); box-shadow:var(--shadow-float); pointer-events:auto; font:13px/1.4 var(--font-sans); z-index:4; }
@@ -18,12 +21,8 @@
 .tracked-device-card .device-warning { color:var(--warning-ink); }
 .tracked-device-card .device-signal { color:var(--ws-muted); font-size:12px; }
 .tracked-device-card .text-button { margin-top:10px; min-height:30px; padding:0; }
-.tracked-device-symbol { display:inline-grid; place-items:center; flex:none; width:22px; height:22px; border:1.5px solid white; border-radius:50%; color:#fff; background:#2478d4; box-shadow:0 1px 2px #0004; }
-.tracked-device-symbol.is-rescue { border-radius:5px; background:#007c74; }
-.tracked-device-symbol svg { width:16px; height:16px; }
+.tracked-device-symbol { display:inline-block; flex:none; width:11px; height:11px; box-sizing:border-box; border:1.5px solid white; border-radius:50%; background:#3186e6; box-shadow:0 1px 2px #0005; }
+.tracked-device-symbol.is-rescue { width:13px; height:13px; background:#26a65b; }
 .flyover-active .tracked-devices { visibility:hidden; }
 
-.device-layer-sample { display:flex; align-items:center; }
-.device-layer-sample .tracked-device-symbol { width:16px; height:16px; }
-.device-layer-sample .tracked-device-symbol + .tracked-device-symbol { margin-left:-4px; }
-.device-layer-sample .tracked-device-symbol svg { width:12px; height:12px; }
+.device-layer-sample { display:flex; align-items:center; gap:5px; }
