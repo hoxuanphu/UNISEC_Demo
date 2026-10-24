@@ -57,7 +57,7 @@ def run(url,chrome=None,fixture=False,output=None,captures=None):
         stops.first.click()
         card=page.get_by_role('complementary',name='Landslide area',exact=True)
         expect(card.locator('img')).to_be_visible(timeout=20000)
-        expect(card).to_contain_text('not evidence of conditions')
+        expect(card).to_contain_text('not field verified at this extent')
         page.get_by_role('button',name='Close landslide area',exact=True).click()
         page.get_by_role('button',name='Pick on map A',exact=True).click()
         page.keyboard.press('Escape')
