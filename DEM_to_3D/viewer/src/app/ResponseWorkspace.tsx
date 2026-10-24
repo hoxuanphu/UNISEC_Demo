@@ -502,7 +502,7 @@ export function ResponseWorkspace({
     [models, defaultTerrainData,contextTerrain]
   );
   const journey = useRoadJourney(journeyRoads, undefined, 'conditions');
-  const routeSimulation = useRouteSimulation(journey.route, journey.open && !journey.picking && !localArea && !localRoad && !gisCard && !['loading','playing','paused','exporting'].includes(flyoverState.status));
+  const routeSimulation = useRouteSimulation(journey.route, journey.open && !journey.picking && !['loading','playing','paused','exporting'].includes(flyoverState.status));
   const journeyTerrainEndpoints = useMemo(() => journey.open ? [journey.start, journey.end].flatMap((endpoint, index) => endpoint ? [{label: index === 0 ? 'A' : 'B', point: endpoint.origin, anchor: endpoint.anchor?.point}] : []) : [], [journey.open, journey.start, journey.end]);
   const framedJourney = useRef<{route: typeof journey.route; start: typeof journey.start; end: typeof journey.end; sequence: number; canvas: Element} | null>(null);
   useEffect(() => {

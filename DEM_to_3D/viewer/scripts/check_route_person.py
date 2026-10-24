@@ -87,6 +87,7 @@ def run(url,chrome=None,captures=None):
         # Selecting an extent temporarily owns the inspector; the chosen route stays on the map.
         page.locator('.map-context-landslide').first.dispatch_event('click')
         card=page.locator('.local-area-card');expect(card).to_be_visible();expect(panel).to_have_count(0)
+        expect(marker).to_have_count(1)
         expect(page.locator('.map-road-route-line').first).to_be_attached()
         photo=card.get_by_role('button',name='Xem ảnh minh họa',exact=True)
         expect(photo).to_be_enabled(timeout=15000);photo.click()
