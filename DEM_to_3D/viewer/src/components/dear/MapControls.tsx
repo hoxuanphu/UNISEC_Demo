@@ -1,3 +1,4 @@
+import { DeviceLegendSymbol } from '../../features/tracking/deviceSymbols';
 import type { GeometryRecord } from '../../geo/vector/types';
 import { landslideAreaOf, landslideAreaStyle } from '../../features/landslides/landslideAreas';
 import { MapPoiSample } from '../../features/map/MapLayerSample';
@@ -28,11 +29,12 @@ type Props = {
   mappedAreas?: GeometryRecord[];
   timelineExpanded?: boolean; onToggleTimeline?: () => void;
   headerCollapsed?: boolean; onShowHeader?: () => void;
+  hasLocationDevices?: boolean;
   journeyControl?: ReactNode; flyoverControl?: ReactNode;
   children?: ReactNode; onMeasure: () => void; measuring: boolean; onDraw: () => void; drawing: boolean;
 };
 
-export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [], locale, mapMode, onChangeMapMode, onZoomIn, onZoomOut, onResetView, gisObservations=[], onOpenGis, onCompareImagery, onOpenLayers, layersOpen, layers, hasSelectedRoute, hazards, hasHLZData, hasLocalRoads, affectedOnly, timelineExpanded, onToggleTimeline, headerCollapsed, onShowHeader, journeyControl, flyoverControl, children, onMeasure, measuring, onDraw, drawing, panelCollapsed, onTogglePanel, locating, onLocation }: Props): JSX.Element {
+export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [], locale, mapMode, onChangeMapMode, onZoomIn, onZoomOut, onResetView, gisObservations=[], onOpenGis, onCompareImagery, onOpenLayers, layersOpen, layers, hasSelectedRoute, hazards, hasHLZData, hasLocalRoads, hasLocationDevices, affectedOnly, timelineExpanded, onToggleTimeline, headerCollapsed, onShowHeader, journeyControl, flyoverControl, children, onMeasure, measuring, onDraw, drawing, panelCollapsed, onTogglePanel, locating, onLocation }: Props): JSX.Element {
   const [toolsExpanded, setToolsExpanded] = useState(false);
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [legendMinimized, setLegendMinimized] = useState(true);
@@ -64,7 +66,8 @@ export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [],
     if (observed) legend.push({kind:'observed-area', label:t('Vết sạt lở đã rà soát','Reviewed landslide extent'), area:landslideAreaStyle(observed)});
     if (unreviewed) legend.push({kind:'unreviewed-area', label:t('Vết sạt lở chưa rà soát','Unreviewed landslide extent'), area:landslideAreaStyle(unreviewed)});
   }
-  const visibleLegend = legendExpanded ? legend : legend.filter(item => ['network', 'local-network', 'blocked', 'risk', 'uncertain', 'selected', 'potential-area', 'observed-area', 'unreviewed-area', 'field-warning', 'field-survey'].includes(item.kind));
+  if (layers.devices && hasLocationDevices) legend.push({kind:'resident-device',label:t('Người dân','Residents')},{kind:'rescue-device',label:t('Đội cứu hộ','Rescue teams')});
+  const visibleLegend = legendExpanded ? legend : legend.filter(item => ['resident-device','rescue-device','network', 'local-network', 'blocked', 'risk', 'uncertain', 'selected', 'potential-area', 'observed-area', 'unreviewed-area', 'field-warning', 'field-survey'].includes(item.kind));
 
   return <>
     <div className="map-toolbar" role="group" aria-label={t('Công cụ bản đồ', 'Map tools')}>
@@ -111,7 +114,7 @@ export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [],
       </div>
       {!layersOpen && !measuring && !drawing && !legendMinimized && visibleLegend.length > 0 && <div className="map-legend" id="map-legend-items" aria-label={t('Chú giải', 'Legend')}>
         {visibleLegend.map(({ kind, label, symbol, uiSymbol, fieldSymbol, area }) => <span className="legend-item" key={kind}>
-          {area ? <i className="legend-area" aria-hidden="true"><svg viewBox="0 0 28 22"><rect x="2" y="3" width="24" height="16" rx="1" fill={area.color} fillOpacity={area.fillOpacity} stroke={area.color} strokeWidth={area.weight} strokeDasharray={area.dashArray}/></svg></i> : kind === 'blocked' || kind === 'risk' ? <RoadConditionSymbol condition={kind}/> : fieldSymbol ? <i className={'field-legend-symbol'+(kind==='field-survey'?' is-survey':'')} aria-hidden="true">{kind==='field-survey'?'i':'!'}</i> : symbol ? <MapPoiSample symbol={symbol} kind={kind}/> : uiSymbol ? <UiIcon name={uiSymbol} size={18}/> : <i className={'line ' + kind} style={{ borderColor: kind === 'local-network' ? (layers.imagery ? roadColors.reference : roadColors.networkTerrain) : kind === 'network' ? (layers.imagery ? roadColors.networkImagery : roadColors.networkTerrain) : swatchColors[kind] }} aria-hidden="true"/>}{label}
+          {kind==='resident-device'||kind==='rescue-device'?<DeviceLegendSymbol role={kind==='resident-device'?'resident':'rescue'}/>:area ? <i className="legend-area" aria-hidden="true"><svg viewBox="0 0 28 22"><rect x="2" y="3" width="24" height="16" rx="1" fill={area.color} fillOpacity={area.fillOpacity} stroke={area.color} strokeWidth={area.weight} strokeDasharray={area.dashArray}/></svg></i> : kind === 'blocked' || kind === 'risk' ? <RoadConditionSymbol condition={kind}/> : fieldSymbol ? <i className={'field-legend-symbol'+(kind==='field-survey'?' is-survey':'')} aria-hidden="true">{kind==='field-survey'?'i':'!'}</i> : symbol ? <MapPoiSample symbol={symbol} kind={kind}/> : uiSymbol ? <UiIcon name={uiSymbol} size={18}/> : <i className={'line ' + kind} style={{ borderColor: kind === 'local-network' ? (layers.imagery ? roadColors.reference : roadColors.networkTerrain) : kind === 'network' ? (layers.imagery ? roadColors.networkImagery : roadColors.networkTerrain) : swatchColors[kind] }} aria-hidden="true"/>}{label}
         </span>)}
       </div>}
     </div>

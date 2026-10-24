@@ -67,6 +67,7 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
         {row('status', t('Tình trạng đường', 'Road status'))}
         {row('roads', t('Mạng đường', 'Road network'))}
         {hasLocalRoads && row('localRoads', t('Đường trong xã Chế Tạo', 'Chế Tạo local roads'))}
+        {hasLocalRoads && row('devices',t('Thiết bị định vị','Location devices'))}
         {row('communities', t('Địa bàn dân cư', 'Communities'))}
         {hasSelectedRoute && row('route', t('Tuyến đang xem', 'Selected route'))}
         {hasFloodData && row('flood', t('Nghi ngập lũ quét', 'Possible flash flooding'))}

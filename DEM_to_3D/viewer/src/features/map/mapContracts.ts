@@ -69,6 +69,7 @@ export type ViewControls = {
 export type MapDisplayProps = {
   locale?: Locale;
   /** Explicit demo person. Kept separate from real device position and road assessments. */
+  deviceFeed?: import('../tracking/deviceFeed').DeviceFeed | null;
   routeSimulation?: import('../routes/routeSimulation').RouteSimulation | null;
   /** Choosing route endpoints takes priority over feature inspection. */
   pointPickActive?: boolean;

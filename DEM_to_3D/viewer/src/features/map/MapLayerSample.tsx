@@ -1,3 +1,4 @@
+import { DeviceLegendSymbol } from '../tracking/deviceSymbols';
 import { landslideAreaStyle } from '../landslides/landslideAreas';
 import { MapSymbol } from '../../shared/ui/MapSymbol';
 import { POI_FRAME_PATH } from '../../terrain/poiFrame';
@@ -14,6 +15,7 @@ export function MapLayerSample({kind,imagery}: {kind: string;imagery: boolean}) 
   const potential = landslideAreaStyle({state:'potential',review:'unreviewed'});
   const observed = landslideAreaStyle({state:'occurred',review:'reviewed'});
   const symbol: MapSymbolName | undefined = kind === 'communities' ? 'community' : kind === 'crossings' ? 'bridge' : ['staging','hlz','flood'].includes(kind) ? kind as MapSymbolName : undefined;
+  if (kind==='devices') return <span className="layer-key-sample device-layer-sample"><DeviceLegendSymbol role="resident"/><DeviceLegendSymbol role="rescue"/></span>;
   if (symbol) return <span className="layer-key-sample"><MapPoiSample symbol={symbol} kind={symbol}/></span>;
   return <svg className="layer-key-sample" viewBox="0 0 32 24" fill="none" aria-hidden="true">
     {kind === 'landslide' ? <><path d="m2 17 5-11 9 3-1 12Z" fill={potential.color} fillOpacity={potential.fillOpacity} stroke={potential.color} strokeWidth={potential.weight} strokeDasharray={potential.dashArray}/><path d="m19 15 4-11 7 5-3 11Z" fill={observed.color} fillOpacity={observed.fillOpacity} stroke={observed.color} strokeWidth={observed.weight}/></>

@@ -1,3 +1,4 @@
+import { useDeviceFeed } from '../features/tracking/useDeviceFeed';
 import { useLocalNetwork } from '../features/route-film/networkContext';
 import { useRouteSimulation } from '../features/routes/useRouteSimulation';
 import { LocalAreaCard } from '../features/route-film/LocalAreaCard';
@@ -135,6 +136,7 @@ const defaultLayers = {
   flood: true,
   roads: true,
   localRoads:true,
+  devices:true,
   status: true,
   crossings: true,
   communities: true,
@@ -424,6 +426,7 @@ export function ResponseWorkspace({
     requestAnimationFrame(()=>viewControlRef.current?.frameProjected?.(localNetwork.network?.roads.flatMap(road=>road.points)??[]));
   };
   const journeyRoads=useMemo(()=>[...roads,...(localNetwork.network?.roads??[])],[roads,localNetwork.network]);
+  const deviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks);
   const localJourneyRoadIds=useMemo(()=>localNetwork.network?.roads.map(road=>road.id)??[],[localNetwork.network]);
   const localContext=useMemo(()=>localNetwork.context?{areas:localNetwork.context.areas.filter(area=>area.kind==='landslide' && layers.landslide!==false),closures:[]}:undefined,[localNetwork.context,layers.landslide]);
   const localArea=localContext?.areas.find(area=>area.id===localAreaId);
@@ -1153,7 +1156,7 @@ export function ResponseWorkspace({
           )}
           <div className="map-canvas">
             {mapMode === '2d' ? (
-              <Map2D routeSimulation={routeSimulation} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
+              <Map2D deviceFeed={layers.devices!==false?deviceFeed:null} routeSimulation={routeSimulation} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
                 analysisImagery={analysisDisplay}
                 gisEnabled={true}
                 gisRecords={displayedGis}
@@ -1241,7 +1244,7 @@ export function ResponseWorkspace({
                 <React.Suspense
                   fallback={terrain3DBusy ? null : terrainLoading(null)}
                 >
-                  <TerrainViewer routeSimulation={routeSimulation}
+                  <TerrainViewer deviceFeed={layers.devices!==false?deviceFeed:null} routeSimulation={routeSimulation}
                     pointPickActive={journey.open && !!journey.picking}
                     onPointPick={journey.pick}
                     routeEndpoints={journeyTerrainEndpoints}
@@ -1334,7 +1337,7 @@ export function ResponseWorkspace({
             </p>
           )}
 
-          <MapControls
+          <MapControls hasLocationDevices={Boolean(deviceFeed?.getSnapshot().length)}
             hasLocalRoads={!!localNetwork.network}
             timelineExpanded={timelineExpanded}
             onToggleTimeline={() => setTimelineExpanded(open => !open)}

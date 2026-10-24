@@ -157,6 +157,7 @@ def run(archive, chrome=None, captures=None, video=None):
     from check_main_local_roads import run as main_local_roads
     from check_map_layer_order import run as map_layer_order
     from check_route_person import run as route_person
+    from check_live_devices import run as live_devices
     from check_cartographic_evidence import run as evidence
     from check_flyover import run as film
     from check_local_route_film import run as local_film
@@ -240,6 +241,7 @@ def run(archive, chrome=None, captures=None, video=None):
                              ('main map local roads and directions', lambda: main_local_roads(base, chrome, captures)),
                              ('map drawing order and named 3D directions', lambda: map_layer_order(base, chrome, captures)),
                              ('route person and profile/inspector layout', lambda: route_person(base, chrome, captures)),
+                             ('resident and rescue device locations', lambda: live_devices(base, chrome, captures)),
                              ('Planet/field photos and failure recovery', lambda: evidence(base, chrome, captures)),
                              ('MP4 encoding and decoded frames', lambda: film(base, chrome, video, lang='en'))]
                     for name, check in steps:
