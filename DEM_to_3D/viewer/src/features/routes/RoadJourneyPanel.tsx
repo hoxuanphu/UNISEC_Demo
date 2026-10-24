@@ -85,6 +85,7 @@ export function RoadJourneyPanel({
           roadProjected(place.latitude, place.longitude),
           key,
           place.label,
+          place.roadIds,
         );
     }
   };

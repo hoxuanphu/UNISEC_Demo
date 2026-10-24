@@ -25,8 +25,9 @@ export function useRoadJourney(roads: RoadSegment[], accessLimitM?: number, init
     origin: { x: number; y: number },
     source = "map",
     label?: string,
+    roadIds?: readonly string[],
   ) => {
-    const selection = { origin, source, label };
+    const selection = { origin, source, label, roadIds };
     if (side === "start") setStart(selection);
     else setEnd(selection);
     setPicking(null);

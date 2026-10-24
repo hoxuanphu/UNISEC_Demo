@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import data from '../../../public/scenarios/che-tao/local-network.json';
+import incident from '../../../public/scenarios/che-tao/v0.3/incident.json';
+import { validateIncidentPacket } from '../../data/incidentPacket';
 import { validateLocalNetwork } from './localNetwork';
 import { analyseRoadJourney } from '../routes/journeyAnalysis';
 import { roadGeographic, roadProjected } from '../routes/selectedRoadJourney';
@@ -29,6 +31,27 @@ describe('prepared Chế Tạo demo network', () => {
         expect(result.route!.points.at(-1)).toEqual(result.end!.anchor!.point);
         for (let i = 1; i < result.route!.segs.length; i++)
             expect(result.route!.segs[i].points[0]).toEqual(result.route!.segs[i - 1].points.at(-1));
+    });
+    it.each(['distance', 'conditions', 'rescue-foot'] as const)('keeps the helipad in its source graph when %s routes share the same map', preference => {
+        const main = validateIncidentPacket(incident).roads;
+        const roads = [...main, ...network.roads];
+        const helipad = network.places.find(place => place.kind === 'hlz')!;
+        const ids = network.roads.map(road => road.id);
+        const start = { origin: helipad.projected, source: `local:${helipad.id}`, roadIds: ids };
+        // The unrelated corridor really is closer here. Scope, not a made-up
+        // junction or a different point, determines the correct network.
+        expect(analyseRoadJourney(roads, {...start,roadIds:undefined},select('Village A'),true,250,preference).kind).toBe('disconnected');
+        for (const name of ['Village A','Village B','Village C']) {
+            const end = {...select(name),roadIds:ids};
+            for (const [a,b] of [[start,end],[end,start]]) {
+                const result=analyseRoadJourney(roads,a,b,true,250,preference);
+                expect(result.kind).toBe('route');
+                expect(result.route!.segs.every(road=>road.id.startsWith('local-')&&road.status!=='blocked')).toBe(true);
+                expect(result.start!.origin).toEqual(a.origin);
+                expect(result.end!.origin).toEqual(b.origin);
+                for(let i=1;i<result.route!.segs.length;i++)expect(result.route!.segs[i].points[0]).toEqual(result.route!.segs[i-1].points.at(-1));
+            }
+        }
     });
     it('takes a real longer detour when the red road is excluded', () => {
         const a = select('Village B'), b = select('Village C');

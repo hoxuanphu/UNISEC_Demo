@@ -9,6 +9,8 @@ export type JourneyPlace = {
   latitude: number;
   longitude: number;
   representative?: boolean;
+  /** Roads belonging to this place's source network, not a confirmed access link. */
+  roadIds?: readonly string[];
 };
 
 /** Points retain their coordinates. Non-point presets use a point on the feature,

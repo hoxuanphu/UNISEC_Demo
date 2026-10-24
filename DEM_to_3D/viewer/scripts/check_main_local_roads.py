@@ -96,6 +96,19 @@ def run(url, chrome, captures):
         expect(panel.locator('.journey-note').first).to_contain_text('người địa phương')
         assert page.locator('.map-road-route-line').evaluate_all('nodes=>nodes.every(n=>n.dataset.roadStatus!=="blocked")')
         if captures:page.screenshot(path=str(captures/'main-rescue-foot.png'))
+        # Helipad is 24 m from the unrelated corridor, 27 m from its local road.
+        # Named local places must retain source ownership in the combined map.
+        panel.get_by_label('Điểm đầu',exact=True).select_option('local:place-22')
+        panel.get_by_label('Điểm cuối',exact=True).select_option('local:place-23')
+        expect(panel.locator('.journey-result')).to_be_visible()
+        expect(panel.locator('.journey-route-distance')).to_have_text('864 m')
+        expect(panel.locator('.journey-message[data-reason="disconnected"]')).to_have_count(0)
+        assert page.locator('.map-road-target[data-route-segment]').evaluate_all('nodes=>nodes.length>0&&nodes.every(n=>n.dataset.roadId.startsWith("local-"))')
+        if captures:page.screenshot(path=str(captures/'main-helipad-village-a.png'))
+        panel.get_by_role('button',name='Đổi điểm đầu và điểm cuối',exact=True).click()
+        expect(panel.locator('.journey-route-distance')).to_have_text('864 m')
+        panel.get_by_label('Điểm đầu',exact=True).select_option('local:place-23')
+        panel.get_by_label('Điểm cuối',exact=True).select_option('local:place-25')
         panel.get_by_role('combobox',name='Cách đi',exact=True).select_option('conditions')
         for width in [390,320]:
             page.set_viewport_size({'width':width,'height':844})
@@ -143,7 +156,7 @@ def run(url, chrome, captures):
         expect(roads.first).to_be_attached()
         assert not errors,errors
         browser.close()
-    print('Main local roads passed: full graph, restrained widths, local toggle, road conditions, inspection and A-C route.')
+    print('Main local roads passed: full graph, restrained widths, local toggle, road conditions, inspection, A-C route and source-scoped helipad routing.')
 
 
 if __name__=='__main__':

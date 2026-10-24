@@ -10,6 +10,8 @@ export type JourneySelection = {
   origin: { x: number; y: number };
   source: string;
   label?: string;
+  /** Restrict a named place to its source network when choosing its road anchor. */
+  roadIds?: readonly string[];
 };
 export type JourneyEndpoint = JourneySelection & {
   anchor: RoadAnchor | null;
@@ -42,13 +44,13 @@ export function analyseRoadJourney(
   preference: JourneyPreference = 'distance',
 ): JourneyAnalysis {
   if (preference === 'rescue-foot') avoidBlocked = true;
-  const eligible = avoidBlocked
-    ? roads.filter((r) => r.status !== "blocked")
-    : roads;
   const resolve = (
     selection: JourneySelection | null,
   ): JourneyEndpoint | null => {
     if (!selection) return null;
+    const scope = selection.roadIds ? new Set(selection.roadIds) : null;
+    const sourceRoads = scope ? roads.filter(road => scope.has(road.id)) : roads;
+    const eligible = avoidBlocked ? sourceRoads.filter(road => road.status !== 'blocked') : sourceRoads;
     const anchor = nearestRoadAnchor(
       eligible,
       selection.origin,
@@ -56,7 +58,7 @@ export function analyseRoadJourney(
     );
     if (anchor) return { ...selection, anchor, problem: null };
     const nearby = nearestRoadAnchor(
-      roads,
+      sourceRoads,
       selection.origin,
       accessLimitM,
     );

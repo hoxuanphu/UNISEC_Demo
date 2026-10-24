@@ -151,6 +151,18 @@ describe("journey matching and business rules", () => {
     expect(result.route?.lengthKm).toBeCloseTo(0.1);
     expect(result.route?.status).toBe("uncertain");
   });
+  it('does not jump to a neighbouring network when a named source road is missing or blocked',()=>{
+    const local=road('local',[p(0),p(100)],'blocked');
+    const other=road('other',[p(0,1),p(100,1)]);
+    const chosen={...selection(20),roadIds:['local']};
+    const destination={...selection(80),roadIds:['local']};
+    const blocked=analyseRoadJourney([local,other],chosen,destination,true,10);
+    expect(blocked.kind).toBe('endpoint-unavailable');expect(blocked.start?.problem).toBe('blocked');
+    expect(analyseRoadJourney([other],chosen,destination,true,10).route).toBeNull();
+    expect(analyseRoadJourney([other],{...chosen,roadIds:[]},selection(80,1),true,10).route).toBeNull();
+    // Unscoped map picks retain normal nearest-road behaviour.
+    expect(analyseRoadJourney([other],selection(20),selection(80),true,10).kind).toBe('route');
+  });
   it("does not invent junctions at line crossings", () => {
     const roads = [
       road("A", [p(0), p(100)]),

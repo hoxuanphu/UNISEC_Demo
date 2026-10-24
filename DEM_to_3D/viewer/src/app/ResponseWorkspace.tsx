@@ -423,6 +423,7 @@ export function ResponseWorkspace({
     requestAnimationFrame(()=>viewControlRef.current?.frameProjected?.(localNetwork.network?.roads.flatMap(road=>road.points)??[]));
   };
   const journeyRoads=useMemo(()=>[...roads,...(localNetwork.network?.roads??[])],[roads,localNetwork.network]);
+  const localJourneyRoadIds=useMemo(()=>localNetwork.network?.roads.map(road=>road.id)??[],[localNetwork.network]);
   const localContext=useMemo(()=>localNetwork.context?{areas:localNetwork.context.areas.filter(area=>area.kind==='landslide' && layers.landslide!==false),closures:[]}:undefined,[localNetwork.context,layers.landslide]);
   const localArea=localContext?.areas.find(area=>area.id===localAreaId);
   const inspectLocalArea=(id:string)=>{
@@ -1448,7 +1449,8 @@ export function ResponseWorkspace({
               sites={responseSites}
               roads={journeyRoads}
               places={[...(localNetwork.network?.places??[]).map(place=>({key:`local:${place.id}`,label:locale==='vi'?place.name.replace(/^Village /,'Bản ').replace(/^Helipad$/,'Bãi đáp'):place.name,
-                group:locale==='vi'?'Trong xã Chế Tạo':'Within Chế Tạo',latitude:place.latitude,longitude:place.longitude})),...(layers.gis ? gisJourneyPlaces(gis.records) : [])]}
+                group:locale==='vi'?'Trong xã Chế Tạo':'Within Chế Tạo',latitude:place.latitude,longitude:place.longitude,
+                roadIds:localJourneyRoadIds})),...(layers.gis ? gisJourneyPlaces(gis.records) : [])]}
               onProfile={() =>
                 interaction.dispatch({ type: 'toggle-tool', tool: 'profile' })
               }
