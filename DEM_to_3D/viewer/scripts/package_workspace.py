@@ -115,9 +115,9 @@ exit $LASTEXITCODE
 3. The app starts in 3D, defaults to English and remembers your language choice. Choose Response coordinator, then Enter app.
    Choose Resident to submit a field report.
 
-If the browser does not open, visit http://127.0.0.1:5212/.
+If the browser does not open, use the local address printed by Start-Diagnostics.cmd or saved in user-data/launcher.log.
 Do not open dist/index.html directly. For startup diagnostics, open Start-Diagnostics.cmd; logs are in user-data/launcher.log.
-If the port is occupied, run: powershell -ExecutionPolicy Bypass -File .\\Start.ps1 -Port 5213
+The launcher starts on port 5212, automatically chooses another free local port when needed, and remembers it in user-data/server.json. Opening it again reuses the matching package. Other programs are never stopped.
 
 """ + ('Windows x64 Python runtime is included. No Python or Node.js installation is needed.\n' if runtime else 'This package requires Python 3.11 or newer.\n') + """
 Use Chrome or Edge with graphics acceleration for 3D and MP4 export.
@@ -142,7 +142,7 @@ then Play journey or Export MP4 (25 seconds by default, wide oblique 3D view).
 The timeline stays visible for seeking, pausing and speed changes. The final shot
 shows the whole road network. Yellow polygons match the map; local survey photos
 are illustrative, not evidence for the selected location.
-Direct link after launch: http://127.0.0.1:5212/?workspace=routes
+Direct route-film link: append /?workspace=routes to the local address opened by the launcher.
 Road conditions from the KMZ source have not been field verified.
 
 Keep a copy of the ZIP on a USB drive. Test on the actual laptop with Wi-Fi disabled.

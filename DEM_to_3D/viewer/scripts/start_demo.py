@@ -1,6 +1,7 @@
 """Launch a verified, self-contained demo on loopback; no install or network."""
 import argparse
 import contextlib
+import errno
 import hashlib
 import json
 import os
@@ -52,29 +53,68 @@ def open_demo(url, root):
     webbrowser.open(url)
 
 
+def remembered_port(root):
+    try:
+        value = json.loads((root / 'user-data/server.json').read_text(encoding='utf8'))['port']
+        return value if type(value) is int and 1 <= value <= 65535 else None
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def remember_port(root, port):
+    try:
+        path = root / 'user-data/server.json'
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_suffix('.tmp')
+        temporary.write_text(json.dumps({'port': port}), encoding='utf8')
+        temporary.replace(path)
+    except OSError:
+        # A read-only location need not prevent an otherwise usable server.
+        pass
+
+
+def matching_package(port, expected):
+    try:
+        with urllib.request.urlopen(f'http://127.0.0.1:{port}/api/health', timeout=.5) as response:
+            health = json.loads(response.read(8192))
+        return isinstance(health, dict) and health.get('packageId') == expected
+    except (OSError, ValueError):
+        return False
+
+
 def start(root=ROOT, port=5212, browser=True):
+    root = Path(root).resolve()
+    if type(port) is not int or not 0 <= port <= 65535:
+        raise ValueError('Local port must be between 0 and 65535')
     print('Checking DEAR package...', flush=True)
     verify_package(root)
-    url = f'http://127.0.0.1:{port}'
-    try:
-        server = create_server(root / 'dist', port=port, offline=True)
-    except OSError:
+    expected = hashlib.sha256((root / 'release.json').read_bytes()).hexdigest()
+    previous = remembered_port(root)
+    # Reuse this folder's origin so browser-local reports and preferences stay
+    # available after restart. Never stop or open a different package's server.
+    candidates = [0] if port == 0 else list(dict.fromkeys(
+        ([previous] if previous else []) + list(range(port, min(65536, port + 10))) + [0]
+    ))
+    for candidate in candidates:
         try:
-            with urllib.request.urlopen(url + '/api/health', timeout=2) as response:
-                health = json.load(response)
-            expected = hashlib.sha256((root / 'release.json').read_bytes()).hexdigest()
-            if health.get('packageId') != expected:
-                raise ValueError('Different server')
-        except Exception as error:
-            raise RuntimeError(
-                f'Port {port} is in use. Close the other DEAR server or run Start.ps1 -Port 5213.'
-            ) from error
-        if browser:
-            open_demo(url, root)
-        print('This DEAR package is already running: ' + presentation_url(url), flush=True)
-        return
+            server = create_server(root / 'dist', port=candidate, offline=True)
+        except OSError as error:
+            if error.errno != errno.EADDRINUSE and getattr(error, 'winerror', None) != 10048:
+                raise
+            if not matching_package(candidate, expected):
+                continue
+            url = f'http://127.0.0.1:{candidate}'
+            remember_port(root, candidate)
+            if browser:
+                open_demo(url, root)
+            print('This DEAR package is already running: ' + presentation_url(url), flush=True)
+            return
+        break
+    else:
+        raise RuntimeError('No local port is available for DEAR.')
     with server:
         url = f'http://127.0.0.1:{server.server_port}'
+        remember_port(root, server.server_port)
         if browser:
             open_demo(url, root)
         print('DEAR offline ready: ' + presentation_url(url) + ' | Stop: Ctrl+C', flush=True)
@@ -107,7 +147,7 @@ def launch(root=ROOT, port=5212, browser=True, desktop=False):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--port', type=int, default=5212)
+    parser.add_argument('--port', type=int, default=5212, help='Preferred local port; automatically choose a free port if occupied')
     parser.add_argument('--offline', action='store_true', help='Compatibility flag; this launcher always uses offline mode')
     parser.add_argument('--no-browser', action='store_true')
     parser.add_argument('--desktop', action='store_true', help='Open the app without a server console; log startup diagnostics locally')

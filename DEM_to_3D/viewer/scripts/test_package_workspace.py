@@ -89,21 +89,73 @@ class PackageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'missing or changed'):
             verify_package(extracted)
 
-    def test_launcher_refuses_a_different_server_on_the_requested_port(self):
+    def test_launcher_uses_another_port_instead_of_opening_a_different_package(self):
+        import errno
         from io import BytesIO
-        from unittest.mock import patch
-        from start_demo import start
+        from unittest.mock import MagicMock, patch
+        from start_demo import start, remembered_port
         archive = self.root / 'release.zip'
         package_workspace(self.dist, archive)
         extracted = self.root / 'extracted'
         with zipfile.ZipFile(archive) as package:
             package.extractall(extracted)
-        with patch('start_demo.create_server', side_effect=OSError('occupied')), \
+        server = MagicMock()
+        server.server_port = 5213
+        with patch('start_demo.create_server', side_effect=[OSError(errno.EADDRINUSE, 'occupied'), server]) as create, \
              patch('start_demo.urllib.request.urlopen', return_value=BytesIO(b'{"packageId":"different"}')), \
              patch('start_demo.open_demo') as browser:
-            with self.assertRaisesRegex(RuntimeError, 'Port 5212 is in use'):
-                start(extracted, browser=True)
-            browser.assert_not_called()
+            start(extracted, browser=True)
+            self.assertEqual([call.kwargs['port'] for call in create.call_args_list], [5212, 5213])
+            browser.assert_called_once_with('http://127.0.0.1:5213', extracted.resolve())
+            self.assertEqual(remembered_port(extracted), 5213)
+            server.serve_forever.assert_called_once()
+
+    def test_launcher_reuses_its_remembered_server_without_switching_browser_origin(self):
+        import errno
+        from io import BytesIO
+        from unittest.mock import patch
+        from start_demo import start, remember_port
+        archive = self.root / 'release.zip'
+        package_workspace(self.dist, archive)
+        extracted = self.root / 'extracted'
+        with zipfile.ZipFile(archive) as package:
+            package.extractall(extracted)
+        remember_port(extracted, 5213)
+        expected = hashlib.sha256((extracted / 'release.json').read_bytes()).hexdigest()
+        with patch('start_demo.create_server', side_effect=OSError(errno.EADDRINUSE, 'occupied')) as create, \
+             patch('start_demo.urllib.request.urlopen', return_value=BytesIO(json.dumps({'packageId': expected}).encode())), \
+             patch('start_demo.open_demo') as browser:
+            start(extracted)
+            self.assertEqual(create.call_count, 1)
+            self.assertEqual(create.call_args.kwargs['port'], 5213)
+            browser.assert_called_once_with('http://127.0.0.1:5213', extracted.resolve())
+
+    def test_launcher_does_not_hide_file_or_permission_errors_by_changing_port(self):
+        from unittest.mock import patch
+        from start_demo import start
+        with patch('start_demo.verify_package'), patch.object(Path, 'read_bytes', return_value=b'{}'), \
+             patch('start_demo.create_server', side_effect=PermissionError('denied')) as create:
+            with self.assertRaises(PermissionError):
+                start(self.root, browser=False)
+            self.assertEqual(create.call_count, 1)
+
+    def test_launcher_ignores_invalid_remembered_ports(self):
+        from start_demo import remembered_port
+        path = self.root / 'user-data/server.json'
+        path.parent.mkdir()
+        for value in [True, 0, -1, 65536, '5213', 'https://example.com']:
+            path.write_text(json.dumps({'port': value}))
+            self.assertIsNone(remembered_port(self.root))
+
+    def test_launcher_reports_when_every_bind_fails_including_the_ephemeral_port(self):
+        import errno
+        from unittest.mock import patch
+        from start_demo import start
+        with patch('start_demo.verify_package'), patch.object(Path, 'read_bytes', return_value=b'{}'), \
+             patch('start_demo.create_server', side_effect=OSError(errno.EADDRINUSE, 'occupied')), \
+             patch('start_demo.matching_package', return_value=False):
+            with self.assertRaisesRegex(RuntimeError, 'No local port'):
+                start(self.root, browser=False)
 
     def test_launcher_uses_the_normal_app_entry_to_preserve_language_choice(self):
         from start_demo import presentation_url

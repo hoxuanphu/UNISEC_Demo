@@ -1,8 +1,10 @@
 """Exercise a fresh Windows portable package with every remote request blocked."""
 import argparse
+from contextlib import contextmanager
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import threading
 import json
 import os
-import socket
 import subprocess
 import tempfile
 import time
@@ -12,6 +14,20 @@ import weakref
 from pathlib import Path
 from playwright.sync_api import Browser, BrowserContext, sync_playwright, expect
 from start_demo import verify_package
+
+
+@contextmanager
+def occupied_port():
+    """An unrelated live service must survive the launcher choosing another port."""
+    class OtherService(BaseHTTPRequestHandler):
+        def do_GET(self):
+            data=b'{"packageId":"another-package"}'
+            self.send_response(200);self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
+        def log_message(self,*args):pass
+    with ThreadingHTTPServer(('127.0.0.1',0),OtherService) as service:
+        thread=threading.Thread(target=service.serve_forever,daemon=True);thread.start()
+        try:yield service.server_port
+        finally:service.shutdown();thread.join(timeout=5)
 
 
 def check_english_startup(base, chrome, captures=None):
@@ -153,18 +169,17 @@ def run(archive, chrome=None, captures=None, video=None):
             package.extractall(root)
         release = verify_package(root)
         assert release['portableWindowsX64'] and release['localMap'], release
-        with socket.socket() as socket_probe:
-            socket_probe.bind(('127.0.0.1', 0))
-            port = socket_probe.getsockname()[1]
-        base = f'http://127.0.0.1:{port}'
-        with (root / 'server.log').open('w', encoding='utf8') as log:
+        with occupied_port() as preferred_port, (root / 'server.log').open('w', encoding='utf8') as log:
             # The embedded runtime and packaged scripts must work independently of cwd/PATH.
-            process = subprocess.Popen([str(root / 'runtime/python.exe'), str(root / 'scripts/start_demo.py'), '--no-browser', '--port', str(port)], cwd=root / 'runtime', stdout=log, stderr=log)
+            process = subprocess.Popen([str(root / 'runtime/python.exe'), str(root / 'scripts/start_demo.py'), '--no-browser', '--port', str(preferred_port)], cwd=root / 'runtime', stdout=log, stderr=log)
             try:
                 for _ in range(120):
                     if process.poll() is not None:
                         raise RuntimeError((root / 'server.log').read_text(encoding='utf8'))
                     try:
+                        port=json.loads((root/'user-data/server.json').read_text(encoding='utf8'))['port']
+                        assert port!=preferred_port
+                        base=f'http://127.0.0.1:{port}'
                         with urllib.request.urlopen(base + '/api/health', timeout=1) as response:
                             assert json.load(response)['packageId']
                         break
@@ -179,6 +194,8 @@ def run(archive, chrome=None, captures=None, video=None):
                 duplicate = subprocess.run([str(root / 'runtime/python.exe'), str(root / 'scripts/start_demo.py'), '--no-browser', '--port', str(port)], cwd=root, capture_output=True, timeout=30)
                 assert duplicate.returncode == 0, duplicate.stderr
                 assert process.poll() is None
+                with urllib.request.urlopen(f'http://127.0.0.1:{preferred_port}/api/health') as response:
+                    assert json.load(response)['packageId']=='another-package'
 
                 external, seen = [], weakref.WeakSet()
                 original_context, original_page = Browser.new_context, Browser.new_page
@@ -230,7 +247,7 @@ def run(archive, chrome=None, captures=None, video=None):
             finally:
                 process.terminate()
                 process.wait(timeout=15)
-    print('Portable demo passed: bundled runtime, Unicode path, duplicate launcher, local map and all flows with zero external requests.', flush=True)
+    print('Portable demo passed: bundled runtime, Unicode path, occupied-port recovery, duplicate launcher, local map and all flows with zero external requests.', flush=True)
 
 
 if __name__ == '__main__':

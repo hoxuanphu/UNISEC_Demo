@@ -6,8 +6,8 @@ Gói Windows x64 dùng trên laptop cá nhân, không cần Node.js, Python cài
 
 1. Giải nén **toàn bộ** `DEAR-Offline-Windows-x64.zip` vào thư mục có quyền ghi trên ổ máy, không chạy bên trong ZIP.
 2. Mở `Start-DEAR.cmd`. Launcher kiểm tra SHA-256 toàn bộ tệp rồi mở cửa sổ Chrome/Edge phóng to với hồ sơ riêng của gói, mở **3D** mặc định và dùng **English** ở lần mở đầu; sau đó nhớ lựa chọn **English/Tiếng Việt** trong **Settings → Language**. Chọn **Response coordinator → Enter app** để trình diễn điều phối, hoặc **Resident** để gửi ghi nhận.
-3. Nếu trình duyệt không tự mở, vào `http://127.0.0.1:5212/`. Launcher mở cửa sổ app riêng và chạy dịch vụ cục bộ ở nền. Nếu cần xem lỗi khởi động, mở `Start-Diagnostics.cmd`; nhật ký ở `user-data/launcher.log`.
-4. Nếu cổng đang được chương trình khác dùng, chạy `powershell -ExecutionPolicy Bypass -File .\Start.ps1 -Port 5213`. Launcher không tắt tiến trình khác.
+3. Nếu trình duyệt không tự mở, xem địa chỉ trong `user-data/launcher.log` hoặc cửa sổ `Start-Diagnostics.cmd`. Launcher mở cửa sổ app riêng và chạy dịch vụ cục bộ ở nền. Nếu cần xem lỗi khởi động, mở `Start-Diagnostics.cmd`; nhật ký ở `user-data/launcher.log`.
+4. Lần đầu launcher ưu tiên cổng 5212. Nếu cổng đó đang được bản DEAR khác hoặc chương trình khác dùng, tự chọn cổng trống và nhớ trong `user-data/server.json`; lần mở sau dùng lại địa chỉ đó để giữ dữ liệu trình duyệt. Có thể đặt cổng ưu tiên bằng `Start.ps1 -Port 5213`. Launcher không tắt tiến trình khác.
 
 Vai trò điều phối dùng toàn bộ cửa sổ; khi bấm **Enter app**, trình duyệt được yêu cầu vào toàn màn hình (có thể thoát bằng **Esc**). Cả hai vai trò dùng mục **Account / Tài khoản** trên header để xem tên và đổi vai trò. Vai trò người dân dùng giao diện mobile, kể cả trên laptop, và mở bản đồ trước. Tên **A Phủ** được điền sẵn và sửa được.
 
@@ -69,7 +69,7 @@ Kiểm thử phần mềm không thay nghiệm thu dữ liệu hoặc thử ph�
 
 ## Phim A–B trên mạng đường Chế Tạo
 
-Trong màn hình điều phối, mở **Directions / Chỉ đường** cạnh ô tìm kiếm để chọn các bản, điểm ứng phó hoặc vị trí trên bản đồ. Trong **Layers / Lớp**, hàng **Đường trong xã Chế Tạo** có nút căn khung và công tắc riêng. Chọn một đoạn để xem tình trạng và tìm đường giữa các làng. Để mở phim 3D, dùng `http://127.0.0.1:5212/?workspace=routes` sau khi chạy launcher. Bản web dùng cùng đường dẫn `/?workspace=routes`.
+Trong màn hình điều phối, mở **Directions / Chỉ đường** cạnh ô tìm kiếm để chọn các bản, điểm ứng phó hoặc vị trí trên bản đồ. Trong **Layers / Lớp**, hàng **Đường trong xã Chế Tạo** có nút căn khung và công tắc riêng. Chọn một đoạn để xem tình trạng và tìm đường giữa các làng. Để mở phim 3D, dùng `http://127.0.0.1:5212/?workspace=routes` sau khi chạy launcher (thay 5212 bằng cổng thực tế nếu launcher chọn cổng khác). Bản web dùng cùng đường dẫn `/?workspace=routes`.
 
 Chọn hai làng hoặc bấm chọn A/B trên bản đồ 3D. **Avoid blocked roads** loại các cạnh đỏ khỏi phép tìm tuyến nhưng vẫn giữ chúng trên bản đồ. **Fit route** căn khung tuyến; **Whole network** xem toàn mạng đường. Phim giữ góc nghiêng 3D rộng trong lúc tuyến hiện dần và điểm di chuyển, sau đó mở rộng để bao quát toàn mạng đường ở cuối. Mặc định 25 giây. Thanh timeline luôn hiện khi phát, hỗ trợ tua, tạm dừng và tốc độ 0.75×–1.5×. **Export MP4** xuất 1920×1080, 30 fps bằng cùng bộ vẽ với bản xem trước.
 
