@@ -22,4 +22,5 @@
 .simulated-resident[hidden] { display:none; }
 .citizen-workspace .route-simulation-control .route-simulation-actions :is(.button,.icon-button,select) { min-height:40px; }
 
+.simulated-resident:not([data-status="playing"]) .location-signal-dot,
 .simulated-resident:not([data-status="playing"]) .location-signal-dot::after { animation:none; }

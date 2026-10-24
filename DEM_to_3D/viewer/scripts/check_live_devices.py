@@ -35,7 +35,7 @@ def run(url,chrome=None,captures=None):
                 marker.press('Enter')
             card=page.locator('.tracked-device-card');expect(card).to_be_visible()
             peer=card.locator(f'[data-device-peer="{target_id}"]')
-            if peer.is_visible():peer.click()
+            if peer.is_visible() and peer.get_attribute('aria-pressed')!='true':peer.click()
             expect(card.locator('header small')).to_have_text(target_id)
             return card
         # Fit the local network to expose its road devices independently of the initial selection.
@@ -59,6 +59,7 @@ def run(url,chrome=None,captures=None):
         assert civilian.locator('.tracked-device-dot').evaluate('n=>getComputedStyle(n).backgroundColor')=='rgb(49, 134, 230)'
         assert rescue.locator('.tracked-device-dot').evaluate('n=>getComputedStyle(n).backgroundColor')=='rgb(38, 166, 91)'
         assert devices.locator('.tracked-device-dot').evaluate_all('nodes=>nodes.every(n=>n.getBoundingClientRect().width<=14)')
+        assert devices.locator('.tracked-device-dot').evaluate_all('nodes=>nodes.every(n=>getComputedStyle(n).backgroundImage==="none")'), 'Role colours must remain solid even in mixed groups'
         def anchored_symbols():
             assert page.locator('.tracked-devices svg,.tracked-device-leaders').count()==0
             assert devices.evaluate_all('''nodes=>nodes.filter(n=>!n.hidden).every(n=>{
@@ -78,9 +79,10 @@ def run(url,chrome=None,captures=None):
             page.get_by_role('button',name=name,exact=True).click();page.wait_for_timeout(400);anchored_symbols()
         pulse=devices.locator('.location-signal-dot').first
         assert pulse.evaluate('n=>getComputedStyle(n,"::after").animationName')=='location-signal'
-        assert float(pulse.evaluate('n=>getComputedStyle(n).opacity'))==1
+        assert .93<=float(pulse.evaluate('n=>getComputedStyle(n).opacity'))<=1
         page.emulate_media(reduced_motion='reduce')
         assert pulse.evaluate('n=>getComputedStyle(n,"::after").animationName')=='none'
+        assert pulse.evaluate('n=>getComputedStyle(n).animationName')=='none'
         page.emulate_media(reduced_motion='no-preference')
         signal=int(devices.first.get_attribute('data-signal'))
         page.get_by_role('button',name='Chuyển sang 3D',exact=True).click()

@@ -67,8 +67,6 @@ export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Lo
       marker.dataset.worldX=device.point.x.toFixed(3);marker.dataset.worldY=device.point.y.toFixed(3);marker.dataset.signal=String(device.updatedAt);
       marker.dataset.groupLeader=group?.id??'';marker.dataset.members=JSON.stringify(group?.members??[]);
       marker.classList.toggle('is-selected',!!selected&&!!group?.members.includes(selected));
-      const mixed=!!group&&group.members.some(id=>snapshot.find(item=>item.id===id)?.role!==device.role);
-      marker.classList.toggle('is-mixed',mixed);
       const label=device.name[vi?0:1]+(group&&group.members.length>1?t(`, ${group.members.length} thiết bị tại đây`,`, ${group.members.length} devices here`):'');
       marker.setAttribute('aria-label',label);
       const name=marker.querySelector<HTMLElement>('.tracked-device-name');if(name)text(name,label);
