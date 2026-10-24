@@ -1,4 +1,5 @@
-﻿import * as THREE from 'three';
+﻿import { routeStopSvg } from '../features/routes/routeStopSymbol';
+import * as THREE from 'three';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { surfaceLineGeometry,stabiliseSurfaceLine } from './surfaceLine';
@@ -10,7 +11,7 @@ export function createRouteEndpoints(host:HTMLElement,endpoints:RouteEndpoint[],
   const markers:Array<{element:HTMLElement;point:THREE.Vector3}>=[],materials:LineMaterial[]=[];
   for(const endpoint of endpoints){
     const point=surface(endpoint.point);if(!point)continue;point.y+=5;
-    const element=document.createElement('span');element.className='terrain-route-endpoint is-'+endpoint.label.toLowerCase();element.textContent=endpoint.label;element.setAttribute('role','img');element.setAttribute('aria-label',endpoint.label);layer.append(element);markers.push({element,point});
+    const element=document.createElement('span');element.className='terrain-route-endpoint is-'+endpoint.label.toLowerCase();element.innerHTML=routeStopSvg(endpoint.label==='A');element.setAttribute('role','img');element.setAttribute('aria-label',endpoint.label);layer.append(element);markers.push({element,point});
     if(endpoint.anchor && Math.hypot(endpoint.anchor.x-endpoint.point.x,endpoint.anchor.y-endpoint.point.y)>1){
       const positions:number[]=[];let complete=true;
       for(let i=0;i<=8;i++){const t=i/8,p=surface({x:endpoint.point.x+(endpoint.anchor.x-endpoint.point.x)*t,y:endpoint.point.y+(endpoint.anchor.y-endpoint.point.y)*t});if(!p){complete=false;break;}positions.push(p.x,p.y+4,p.z);}

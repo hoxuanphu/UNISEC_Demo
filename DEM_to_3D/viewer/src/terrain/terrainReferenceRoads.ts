@@ -1,3 +1,4 @@
+import { setDrawingLayer } from '../features/map/mapLayerOrder';
 import * as THREE from 'three';
 import proj4 from 'proj4';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
@@ -36,9 +37,9 @@ export function terrainReferenceRoads(records:GeometryRecord[], surfaces:Surface
     const flush = () => {
       if (positions.length >= 6) for (const [color,width] of [[roadColors.referenceCasing,selected?5:4],[roadColors.reference,selected?3:2]] as const) {
         const geometry = surfaceLineGeometry(positions);
-        const material = stabiliseSurfaceLine(new LineMaterial({color,linewidth:width,depthWrite:false,depthTest:true}));
+        const material = stabiliseSurfaceLine(new LineMaterial({color,linewidth:width,depthWrite:false,depthTest:true,transparent:true}));
         material.resolution.set(resolution.width,resolution.height);
-        const line = new Line2(geometry,material);line.userData.recordId=record.id;line.renderOrder=color===roadColors.referenceCasing?6:7;group.add(line);
+        const line = new Line2(geometry,material);line.userData.recordId=record.id;setDrawingLayer(line, 'reference', color===roadColors.referenceCasing ? 0 : .2);group.add(line);
       }
       positions=[];
     };

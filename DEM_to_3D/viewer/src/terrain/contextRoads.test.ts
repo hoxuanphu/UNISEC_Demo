@@ -1,3 +1,4 @@
+import { applyDrawingOrder, defaultDrawingOrder, mapLayerOrder } from '../features/map/mapLayerOrder';
 import { describe, expect, it } from 'vitest';
 import { buildScenarioOverlays } from './scenarioOverlays';
 import { contextRoadStyle } from '../features/map/contextRoadStyle';
@@ -19,6 +20,21 @@ const dispose=(group:ReturnType<typeof build>)=>group.traverse(object=>{const li
   const materials=Array.isArray(line.material)?line.material:[line.material];materials.forEach(material=>material?.dispose());});
 
 describe('local roads on the main map',()=>{
+  it('reorders actual road primitives without losing source identity, casings or closure priority',()=>{
+    const group=build({roads:true,status:true,imagery:true});
+    const ordinary=lines(group).filter(line=>line.userData.id===road.id);
+    expect(ordinary).toHaveLength(2);
+    expect(ordinary.every(line=>line.userData.drawingLayer==='roads')).toBe(true);
+    applyDrawingOrder(group,defaultDrawingOrder);
+    const before=ordinary[0].renderOrder;
+    applyDrawingOrder(group,['landslides','reference','boundary','roads']);
+    expect(ordinary[0].renderOrder).toBeLessThan(before);
+    expect(ordinary[1].renderOrder).toBeGreaterThan(ordinary[0].renderOrder);
+    const closed=lines(group).filter(line=>line.userData.id==='closed');
+    expect(closed.every(line=>line.renderOrder>=mapLayerOrder.roadStatus*2)).toBe(true);
+    expect(ordinary.every(line=>line.userData.id===road.id)).toBe(true);
+    dispose(group);
+  });
   it('keeps context subtle at overview scale and preserves closures on close views',()=>{
     expect(contextRoadStyle(road,12,true,true).weight).toBeLessThan(contextRoadStyle(road,16,true,true).weight);
     expect(contextRoadStyle(road,16,true,true).weight).toBeLessThan(3);

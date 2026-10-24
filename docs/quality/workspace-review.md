@@ -30,3 +30,6 @@ Chi tiết bền vững nằm ở [bản đồ](../product/cartography.md), [GIS
 ## Mạng đường địa phương và phim A–B
 
 `test_local_network.py` kiểm tra gắn đầu đường, chia cạnh đích, giữ nguồn gốc và không nối giao cắt nội bộ. Vitest kiểm tra ba cặp làng, tuyến vòng tránh đường đỏ, giới hạn nối điểm, khung 3D, bờ nước mềm và liên kết polygon với ảnh minh họa. `check_local_route_film.py` kiểm tra bản đồ/phim 3D, polygon vàng dùng chung không có icon tâm, timeline luôn hiện, tua/tốc độ, ảnh minh họa, cảnh cuối toàn mạng đường, Anh/Việt và 320–1440 px. Kiểm tra bàn giao dùng tile offline thật và chặn mọi yêu cầu ngoài localhost; tùy chọn xuất MP4 giải mã năm khung từ file 1920×1080 thực để kiểm địa hình, vùng vàng và đường đỏ. CI chỉ thay ảnh nền ngoài bằng tile fixture, không thay graph, DEM hay thuật toán tuyến.
+
+
+`check_map_layer_order.py` kiểm tra thứ tự pane thực trong 2D, lưu qua tải lại, cảnh báo nằm trên tuyến, ba tiêu chí tìm đường, chọn đường trực tiếp, chọn nền địa hình trong 3D, giữ renderer khi mở chỉ đường và bố cục 320–1440 px khi chặn Internet. Vitest kiểm tra cùng quy tắc thứ tự cho các primitive Three.js và giữ thứ tự fill/casing/outline.

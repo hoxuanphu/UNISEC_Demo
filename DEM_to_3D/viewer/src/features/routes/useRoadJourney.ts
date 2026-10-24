@@ -34,8 +34,11 @@ export function useRoadJourney(roads: RoadSegment[], accessLimitM?: number, init
     if (side === "start" ? endSelection : startSelection)
       setFitSequence((value) => value + 1);
   };
-  const pick = (latitude: number, longitude: number) => {
-    if (picking) setPoint(picking, roadProjected(latitude, longitude));
+  const pick = (latitude: number, longitude: number, roadId?: string) => {
+    // A deliberate click on a road pins its identity, even beside another network.
+    // Clicking empty ground retains the normal nearest-road matching policy.
+    if (picking) setPoint(picking, roadProjected(latitude, longitude), 'map', undefined,
+      roadId && roads.some(road => road.id === roadId) ? [roadId] : undefined);
   };
   const analysis = useMemo(
     () => analyseRoadJourney(roads, startSelection, endSelection, avoidBlocked, accessLimitM, preference),

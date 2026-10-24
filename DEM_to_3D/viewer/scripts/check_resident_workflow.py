@@ -77,9 +77,9 @@ def run(url,chrome,captures):
   # Arbitrary start/end includes a complete staging-to-community route and DEM profile.
   map_tool(page, 'Tìm đường giữa hai điểm').click()
   journey=page.get_by_role('region',name='Tìm đường giữa hai điểm',exact=True)
-  start=journey.get_by_label('Điểm đầu',exact=True)
+  start=journey.get_by_label('Điểm xuất phát',exact=True)
   start.select_option('local:place-23')
-  end=journey.get_by_label('Điểm cuối',exact=True)
+  end=journey.get_by_label('Điểm đến',exact=True)
   end.select_option('local:place-25')
   expect(journey.locator('.journey-result')).to_be_visible();expect(journey).to_contain_text('km')
   journey.get_by_role('button',name='Mặt cắt địa hình',exact=True).click()

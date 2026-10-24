@@ -501,6 +501,27 @@ export function ResponseWorkspace({
     [models, defaultTerrainData,contextTerrain]
   );
   const journey = useRoadJourney(journeyRoads, undefined, 'conditions');
+  const journeyTerrainEndpoints = useMemo(() => journey.open ? [journey.start, journey.end].flatMap((endpoint, index) => endpoint ? [{label: index === 0 ? 'A' : 'B', point: endpoint.origin, anchor: endpoint.anchor?.point}] : []) : [], [journey.open, journey.start, journey.end]);
+  const framedJourney = useRef<{route: typeof journey.route; start: typeof journey.start; end: typeof journey.end; sequence: number; canvas: Element} | null>(null);
+  useEffect(() => {
+    if (!journey.open || mapMode !== '3d') { framedJourney.current = null; return; }
+    if (terrain3DBusy) return;
+    const canvas = workspaceRef.current?.querySelector('canvas.terrain-canvas');
+    const previous = framedJourney.current;
+    if (previous?.route === journey.route && previous.start === journey.start && previous.end === journey.end && previous.sequence === journey.fitSequence && previous.canvas === canvas) return;
+    const points = [...(journey.route?.points ?? []), ...[journey.start, journey.end].flatMap(point => point ? [point.origin] : [])];
+    if (!points.length) return;
+    const frame = requestAnimationFrame(() => {
+      const map = document.querySelector<HTMLElement>('.map-area');
+      if (!canvas || !map || !viewControlRef.current?.frameProjected) return;
+      const panel = map.querySelector<HTMLElement>('.road-journey-panel');
+      framedJourney.current = {route: journey.route, start: journey.start, end: journey.end, sequence: journey.fitSequence, canvas};
+      const right = panel && matchMedia('(min-width: 761px)').matches ? panel.getBoundingClientRect().width + 32 : 0;
+      const bottom = panel && !matchMedia('(min-width: 761px)').matches ? panel.getBoundingClientRect().height + 24 : 0;
+      viewControlRef.current?.frameProjected?.(points, {right, bottom});
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [journey.open, journey.fitSequence, journey.route, journey.start, journey.end, mapMode, viewReadyVersion, terrain3DBusy]);
   // One map tool at a time: opening the journey already resets the others, so the
   // others close the journey too. Its chosen points are kept for when it reopens.
   const otherMapTool = measurementOpen || drawOpen || locationOpen;
@@ -1218,7 +1239,11 @@ export function ResponseWorkspace({
                 <React.Suspense
                   fallback={terrain3DBusy ? null : terrainLoading(null)}
                 >
-                  <TerrainViewer contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
+                  <TerrainViewer
+                    pointPickActive={journey.open && !!journey.picking}
+                    onPointPick={journey.pick}
+                    routeEndpoints={journeyTerrainEndpoints}
+                    contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
                     analysisImagery={analysisDisplay}
                     surfaceLayers={layers}
                     terrainOverlays={terrainOverlays.options}
@@ -1276,7 +1301,7 @@ export function ResponseWorkspace({
           </div>
 
           {localArea&&<LocalAreaCard area={localArea} photos={fieldPhotos} locale={locale} onClose={()=>setLocalAreaId(null)} linkToJourney/>}
-          {localRoad&&layers.roads&&layers.localRoads!==false&&<LocalRoadCard road={localRoad} locale={locale} onClose={()=>setLocalRoadId(null)} onDirections={()=>{setLocalRoadId(null);resetTools();setMapMode('2d');journey.setOpen(true);}}/>}
+          {localRoad&&layers.roads&&layers.localRoads!==false&&<LocalRoadCard road={localRoad} locale={locale} onClose={()=>setLocalRoadId(null)} onDirections={()=>{setLocalRoadId(null);resetTools();journey.setOpen(true);}}/>}
           {mapMode === '3d' && terrain3DBusy
             ? terrainLoading(progress3D)
             : !mapTerrain &&
@@ -1328,7 +1353,6 @@ export function ResponseWorkspace({
               aria-pressed={journey.open}
               onClick={() => {
                 resetTools();
-                setMapMode('2d');
                 journey.setOpen(!journey.open);
               }}
             >
@@ -1441,7 +1465,7 @@ export function ResponseWorkspace({
                 : undefined
             }
           />
-          {mapMode === '2d' && journey.open && (
+          {journey.open && (
             <RoadJourneyPanel
               locale={locale}
               journey={journey}

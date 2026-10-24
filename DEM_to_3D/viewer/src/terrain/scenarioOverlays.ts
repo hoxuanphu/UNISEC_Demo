@@ -15,7 +15,7 @@ import { projectedToScene } from './coordinate';
 import { roadColors, roadStroke, roadSurfaceOffsetM } from './roadStyle';
 import { terrainDrapePoints, terrainSurfaceElevation } from './terrainSurface';
 import { routeRoadDisplay } from './routeRoadDisplay';
-import { mapLayerOrder } from '../features/map/mapLayerOrder';
+import { setDrawingLayer, mapLayerOrder } from '../features/map/mapLayerOrder';
 import { defaultLayerAppearance, showRoad, type LayerAppearance } from '../features/map/layerAppearance';
 
 import type { OverlayHit } from '../features/map/mapContracts';
@@ -107,7 +107,7 @@ export function buildScenarioOverlays(options: ScenarioOverlayOptions): THREE.Gr
         dashed: true, dashSize: 120, gapSize: 100, depthTest: true, transparent: true, opacity: selected ? 0.9 : 0.6 }));
       material.resolution.set(options.resolution?.width ?? 1440, options.resolution?.height ?? 900);
       const outline = new Line2(geometry, material); outline.computeLineDistances();
-      outline.renderOrder = mapLayerOrder.boundary * 2; outline.userData = { type: 'aoi', id: options.aoi.id }; rootGroup.add(outline);
+      setDrawingLayer(outline, 'boundary'); outline.userData = { ...outline.userData, type: 'aoi', id: options.aoi.id }; rootGroup.add(outline);
     }
   }
 
@@ -152,8 +152,9 @@ export function buildScenarioOverlays(options: ScenarioOverlayOptions): THREE.Gr
           const line = new Line2(geometry, material);
           line.computeLineDistances();
           const order = hasWarning ? mapLayerOrder.roadStatus : routeVisible || isRoadSelected ? mapLayerOrder.route : mapLayerOrder.roads;
-          line.renderOrder = order * 2 + (casing ? 0 : 1);
-          line.userData = { type: 'road', id: sourceId, segmentId: road.id, casing, context:contextIds.has(sourceId) };
+          line.renderOrder = order * 2 + (casing ? 0 : .2);
+          if (!hasWarning && !routeVisible && !isRoadSelected) setDrawingLayer(line, 'roads', casing ? 0 : .2);
+          line.userData = { ...line.userData, type: 'road', id: sourceId, segmentId: road.id, casing, context:contextIds.has(sourceId) };
           roadGroup.add(line);
         }
       };

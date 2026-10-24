@@ -1,3 +1,6 @@
+import { LayerOrderControl } from '../../features/map/LayerOrderControl';
+import { useMapLayerOrder } from '../../features/map/useMapLayerOrder';
+import { defaultDrawingOrder } from '../../features/map/mapLayerOrder';
 import { LandslideFillControl } from '../../features/landslides/LandslideFillControl';
 import { useLandslideAppearance } from '../../features/landslides/useLandslideAppearance';
 import { defaultLandslideFillOpacity } from '../../features/landslides/landslideAppearance';
@@ -28,6 +31,7 @@ type PreviewProps = { imageryPreview?: string; terrainOverlays?: ReturnType<type
 export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance, hasFloodData, hasHLZData, hasSelectedRoute, hasIncidentLayers, areaCount, onShowAreas, onReset, onToggleLayer, onClose, imageryPreview, terrainOverlays, hasTerrainGrid = false, analysisImagery, hasLocalRoads, onShowLocalRoads }: Props & PreviewProps): JSX.Element {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const panelRef = useRef<HTMLElement>(null);
+  const { setOrder } = useMapLayerOrder();
   const { setFillOpacity } = useLandslideAppearance();
   const floating = useFloatingPanel(panelRef, 'layers');
   const closeRef = useRef(onClose);
@@ -67,6 +71,7 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
         {hasSelectedRoute && row('route', t('Tuyến đang xem', 'Selected route'))}
         {hasFloodData && row('flood', t('Nghi ngập lũ quét', 'Possible flash flooding'))}
       </fieldset>}
+      <LayerOrderControl locale={locale}/>
       <fieldset className="basemap-choices"><legend>{t('Bản đồ nền', 'Base map')}</legend>
         {bases.map(([imagery, label]) => <label className={'basemap-choice ' + (layers.imagery === imagery ? 'is-active' : '')} key={String(imagery)}>
           <span className={'basemap-preview ' + (imagery ? 'is-imagery' : 'is-terrain')} aria-hidden="true">
@@ -97,6 +102,6 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
       </details>
       {terrainOverlays && mapMode === '3d' && <details className="layer-section layer-terrain"><summary>{t('Phân tích địa hình 3D', '3D terrain analysis')}</summary><TerrainOverlayControls locale={locale} mapMode={mapMode} hasGrid={hasTerrainGrid} overlays={terrainOverlays}/></details>}
     </div>
-    <div className="layers-footer"><button className="text-button" onClick={() => { setFillOpacity(defaultLandslideFillOpacity); onReset(); }}>{t('Khôi phục hiển thị mặc định', 'Restore default display')}</button></div>
+    <div className="layers-footer"><button className="text-button" onClick={() => { setFillOpacity(defaultLandslideFillOpacity); setOrder(defaultDrawingOrder); onReset(); }}>{t('Khôi phục hiển thị mặc định', 'Restore default display')}</button></div>
   </section>;
 }

@@ -3,7 +3,7 @@
 .map-context-water{filter:blur(1.5px)}
 .flyover-active .map-context-closures{visibility:hidden}
 .terrain-route-endpoints{position:absolute;inset:0;pointer-events:none;z-index:11}
-.terrain-route-endpoint{position:absolute;top:0;left:0;display:grid;place-items:center;width:24px;height:24px;border:2px solid #fff;border-radius:50%;background:#176a55;color:#fff;font:600 13px var(--font-map,Roboto,Arial,sans-serif);box-shadow:0 1px 4px #14231d80}
-.terrain-route-endpoint.is-b{background:#253f53}
+.terrain-route-endpoint{position:absolute;top:0;left:0;display:grid;place-items:center;width:24px;height:24px;border:2px solid #fff;border-radius:50%;background:#246b9a;color:#fff;font:600 13px var(--font-map,Roboto,Arial,sans-serif);box-shadow:0 1px 4px #14231d80}
+.terrain-route-endpoint.is-b{background:#2b7354}
 
 .flyover-active .terrain-route-endpoints{visibility:hidden}

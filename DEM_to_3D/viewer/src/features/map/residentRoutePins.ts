@@ -1,3 +1,4 @@
+import { routeStopSvg } from '../routes/routeStopSymbol';
 import type * as L from 'leaflet';
 import { overlaps, type ScreenRect } from '../../terrain/markerLayout';
 
@@ -11,7 +12,7 @@ export function addResidentRoutePins(map: L.Map, points: Array<{latitude: number
     pin.setAttribute('aria-label', `${point.label}${point.name ? ', '+point.name : ''}`);
     if (point.onSelect) pin.onclick = point.onSelect;
     else pin.tabIndex = -1;
-    const letter = document.createElement('b');letter.textContent = point.label;
+    const letter = document.createElement('b');letter.innerHTML = routeStopSvg(point.label === 'A');
     pin.append(letter);
     const name = document.createElement('span');name.className = 'resident-stop-name';name.textContent = point.name ?? '';name.hidden = true;
     layer.append(pin, name);

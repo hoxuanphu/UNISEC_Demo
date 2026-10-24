@@ -81,7 +81,7 @@ export function ResponseGisLayer({
             : '#b87919';
       const render = () => {
         const layer = L.geoJSON(record.feature, {
-          pane: mapPane('boundary'),
+          pane: mapPane(mappedArea ? 'landslides' : 'reference'),
           interactive,
           // Leaflet applies style after pointToLayer; a static style would repaint point markers.
           style: (feature) =>
@@ -148,9 +148,9 @@ export function ResponseGisLayer({
         });
         continue;
       }
-      if (referenceRoad) L.geoJSON(record.feature,{pane:mapPane('boundary'),interactive:false,
+      if (referenceRoad) L.geoJSON(record.feature,{pane:mapPane('reference'),interactive:false,
         style:{color:roadColors.referenceCasing,weight:selected ? 5 : 4,opacity:.9,lineCap:'round',lineJoin:'round'}}).addTo(group);
-      if (mappedArea) L.geoJSON(record.feature, { pane: mapPane('boundary'), interactive: false,
+      if (mappedArea) L.geoJSON(record.feature, { pane: mapPane('landslides'), interactive: false,
         style: { color: landslideBoundaryCasing, weight: landslideAreaStyle(mappedArea, selected, fillOpacity, compact).weight + 1.2, opacity: .8, fill: false, lineCap: 'round', lineJoin: 'round' } }).addTo(group);
       const displayed = render().addTo(group);
       if (mappedArea) displayed.eachLayer(item => {

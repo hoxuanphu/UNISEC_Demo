@@ -1,3 +1,4 @@
+import { setDrawingLayer } from '../features/map/mapLayerOrder';
 import * as THREE from 'three';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
@@ -51,7 +52,7 @@ export function createContextAreaOverlay(host:HTMLElement,data:MapContextGeometr
     if(positions.length){
       const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,4));
       const material=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:area.kind==='water'?.36:selected?.3:defaultLandslideFillOpacity,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
-      const mesh=new THREE.Mesh(geometry,material);mesh.renderOrder=area.kind==='water'?3:4;if(area.kind==='landslide'){mesh.userData.contextAreaId=area.id;styles.set(area.id,{fill:material});}group.add(mesh);
+      const mesh=new THREE.Mesh(geometry,material);setDrawingLayer(mesh, area.kind==='water' ? 'boundary' : 'landslides');if(area.kind==='landslide'){mesh.userData.contextAreaId=area.id;styles.set(area.id,{fill:material});}group.add(mesh);
     }
     if(area.kind==='landslide'){
       let run:number[]=[];
@@ -59,7 +60,7 @@ export function createContextAreaOverlay(host:HTMLElement,data:MapContextGeometr
         if(run.length>=6){
           const material=stabiliseSurfaceLine(new LineMaterial({color:landslideBoundaryColor,linewidth:selected?3:1.7,transparent:true,opacity:1,depthWrite:false}));
           material.resolution.set(resolution.width,resolution.height);lines.push(material);
-          const object=new Line2(surfaceLineGeometry(run),material);object.userData.contextAreaId=area.id;object.renderOrder=5;group.add(object);
+          const object=new Line2(surfaceLineGeometry(run),material);object.userData.contextAreaId=area.id;setDrawingLayer(object, 'landslides', .2);group.add(object);
           styles.set(area.id,{...styles.get(area.id),lines:[...(styles.get(area.id)?.lines??[]),material]});
         }
         run=[];

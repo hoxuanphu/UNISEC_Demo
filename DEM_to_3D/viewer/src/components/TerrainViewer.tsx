@@ -1,4 +1,6 @@
 import { createRouteEndpoints, type RouteEndpoint } from '../terrain/routeEndpoints';
+import { useMapLayerOrder } from '../features/map/useMapLayerOrder';
+import { applyDrawingOrder } from '../features/map/mapLayerOrder';
 import { createContextAreaOverlay } from '../terrain/contextAreas';
 import '../features/map/context-areas.css';
 import {detailMaxZoom} from '../features/map/imageryDetail';
@@ -29,7 +31,7 @@ import * as THREE from 'three';
 import { MapControls as ThreeMapControls } from 'three/examples/jsm/controls/MapControls.js';
 import type { LoadedModel, TerrainPoint, TerrainMetadata } from '../types/terrain';
 import { bilinearElevation } from '../terrain/elevationGrid';
-import { projectedToScene, projectedToPixel, sceneToProjected } from '../terrain/coordinate';
+import { projectedToWgs84, projectedToScene, projectedToPixel, sceneToProjected } from '../terrain/coordinate';
 import { buildBvh, disposeBvh, disposeObjectResources } from '../terrain/raycast';
 import type { SurfaceProfile } from '../terrain/profile';
 import type { GeographicPlacement } from '../terrain/geographic';
@@ -113,6 +115,7 @@ export function TerrainViewer({
   onUnavailable,
   scenarioProps,
   onSelectOverlayHit,
+  pointPickActive, onPointPick,
   viewControlRef,
   onViewReady, onOrbitChange,
   gisRecords, gisSelectedId, onGisSelect, flyover, onFlyoverState, routeEndpoints, contextGeometry, selectedContextAreaId, onSelectContextArea
@@ -125,6 +128,8 @@ export function TerrainViewer({
   const flyoverStateRef = useRef(onFlyoverState); flyoverStateRef.current = onFlyoverState;
   const surfaceLayersRef = useRef(surfaceLayers); surfaceLayersRef.current = surfaceLayers;
   const overlaysRef = useRef<ReturnType<typeof createTerrainOverlays> | null>(null);
+  const { order: drawingOrder } = useMapLayerOrder();
+  const drawingOrderRef = useRef(drawingOrder); drawingOrderRef.current = drawingOrder;
   const { fillOpacity } = useLandslideAppearance();
   const fillOpacityRef = useRef(fillOpacity); fillOpacityRef.current = fillOpacity;
   const [imageryState,setImageryState]=useState<ImageryLoadState>('off');
@@ -134,6 +139,8 @@ export function TerrainViewer({
   overlayPropsRef.current = { terrainOverlays, onTerrainOverlayStatus };
   const hostRef = useRef<HTMLDivElement>(null);
   const measureModeRef = useRef(measureMode);
+  const pointPickRef = useRef({active: pointPickActive, onPick: onPointPick});
+  pointPickRef.current = {active: pointPickActive, onPick: onPointPick};
   const onPickRef = useRef(onPick);
   const focusPointRef = useRef(focusPoint);
   const profileRef = useRef(profile);
@@ -453,6 +460,7 @@ export function TerrainViewer({
         contextLayer.group.visible=!flyoverActive||Boolean(flyoverInputRef.current?.context);
         scene.add(contextLayer.group);
       }
+      for (const group of [scenarioOverlayGroup, mappedAreaGroup, contextLayer?.group]) if (group) applyDrawingOrder(group, drawingOrderRef.current);
       markerLayoutDirty = true;
       invalidate();
     };
@@ -615,7 +623,7 @@ export function TerrainViewer({
         },
         frameProjected: (points, inset) => {
           const worldPoints = points.map(projectedWorld).filter((point): point is THREE.Vector3 => point !== null);
-          const pose = frameCameraPoints(camera,controls.target,worldPoints,{width:host.clientWidth,height:host.clientHeight,right:inset?.right ?? 0,minDistance:controls.minDistance,maxDistance:controls.maxDistance});
+          const pose = frameCameraPoints(camera,controls.target,worldPoints,{width:host.clientWidth,height:host.clientHeight,right:inset?.right ?? 0,bottom:inset?.bottom ?? 0,minDistance:controls.minDistance,maxDistance:controls.maxDistance});
           if (pose) moveCamera(pose.position,pose.target,560);
         }
     };
@@ -811,7 +819,7 @@ export function TerrainViewer({
     };
     const updateCursor = (): void => {
       hoverFrame = 0;
-      if (measureModeRef.current) { renderer.domElement.style.cursor = 'crosshair'; return; }
+      if (measureModeRef.current || pointPickRef.current.active) { renderer.domElement.style.cursor = 'crosshair'; return; }
       if (pointerStart) { renderer.domElement.style.cursor = 'grabbing'; return; }
       if (hoverPosition) setRay(hoverPosition);
       renderer.domElement.style.cursor = hoverPosition && (pickOverlay() || pickMappedArea() || pickContextArea()) ? 'pointer' : 'grab';
@@ -845,6 +853,18 @@ export function TerrainViewer({
       if (dragged || flyoverActive) return;
       setRay(event);
 
+      if (pointPickRef.current.active) {
+        const hit = raycaster.intersectObjects(terrainMeshes, false)[0];
+        const entry = hit ? meshEntries.get(hit.object) : undefined;
+        if (!hit || !entry?.model.metadata) return;
+        const sample = sampleModel(entry.model, entry.root.worldToLocal(hit.point.clone()));
+        if (!sample) return;
+        const geographic = projectedToWgs84(entry.model.metadata, sample.projected);
+        if (geographic.latitude === undefined || geographic.longitude === undefined) return;
+        const road = pickOverlay();
+        pointPickRef.current.onPick?.(geographic.latitude, geographic.longitude, road?.type === 'road' ? road.id : undefined);
+        return;
+      }
       const contextId=!measureModeRef.current&&pickContextArea();
       if(contextId){contextRef.current.onSelect?.(contextId);return;}
       // Check scenario overlays first
@@ -1002,7 +1022,7 @@ export function TerrainViewer({
   useEffect(() => { if (terrainOverlays) overlaysRef.current?.setOptions(terrainOverlays); }, [terrainOverlays]);
   useEffect(() => { runtimeRef.current?.updateSurface(); if (!flyoverRef.current?.active && !flyoverRef.current?.exporting) void analysisRef.current?.set(analysisImagery?.rasters ?? [], analysisImagery?.opacity ?? 1); }, [analysisImagery]);
   useEffect(() => { flyoverRef.current?.setInput(flyover ?? null); }, [flyover]);
-  useEffect(() => { runtimeRef.current?.updateScenario(); }, [scenarioProps?.aoi, scenarioProps?.layers, scenarioProps?.appearance, scenarioProps?.communities, scenarioProps?.responseSites, scenarioProps?.hazards, scenarioProps?.roads, scenarioProps?.contextRoads, scenarioProps?.selectedRoute, scenarioProps?.selectedCommunityId, scenarioProps?.selectedObjectId, locale, gisRecords, gisSelectedId, measureMode, fillOpacity, contextGeometry, selectedContextAreaId, routeEndpoints]);
+  useEffect(() => { runtimeRef.current?.updateScenario(); }, [scenarioProps?.aoi, scenarioProps?.layers, scenarioProps?.appearance, scenarioProps?.communities, scenarioProps?.responseSites, scenarioProps?.hazards, scenarioProps?.roads, scenarioProps?.contextRoads, scenarioProps?.selectedRoute, scenarioProps?.selectedCommunityId, scenarioProps?.selectedObjectId, locale, gisRecords, gisSelectedId, measureMode, fillOpacity, drawingOrder, contextGeometry, selectedContextAreaId, routeEndpoints]);
   useLayoutEffect(() => { runtimeRef.current?.setMode(mapMode); }, [mapMode]);
   useEffect(() => { runtimeRef.current?.updateSurface(); }, [theme, surfaceLayers]);
   useEffect(() => { runtimeRef.current?.invalidate(); }, [focusPoint, profile, measureMode, profileMetadata]);

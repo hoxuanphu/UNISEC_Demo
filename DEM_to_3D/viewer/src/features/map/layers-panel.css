@@ -38,3 +38,12 @@
 @media(max-width:900px) {
   .map-area .layers-panel { width:320px; max-width:calc(100% - 24px); max-height:min(680px,calc(100% - 108px)); }
 }
+
+.layer-order > p { margin:0 0 8px; color:var(--ws-muted); font-size:12px; line-height:1.4; }
+.layer-order ol { list-style:none; margin:0 0 8px; padding:0; }
+.layer-order li { display:flex; align-items:center; gap:8px; min-height:38px; font-size:13px; }
+.layer-order li > span { flex:1; min-width:0; }
+.layer-order li > div { display:flex; flex:none; gap:2px; }
+.layers-panel .layer-order .icon-button { width:30px; height:30px; min-height:30px; padding:6px; background:transparent; border-color:transparent; }
+.layers-panel .layer-order .icon-button:disabled { opacity:.3; }
+.layer-order .icon-button:hover:not(:disabled) { background:var(--hover); }

@@ -27,6 +27,19 @@ const road = (
 const a = { origin: roadProjected(21.77797, 104.03868), source: "map" },
   b = { origin: roadProjected(21.75074, 104.05062), source: "map" };
 describe("journey matching and business rules", () => {
+  it('retains a deliberately picked road beside a closer disconnected line, and rechecks its closure', () => {
+    const main=road('main',[p(0),p(100)]);
+    const local=road('local',[p(0,2),p(100,2)]);
+    const start={...selection(10),roadIds:['local']};
+    const end={...selection(90,2),roadIds:['local']};
+    const result=analyseRoadJourney([main,local],start,end,true,100);
+    expect(result.route!.lengthKm).toBeCloseTo(.08);
+    expect(result.start!.anchor!.roadId).toBe('local');
+    expect(result.start!.origin).toEqual(p(10));
+    const closed=analyseRoadJourney([main,{...local,status:'blocked'}],start,end,true,100);
+    expect(closed.route).toBeNull();
+    expect(closed.start!.problem).toBe('blocked');
+  });
   it('rescue on foot takes a longer local trail to avoid mapped risk without the everyday detour cap', () => {
     const roads = [{...road('short-risk', [p(0),p(100)]), hz:'landslide-risk'},
       road('local-trail', [p(0),p(0,100),p(100,100),p(100)])];

@@ -1,3 +1,6 @@
+import { useMapLayerOrder } from './useMapLayerOrder';
+import { drawingLayerRank } from './mapLayerOrder';
+import { routeStopSvg } from '../routes/routeStopSymbol';
 import { ContextAreas2D } from './ContextAreas2D';
 import {addInternetDetail} from './internetDetail';
 import { ResidentRouteGuidance } from './ResidentRouteGuidance';
@@ -47,7 +50,6 @@ type Props = MapDisplayProps & {
   userLocationRequest?: number;
   journeyFitRequest?: number;
   journeyEndpoints?: Array<{latitude:number;longitude:number;label:string;name?:string;source?:string;place?:boolean;road?:{latitude:number;longitude:number}}>;
-  pointPickActive?: boolean; onPointPick?: (latitude:number,longitude:number)=>void;
   onMapContextMenu?: (request: MapContextRequest) => void;
   gisEnabled?: boolean; gisRecords?: GeometryRecord[]; gisSelectedId?:string|null; gisRequest?:{version:number;id:string|null}; onGisSelect?:(id:string)=>void; gisGroupIds?:string[]; onGisGroup?:(ids:string[])=>void;
   terrain: TerrainData | null; imageUrl?: string; viewportRef: React.MutableRefObject<{ center: [number, number]; zoom: number } | null>;
@@ -62,6 +64,7 @@ type Props = MapDisplayProps & {
 };
 
 export function Map2D(props: Props): JSX.Element {
+  const { order: drawingOrder } = useMapLayerOrder();
   const interacting = (props.measurementOpen && (!props.measureSession.finished || props.measureSession.editing)) || Boolean(props.drawOpen);
   const geometry = useMemo(() => measurementGeometry(props.scenarioProps, props.locale ?? 'vi'), [props.scenarioProps, props.locale]);
   const [mapReady, setMapReady] = useState(false);
@@ -77,6 +80,14 @@ export function Map2D(props: Props): JSX.Element {
   const focusLayer = useRef<L.CircleMarker | null>(null);
   const profileFollowing=useRef(true);
   const [imageryState,setImageryState]=useState<ImageryLoadState>('off');
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    for (const name of Object.keys(mapLayerOrder) as MapPane[]) {
+      if (name === 'imagery') continue; // The basemap owns its terrain/imagery transition.
+      const pane = mapRef.current.getPane(mapPane(name));
+      if (pane) pane.style.zIndex = String(200 + drawingLayerRank(name, drawingOrder) * 30);
+    }
+  }, [mapReady, drawingOrder]);
   const analysisRef = useRef<ReturnType<typeof createAnalysisOverlay2d> | null>(null);
   useEffect(() => {
     const map = mapRef.current;
@@ -406,7 +417,8 @@ export function Map2D(props: Props): JSX.Element {
     const host=map.getContainer();
     const pick=(event:MouseEvent)=>{
       if (event.target instanceof Element && event.target.closest('.leaflet-control,.map-overview,.leaflet-popup,.map-object-chooser,.field-map-card,.analysis-load-status')) return;
-      event.stopImmediatePropagation(); event.preventDefault(); const p=map.mouseEventToLatLng(event); propsRef.current.onPointPick?.(p.lat,p.lng); };
+      event.stopImmediatePropagation(); event.preventDefault(); const p=map.mouseEventToLatLng(event); const roadId = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-road-id]')?.dataset.roadId : undefined;
+      propsRef.current.onPointPick?.(p.lat,p.lng,roadId); };
     host.addEventListener('click',pick,true);
     return ()=>host.removeEventListener('click',pick,true);
   },[mapReady,props.pointPickActive]);
@@ -429,7 +441,7 @@ export function Map2D(props: Props): JSX.Element {
         L.circleMarker([p.road.latitude,p.road.longitude],{pane:mapPane('selection'),radius:4,color:'#246b9a',weight:2,fillColor:'#fff',fillOpacity:1,interactive:false}).addTo(group);
       }
       if (separatePins) continue;
-      const pin=document.createElement('span');pin.innerHTML=teardropPinSvg();const letter=document.createElement('b');letter.textContent=p.label;pin.append(letter);
+      const pin=document.createElement('span');pin.innerHTML=teardropPinSvg();const letter=document.createElement('b');letter.innerHTML=routeStopSvg(p.label==='A');pin.append(letter);
       L.marker([p.latitude,p.longitude],{pane:mapPane('selection'),interactive:false,keyboard:false,icon:L.divIcon({html:pin,className:'journey-map-pin is-'+p.label.toLowerCase(),iconSize:[PIN.width,PIN.height],iconAnchor:[PIN.tipX,PIN.tipY+(p.place?PLACE_SYMBOL_CLEARANCE:0)]}),zIndexOffset:1000}).addTo(group);
     }
     return ()=>{removeResidentPins?.();group.remove();};

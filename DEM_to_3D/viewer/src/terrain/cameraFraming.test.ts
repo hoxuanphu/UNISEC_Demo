@@ -16,3 +16,14 @@ it('fits the route beside a dock at the same orbit angle and leaves empty data a
   }
   expect(frameCameraPoints(camera,target,[],view)).toBeNull();
 });
+
+it('keeps the route above the directions sheet on a narrow 3D view', () => {
+  const camera=new THREE.PerspectiveCamera(45,390/800,.1,100000);
+  const target=new THREE.Vector3();camera.position.set(400,600,500);camera.lookAt(target);camera.updateMatrixWorld();
+  const points=[new THREE.Vector3(-200,0,0),new THREE.Vector3(200,140,200),new THREE.Vector3(100,50,-200)];
+  const pose=frameCameraPoints(camera,target,points,{width:390,height:800,right:0,bottom:380,minDistance:50,maxDistance:100000})!;
+  camera.position.copy(pose.position);camera.lookAt(pose.target);camera.updateMatrixWorld();
+  for(const point of points){const p=point.clone().project(camera),x=(p.x+1)*195,y=(1-p.y)*400;
+    expect(x).toBeGreaterThan(24);expect(x).toBeLessThan(366);expect(y).toBeGreaterThan(24);expect(y).toBeLessThan(396);
+  }
+});

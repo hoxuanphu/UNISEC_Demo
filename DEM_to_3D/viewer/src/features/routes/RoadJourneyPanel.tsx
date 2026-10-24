@@ -8,7 +8,7 @@ import type {
   RoadSegment,
 } from "../../types/dear";
 import type { useRoadJourney } from "./useRoadJourney";
-import { roadProjected } from "./selectedRoadJourney";
+import { roadGeographic, roadProjected, type JourneyPreference } from "./selectedRoadJourney";
 import type { JourneyPlace } from "./journeyPlaces";
 import { UiIcon } from "../../shared/ui/UiIcon";
 import { roadConditionLabel, roadConditionMessage } from './localRoadLabels';
@@ -96,7 +96,7 @@ export function RoadJourneyPanel({
       {place.label}{place.representative ? ` (${m.representativePoint})` : ''}
     </option>)}
   </optgroup>;
-  /** Only what the select cannot show: map coordinates and any off-road leg. */
+  /** Keep picking instructions and connection errors beside their endpoint. */
   const meta = (side: "start" | "end") => {
     if (picking === side)
       return side === "start" ? m.clickMapStart : m.clickMapEnd;
@@ -115,6 +115,7 @@ export function RoadJourneyPanel({
       (journey.end?.anchor?.distance ?? 0);
   const status = route?.status ?? "open";
   const local = [journey.start,journey.end].every(point => point?.source.startsWith('local:'));
+  const shortest = journey.preference === 'distance';
   const rescue = journey.preference === 'rescue-foot';
 
   return (
@@ -157,15 +158,16 @@ export function RoadJourneyPanel({
       <div className="road-journey-content" hidden={collapsed}>
         <label className="journey-purpose">
           <span>{t('Cách đi', 'Travel plan')}</span>
-          <select aria-label={t('Cách đi', 'Travel plan')} value={rescue ? 'rescue-foot' : 'conditions'} onChange={event => journey.setPreference(event.target.value as 'conditions' | 'rescue-foot')}>
-            <option value="conditions">{t('Đi lại trong vùng', 'Local travel')}</option>
+          <select aria-label={t('Cách đi', 'Travel plan')} value={journey.preference} onChange={event => journey.setPreference(event.target.value as JourneyPreference)}>
+            <option value="distance">{t('Đường ngắn nhất', 'Shortest route')}</option>
+            <option value="conditions">{t('Ưu tiên điều kiện đường', 'Prefer better road conditions')}</option>
             <option value="rescue-foot">{t('Cứu hộ đi bộ', 'Rescue on foot')}</option>
           </select>
         </label>
         <div className="journey-stops">
           {sides.map((side) => {
             const endpoint = journey[side],
-              letter = side === "start" ? "A" : "B",
+              pointLabel = side === "start" ? m.presetStart : m.presetEnd,
               active = picking === side;
             const road =
               endpoint?.anchor &&
@@ -176,14 +178,13 @@ export function RoadJourneyPanel({
                 className="journey-stop"
                 data-active={active || undefined}
               >
-                <span
-                  className={"journey-pin is-" + letter.toLowerCase()}
-                  aria-hidden="true"
-                >
-                  {letter}
+                <span className={"journey-stop-symbol is-" + side} aria-hidden="true">
+                  {side === 'start' ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg> : <UiIcon name="location" size={22}/>}
                 </span>
                 <div className="journey-stop-field">
+                  <label htmlFor={`journey-${side}`}>{side === "start" ? m.presetStart : m.presetEnd}</label>
                   <select
+                    id={`journey-${side}`}
                     aria-label={side === "start" ? m.presetStart : m.presetEnd}
                     value={endpoint?.source ?? ""}
                     onChange={(event) => choose(side, event.target.value)}
@@ -192,7 +193,7 @@ export function RoadJourneyPanel({
                       {side === "start" ? m.chooseStart : m.chooseEnd}
                     </option>
                     {endpoint?.source === "map" && (
-                      <option value="map">{m.pickedOnMap}</option>
+                      <option value="map">{endpoint.label ?? (() => { const p = roadGeographic(endpoint.origin); return `${p.latitude.toFixed(5)}, ${p.longitude.toFixed(5)}`; })()}</option>
                     )}
                     <option value="pick">{m.chooseOnMapEllipsis}</option>
                     {localGroups.map(placeGroup)}
@@ -234,8 +235,8 @@ export function RoadJourneyPanel({
                   type="button"
                   className="icon-button journey-pick"
                   aria-pressed={active}
-                  aria-label={`${m.chooseOnMap} (${letter})`}
-                  title={`${m.chooseOnMap} (${letter})`}
+                  aria-label={`${m.chooseOnMap}: ${pointLabel}`}
+                  title={`${m.chooseOnMap}: ${pointLabel}`}
                   onClick={() => journey.setPicking(active ? null : side)}
                 >
                   <UiIcon name="location" />
@@ -267,15 +268,14 @@ export function RoadJourneyPanel({
         {route ? (
           <section className="journey-result" aria-live="polite">
             <div className="journey-result-heading">
-              <strong>{status === 'blocked' ? t('Tuyến có đoạn bị chặn', 'Route has a blocked section') : journey.advised ? rescue ? t('Phương án tiếp cận', 'Approach plan') : t('Đường nên đi', 'Suggested route') : t('Đường bạn chọn', 'Your chosen route')}</strong>
+              <strong>{status === 'blocked' ? t('Tuyến có đoạn bị chặn', 'Route has a blocked section') : journey.advised ? rescue ? t('Phương án tiếp cận', 'Approach plan') : shortest ? t('Đường ngắn nhất', 'Shortest route') : t('Đường nên đi', 'Suggested route') : t('Đường bạn chọn', 'Your chosen route')}</strong>
               <strong className="journey-route-distance">{length(route.lengthKm * 1000)}</strong>
             </div>
             <p className={`journey-condition is-${status}`}>{roadConditionMessage(route,locale,local)}</p>
             {rescue && <p className="journey-note">{t('Có thể dùng đường mòn. Cần xác nhận lối đi với người địa phương.', 'May use local trails. Confirm access with local people.')}</p>}
-            {access > 1 && <p className="journey-note">{t('Đoạn nét đứt chưa có thông tin lối đi.', 'Dotted connections have no mapped access path.')}</p>}
-            {access > 1 && <details className="journey-access">
-              <summary>{t('Đoạn nối vào đường', 'Connections to the road')}</summary>
-              <p>{m.accessNote}</p>
+            {!rescue && <p className="journey-note">{shortest ? t('Tính theo chiều dài đường đã có trong dữ liệu.', 'Based on the length of mapped roads.') : t('Ưu tiên đường ít ảnh hưởng nếu dài hơn không quá 25%.', 'Prefers less affected roads within a 25% distance detour.')}</p>}
+            {access > 1 && <div className="journey-access">
+              <p>{t('Đoạn nối nét đứt, chưa xác nhận lối đi:', 'Dotted connections, access not verified:')}</p>
               <dl className="journey-figures">{sides.map((side) => {
                 const distance = journey[side]?.anchor?.distance ?? 0;
                 return distance > 1 ? (
@@ -285,7 +285,7 @@ export function RoadJourneyPanel({
                   </div>
                 ) : null;
               })}</dl>
-            </details>}
+            </div>}
             {!!journey.alternatives.length && <details className="journey-alternatives">
               <summary>{t('Đường khác', 'Other routes')}</summary>
               {journey.alternatives.map(alternative => <button type="button" className="journey-alternative" key={alternative.id}

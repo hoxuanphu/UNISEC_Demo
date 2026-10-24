@@ -16,7 +16,7 @@
   background: var(--ws-surface);
   box-shadow: var(--shadow-float);
 }
-.journey-purpose { display:flex; align-items:center; gap:12px; margin-bottom:14px; color:var(--ws-muted); font-size:13px; }
+.journey-purpose { display:flex; align-items:center; gap:12px; margin-bottom:0; color:var(--ws-muted); font-size:13px; }
 .journey-purpose select { flex:1; min-width:0; min-height:40px; padding:6px 30px 6px 10px; color:var(--ws-text); background:var(--ws-card); border:1px solid var(--ws-line); border-radius:var(--radius-control); font:inherit; }
 .road-journey-panel > header {
   display: flex;
@@ -53,32 +53,15 @@
   min-height: 0;
 }
 
-/* A/B stops with map picking and a swap control spanning both rows. */
-.journey-stops {
-  display: grid;
-  grid-template-columns: 1fr 32px;
-  column-gap: 6px;
-  align-items: center;
-}
-.journey-stop {
-  grid-column: 1;
-  position: relative;
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) 34px;
-  align-items: start;
-  gap: 8px;
-  padding: 4px 0;
-}
-.journey-stop:first-child::after {
-  /* Dotted leg between the A and B pins. */
-  content: "";
-  position: absolute;
-  left: 11px;
-  top: 33px;
-  height: calc(100% - 24px);
-  border-left: 2px dotted var(--ws-muted);
-  opacity: 0.6;
-}
+/* Named endpoints, with an origin dot and destination pin. */
+.journey-stops { display:grid; grid-template-columns:minmax(0,1fr) 30px; gap:6px; align-items:center; }
+.journey-stop { grid-column:1; position:relative; display:grid; grid-template-columns:22px minmax(0,1fr) 34px; align-items:start; gap:8px; padding:4px 0; }
+.journey-stop-symbol { display:grid; place-items:center; height:38px; margin-top:19px; color:var(--journey-a); }
+.journey-stop-symbol svg { width:22px; height:22px; }
+.journey-stop-symbol.is-end { color:var(--journey-b); }
+.journey-stop:first-child::after { content:""; position:absolute; left:10px; top:50px; height:calc(100% - 24px); border-left:1.5px dotted var(--ws-muted); opacity:.6; }
+.journey-stop-field > label { color:var(--ws-muted); font-size:12px; line-height:18px; margin-bottom:3px; }
+.journey-stop .journey-pick { margin-top:21px; }
 .journey-swap {
   grid-column: 2;
   grid-row: 1 / span 2;
@@ -362,3 +345,9 @@
   .journey-pick { width:40px; }
   .workspace-shell .map-area:has(:is(.road-journey-panel,.local-road-card)) :is(.map-attribution,.map-overview,.map-bottom-bar) { visibility:hidden; }
 }
+
+.journey-access .journey-figures { margin:0; }
+.journey-access p { margin-bottom:6px; }
+
+.journey-map-pin b > svg { display:block; margin:auto; }
+.workspace .resident-route-pins .resident-route-endpoint b { display:grid; place-items:center; }

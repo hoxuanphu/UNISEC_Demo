@@ -17,7 +17,7 @@ export function ContextAreas2D({map,geometry,selectedId,onSelect,interactive,min
       const water=area.kind==='water',selected=area.id===selectedId;
       const style=landslideAreaStyle({state:'occurred',review:'unreviewed'},selected,fillOpacity,compact);
       const polygon=L.polygon(area.coordinates.map(([lon,lat])=>L.latLng(lat,lon)),{
-        pane:mapPane('boundary'),color:water?'#6497a2':style.color,weight:water ? 0 : style.weight,
+        pane:mapPane(water ? 'boundary' : 'landslides'),color:water?'#6497a2':style.color,weight:water ? 0 : style.weight,
         fillOpacity:water ? .2 : style.fillOpacity,interactive:interactive&&!water,
         className:water?'map-context-water':'map-context-landslide'
       }).addTo(alwaysVisibleIds?.includes(area.id)?pinned:group);

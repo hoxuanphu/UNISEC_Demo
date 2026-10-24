@@ -155,6 +155,7 @@ def run(archive, chrome=None, captures=None, video=None):
     from check_citizen_navigation import run as resident_navigation
     from check_citizen_photos import run as resident_photos
     from check_main_local_roads import run as main_local_roads
+    from check_map_layer_order import run as map_layer_order
     from check_cartographic_evidence import run as evidence
     from check_flyover import run as film
     from check_local_route_film import run as local_film
@@ -236,6 +237,7 @@ def run(archive, chrome=None, captures=None, video=None):
                              ('resident route advice and warnings', lambda: resident_navigation(base, chrome, captures)),
                              ('resident capture metadata and approved photos', lambda: resident_photos(base, chrome, captures)),
                              ('main map local roads and directions', lambda: main_local_roads(base, chrome, captures)),
+                             ('map drawing order and named 3D directions', lambda: map_layer_order(base, chrome, captures)),
                              ('Planet/field photos and failure recovery', lambda: evidence(base, chrome, captures)),
                              ('MP4 encoding and decoded frames', lambda: film(base, chrome, video, lang='en'))]
                     for name, check in steps:

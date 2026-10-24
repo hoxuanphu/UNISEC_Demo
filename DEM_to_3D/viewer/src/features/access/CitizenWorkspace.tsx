@@ -813,9 +813,9 @@ export function CitizenWorkspace({
                 } else {setMapSelection(null);setOwnSelected(id);setTab("mine");setMapOnMobile(false);}
               }}
               pointPickActive={picking || (journey.open && !!journey.picking)}
-              onPointPick={(latitude, longitude) => {
+              onPointPick={(latitude, longitude, roadId) => {
                 if (journey.picking) {
-                  journey.pick(latitude, longitude);
+                  journey.pick(latitude, longitude, roadId);
                   setMapOnMobile(false);
                 } else position(latitude, longitude, "map");
               }}

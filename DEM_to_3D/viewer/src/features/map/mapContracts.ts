@@ -57,7 +57,7 @@ export type ViewControls = {
   zoomIn: () => void;
   zoomOut: () => void;
   resetView: () => void;
-  frameProjected?: (points: Array<{x:number;y:number}>, inset?: {right?:number}) => void;
+  frameProjected?: (points: Array<{x:number;y:number}>, inset?: {right?:number;bottom?:number}) => void;
   retryBasemap: () => void;
   setOrbit?: (enabled: boolean) => void;
   /** Centre a point in the part of the map not covered by floating panels (`inset` in px). */
@@ -68,6 +68,9 @@ export type ViewControls = {
 
 export type MapDisplayProps = {
   locale?: Locale;
+  /** Choosing route endpoints takes priority over feature inspection. */
+  pointPickActive?: boolean;
+  onPointPick?: (latitude: number, longitude: number, roadId?: string) => void;
   contextGeometry?: MapContextGeometry;
   contextAlwaysVisibleAreaIds?: string[];
   roadAreaLinks?: LocalRoadAreaLink[];
