@@ -1,5 +1,6 @@
 # Checksum-verified text assets must have the same bytes on Windows and Linux.
 *.terrain.json text eol=lf
+DEM_to_3D/viewer/src/data/incident-v1.schema.json text eol=lf
 DEM_to_3D/viewer/public/scenarios/**/*.json text eol=lf
 DEM_to_3D/viewer/public/scenarios/**/*.kml text eol=lf
 DEM_to_3D/viewer/public/scenarios/**/*.geojson text eol=lf
