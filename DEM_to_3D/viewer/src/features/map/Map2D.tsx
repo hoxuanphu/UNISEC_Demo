@@ -1,3 +1,4 @@
+import { RouteSimulationLayer } from './RouteSimulationLayer';
 import { useMapLayerOrder } from './useMapLayerOrder';
 import { drawingLayerRank } from './mapLayerOrder';
 import { routeStopSvg } from '../routes/routeStopSymbol';
@@ -477,6 +478,7 @@ export function Map2D(props: Props): JSX.Element {
     <BasemapToneFilters host={hostRef} active={!!props.analysisImagery?.balanceBasemap && props.scenarioProps?.layers.imagery!==false && !imagerySource.custom} prepared={props.terrain?.metadata.asset_id===preparedToneAssetId}/>
     <ImageryStatus state={imageryState} locale={props.locale ?? 'vi'} onRetry={()=>analysisRef.current?.set(props.analysisImagery?.rasters ?? [],props.analysisImagery?.opacity ?? 1)}/>
     {mapReady && <ContextAreas2D map={mapRef.current} geometry={props.contextGeometry} selectedId={props.selectedContextAreaId} onSelect={props.onSelectContextArea} minZoom={props.contextMinZoom} alwaysVisibleIds={props.contextAlwaysVisibleAreaIds} compact={props.routeGuidance} interactive={!props.pointPickActive && !props.measurementOpen && !props.locationOpen && !props.drawOpen}/>}
+    {mapReady && <RouteSimulationLayer map={mapRef.current} simulation={props.routeSimulation ?? null} locale={props.locale ?? 'vi'}/>}
     {mapReady && <DeviceLocationLayer mapRef={mapRef} location={props.userLocation ?? null} request={props.userLocationRequest ?? 0} locale={props.locale ?? 'vi'}/>}
     {mapReady && !props.pointPickActive && !props.measurementOpen && !props.drawOpen && !props.locationOpen && <ResidentRouteExtras mapRef={mapRef} metadata={props.terrain?.metadata} alternatives={props.alternativeRoutes ?? []}
       alerts={props.routeGuidance ? props.roadAlerts ?? [] : props.scenarioProps?.layers.status && props.scenarioProps.layers.roads

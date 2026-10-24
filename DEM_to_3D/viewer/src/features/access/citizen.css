@@ -926,7 +926,6 @@
 .citizen-road-checks li small { display: block; color: var(--warning-ink); font-size: 12px; }
 .citizen-workspace :is(button, summary):focus-visible { outline: 2px solid var(--ws-brand); outline-offset: 3px; }
 @media (hover: hover) { .citizen-route-overview:hover, .citizen-header .icon-button:hover { background: var(--hover); } }
-.resident-route-arrow { pointer-events: none; background: transparent; }
 .resident-route-pins { position: absolute; inset: 0; z-index: 4; overflow: hidden; pointer-events: none; }
 .resident-route-pins > :is(button, span) { position: absolute; top: 0; left: 0; }
 .citizen-workspace .resident-route-pins .resident-route-endpoint { width: 26px; height: 26px; min-height: 26px; padding: 0; border: 2px solid white; border-radius: 50%; background: #246b9a; color: white; font: 600 13px/22px var(--font-map); pointer-events: auto; }
@@ -934,7 +933,6 @@
 .citizen-workspace .resident-route-pins .resident-route-endpoint b { position: static; color: inherit; font: inherit; }
 .resident-stop-name { color: white; white-space: nowrap; font: 500 13px/22px var(--font-map); text-shadow: 0 1px 3px #142a26, 0 0 3px #142a26; }
 .resident-stop-name[hidden] { display: none; }
-.resident-route-arrow svg { display: block; width: 14px; height: 14px; }
 .resident-route-endpoint { display: grid; place-items: center; border: 2px solid white; border-radius: 50%; color: white; background: #246b9a; box-shadow: 0 1px 5px #152f4599; font-size: 13px; }
 .citizen-workspace .citizen-pick-hint { z-index: 670; top: 12px; right: 66px; left: 12px; border-radius: 12px; }
 @media (max-height: 600px) { .citizen-map-summary { padding: 8px 12px; gap: 6px; } .citizen-map-summary .citizen-map-actions { display: none; } }
@@ -976,3 +974,15 @@
 
 /* On a phone the place card spans the map width, like the summary sheet it replaces. */
 @media (max-width: 760px) { .citizen-workspace .citizen-place { left: 12px; right: 12px; width: auto; } }
+
+.citizen-movement-control { position:absolute; z-index:25; top:12px; left:12px; width:min(300px,calc(100% - 80px)); border:1px solid var(--ws-line); border-radius:8px; background:var(--ws-surface); color:var(--ws-text); box-shadow:var(--shadow-float); }
+.citizen-movement-control > summary { display:flex; align-items:center; gap:8px; padding:3px 6px 3px 10px; min-height:40px; list-style:none; cursor:pointer; }
+.citizen-movement-control > summary::-webkit-details-marker { display:none; }
+.citizen-movement-control > summary::after { content:''; width:6px; height:6px; border-right:1.5px solid var(--ws-muted); border-bottom:1.5px solid var(--ws-muted); transform:rotate(45deg); margin:0 7px 3px 3px; }
+.citizen-movement-control[open] > summary::after { transform:rotate(225deg); margin-bottom:-3px; }
+.citizen-movement-control > summary > span { flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:13px; }
+.citizen-movement-control > summary > .icon-button { flex:none; width:36px; min-height:36px; height:36px; padding:8px; border:0; background:transparent; }
+.citizen-movement-control[open] > summary > .icon-button { display:none; }
+.citizen-movement-control > .route-simulation-control { margin:0 10px 10px; }
+.citizen-movement-control .route-simulation-heading { display:none; }
+.citizen-map:has(.citizen-map-layers[open]) .citizen-movement-control { visibility:hidden; }

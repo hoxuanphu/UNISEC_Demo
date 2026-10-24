@@ -1,0 +1,21 @@
+.route-simulation-control { display:grid; gap:8px; min-width:0; border-top:1px solid var(--ws-line); padding-top:10px; color:var(--ws-text); }
+.route-simulation-heading { display:flex; gap:10px; align-items:baseline; justify-content:space-between; font-size:13px; }
+.route-simulation-heading > span { color:var(--ws-muted); font-size:12px; }
+.route-simulation-actions { display:flex; gap:6px; align-items:center; }
+.route-simulation-control .route-simulation-actions .button { flex:1; display:flex; gap:6px; justify-content:center; align-items:center; min-height:36px; padding:6px 8px; font-size:13px; }
+.route-simulation-control .route-simulation-actions .icon-button { flex:none; width:34px; height:36px; min-height:36px; border-radius:var(--radius-control); background:transparent; }
+.route-simulation-actions select { flex:none; width:60px; min-height:36px; font:inherit; font-size:12px; padding:4px 20px 4px 6px; }
+.route-simulation-progress { display:grid; gap:3px; font-size:12px; color:var(--ws-muted); }
+.route-simulation-progress > span { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:3px 10px; }
+.route-simulation-progress output { color:var(--ws-text); font-variant-numeric:tabular-nums; }
+.route-simulation-progress input { width:100%; min-width:0; margin:0; accent-color:#2f80ed; }
+.route-simulation-control > p { margin:0; font-size:11px; line-height:1.4; color:var(--ws-muted); }
+.simulated-resident { display:block; pointer-events:none; }
+.simulated-resident-body { position:relative; display:grid; place-items:center; width:30px; height:30px; color:white; background:#2478d4; border:2px solid white; border-radius:50%; box-shadow:0 0 0 5px #2f80ed26,0 2px 5px #0005; }
+.simulated-resident-body > svg { width:19px; height:19px; }
+.simulated-resident-name { position:absolute; left:39px; top:5px; width:max-content; max-width:160px; padding:3px 6px; border-radius:3px; color:var(--ws-text); background:var(--ws-surface); box-shadow:0 1px 4px #0003; font:500 12px/1.4 var(--font-map,Roboto,sans-serif); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.simulated-resident-name[hidden] { display:none; }
+.terrain-simulated-resident { position:absolute; inset:0; pointer-events:none; z-index:12; }
+.terrain-simulated-resident > .simulated-resident { position:absolute; top:0; left:0; }
+.simulated-resident[hidden] { display:none; }
+.citizen-workspace .route-simulation-control .route-simulation-actions :is(.button,.icon-button,select) { min-height:40px; }

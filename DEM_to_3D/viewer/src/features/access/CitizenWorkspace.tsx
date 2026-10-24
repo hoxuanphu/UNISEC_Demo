@@ -1,3 +1,5 @@
+import { CitizenMovementControl } from './CitizenMovementControl';
+import { useRouteSimulation } from '../routes/useRouteSimulation';
 import { useLocalNetwork } from '../route-film/networkContext';
 import { northernComparisonRoute } from '../route-film/localRoadConditions';
 import { HeaderAccount } from '../../components/dear/HeaderAccount';
@@ -169,6 +171,7 @@ export function CitizenWorkspace({
   const advice = recommendRoute(snapshot.routes.get(community)),
     route = advice.best;
   const displayedRoute = tab !== 'roads' ? null : roadMode === 'village' ? route : journey.route;
+  const routeSimulation=useRouteSimulation(displayedRoute, tab === 'roads' && !picking && !journey.picking, identity.name);
   const displayedRoads = roadMode === 'local' ? local.network?.roads ?? [] : snapshot.roads;
   // Other ways between the chosen points, and a closure sign on every blocked road shown.
   const alternativeRoutes = useMemo(() => tab === 'roads' && roadMode !== 'village' ? journey.alternatives : [], [tab, roadMode, journey.alternatives]);
@@ -774,9 +777,9 @@ export function CitizenWorkspace({
           </div>
         </aside>
         <section className="map-area citizen-map" aria-label={m.communityMap}>
-          <div className="citizen-map-context"><UiIcon name="map" size={16}/><span>{picking || journey.picking ? t('Chọn vị trí', 'Choose a location') : roadMode === 'local' ? t('Đường trong xã', 'Local roads') : roadMode === 'village' ? t('Đường về bản', 'Village access') : t('Tìm đường', 'Directions')}</span></div>
+          {routeSimulation ? <CitizenMovementControl simulation={routeSimulation} locale={locale}/> : <div className="citizen-map-context"><UiIcon name="map" size={16}/><span>{picking || journey.picking ? t('Chọn vị trí', 'Choose a location') : roadMode === 'local' ? t('Đường trong xã', 'Local roads') : roadMode === 'village' ? t('Đường về bản', 'Village access') : t('Tìm đường', 'Directions')}</span></div>}
           <div className="map-canvas">
-            <Map2D
+            <Map2D routeSimulation={routeSimulation}
               contextGeometry={localAreas} contextMinZoom={12} selectedContextAreaId={localAreaId ?? inspectedRoad?.landslideAreaId}
               contextAlwaysVisibleAreaIds={linkedAreaIds} roadAreaLinks={roadAreaLinks} showRoadAreaLinks={layerOptions.landslide}
               onSelectContextArea={(id) => { setMapSelection({kind: 'localArea', id: id}); }}

@@ -351,3 +351,10 @@
 
 .journey-map-pin b > svg { display:block; margin:auto; }
 .workspace .resident-route-pins .resident-route-endpoint b { display:grid; place-items:center; }
+
+.map-area[data-profile="true"] .road-journey-panel {
+  bottom:calc(var(--map-profile-height,320px) + 12px);
+  max-height:calc(100% - var(--map-profile-height,320px) - var(--map-toolbar-height,48px) - 24px);
+}
+
+@media(min-width:761px) { .map-area[data-profile="true"] .road-journey-panel { bottom:auto; } }

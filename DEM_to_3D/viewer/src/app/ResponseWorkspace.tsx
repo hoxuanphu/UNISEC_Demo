@@ -1,4 +1,5 @@
 import { useLocalNetwork } from '../features/route-film/networkContext';
+import { useRouteSimulation } from '../features/routes/useRouteSimulation';
 import { LocalAreaCard } from '../features/route-film/LocalAreaCard';
 import { LocalRoadCard } from '../features/route-film/LocalRoadCard';
 import { supportsBasemapTone } from '../features/imagery/basemapTone';
@@ -501,6 +502,7 @@ export function ResponseWorkspace({
     [models, defaultTerrainData,contextTerrain]
   );
   const journey = useRoadJourney(journeyRoads, undefined, 'conditions');
+  const routeSimulation = useRouteSimulation(journey.route, journey.open && !journey.picking && !localArea && !localRoad && !gisCard && !['loading','playing','paused','exporting'].includes(flyoverState.status));
   const journeyTerrainEndpoints = useMemo(() => journey.open ? [journey.start, journey.end].flatMap((endpoint, index) => endpoint ? [{label: index === 0 ? 'A' : 'B', point: endpoint.origin, anchor: endpoint.anchor?.point}] : []) : [], [journey.open, journey.start, journey.end]);
   const framedJourney = useRef<{route: typeof journey.route; start: typeof journey.start; end: typeof journey.end; sequence: number; canvas: Element} | null>(null);
   useEffect(() => {
@@ -1151,7 +1153,7 @@ export function ResponseWorkspace({
           )}
           <div className="map-canvas">
             {mapMode === '2d' ? (
-              <Map2D contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
+              <Map2D routeSimulation={routeSimulation} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
                 analysisImagery={analysisDisplay}
                 gisEnabled={true}
                 gisRecords={displayedGis}
@@ -1239,7 +1241,7 @@ export function ResponseWorkspace({
                 <React.Suspense
                   fallback={terrain3DBusy ? null : terrainLoading(null)}
                 >
-                  <TerrainViewer
+                  <TerrainViewer routeSimulation={routeSimulation}
                     pointPickActive={journey.open && !!journey.picking}
                     onPointPick={journey.pick}
                     routeEndpoints={journeyTerrainEndpoints}
@@ -1300,7 +1302,7 @@ export function ResponseWorkspace({
             )}
           </div>
 
-          {localArea&&<LocalAreaCard area={localArea} photos={fieldPhotos} locale={locale} onClose={()=>setLocalAreaId(null)} linkToJourney/>}
+          {localArea&&<LocalAreaCard key={localArea.id} area={localArea} photos={fieldPhotos} locale={locale} onClose={()=>setLocalAreaId(null)} linkToJourney/>}
           {localRoad&&layers.roads&&layers.localRoads!==false&&<LocalRoadCard road={localRoad} locale={locale} onClose={()=>setLocalRoadId(null)} onDirections={()=>{setLocalRoadId(null);resetTools();journey.setOpen(true);}}/>}
           {mapMode === '3d' && terrain3DBusy
             ? terrainLoading(progress3D)
@@ -1353,6 +1355,7 @@ export function ResponseWorkspace({
               aria-pressed={journey.open}
               onClick={() => {
                 resetTools();
+                setLocalAreaId(null);setLocalRoadId(null);setGisCardId(null);setGisGroupIds([]);
                 journey.setOpen(!journey.open);
               }}
             >
@@ -1465,8 +1468,8 @@ export function ResponseWorkspace({
                 : undefined
             }
           />
-          {journey.open && (
-            <RoadJourneyPanel
+          {journey.open && !localArea && !localRoad && !gisCard && (
+            <RoadJourneyPanel simulation={routeSimulation}
               locale={locale}
               journey={journey}
               communities={communities}

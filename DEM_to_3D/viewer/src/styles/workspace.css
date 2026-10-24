@@ -448,7 +448,8 @@ h3 {
 .map-scale { bottom: 20px; left: 16px; padding: 2px 5px; display: grid; gap: 2px; }
 .map-scale i { display: block; height: 5px; border: 1px solid currentColor; border-top: 0; }
 .map-area[data-profile="true"] .map-scale { display: none; }
-.map-area[data-profile="true"] .map-canvas { bottom: 320px; }
+.map-area[data-profile="true"] { --map-profile-height:320px; }
+.map-area[data-profile="true"] .map-canvas { bottom:var(--map-profile-height); }
 .map-area[data-profile="true"] .map-attribution { bottom: 328px; }
 .basemap-status button { border: 0; padding: 0; background: none; color: var(--select-ink); font-size: inherit; }
 .map-load-state { position: absolute; z-index: 9; top: 50%; left: 50%; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 12px; min-width: 240px; max-width: calc(100% - 32px); padding: 18px 20px; border: 1px solid var(--map-control-line); border-radius: var(--radius-popover); background: var(--glass-solid); box-shadow: var(--shadow-overlay); text-align: center; font-size: 13px; }
@@ -751,7 +752,8 @@ dialog.timeline-dialog::backdrop { background: var(--modal-backdrop); }
  .map-location-panel { top: auto; bottom: 38px; left: 12px; width: calc(100% - 24px); max-width: none; max-height: 48%; }
  .profile-stats { padding: 8px 12px 0; gap: 6px 16px; font-size: 11px; }
  .profile-panel { height: min(320px, 60%); }
- .map-area[data-profile="true"] .map-canvas { bottom: min(320px, 60%); }
+ .map-area[data-profile="true"] { --map-profile-height:min(320px,60%); }
+ .map-area[data-profile="true"] .map-canvas { bottom:var(--map-profile-height); }
  .map-area[data-profile="true"] .map-attribution { bottom: calc(min(320px, 60%) + 8px); }
  .profile-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: 170px auto; overflow-y: auto; gap: 12px; }
  .profile-chart-container { min-height: 170px; height: 170px; }

@@ -7,3 +7,5 @@
 .terrain-route-endpoint.is-b{background:#2b7354}
 
 .flyover-active .terrain-route-endpoints{visibility:hidden}
+
+.flyover-active .terrain-simulated-resident { visibility:hidden; }

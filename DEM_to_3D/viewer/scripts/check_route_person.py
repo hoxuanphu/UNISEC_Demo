@@ -1,0 +1,112 @@
+"""Route person playback, inspector ownership and profile separation, with remote requests blocked."""
+import argparse, re
+from pathlib import Path
+from playwright.sync_api import expect, sync_playwright
+from browser_preferences import use_vietnamese
+
+def run(url,chrome=None,captures=None):
+    if captures:captures.mkdir(parents=True,exist_ok=True)
+    with sync_playwright() as p:
+        browser=p.chromium.launch(headless=True,executable_path=chrome)
+        context=use_vietnamese(browser.new_context(viewport={'width':1440,'height':960}))
+        context.route('**/*',lambda r:r.continue_() if r.request.url.startswith(url+'/') else r.abort())
+        page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+        page.goto(url+'/?offline=1&map=2d&demoRole=manager',wait_until='domcontentloaded')
+        expect(page.locator('.map-road-target').first).to_be_attached(timeout=30000)
+        page.get_by_role('button',name='Tìm đường giữa hai điểm',exact=True).click()
+        panel=page.locator('.road-journey-panel')
+        start=panel.get_by_label('Điểm xuất phát',exact=True);end=panel.get_by_label('Điểm đến',exact=True)
+        start.select_option('local:place-22');end.select_option('local:place-23')
+        control=panel.locator('.route-simulation-control');marker=page.locator('.simulated-resident')
+        expect(control).to_be_visible();expect(marker).to_have_count(1)
+        expect(marker).to_have_attribute('data-status','idle')
+        expect(marker.locator('.simulated-resident-name')).to_have_text('A Phủ')
+        expect(control).not_to_contain_text(re.compile('mô phỏng|simulat|GPS',re.I))
+        expect(page.locator('.resident-route-arrow')).to_have_count(0)
+        control.get_by_role('button',name='Xem di chuyển',exact=True).click()
+        page.wait_for_function("Number(document.querySelector('.simulated-resident').dataset.progress)>.025")
+        control.get_by_role('button',name='Tạm dừng di chuyển',exact=True).click()
+        before=marker.get_attribute('data-progress');location=marker.evaluate('n=>n.parentElement.style.transform')
+        page.wait_for_timeout(350)
+        expect(marker).to_have_attribute('data-progress',before);assert marker.evaluate('n=>n.parentElement.style.transform')==location
+        slider=control.get_by_role('slider',name='Vị trí trên tuyến',exact=True)
+        def seek(value):
+            slider.evaluate("(el,value)=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,String(value));el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}",value)
+        seek(500);expect(marker).to_have_attribute('data-progress','0.50000')
+        assert abs(float(marker.get_attribute('data-distance'))-431.8615)<1
+        control.get_by_label('Tốc độ phát di chuyển',exact=True).select_option('2')
+        control.get_by_role('button',name='Xem di chuyển',exact=True).click()
+        page.wait_for_function("Number(document.querySelector('.simulated-resident').dataset.progress)>.515")
+        control.get_by_role('button',name='Tạm dừng di chuyển',exact=True).click()
+        if captures:page.screenshot(path=str(captures/'person-route-2d.png'))
+        # Profile opens without floating controls covering the graph or its controls.
+        panel.get_by_role('button',name='Mặt cắt địa hình',exact=True).click()
+        profile=page.locator('.profile-panel');expect(profile).to_be_visible()
+        expect(panel.locator('.road-journey-content')).to_be_hidden()
+        def separated():
+            assert panel.evaluate("n=>n.getBoundingClientRect().bottom<=document.querySelector('.profile-panel').getBoundingClientRect().top"),'Directions overlap the profile'
+        separated()
+        panel.get_by_role('button',name='Mở chi tiết tuyến đường',exact=True).click();separated()
+        if captures:page.screenshot(path=str(captures/'directions-profile-open.png'))
+        profile.get_by_role('button',name=re.compile('Đóng')).click()
+        # A 3D mode switch retains the same playback position and changes only the marker adapter.
+        before=marker.get_attribute('data-progress')
+        page.get_by_role('button',name='Chuyển sang 3D',exact=True).click()
+        canvas=page.locator('canvas.terrain-canvas');expect(canvas).to_be_visible(timeout=60000)
+        expect(page.locator('.terrain-loading')).to_have_count(0,timeout=60000)
+        page.wait_for_timeout(500)
+        canvas.evaluate('n=>n.dataset.retained="yes"')
+        expect(marker).to_have_attribute('data-progress',before)
+        control.get_by_role('button',name='Xem di chuyển',exact=True).click()
+        page.wait_for_function("document.querySelector('.simulated-resident').dataset.status==='playing'")
+        page.wait_for_timeout(400)
+        expect(canvas).to_have_attribute('data-retained','yes')
+        control.get_by_role('button',name='Tạm dừng di chuyển',exact=True).click()
+        if captures:page.screenshot(path=str(captures/'person-route-3d.png'))
+        seek(1000)
+        expect(marker).to_have_attribute('data-status','finished')
+        control.get_by_role('button',name='Xem di chuyển',exact=True).click()
+        page.wait_for_function("Number(document.querySelector('.simulated-resident').dataset.progress)<.1")
+        control.get_by_role('button',name='Tạm dừng di chuyển',exact=True).click()
+        control.get_by_role('button',name='Về đầu tuyến',exact=True).click()
+        expect(marker).to_have_attribute('data-progress','0.00000')
+        end.select_option('local:place-25');expect(marker).to_have_attribute('data-status','idle')
+        for width in [390,320]:
+            page.set_viewport_size({'width':width,'height':844})
+            switch=page.locator('.mobile-view-switch').get_by_role('button',name='Bản đồ',exact=True)
+            if switch.is_visible():switch.click()
+            expect(control).to_be_visible()
+            assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+            panel.get_by_role('button',name='Mặt cắt địa hình',exact=True).click();expect(profile).to_be_visible();separated()
+            if captures:page.screenshot(path=str(captures/f'profile-person-{width}.png'))
+            profile.get_by_role('button',name=re.compile('Đóng')).click()
+            panel.get_by_role('button',name='Mở chi tiết tuyến đường',exact=True).click()
+        page.set_viewport_size({'width':1440,'height':960})
+        page.get_by_role('button',name='Chuyển sang 2D',exact=True).click()
+        expect(page.locator('.map-context-landslide').first).to_be_attached()
+        # Selecting an extent temporarily owns the inspector; the chosen route stays on the map.
+        page.locator('.map-context-landslide').first.dispatch_event('click')
+        card=page.locator('.local-area-card');expect(card).to_be_visible();expect(panel).to_have_count(0)
+        expect(page.locator('.map-road-route-line').first).to_be_attached()
+        photo=card.get_by_role('button',name='Xem ảnh minh họa',exact=True)
+        expect(photo).to_be_enabled(timeout=15000);photo.click()
+        dialog=page.locator('dialog.local-area-photo-dialog');expect(dialog).to_be_visible()
+        expect(dialog.locator('img')).to_be_visible();page.keyboard.press('Escape')
+        expect(dialog).to_have_count(0);expect(photo).to_be_focused()
+        assert card.evaluate('n=>{const r=n.getBoundingClientRect();return r.top>=document.querySelector(".map-toolbar").getBoundingClientRect().bottom&&r.bottom<=innerHeight;}')
+        if captures:page.screenshot(path=str(captures/'extent-photo-inspector.png'))
+        card.get_by_role('button',name='Đóng vùng sạt',exact=True).click();expect(panel).to_be_visible()
+        # Reversing or replacing the route never reuses a previous person's progress.
+        expect(control).to_be_visible();expect(marker).not_to_have_attribute('data-status','playing')
+        panel.get_by_role('button',name='Đổi điểm xuất phát và điểm đến',exact=True).click()
+        expect(marker).to_have_attribute('data-status','idle')
+        panel.get_by_role('button',name='Đóng bảng tìm đường',exact=True).click()
+        expect(marker).to_have_count(0)
+        assert not errors,errors
+        browser.close()
+    print('Route person passed: distance interpolation, pause/seek/rate/replay, retained 2D/3D, profile separation, inspector ownership, photo enlargement and mobile layout.')
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--url',default='http://127.0.0.1:5213');parser.add_argument('--chrome');parser.add_argument('--captures',type=Path)
+    a=parser.parse_args();run(a.url.rstrip('/'),a.chrome,a.captures)

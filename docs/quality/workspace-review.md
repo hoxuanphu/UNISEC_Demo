@@ -33,3 +33,6 @@ Chi tiết bền vững nằm ở [bản đồ](../product/cartography.md), [GIS
 
 
 `check_map_layer_order.py` kiểm tra thứ tự pane thực trong 2D, lưu qua tải lại, cảnh báo nằm trên tuyến, ba tiêu chí tìm đường, chọn đường trực tiếp, chọn nền địa hình trong 3D, giữ renderer khi mở chỉ đường và bố cục 320–1440 px khi chặn Internet. Vitest kiểm tra cùng quy tắc thứ tự cho các primitive Three.js và giữ thứ tự fill/casing/outline.
+
+
+`check_route_person.py` kiểm tra phát/dừng/tua/tốc độ/phát lại, giữ vị trí giữa 2D/3D, không tạo lại renderer theo bước di chuyển, không còn mũi tên trên tuyến, đổi tuyến về vị trí đầu, bảng chỉ đường không đè mặt cắt ở 320–1440 px, ảnh mở rộng/Escape/khôi phục focus và tuyến còn nguyên khi đổi bảng kiểm tra vùng sạt. `routeSimulation.test.ts` kiểm tra nội suy theo khoảng cách, đỉnh trùng, dữ liệu sai, đoạn bị chặn, giới hạn frame bị treo và dọn subscription. Bộ portable chạy các kiểm tra này khi chặn mọi request ngoài localhost.

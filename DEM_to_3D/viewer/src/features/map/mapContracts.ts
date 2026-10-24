@@ -68,6 +68,8 @@ export type ViewControls = {
 
 export type MapDisplayProps = {
   locale?: Locale;
+  /** Explicit demo person. Kept separate from real device position and road assessments. */
+  routeSimulation?: import('../routes/routeSimulation').RouteSimulation | null;
   /** Choosing route endpoints takes priority over feature inspection. */
   pointPickActive?: boolean;
   onPointPick?: (latitude: number, longitude: number, roadId?: string) => void;

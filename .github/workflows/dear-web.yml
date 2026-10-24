@@ -100,6 +100,7 @@ jobs:
           python scripts/check_citizen_photos.py --url http://127.0.0.1:5213
           python scripts/check_main_local_roads.py --url http://127.0.0.1:5213
           python scripts/check_map_layer_order.py --url http://127.0.0.1:5213
+          python scripts/check_route_person.py --url http://127.0.0.1:5213
           python scripts/check_role_presentation.py --url http://127.0.0.1:5213
           python scripts/check_map_symbol_consistency.py --url http://127.0.0.1:5213
           python scripts/check_dataset_selection.py --url http://127.0.0.1:5213
