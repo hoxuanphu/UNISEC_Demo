@@ -35,13 +35,14 @@ def run(url, chrome, captures):
             page.screenshot(path=str(captures/'main-local-roads-light.png'))
         # The fit button works in this map, and a local line opens its own card.
         def click_visible_local_road():
-            hit=page.locator('.map-road-target[data-road-id^="local-"]').evaluate_all('''nodes=>{
+            hit=page.wait_for_function('''()=>{
+                const nodes=document.querySelectorAll('.map-road-target[data-road-id^="local-"]');
                 for(const node of nodes){const matrix=node.getScreenCTM();if(!matrix)continue;
                     for(const t of [.2,.4,.6,.8]){const p=node.getPointAtLength(node.getTotalLength()*t).matrixTransform(matrix);
                         if(p.x<10||p.y<110||p.x>innerWidth-10||p.y>innerHeight-60)continue;
                         if(document.elementFromPoint(p.x,p.y)?.closest('[data-road-id]')?.dataset.roadId===node.dataset.roadId)return {x:p.x,y:p.y};}}
                 return null;
-            }''')
+            }''',timeout=10000).json_value()
             assert hit,'No local road can be selected through the actual map hit targets'
             page.mouse.click(hit['x'],hit['y'])
         click_visible_local_road()
