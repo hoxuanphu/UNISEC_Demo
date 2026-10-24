@@ -13,7 +13,9 @@ def run(url, chrome, captures=None):
         browser = playwright.chromium.launch(headless=True, **({"executable_path":chrome} if chrome else {}))
         page = use_vietnamese(browser.new_page(viewport={"width": 1440, "height": 960}))
         errors = []
+        failed_requests = []
         page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on("requestfailed", lambda request: failed_requests.append((request.url, request.failure)))
         page.route("**/*", lambda route: route.continue_() if route.request.url.startswith(url + "/") else route.abort())
         page.goto(url + "/?map=2d&offline=1&demoRole=manager")
         expect(page.locator(".incident-overview-heading")).to_be_visible(timeout=30000)
@@ -31,7 +33,15 @@ def run(url, chrome, captures=None):
         expect(detail.locator(".field-photo-strip-grid button")).to_have_count(4)
         expect(detail.locator(".field-photo-strip")).to_contain_text("Scar 3 [0926]")
         expect(detail.locator(".field-photo-strip")).to_contain_text("08/10/2026")
-        expect(page.locator('img[alt="Ảnh phân tích"]')).to_be_visible(timeout=30000)
+        try:
+            expect(page.locator('img[alt="Ảnh phân tích"]')).to_be_visible(timeout=30000)
+        except AssertionError:
+            if captures:
+                page.screenshot(path=str(captures / "analysis-load-failure.png"))
+            print({'imageryStatus': page.locator('.analysis-load-status').all_text_contents(),
+                   'images': page.locator('img').evaluate_all('images=>images.filter(i=>!i.classList.contains("leaflet-tile")).map(i=>({alt:i.alt,src:i.currentSrc,complete:i.complete,width:i.naturalWidth}))'),
+                   'failedRequests': failed_requests, 'errors': errors}, flush=True)
+            raise
         # Photographs lead; the following measure card retains a real gap.
         assert detail.locator(".field-photo-strip").evaluate('(el)=>el.nextElementSibling.getBoundingClientRect().top-el.getBoundingClientRect().bottom') >= 10
 

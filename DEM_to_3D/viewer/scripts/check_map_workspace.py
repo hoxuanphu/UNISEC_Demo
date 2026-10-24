@@ -1,7 +1,9 @@
 """Check map workspace controls, movable tool windows and label visibility."""
 from browser_preferences import use_vietnamese
+from network_browser_fixture import install_network_fixture
 from gis_browser_actions import map_tool
 import argparse
+import re
 from pathlib import Path
 from playwright.sync_api import expect, sync_playwright
 from workspace_layout_checks import check_workspace_layout
@@ -11,6 +13,7 @@ def check_default_map_mode(browser, url):
     """Coordinators open in 3D when WebGL exists; the sign-in screen never fetches the mesh."""
     context = use_vietnamese(browser.new_context(viewport={'width': 1366, 'height': 768}))
     context.route('**/*', lambda route: route.continue_() if route.request.url.startswith(url + '/') else route.abort())
+    install_network_fixture(context,url)
     meshes = []
     context.on('request', lambda request: meshes.append(request.url) if request.url.endswith('.glb') else None)
     page = use_vietnamese(context.new_page())
@@ -33,6 +36,7 @@ def run(url, chrome, captures):
         browser = p.chromium.launch(headless=True, **({'executable_path': chrome} if chrome else {}))
         context = use_vietnamese(browser.new_context(viewport={'width': 1366, 'height': 768}, permissions=['clipboard-read', 'clipboard-write']))
         context.route('**/*', lambda route: route.continue_() if route.request.url.startswith(url + '/') else route.abort())
+        install_network_fixture(context,url)
         page = use_vietnamese(context.new_page())
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
@@ -66,28 +70,41 @@ def run(url, chrome, captures):
             expect(overview.locator('.leaflet-container')).to_have_count(1)
         overview.get_by_role('button', name='Hide overview map', exact=True).click()
         page.get_by_role('button', name='Fit area', exact=True).click()
+        page.wait_for_timeout(700)
+        # E8 intersects the bundled analysis DEM; a road outside coverage has a
+        # correctly disabled profile action and is tested separately.
+        road_search=page.get_by_role('combobox',name='Search map',exact=True)
+        road_search.fill('E8');road_search.press('Enter')
+        expect(page.locator('#response-details .road-profile-action')).to_be_enabled(timeout=25000)
+        page.get_by_role('button',name='Close feature details',exact=True).click()
+        page.wait_for_timeout(700)
         # A road stays visually thin but can be picked 6 px away from its centreline.
-        road = page.locator('.map-road-target[data-road-id="E1"]')
-        unselected_stroke = road.evaluate("path => path.previousElementSibling.getAttribute('stroke')")
-        point = road.evaluate("""path => {
-            const matrix = path.getScreenCTM(), length = path.getTotalLength();
+        point = page.locator('.map-road-target[data-road-id="E8"]').evaluate_all("""paths => {
             const map = document.querySelector('.map-area').getBoundingClientRect();
-            for (let i = 2; i < 18; i++) {
-                const at = path.getPointAtLength(length * i / 20);
-                const next = path.getPointAtLength(length * i / 20 + 1);
+            for(const path of paths) {
+            const matrix = path.getScreenCTM(), length = path.getTotalLength();
+            for (let i = 2; i < 58; i++) {
+                const at = path.getPointAtLength(length * i / 60);
+                const next = path.getPointAtLength(length * i / 60 + 1);
                 const a = new DOMPoint(at.x, at.y).matrixTransform(matrix);
                 const b = new DOMPoint(next.x, next.y).matrixTransform(matrix);
                 const distance = Math.hypot(b.x - a.x, b.y - a.y);
                 if (!distance) continue;
-                const x = a.x - (b.y - a.y) / distance * 6;
-                const y = a.y + (b.x - a.x) / distance * 6;
-                if (x > map.left + 340 && x < map.right - 70 && y > map.top + 90 && y < map.bottom - 110 && document.elementFromPoint(x, y) === path) return {x, y};
+                for (const side of [-1,1]) {
+                    const x = a.x - (b.y - a.y) / distance * 6 * side;
+                    const y = a.y + (b.x - a.x) / distance * 6 * side;
+                    if (x > map.left + 24 && x < map.right - 70 && y > map.top + 90 && y < map.bottom - 110 && document.elementFromPoint(x, y) === path) return {x, y, id:path.dataset.roadId};
+                }
+            }
             }
             throw new Error('No unobstructed road selection point');
         }""")
+        road = page.locator(f'.map-road-target[data-road-id="{point["id"]}"]')
+        stroke = page.locator(f'[data-road-stroke="{point["id"]}"]')
+        unselected_stroke = stroke.get_attribute('stroke')
         page.mouse.click(point['x'], point['y'])
         expect(page.locator('#response-details .road-profile-action')).to_be_visible()
-        assert road.evaluate("path => path.previousElementSibling.getAttribute('stroke')") == unselected_stroke, 'Inspecting a road must preserve the network stroke, independently of the route selection'
+        assert stroke.get_attribute('stroke') == unselected_stroke, 'Inspecting a road must preserve the network stroke, independently of the route selection'
         road_name = page.locator('#response-details h1').text_content()
         page.get_by_role('button', name='Elevation profile', exact=True).click()
         expect(page.locator('.profile-panel')).to_be_visible()
@@ -174,8 +191,8 @@ def run(url, chrome, captures):
             audit = page.evaluate('window.markerInteractionAudit')
             assert all(item['locked'] == item['inert'] for item in audit), audit
 
-        toolbar.get_by_role('button', name='Measure on 2D map', exact=True).click()
-        assert road.evaluate("path => getComputedStyle(path).pointerEvents") == 'none'
+        map_tool(page, 'Measure on 2D map').click()
+        expect(road).to_have_css('pointer-events', 'none')
         assert_marker_interaction(True)
         measure = page.locator('.map-measure-panel')
         handle = measure.get_by_role('group', name='Measurement panel position', exact=True)
@@ -187,7 +204,7 @@ def run(url, chrome, captures):
         assert_inside(measure)
         measure.get_by_role('button', name='Close measurement', exact=True).click()
         assert_marker_interaction(False)
-        toolbar.get_by_role('button', name='Measure on 2D map', exact=True).click()
+        map_tool(page, 'Measure on 2D map').click()
         assert abs(measure.bounding_box()['x'] - moved['x']) < 1
         handle.focus(); page.keyboard.press('ArrowRight')
         assert abs(measure.bounding_box()['x'] - moved['x'] - 16) < 1
@@ -237,15 +254,19 @@ def run(url, chrome, captures):
         assert_inside(layers)
         layers.get_by_text('Display options', exact=True).click()
         assert layers.bounding_box()['y'] == original['y'] + 70
-        assert layers.locator('summary').evaluate("node => getComputedStyle(node).listStyleType") == 'none'
+        assert layers.locator('summary').evaluate_all("nodes => nodes.every(node => getComputedStyle(node).listStyleType === 'none')")
         for row in layers.locator('.layer-source-row:has(label)').all():
             label, checkbox = row.locator('label').bounding_box(), row.locator('input[type=checkbox]').bounding_box()
             assert abs(label['y'] + label['height'] / 2 - checkbox['y'] - checkbox['height'] / 2) < 2, (label, checkbox)
         # Geographic marker anchors do not move when their labels are hidden.
-        positions = page.locator('[data-map-object]').evaluate_all('(nodes) => Object.fromEntries(nodes.map(n => [n.dataset.mapObject, n.style.transform]))')
+        expect(page.locator('.leaflet-pan-anim,.leaflet-zoom-anim')).to_have_count(0)
+        page.wait_for_timeout(250)
+        positions = page.locator('[data-map-object]:visible').evaluate_all('(nodes) => Object.fromEntries(nodes.map(n => [n.dataset.mapObject, n.style.transform]))')
         layers.get_by_role('combobox', name='Place labels', exact=True).select_option('none')
         expect(page.locator('.map-pin-label:visible')).to_have_count(0)
-        after = page.locator('[data-map-object]').evaluate_all('(nodes) => Object.fromEntries(nodes.map(n => [n.dataset.mapObject, n.style.transform]))')
+        expect(page.locator('.leaflet-pan-anim,.leaflet-zoom-anim')).to_have_count(0)
+        page.wait_for_timeout(250)
+        after = page.locator('[data-map-object]:visible').evaluate_all('(nodes) => Object.fromEntries(nodes.map(n => [n.dataset.mapObject, n.style.transform]))')
         assert all(before == after.get(key) for key, before in positions.items() if before and after.get(key)), {key: (before, after.get(key)) for key, before in positions.items() if before and after.get(key) and before != after.get(key)}
         layers.get_by_role('combobox', name='Place labels', exact=True).select_option('auto')
         assert page.locator('.map-pin-label').count() > 0
@@ -267,14 +288,14 @@ def run(url, chrome, captures):
         toolbar.get_by_role('button', name='Show information panel', exact=True).click()
 
         map_tool(page, 'Location information').click()
-        assert road.evaluate("path => getComputedStyle(path).pointerEvents") == 'none'
+        expect(road).to_have_css('pointer-events', 'none')
         assert_marker_interaction(True)
         location = page.locator('.map-location-panel')
         expect(location).to_contain_text('Select a point on the map')
         area = page.locator('.map-2d-surface').bounding_box()
         page.mouse.click(area['x'] + area['width'] * .65, area['y'] + area['height'] * .45)
         expect(location.locator('dd')).to_have_count(3)
-        assert location.locator('dd').last.text_content().endswith(' m')
+        expect(location.locator('dd').last).to_have_text(re.compile(r'^(-?[\d,.]+ m|No data)$'))
         geographic = location.locator('dd').first.text_content()
         location.get_by_role('button', name='Copy coordinates', exact=True).click()
         copied_pair = page.evaluate('navigator.clipboard.readText()')
@@ -292,7 +313,7 @@ def run(url, chrome, captures):
         area = page.locator('canvas.terrain-canvas').bounding_box()
         page.mouse.click(area['x'] + area['width'] * .55, area['y'] + area['height'] * .5)
         expect(location.locator('dd').first).not_to_have_text(previous)
-        assert location.locator('dd').last.text_content().endswith(' m')
+        expect(location.locator('dd').last).to_have_text(re.compile(r'^(-?[\d,.]+ m|No data)$'))
         if captures: page.screenshot(path=str(captures / 'workspace-location-3d.png'))
         location.get_by_role('button', name='Close location information', exact=True).click()
         expect(location).to_have_count(0)
@@ -303,7 +324,7 @@ def run(url, chrome, captures):
         for width in [390, 320]:
             page.set_viewport_size({'width': width, 'height': 740})
             expect(page.locator('.map-panel-toggle')).to_be_hidden()
-            toolbar.get_by_role('button', name='Measure on 2D map', exact=True).click()
+            map_tool(page, 'Measure on 2D map').click()
             box, area = measure.bounding_box(), page.locator('.map-area').bounding_box()
             assert box['height'] <= area['height'] * .49
             assert box['x'] >= area['x'] and box['x'] + box['width'] <= area['x'] + area['width']

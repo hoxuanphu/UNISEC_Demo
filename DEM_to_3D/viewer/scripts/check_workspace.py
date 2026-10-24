@@ -174,10 +174,11 @@ def run(url, chrome, captures, prepared=False):
             page.screenshot(path=str(captures / 'workspace-road-action.png'))
         page.get_by_role('button', name='Đóng chi tiết đối tượng', exact=True).click()
         page.get_by_role('button', name='Xem toàn khu vực', exact=True).click()
+        group = page.locator('.map-pin.is-cluster:visible,.map-pin.has-overlap:visible').first
         for _ in range(16):
+            if group.count(): break
             page.get_by_role('button', name='Thu nhỏ', exact=True).click()
             page.wait_for_timeout(150)
-        group = page.locator('.map-pin.is-cluster:visible,.map-pin.has-overlap:visible').first
         expect(group).to_be_visible()
         check_symbols(page)
         assert page.locator('.map-pin.has-overlap:visible .map-pin-count:visible').count() == 0

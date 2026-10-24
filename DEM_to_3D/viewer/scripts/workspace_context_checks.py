@@ -1,15 +1,19 @@
 """Check panel scroll restoration and dialog focus across object navigation."""
 from playwright.sync_api import expect
+from browser_preferences import use_vietnamese
+from network_browser_fixture import install_network_fixture
 
 
 def check_workspace_context(browser, url):
-    context = browser.new_context(viewport={'width': 1366, 'height': 520})
+    context = use_vietnamese(browser.new_context(viewport={'width': 1366, 'height': 520}))
     context.route('**/*', lambda r: r.continue_() if r.request.url.startswith(url + '/') else r.abort())
+    packet=install_network_fixture(context,url)
     page = context.new_page()
     try:
         page.goto(url+'/?map=2d&demoRole=manager')
         expect(page.locator('.incident-overview-heading')).to_be_visible(timeout=25000)
-        page.locator('.incident-priority-row').first.click()
+        page.locator('.workspace-nav').get_by_role('button',name='Địa bàn',exact=True).click()
+        page.locator('#response-panel .community').filter(has=page.get_by_text('Nậm Khắt',exact=True)).click()
         page.locator('.decision-tabs button').nth(1).click()
         scroll = page.locator('#response-details .sidebar-scroll')
         saved = scroll.evaluate("node => { node.scrollTop = 100; node.dispatchEvent(new Event('scroll')); return node.scrollTop; }")
@@ -38,9 +42,10 @@ def check_workspace_context(browser, url):
         report_button.click()
         expect(page.locator('.evidence-road')).to_be_visible()
         page.locator('.evidence-road').click()
-        expect(page.locator('#response-details h1')).to_have_text('Đường chính vào Nậm Khắt, đoạn sạt lở')
+        expect(page.locator('#response-details h1')).to_have_text(next(road['name'][0] for road in packet['roads'] if road['id']=='E8'))
         expect(page.get_by_role('dialog')).to_have_count(0)
         page.get_by_role('button', name='Đóng chi tiết đối tượng', exact=True).click()
+        page.locator('.workspace-nav').get_by_role('button',name='Địa bàn',exact=True).click()
         expect(page.locator('#response-details h1')).to_have_text('Nậm Khắt')
         expect(page.locator('.decision-tabs button').nth(1)).to_have_attribute('aria-pressed', 'true')
         assert abs(scroll.evaluate('node => node.scrollTop') - saved) <= 1, 'Evidence scroll was reset after returning from a road'

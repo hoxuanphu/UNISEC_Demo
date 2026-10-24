@@ -68,6 +68,10 @@ export type RoadSegment = {
   status: RoadStatus;
   hz?: string;
   hazardIds?: string[];
+  /** Linked mapped extent; independent from incident observation IDs. */
+  landslideAreaId?: string;
+  /** Several mapped extents may affect the same continuous road section. */
+  landslideAreaIds?: string[];
   note?: [vi: string, en: string];
   fromKm?: number;
   toKm?: number;

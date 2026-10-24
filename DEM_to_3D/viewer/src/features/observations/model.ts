@@ -1,5 +1,5 @@
 import { validVoice, type FieldVoice } from './voice';
-import { captureTime } from './captureMetadata';
+import { captureTime, validAppPhotoCapture } from './captureMetadata';
 import type { GeometryRecord } from '../../geo/vector/types';
 
 export const observationKey = 'dearObservation';
@@ -11,6 +11,12 @@ export const observationKinds = [
   'other'
 ] as const;
 export type ObservationKind = (typeof observationKinds)[number];
+/** Values measured when this app takes a photo, separate from the file's EXIF. */
+export type AppPhotoCapture = {
+  source: 'app-camera';
+  capturedAt: string;
+  position?: { latitude: number; longitude: number; accuracyM: number; measuredAt: string };
+};
 export type FieldPhoto = {
   id: string;
   name: string;
@@ -22,6 +28,7 @@ export type FieldPhoto = {
   sha256: string;
   addedAt: string;
   exif: Record<string, string | number>;
+  capture?: AppPhotoCapture;
 };
 export type FieldObservation = {
   schema: 'field-observation/v1';
@@ -66,6 +73,7 @@ export function validPhoto(raw: unknown): raw is FieldPhoto {
     /^[a-f0-9]{64}$/.test(p.sha256) &&
     typeof p.addedAt === 'string' &&
     Number.isFinite(Date.parse(p.addedAt)) &&
+    (p.capture === undefined || validAppPhotoCapture(p.capture)) &&
     !!p.exif &&
     typeof p.exif === 'object' &&
     !Array.isArray(p.exif) &&

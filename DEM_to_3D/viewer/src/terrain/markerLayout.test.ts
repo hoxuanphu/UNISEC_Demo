@@ -1,7 +1,7 @@
 import {poiMetrics,markerSize} from './poiFrame';
 import {placeMapLabel} from './markerLayout';
 import { describe, expect, it } from 'vitest';
-import { layoutMarkerGroups, markerPriority, overlaps } from './markerLayout';
+import { layoutMarkerGroups, layoutPlaceMarkers, markerPriority, overlaps } from './markerLayout';
 import { SELECTED_PIN } from './poiFrame';
 
 describe('map symbol layout', () => {
@@ -112,5 +112,30 @@ describe('contextual extent label placement',()=>{
     expect(placeMapLabel({x:100,y:100},{width:120,height:40},{width:200,height:200},[{x:0,y:0,width:200,height:200}])).toBeUndefined();
     const position=placeMapLabel({x:480,y:200},{width:140,height:40},{width:700,height:400},[{x:500,y:0,width:200,height:400}]);
     expect(position).toBeDefined();expect(position!.x+position!.width).toBeLessThan(500);
+  });
+});
+
+describe('individual web-map places', () => {
+  it('keeps nearby places separate at their real coordinates without enlarging symbols', () => {
+    const points = [
+      {id:'a', x:100, y:100, priority:10, category:'community'},
+      {id:'b', x:134, y:100, priority:10, category:'community'},
+      {id:'c', x:168, y:100, priority:10, category:'community'},
+    ];
+    const layout = layoutPlaceMarkers(points, 400, 300, []);
+    expect(layout).toHaveLength(3);
+    expect(layout.every(item => item.rect.width === 28 && item.members.length === 1)).toBe(true);
+    expect(layout.map(item => item.anchor.x)).toEqual([100, 134, 168]);
+  });
+  it('retains coincident items behind a normal hazard symbol without moving any point', () => {
+    const points = [
+      {id:'place',x:100,y:100,priority:10,category:'community'},
+      {id:'hazard',x:100,y:100,priority:80,category:'landslide'},
+    ];
+    const [item] = layoutPlaceMarkers(points, 400, 300, []);
+    expect(item.anchor.id).toBe('hazard');
+    expect(item.rect.width).toBe(28);
+    expect(item.members.map(member => member.id)).toEqual(['hazard','place']);
+    expect(layoutPlaceMarkers(points, 400, 300, [item.rect])).toHaveLength(0);
   });
 });

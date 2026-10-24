@@ -1,5 +1,6 @@
 import { useLocalNetwork } from '../features/route-film/networkContext';
 import { LocalAreaCard } from '../features/route-film/LocalAreaCard';
+import { LocalRoadCard } from '../features/route-film/LocalRoadCard';
 import { supportsBasemapTone } from '../features/imagery/basemapTone';
 import { analysisSourceInfo } from '../features/imagery/analysisImagery';
 import proj4 from 'proj4';
@@ -132,6 +133,7 @@ const defaultLayers = {
   landslide: true,
   flood: true,
   roads: true,
+  localRoads:true,
   status: true,
   crossings: true,
   communities: true,
@@ -185,6 +187,7 @@ export function ResponseWorkspace({
   );
   const inspectGisRecord = (id: string, keepGroup = false) => {
     setLocalAreaId(null);
+    setLocalRoadId(null);
     navigation.dispatch({type:'view',view:navigation.view,list:true});
     gis.select(id);
     setGisCardId(id);
@@ -194,6 +197,7 @@ export function ResponseWorkspace({
     resetTools();
   };
   const showGisOnResponse = (id: string) => {
+    setLocalRoadId(null);
     navigation.dispatch({type:'view',view:navigation.view,list:true});
     gis.select(id);
     setGisCardId(id);
@@ -407,13 +411,23 @@ export function ResponseWorkspace({
   }, [offlineMode,runtime.localMap]);
   const analysisImagery = useAnalysisImagery(scenarioManifest?.analysisImagery);
   const fieldPhotos = usePreparedPhotos(scenarioManifest?.fieldPhotos);
-  const localNetwork=useLocalNetwork(packet.datasetVersion.startsWith('che-tao'));
+  const localNetwork=useLocalNetwork(packet.datasetVersion.startsWith('che-tao'),gis.records);
   const [localAreaId,setLocalAreaId]=useState<string|null>(null);
+  const [localRoadId,setLocalRoadId]=useState<string|null>(null);
+  const localRoad=localNetwork.network?.roads.find(road=>road.id===localRoadId);
+  const showLocalRoads=()=>{
+    navigation.dispatch({type:'view',view:navigation.view,list:true});
+    setGisCardId(null);setGisGroupIds([]);
+    setLayers(previous=>({...previous,roads:true,localRoads:true}));
+    setLocalRoadId(null);setLocalAreaId(null);resetTools();setMobileView('map');
+    requestAnimationFrame(()=>viewControlRef.current?.frameProjected?.(localNetwork.network?.roads.flatMap(road=>road.points)??[]));
+  };
+  const journeyRoads=useMemo(()=>[...roads,...(localNetwork.network?.roads??[])],[roads,localNetwork.network]);
   const localContext=useMemo(()=>localNetwork.context?{areas:localNetwork.context.areas.filter(area=>area.kind==='landslide' && layers.landslide!==false),closures:[]}:undefined,[localNetwork.context,layers.landslide]);
   const localArea=localContext?.areas.find(area=>area.id===localAreaId);
   const inspectLocalArea=(id:string)=>{
     navigation.dispatch({type:'view',view:navigation.view,list:true});
-    setGisCardId(null);setGisGroupIds([]);setLocalAreaId(id);resetTools();setMobileView('map');
+    setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(id);resetTools();setMobileView('map');
   };
   const analysisDisplay = useMemo(() => ({ rasters: analysisImagery.rasters, opacity: analysisImagery.selection.opacity, balanceBasemap:analysisImagery.balanceBasemap && supportsBasemapTone(analysisImagery.layers) && analysisImagery.layers.some(layer=>layer.id===analysisImagery.selection.layer && layer.kind==='optical') }),
     [analysisImagery.rasters, analysisImagery.selection.opacity,analysisImagery.balanceBasemap,analysisImagery.layers,analysisImagery.selection.layer]);
@@ -485,7 +499,7 @@ export function ResponseWorkspace({
       models.length ? models : defaultTerrainData ? [defaultTerrainData,...contextTerrain] : [],
     [models, defaultTerrainData,contextTerrain]
   );
-  const journey = useRoadJourney(roads);
+  const journey = useRoadJourney(journeyRoads, undefined, 'conditions');
   // One map tool at a time: opening the journey already resets the others, so the
   // others close the journey too. Its chosen points are kept for when it reopens.
   const otherMapTool = measurementOpen || drawOpen || locationOpen;
@@ -568,6 +582,7 @@ export function ResponseWorkspace({
     routeType?: 'candidate' | 'direct',
     sectionId?: string
   ) => {
+    setLocalRoadId(null);setLocalAreaId(null);
     rememberDetailTrigger();
     setCameraIntent(previous=>({kind:'selection',version:previous.version+1}));
     setLayers(previous => ({...previous, communities:true}));
@@ -582,6 +597,7 @@ export function ResponseWorkspace({
     revealPanel();
   };
   const inspectObject = (id: string) => {
+    setLocalRoadId(null);setLocalAreaId(null);
     if (id.startsWith('community:')) {
       selectCommunity(id.slice(10));
       return;
@@ -628,6 +644,11 @@ export function ResponseWorkspace({
     if (mapMode === '3d') void loadTerrainViewer();
   }, [mapMode]);
   const handleOverlayHit = (hit: OverlayHit) => {
+    if (hit.type==='road' && localNetwork.network?.roads.some(road=>road.id===hit.id)) {
+      navigation.dispatch({type:'view',view:navigation.view,list:true});
+      setLocalAreaId(null);setGisCardId(null);setGisGroupIds([]);setLocalRoadId(hit.id);resetTools();setMobileView('map');return;
+    }
+    setLocalRoadId(null);setLocalAreaId(null);
     if (hit.type === 'community') selectCommunity(hit.id);
     else if (
       hit.type === 'road' &&
@@ -657,7 +678,7 @@ export function ResponseWorkspace({
         ? hazards.find((item) => item.id === hit.id)
         : undefined;
     const road =
-      hit?.type === 'road' ? roads.find((item) => item.id === hit.id) : undefined;
+      hit?.type === 'road' ? journeyRoads.find((item) => item.id === hit.id) : undefined;
     const name =
       object?.name ??
       (site && site.name[vi ? 0 : 1]) ??
@@ -857,7 +878,7 @@ export function ResponseWorkspace({
     (Boolean(gisCard) || gisGroup.length < 2) &&
     activeDialog !== 'layers';
   useEffect(() => {
-    if(showProfile)return; // The profile owns framing while it is open.
+    if(showProfile || journey.open)return; // The active route tool owns framing.
     const selection = view === 'priority' ? selectedObjectId ?? (selectedCommunityId && `community:${selectedCommunityId}`) : selectedObjectId;
     if (!selection || gisCard || gisGroup.length > 1) return;
     if (window.matchMedia('(max-width:900px)').matches && mobileView !== 'map') return;
@@ -898,6 +919,7 @@ export function ResponseWorkspace({
     viewReadyVersion,
     navigation.routeSectionId,
     showProfile,
+    journey.open,
     cameraIntent,
     activeRoute,
     mobileView,
@@ -1174,11 +1196,13 @@ export function ResponseWorkspace({
                         responseSites: responseSites,
                         hazards: mapHazards,
                         roads,
+                        contextRoads:localNetwork.network?.roads,
+                        roadAreaLinks:localNetwork.network?.conditions?.areaLinks,
                         selectedRoute: journey.open
                           ? journey.route
                           : activeRoute,
                         selectedCommunityId: gisCard || view !== 'priority' ? null : selectedCommunityId,
-                        selectedObjectId: gisCard ? null : selectedObjectId,
+                        selectedObjectId: localRoad ? `road:${localRoad.id}` : gisCard ? null : selectedObjectId,
                         layers,
                         appearance: layerAppearance
                       }
@@ -1228,9 +1252,11 @@ export function ResponseWorkspace({
                             responseSites: responseSites,
                             hazards: mapHazards,
                             roads: roads,
-                            selectedRoute: activeRoute,
+                            contextRoads:localNetwork.network?.roads,
+                            roadAreaLinks:localNetwork.network?.conditions?.areaLinks,
+                            selectedRoute: journey.open ? journey.route : activeRoute,
                             selectedCommunityId: gisCard || view !== 'priority' ? null : selectedCommunityId,
-                            selectedObjectId: gisCard ? null : selectedObjectId,
+                            selectedObjectId: localRoad ? `road:${localRoad.id}` : gisCard ? null : selectedObjectId,
                             layers: layers,
                             appearance: layerAppearance
                           }
@@ -1249,6 +1275,7 @@ export function ResponseWorkspace({
           </div>
 
           {localArea&&<LocalAreaCard area={localArea} photos={fieldPhotos} locale={locale} onClose={()=>setLocalAreaId(null)} linkToJourney/>}
+          {localRoad&&layers.roads&&layers.localRoads!==false&&<LocalRoadCard road={localRoad} locale={locale} onClose={()=>setLocalRoadId(null)} onDirections={()=>{setLocalRoadId(null);resetTools();setMapMode('2d');journey.setOpen(true);}}/>}
           {mapMode === '3d' && terrain3DBusy
             ? terrainLoading(progress3D)
             : !mapTerrain &&
@@ -1280,11 +1307,11 @@ export function ResponseWorkspace({
           )}
 
           <MapControls
+            hasLocalRoads={!!localNetwork.network}
             timelineExpanded={timelineExpanded}
             onToggleTimeline={() => setTimelineExpanded(open => !open)}
             headerCollapsed={headerCollapsed}
             onShowHeader={() => {setHeaderCollapsed(false);requestAnimationFrame(() => workspaceRef.current?.querySelector<HTMLButtonElement>('.settings-anchor > button')?.focus());}}
-            networkControl={<a title={locale === "vi" ? "Mạng đường Chế Tạo" : "Chế Tạo road network"} aria-label={locale === "vi" ? "Mạng đường Chế Tạo" : "Chế Tạo road network"} className="icon-button map-network-launcher" href={(() => {const url=new URL(location.href);url.searchParams.set("workspace","routes");return url.href;})()}><UiIcon name="route"/><span>{locale === "vi" ? "Mạng đường Chế Tạo" : "Chế Tạo road network"}</span></a>}
             journeyControl={<button
               className="icon-button map-journey-trigger"
               title={
@@ -1320,6 +1347,7 @@ export function ResponseWorkspace({
             onZoomOut={() => viewControlRef.current?.zoomOut()}
             onResetView={() => viewControlRef.current?.resetView()}
             onOpenGis={() => setActiveDialog('geodata')}
+            onCompareImagery={() => setActiveDialog('comparison')}
             gisObservations={
               mapMode === '2d' && layers.gis
                 ? gis.records
@@ -1418,8 +1446,9 @@ export function ResponseWorkspace({
               journey={journey}
               communities={communities}
               sites={responseSites}
-              roads={roads}
-              places={layers.gis ? gisJourneyPlaces(gis.records) : []}
+              roads={journeyRoads}
+              places={[...(localNetwork.network?.places??[]).map(place=>({key:`local:${place.id}`,label:locale==='vi'?place.name.replace(/^Village /,'Bản ').replace(/^Helipad$/,'Bãi đáp'):place.name,
+                group:locale==='vi'?'Trong xã Chế Tạo':'Within Chế Tạo',latitude:place.latitude,longitude:place.longitude})),...(layers.gis ? gisJourneyPlaces(gis.records) : [])]}
               onProfile={() =>
                 interaction.dispatch({ type: 'toggle-tool', tool: 'profile' })
               }
@@ -1452,6 +1481,7 @@ export function ResponseWorkspace({
 
           {activeDialog === 'layers' && (
             <LayersDialog
+              hasLocalRoads={!!localNetwork.network} onShowLocalRoads={showLocalRoads}
               terrainOverlays={terrainOverlays}
               analysisImagery={analysisImagery}
               hasTerrainGrid={models.some(model => Boolean(model.grid && model.metadata?.analysis_supported))}
@@ -1465,7 +1495,6 @@ export function ResponseWorkspace({
               appearance={layerAppearance}
               mapMode={mapMode}
               onAppearance={setLayerAppearance}
-              onCompare={() => setActiveDialog('comparison')}
               hasFloodData={hazards.some((hazard) => hazard.kind === 'flood')}
               hasHLZData={responseSites.some((site) => site.kind === 'hlz')}
               hasSelectedRoute={Boolean(activeRoute)}

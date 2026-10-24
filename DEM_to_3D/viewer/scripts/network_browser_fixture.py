@@ -23,3 +23,4 @@ def install_network_fixture(context,url,cluster_hazards=False):
     manifest['workspace']={'url':'/scenarios/browser-network/incident.json','sha256':hashlib.sha256(payload).hexdigest(),'byteLength':len(payload)}
     context.route(url+'/scenarios/che-tao/v0.3/manifest.json',lambda route:route.fulfill(json=manifest))
     context.route(url+'/scenarios/browser-network/incident.json',lambda route:route.fulfill(body=payload,content_type='application/json'))
+    return packet

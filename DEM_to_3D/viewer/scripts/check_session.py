@@ -1,5 +1,6 @@
 """Exercise a fixed production build for a recorded duration and write timing/memory results."""
 from browser_preferences import use_vietnamese
+from network_browser_fixture import install_network_fixture
 import argparse
 import hashlib
 import json
@@ -20,6 +21,7 @@ def run(url, chrome, duration, output, interval=30, heap_snapshot=None):
         report['browser'] = browser.version
         context = use_vietnamese(browser.new_context(viewport={'width': 1366, 'height': 768}))
         context.route('**/*', lambda r: r.continue_() if r.request.url.startswith(url + '/') else r.abort())
+        install_network_fixture(context,url)
         page = use_vietnamese(context.new_page())
         page.on('pageerror', lambda error: report['errors'].append(str(error)))
         page.on('crash', lambda: report['errors'].append('Page crashed'))
@@ -29,7 +31,8 @@ def run(url, chrome, duration, output, interval=30, heap_snapshot=None):
             expect(page.locator('.leaflet-image-layer')).to_have_count(1, timeout=25000)
             page.wait_for_function("document.querySelector('.leaflet-image-layer')?.complete")
             report['timings']['cold2DSeconds'] = round(time.monotonic() - t, 3)
-            page.locator('.incident-priority-row').first.click()
+            page.locator('.workspace-nav button').nth(2).click()
+            page.locator('#response-panel .community').first.click()
             t = time.monotonic(); page.get_by_role('button', name='Chuyển sang 3D', exact=True).click()
             expect(page.locator('canvas.terrain-canvas')).to_be_visible(timeout=25000)
             expect(page.locator('[data-map-object="community:NK"]')).to_be_visible(timeout=25000)
@@ -54,7 +57,8 @@ def run(url, chrome, duration, output, interval=30, heap_snapshot=None):
             cycle = 0
             while time.monotonic() < deadline or cycle == 0:
                 cycle += 1
-                page.locator('.incident-priority-row').first.click()
+                page.locator('.workspace-nav button').nth(2).click()
+                page.locator('#response-panel .community').first.click()
                 page.get_by_role('button', name='Mặt cắt địa hình', exact=True).click()
                 expect(page.locator('.profile-svg')).to_be_visible()
                 slider = page.locator('#profile-dist-slider'); slider.focus(); slider.press('End')

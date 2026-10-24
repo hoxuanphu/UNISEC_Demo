@@ -61,7 +61,7 @@ def run(archive, chrome):
                 expect(page.locator('img[alt="Ảnh phân tích"]')).to_be_visible(timeout=25000)
                 page.get_by_role('button', name='Cài đặt', exact=True).click()
                 page.get_by_role('button', name='Đặt lại phiên làm việc', exact=True).click()
-                expect(page.locator('.settings-dialog')).to_have_count(0)
+                expect(page.locator('.settings-menu')).to_have_count(0)
                 page.get_by_role('button',name='Diễn biến sự kiện',exact=True).click()
                 expect(page.locator('.assessment-moment[aria-pressed="true"]')).to_contain_text('14:02')
                 assert not errors, errors

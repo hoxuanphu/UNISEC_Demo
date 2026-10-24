@@ -92,12 +92,12 @@ export function remapLandslideEvidence(records: GeometryRecord[]): GeometryRecor
 /** The boundary is geographic geometry; evidence and review state are read in its record. */
 export const landslideBoundaryColor = '#ffe36a';
 export const landslideBoundaryCasing = '#3c3921';
-export function landslideAreaStyle(a: Pick<LandslideArea, 'state' | 'review'>, selected = false, fillOpacity = defaultLandslideFillOpacity) {
+export function landslideAreaStyle(a: Pick<LandslideArea, 'state' | 'review'>, selected = false, fillOpacity = defaultLandslideFillOpacity, compact = false) {
   return {
     color: landslideBoundaryColor,
-    weight: selected ? 3.5 : 2.5,
+    weight: selected ? 3.5 : compact ? 1.6 : 2.5,
     dashArray: a.state === 'potential' ? '8 4' : undefined,
-    fillOpacity: landslideFillOpacity(fillOpacity),
+    fillOpacity: landslideFillOpacity(fillOpacity) * (compact && !selected ? .16 / defaultLandslideFillOpacity : 1),
     lineCap: 'round' as const,
     lineJoin: 'round' as const
   };

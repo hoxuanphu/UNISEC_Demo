@@ -199,7 +199,7 @@
 .workspace-shell #response-panel :is(.community.active .community-heading strong, .sidebar-scroll .object-row[aria-pressed='true'] strong) { color: var(--ws-text); }
 .workspace-shell #response-panel .sidebar-scroll .object-row strong { font-size: 14px; font-weight: 600; }
 .workspace-shell #response-panel .sidebar-scroll .object-row small { font-size: 13px; }
-.workspace-shell #response-panel .community p { margin-top: 4px; font-size: 13px; line-height: 1.5; }
+.workspace-shell #response-panel .community p { margin-top: 8px; font-size: 13px; line-height: 1.5; }
 .workspace-shell #response-panel .list-label { padding: 0 0 8px; font-size: 12px; }
 
 /* Filter chips: outlined; the active one is solid ink so it reads at a glance. */
@@ -326,7 +326,7 @@ body .modal-overlay .response-work-dialog .response-work-list li:has(> [aria-pre
 .workspace-shell .map-area :is(.map-location-heading, .layers-heading) :is(h2, strong, span:first-child) { font-size: 15px; font-weight: 600; }
 .workspace-shell .map-area :is(.map-location-heading, .layers-heading) .icon-button { width: 30px; height: 30px; min-height: 30px; border: 0; border-radius: 6px; background: none; color: var(--ws-muted); }
 .workspace-shell .map-area :is(.map-location-heading, .layers-heading) .icon-button:hover { background: var(--hover); color: var(--ws-text); }
-.workspace-shell .map-area .map-location-body { padding: 0 12px 12px; }
+.workspace-shell .map-area .map-location-body { padding: 0 16px 16px; }
 .workspace-shell .map-area .map-location-panel select { min-height: 34px; border-color: var(--card-line); border-radius: 8px; background: var(--card); }
 .workspace-shell .map-area .map-location-panel dl { gap: 0; margin: 10px 0; padding: 2px 14px; border: 1px solid var(--card-line); border-radius: 10px; background: var(--card); font-size: 13px; }
 .workspace-shell .map-area .map-location-panel dl > div { padding: 8px 0; }

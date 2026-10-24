@@ -17,14 +17,15 @@ import '../../features/map/layers-panel.css';
 
 type Props = {
   locale: Locale; layers: Record<string, boolean>; appearance: LayerAppearance; mapMode: '2d' | '3d';
-  onAppearance: (appearance: LayerAppearance) => void; onCompare: () => void;
+  onAppearance: (appearance: LayerAppearance) => void;
   hasFloodData: boolean; hasHLZData?: boolean; hasSelectedRoute: boolean; hasIncidentLayers: boolean;
   areaCount: number; onShowAreas: () => void; onReset: () => void;
   onToggleLayer: (id: string) => void; onClose: () => void;
+  hasLocalRoads?: boolean; onShowLocalRoads?: () => void;
 };
 type PreviewProps = { imageryPreview?: string; terrainOverlays?: ReturnType<typeof useTerrainOverlays>; hasTerrainGrid?: boolean; analysisImagery?: AnalysisImageryState };
 
-export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance, onCompare, hasFloodData, hasHLZData, hasSelectedRoute, hasIncidentLayers, areaCount, onShowAreas, onReset, onToggleLayer, onClose, imageryPreview, terrainOverlays, hasTerrainGrid = false, analysisImagery }: Props & PreviewProps): JSX.Element {
+export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance, hasFloodData, hasHLZData, hasSelectedRoute, hasIncidentLayers, areaCount, onShowAreas, onReset, onToggleLayer, onClose, imageryPreview, terrainOverlays, hasTerrainGrid = false, analysisImagery, hasLocalRoads, onShowLocalRoads }: Props & PreviewProps): JSX.Element {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const panelRef = useRef<HTMLElement>(null);
   const { setFillOpacity } = useLandslideAppearance();
@@ -50,6 +51,7 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
       {id === 'landslide' && areaCount > 0 && <small className="layer-count">{areaCount}</small>}
     </label>
     {id === 'landslide' && areaCount > 0 && <button className="icon-button layer-fit" onClick={onShowAreas} aria-label={t('Xem các vùng sạt lở', 'Fit landslide extents')} title={t('Xem các vùng sạt lở', 'Fit landslide extents')}><UiIcon name="fit" size={16}/></button>}
+    {id === 'localRoads' && <button className="icon-button layer-fit" onClick={onShowLocalRoads} aria-label={t('Xem đường trong xã Chế Tạo', 'Fit Chế Tạo local roads')} title={t('Xem đường trong xã Chế Tạo', 'Fit Chế Tạo local roads')}><UiIcon name="fit" size={16}/></button>}
   </div>;
   const bases: Array<[boolean, string]> = [[true, t('Ảnh nền', 'Imagery')], [false, t('Địa hình', 'Terrain')]];
   return <section className="layers-panel" id="map-layers-panel" ref={panelRef} role="dialog" aria-modal="false" aria-labelledby="map-layers-title">
@@ -60,6 +62,7 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
         {areaCount > 0 && <LandslideFillControl locale={locale} disabled={layers.landslide === false}/>}
         {row('status', t('Tình trạng đường', 'Road status'))}
         {row('roads', t('Mạng đường', 'Road network'))}
+        {hasLocalRoads && row('localRoads', t('Đường trong xã Chế Tạo', 'Chế Tạo local roads'))}
         {row('communities', t('Địa bàn dân cư', 'Communities'))}
         {hasSelectedRoute && row('route', t('Tuyến đang xem', 'Selected route'))}
         {hasFloodData && row('flood', t('Nghi ngập lũ quét', 'Possible flash flooding'))}
@@ -78,7 +81,6 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
         {analysisImagery.catalogState==='error' && <p className="analysis-note" role="status">{t('Chưa tải được danh sách ảnh.','Imagery catalog could not be loaded.')} <button type="button" className="text-button" onClick={analysisImagery.retryCatalog}>{t('Thử lại','Retry')}</button></p>}
         <AnalysisImageryControl locale={locale} layers={analysisImagery.layers} selection={analysisImagery.selection} onChange={analysisImagery.setSelection}/>
         {supportsBasemapTone(analysisImagery.layers) && analysisImagery.layers.some(layer=>layer.id===analysisImagery.selection.layer && layer.kind==='optical') && <label className="analysis-tone-choice"><input type="checkbox" checked={analysisImagery.balanceBasemap} onChange={event=>analysisImagery.setBalanceBasemap(event.target.checked)}/>{t('Cân màu nền theo Planet','Match basemap tone to Planet')}</label>}
-        <button className="text-button layer-compare-action" onClick={onCompare}>{t('So ảnh trước và sau sự kiện', 'Compare pre/post imagery')}</button>
       </details>}
       <details className="layer-section layer-context"><summary>{t('Điểm hỗ trợ và tham chiếu', 'Support and reference')}</summary>
         <fieldset className="map-layer-group"><legend className="sr-only">{t('Đối tượng bổ sung', 'Additional features')}</legend>

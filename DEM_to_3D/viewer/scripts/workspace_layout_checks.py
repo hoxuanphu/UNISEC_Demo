@@ -1,5 +1,6 @@
 """Check overlapping controls at the narrowest supported desktop map width."""
 from gis_browser_actions import map_tool
+from browser_preferences import use_vietnamese
 from playwright.sync_api import expect
 
 
@@ -11,7 +12,7 @@ def check_front(locator):
 
 
 def check_workspace_layout(browser, url, captures=None):
-    context = browser.new_context(viewport={'width': 1024, 'height': 768})
+    context = use_vietnamese(browser.new_context(viewport={'width': 1024, 'height': 768}))
     context.route('**/*', lambda r: r.continue_() if r.request.url.startswith(url + '/') else r.abort())
     page = context.new_page()
     try:
@@ -37,7 +38,7 @@ def check_workspace_layout(browser, url, captures=None):
                     check_front(button)
         trigger.click()
         assert search.bounding_box()['width'] >= 160, 'Search was squeezed by the toolbars'
-        search.fill('nam')
+        search.fill('che')
         expect(page.locator('.map-search-results')).to_have_css('opacity', '1')
         check_front(page.locator('.map-search-results [role=option]').first)
         if captures: page.screenshot(path=str(captures / 'workspace-narrow-search.png'))
@@ -48,6 +49,8 @@ def check_workspace_layout(browser, url, captures=None):
             controls = page.locator('.map-tools').bounding_box()
             box = page.locator(surface).bounding_box()
             assert box['y'] >= controls['y'] + controls['height'] + 8, (name, box, controls)
+            area=page.locator('.map-area').bounding_box()
+            assert box['y']+box['height'] <= area['y']+area['height']-15, (name, box, area)
         map_tool(page, 'Thông tin vị trí').click()
         legend, overview = page.locator('.map-bottom-bar'), page.locator('.map-overview')
         expect(overview).to_be_visible()

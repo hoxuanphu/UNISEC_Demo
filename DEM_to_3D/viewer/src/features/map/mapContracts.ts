@@ -4,6 +4,7 @@ import type { MutableRefObject } from 'react';
 import type { AnalysisArea, Community, Hazard, Locale, ResponseSite, RoadSegment, ScenarioRoute } from '../../types/dear';
 import type { TerrainMetadata } from '../../types/terrain';
 import type { LayerAppearance } from './layerAppearance';
+import type { LocalRoadAreaLink } from '../route-film/localNetwork';
 
 /** Shared display contract. It contains no Leaflet or Three.js objects. */
 export type MapScene = {
@@ -13,6 +14,10 @@ export type MapScene = {
   responseSites?: ResponseSite[];
   hazards: Hazard[];
   roads: RoadSegment[];
+  /** Separate local graph for map context and explicit point-to-point searches.
+   * It never changes the incident's assessed roads or village access routes. */
+  contextRoads?: RoadSegment[];
+  roadAreaLinks?: LocalRoadAreaLink[];
   selectedRoute: ScenarioRoute | null;
   selectedCommunityId: string | null;
   selectedObjectId: string | null;
@@ -64,8 +69,20 @@ export type ViewControls = {
 export type MapDisplayProps = {
   locale?: Locale;
   contextGeometry?: MapContextGeometry;
+  contextAlwaysVisibleAreaIds?: string[];
+  roadAreaLinks?: LocalRoadAreaLink[];
+  showRoadAreaLinks?: boolean;
   selectedContextAreaId?: string | null;
   onSelectContextArea?: (id:string)=>void;
+  /** Resident map: other unblocked routes, tappable to choose, and closure signs on blocked roads. */
+  alternativeRoutes?: import('../../types/dear').ScenarioRoute[];
+  onChooseRoute?: (id: string) => void;
+  roadAlerts?: import('../../types/dear').RoadSegment[];
+  /** Blocked corridor for comparison only; never offered as a route choice. */
+  comparisonRoute?: ScenarioRoute | null;
+  onInspectRoad?: (id: string) => void;
+  /** Hide context areas below this zoom, where they would only be specks. */
+  contextMinZoom?: number;
   /** Prepared EO rendering drawn above the basemap and below every vector layer. */
   analysisImagery?: { rasters: ImageryRaster[]; opacity: number; balanceBasemap?: boolean };
   scenarioProps?: MapScene;

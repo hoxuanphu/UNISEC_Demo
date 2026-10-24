@@ -16,7 +16,7 @@ export function MapAttribution({
   localSource,
   terrainDisplay,
   analysisSource,
-  fieldSource, osmReference
+  fieldSource, osmReference, showLabel = false
 }: {
   locale: Locale;
   state: BasemapState;
@@ -26,6 +26,7 @@ export function MapAttribution({
   analysisSource?: {name:string; acquired:string; credit:string};
   fieldSource?: string;
   osmReference?: boolean;
+  showLabel?: boolean;
 }): JSX.Element | null {
   const t = (vi: string, en: string) => (locale === 'vi' ? vi : en);
   const local = localMapSource();
@@ -57,6 +58,7 @@ export function MapAttribution({
           title={t('Nguồn bản đồ', 'Map sources')}
         >
           <UiIcon name="info" size={18} />
+          {showLabel && <span>{t('Nguồn', 'Sources')}</span>}
           {unavailable && (
             <span
               className="map-source-warning"

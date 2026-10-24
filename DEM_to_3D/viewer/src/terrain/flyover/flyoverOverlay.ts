@@ -7,6 +7,7 @@ export type OverlayFrame = {
   width: number; height: number; moment: FlyoverMoment; font: string;
   start: { label: string; screen: ScreenPoint }; end: { label: string; screen: ScreenPoint };
   head: ScreenPoint; stops: OverlayStop[]; attribution: string;
+  places?: Array<{ label: string; kind: 'community' | 'staging' | 'hlz'; screen: ScreenPoint }>;
 };
 
 /** Adds map annotations only. Never clear the caller's rendered terrain frame. */
@@ -20,6 +21,17 @@ export function drawFlyoverOverlay(ctx: CanvasRenderingContext2D, frame: Overlay
     ctx.fillStyle='#fff';ctx.fillText(value,point.x+13*scale,point.y);
   };
   const overview=moment.phase==='intro' || moment.phase==='final';
+  // Named places, as on the map: a disc in the place colour with a white rim, name beside it.
+  // An endpoint label already names a place at the same spot: draw that name once.
+  const endpoints=overview?[frame.start,frame.end].filter(point=>point.label&&point.screen.visible&&!point.screen.occluded):[];
+  for(const place of frame.places??[]){
+    if(!place.screen.visible||place.screen.occluded)continue;
+    const {x,y}=place.screen,r=8*scale;
+    ctx.fillStyle=place.kind==='hlz'?'#8c6a28':place.kind==='staging'?'#2e7a4d':'#4f6d8a';ctx.strokeStyle='#fff';ctx.lineWidth=1.8*scale;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+    if(place.kind==='hlz'){ctx.save();ctx.fillStyle='#fff';ctx.font=`700 ${10*scale}px ${font}`;ctx.textAlign='center';ctx.fillText('H',x,y+.5*scale);ctx.restore();}
+    if(!endpoints.some(point=>point.label===place.label||Math.hypot(point.screen.x-x,point.screen.y-y)<24*scale))label(place.label,place.screen);
+  }
   for(const point of frame.context?.closures??[]){
     if(!point.visible||point.occluded)continue;
     ctx.fillStyle='#d9574e';ctx.strokeStyle='#fff';ctx.lineWidth=1.5*scale;

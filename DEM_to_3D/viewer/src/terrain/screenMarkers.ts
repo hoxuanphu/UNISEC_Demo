@@ -3,17 +3,23 @@ import type { Community, Hazard, Locale, ResponseSite } from '../types/dear';
 import type { OverlayHit } from '../features/map/mapContracts';
 import {poiFrameSvg,poiMetrics,markerSize} from './poiFrame';
 import { mapSymbolSvg, type MapSymbolName } from './mapSymbols';
-import { layoutMarkerGroups, markerPriority, overlaps, type ScreenRect } from './markerLayout';
+import { layoutMarkerGroups, layoutPlaceMarkers, markerPriority, overlaps, type ScreenRect } from './markerLayout';
 import { markerPresentation } from './markerPresentation';
+import type { RoadSegment } from '../types/dear';
+import { roadCondition } from '../features/routes/roadConditions';
+import { roadConditionSvg } from '../features/map/roadConditionSvg';
 
 export type ScreenMarkerOptions = {
   communities: Community[]; hazards: Hazard[]; layers: Record<string, boolean>;
   responseSites?: ResponseSite[];
+  roads?: RoadSegment[];
   selectedCommunityId: string | null; selectedObjectId: string | null; locale: Locale;
   onSelect: (hit: OverlayHit) => void;
   interactive?: boolean;
   focusId?: string;
   allowCounts?: () => boolean;
+  presentation?: 'groups' | 'places';
+  routeStops?: Array<{x: number; y: number}>;
   appearance?: import('../features/map/layerAppearance').LayerAppearance;
   onPreviewFocus?: (point:{x:number;y:number})=>void;
   onExpandGroup?: (points: Array<{ x: number; y: number }>) => void;
@@ -23,6 +29,7 @@ type Marker = {
   id: string; hit: OverlayHit; name: string; symbol: MapSymbolName;
   button: HTMLButtonElement; label: HTMLSpanElement; icon: HTMLElement;
   count: HTMLSpanElement; point: { x: number; y: number }; selected: boolean; priority: number; width: number; labelEligible: boolean;
+  condition?: 'blocked' | 'risk';
 };
 
 /** Screen-sized, keyboard-accessible markers remain legible while the terrain zooms. */
@@ -38,6 +45,7 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
   };
   const layer = document.createElement('div');
   layer.className = 'map-marker-layer';
+  layer.dataset.presentation = options.presentation ?? 'groups';
   layer.inert = options.interactive === false;
   layer.dataset.basemap = layers.imagery === false ? 'terrain' : 'imagery';
   host.appendChild(layer);
@@ -47,7 +55,7 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
   let chooserTrigger: HTMLButtonElement | null = null;
   let chooserKey = '';
   let chooserAnchor = { x: 0, y: 0 };
-  const groupCanExpand = (members: Marker[]) => Boolean(options.onExpandGroup && options.canExpandGroup?.() !== false &&
+  const groupCanExpand = (members: Marker[]) => options.presentation !== 'places' && Boolean(options.onExpandGroup && options.canExpandGroup?.() !== false &&
     members.some(member => Math.hypot(member.point.x - members[0].point.x, member.point.y - members[0].point.y) > 1));
   const closeChooser = (restoreFocus = false): void => {
     chooser?.remove(); chooser = null; chooserKey = '';
@@ -66,7 +74,7 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
     chooser.setAttribute('aria-label', locale === 'vi' ? 'Chọn đối tượng' : 'Choose an object');
     const heading = document.createElement('div'); heading.className = 'map-object-chooser-heading';
     const title = document.createElement('span');
-    title.textContent = locale === 'vi' ? `${members.length} đối tượng tại đây` : `${members.length} features here`;
+    title.textContent = options.presentation === 'places' ? (locale === 'vi' ? 'Địa điểm tại đây' : 'Places here') : locale === 'vi' ? `${members.length} đối tượng tại đây` : `${members.length} features here`;
     const close = document.createElement('button'); close.type = 'button'; close.className = 'map-chooser-close';
     close.setAttribute('aria-label', locale === 'vi' ? 'Đóng danh sách điểm' : 'Close point list');
     close.textContent = '×'; close.onclick = event => { event.stopPropagation(); closeChooser(true); };
@@ -75,7 +83,7 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
     members.forEach(member => {
       const choice = document.createElement('button'); choice.type = 'button';
       choice.className = 'map-object-choice';
-      const icon = document.createElement('span'); icon.innerHTML = mapSymbolSvg(member.symbol);
+      const icon = document.createElement('span'); icon.innerHTML = member.condition ? roadConditionSvg(member.condition) : mapSymbolSvg(member.symbol);
       icon.style.color = getComputedStyle(member.button).getPropertyValue('--pin');
       icon.setAttribute('aria-hidden', 'true');
       const name = document.createElement('span'); name.textContent = member.name;
@@ -87,7 +95,9 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
       chooser.addEventListener(type, event => event.stopPropagation());
     const width = Math.min(280, host.clientWidth - 16);
     chooser.style.width = `${width}px`;
-    layer.appendChild(chooser);
+    // On phones a place picker belongs above the route sheet, not inside the
+    // lower map stacking context where the sheet can intercept its buttons.
+    (options.presentation === 'places' ? host.closest('.citizen-map') ?? layer : layer).appendChild(chooser);
     const height = Math.min(chooser.scrollHeight, 300, host.clientHeight - 16);
     chooser.style.maxHeight = `${height}px`;
     const r = marker.button.getBoundingClientRect(), area = host.getBoundingClientRect();
@@ -114,6 +124,7 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
   document.addEventListener('keydown', escape);
   document.addEventListener('focusin', dismissFocus);
   const add = (hit: OverlayHit, pos: { x: number; y: number }, name: string, kind: string, symbol: MapSymbolName, selected: boolean, labelVisible: boolean): void => {
+    if (hit.type !== 'hazard' && options.routeStops?.some(stop => Math.hypot(stop.x-pos.x, stop.y-pos.y) < 2)) return;
     const displayName = name;
     const button = document.createElement('button');
     button.className = `map-pin ${kind}${selected ? ' is-selected' : ''}`;
@@ -155,6 +166,14 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
     const name = locale === 'vi' ? h.name[0] : h.name[1];
     const selected = selectedPin === `hazard:${h.id}`;
     add({ type: 'hazard', id: h.id }, h.projected, name, `hazard ${h.kind}${h.observation === 'suspected' ? ' is-suspected' : ''}`, h.kind, selected, h.labelMode === 'show' || (h.labelMode !== 'hide' && selected));
+    const linked = layers.status ? options.roads?.filter(road => road.hazardIds?.includes(h.id)).map(roadCondition) ?? [] : [];
+    const condition = linked.includes('blocked') ? 'blocked' : linked.includes('risk') ? 'risk' : undefined;
+    if (condition) {
+      const marker = markers.at(-1)!;
+      marker.condition = condition;
+      marker.button.classList.add('has-road-condition');
+      marker.button.dataset.roadCondition = condition;
+    }
   });
   (options.responseSites ?? []).forEach(site => {
     if (!layers[site.kind]) return;
@@ -187,24 +206,43 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
   const controlRects = (): { controls: ScreenRect[]; labels: ScreenRect[] } => {
     const hostRect = host.getBoundingClientRect();
     const workspace = host.closest('.geodata-workspace, .workspace') ?? host.closest('.map-area') ?? host.parentElement;
-    const entries = Array.from(workspace?.querySelectorAll<HTMLElement>('#response-details,.geodata-detail,.geodata-map-toolbar,.geodata-map-zoom,.geodata-basemap,.scenario-card,.map-tools,.map-toolbar,.map-advanced-tools,.map-search-results,.map-help [data-popover],.map-bottom-bar,.map-reference,.basemap-status,.layers-panel,.profile-panel,.map-attribution,.map-source-popover,.map-tool-panel,.road-journey-panel,.map-location-panel,.map-measure-label,.map-panel-toggle,.revision-notice,.map-overview,.leaflet-tooltip,.leaflet-popup,.field-map-card,.field-selected-pin,.map-selected-reference, .notice-toast,.citizen-map-tools,.citizen-map-layers,.citizen-area-info,.citizen-pick-hint,.terrain-area-label') ?? [])
+    const entries = Array.from(workspace?.querySelectorAll<HTMLElement>('#response-details,.geodata-detail,.geodata-map-toolbar,.geodata-map-zoom,.geodata-basemap,.scenario-card,.map-tools,.map-toolbar,.map-advanced-tools,.map-search-results,.map-help [data-popover],.map-bottom-bar,.map-reference,.basemap-status,.layers-panel,.profile-panel,.map-attribution,.map-source-popover,.map-tool-panel,.road-journey-panel,.map-location-panel,.map-measure-label,.map-panel-toggle,.revision-notice,.map-overview,.leaflet-tooltip,.leaflet-popup,.field-map-card,.field-selected-pin,.map-selected-reference, .notice-toast,.citizen-map-tools,.citizen-map-layers,.citizen-area-info,.citizen-pick-hint,.citizen-map-summary,.citizen-map-context,.terrain-area-label,.road-condition-sign svg,.local-road-card') ?? [])
       .filter(el => !el.classList.contains('terrain-area-label') && !el.querySelector('.landslide-map-label') && el.getBoundingClientRect().height > 0).map(el => {
         const r = el.getBoundingClientRect();
-        return { tooltip: el.classList.contains('leaflet-tooltip'), rect: { x: r.x - hostRect.x, y: r.y - hostRect.y, width: r.width, height: r.height } };
+        return { tooltip: el.classList.contains('leaflet-tooltip') || Boolean(el.closest('.road-condition-sign')), rect: { x: r.x - hostRect.x, y: r.y - hostRect.y, width: r.width, height: r.height } };
       });
-    // Hover tooltips may displace labels, but must not hide the symbols beneath them.
+    // Map signs and hover tooltips constrain labels, never hide geographic
+    // features or the selected pin as if they were toolbar controls.
     return { controls: entries.filter(item => !item.tooltip).map(item => item.rect), labels: entries.filter(item => item.tooltip).map(item => item.rect) };
   };
   const update = (project: Projection): void => {
     lastProjection = project;
     const width = host.clientWidth, height = host.clientHeight;
     const { controls, labels: externalLabels } = controlRects();
-    const positions = markers.flatMap(marker => {
+    let positions = markers.flatMap(marker => {
       const position = project(marker.point);
       return position ? [{ id: marker.id, ...position, priority: marker.priority, selected: marker.selected, category: marker.symbol,
         featured: marker.hit.type === 'hazard' && marker.labelEligible }] : [];
     });
-    const layout = layoutMarkerGroups(positions, width, height, controls);
+    const stopRects = Array.from(host.querySelectorAll<HTMLElement>('.resident-route-pins > button')).map(pin => {
+      const rect = pin.getBoundingClientRect(), hostRect = host.getBoundingClientRect();
+      return {x: rect.x-hostRect.x, y: rect.y-hostRect.y, width: rect.width, height: rect.height};
+    });
+    controls.push(...stopRects);
+    if (options.presentation === 'places') {
+      const hostRect = host.getBoundingClientRect();
+      const closures: ScreenRect[] = [];
+      for (const symbol of host.querySelectorAll('.road-condition-sign svg')) {
+        const rect = symbol.getBoundingClientRect();
+        closures.push({ x: rect.x-hostRect.x, y: rect.y-hostRect.y, width: rect.width, height: rect.height });
+      }
+      // Village symbols and their overlap picker stay available. A secondary
+      // landing-site symbol yields to a nearby closure until the map is zoomed in.
+      positions = positions.filter(point => point.category !== 'hlz' || point.selected ||
+        !closures.some(rect => overlaps({ x: point.x-14, y: point.y-14, width: 28, height: 28 }, rect, 3)));
+      externalLabels.push(...closures);
+    }
+    const layout = (options.presentation === 'places' ? layoutPlaceMarkers : layoutMarkerGroups)(positions, width, height, controls);
     const pp=previewPoint?project(previewPoint):null;
     const previewGroup=previewId?layout.find(group=>group.members.some(member=>member.id===previewId)):null;
     const hidePreview=!!previewGroup||!pp||pp.x<12||pp.y<12||pp.x>width-12||pp.y>height-12||controls.some(r=>overlaps({x:pp.x-5,y:pp.y-5,width:10,height:10},r,0));
@@ -236,8 +274,8 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
       const { x, y } = group.anchor;
       const clustered = group.members.length > 1;
       const members = [marker, ...groups.get(marker.id)!.filter(member => member !== marker)];
-      const presentation = markerPresentation(members, options.allowCounts?.() ?? false);
-      const {half,tip}=poiMetrics(markerSize(clustered,marker.selected),marker.selected);
+      const presentation = options.presentation === 'places' ? 'single' : markerPresentation(members, options.allowCounts?.() ?? false);
+      const {half,tip}=poiMetrics(markerSize(options.presentation !== 'places' && clustered,marker.selected),marker.selected);
       const display = marker;
       const transform = `translate(${x - half}px,${y - tip}px)`;
       if (marker.button.style.transform !== transform) marker.button.style.transform = transform;
@@ -259,21 +297,23 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
       const description = clustered ? group.members.map(p => markerById.get(p.id)!.name).join(', ') : marker.name;
       if (marker.button.getAttribute('aria-description') !== description) marker.button.setAttribute('aria-description', description);
       marker.button.classList.toggle('is-preview', previewGroup?.anchor.id === marker.id);
-      marker.button.dataset.groupAction = clustered ? (groupCanExpand(members) ? 'zoom' : 'choose') : 'select';
+      const groupAction = clustered ? (groupCanExpand(members) ? 'zoom' : 'choose') : 'select';
+      if (marker.button.dataset.groupAction !== groupAction) marker.button.dataset.groupAction = groupAction;
       if (clustered && !groupCanExpand(members)) {
         if (marker.button.getAttribute('aria-haspopup') !== 'dialog') marker.button.setAttribute('aria-haspopup', 'dialog');
         const expanded = String(chooserTrigger === marker.button);
         if (marker.button.getAttribute('aria-expanded') !== expanded) marker.button.setAttribute('aria-expanded', expanded);
       }
       else { marker.button.removeAttribute('aria-haspopup'); marker.button.removeAttribute('aria-expanded'); }
-      if (marker.icon.dataset.symbol !== display.symbol) {
-        marker.icon.dataset.symbol = display.symbol;
-        marker.icon.innerHTML = mapSymbolSvg(display.symbol);
+      const iconKey = display.condition ?? display.symbol;
+      if (marker.icon.dataset.symbol !== iconKey) {
+        marker.icon.dataset.symbol = iconKey;
+        marker.icon.innerHTML = display.condition ? roadConditionSvg(display.condition) : mapSymbolSvg(display.symbol);
       }
       if (marker.icon.hidden) marker.icon.hidden = false;
       if (marker.count.hidden !== (presentation !== 'cluster')) marker.count.hidden = presentation !== 'cluster';
       if (marker.count.textContent !== String(group.members.length)) marker.count.textContent = String(group.members.length);
-      if (!marker.labelEligible || options.appearance?.labels === 'none' || (options.appearance?.labels === 'selected' && !marker.selected) || (clustered && presentation !== 'feature-overlap')) { if (!marker.button.classList.contains('is-label-hidden')) marker.button.classList.add('is-label-hidden'); return; }
+      if (!marker.labelEligible || options.appearance?.labels === 'none' || (options.appearance?.labels === 'selected' && !marker.selected) || (options.presentation !== 'places' && clustered && presentation !== 'feature-overlap')) { if (!marker.button.classList.contains('is-label-hidden')) marker.button.classList.add('is-label-hidden'); return; }
       const choices = [{ x: x + half + 4, y: y - tip + 4 }, { x: x - marker.width - half - 4, y: y - tip + 4 }, { x: x - marker.width / 2, y: y - tip - 26 }, { x: x - marker.width / 2, y: y + 8 }];
       const place = choices.find(p => p.x >= 6 && p.y >= 6 && p.x + marker.width <= width - 6 && p.y + 22 <= height - 6 && !occupied.some(r => overlaps({ ...p, width: marker.width, height: 22 }, r)));
       marker.button.classList.toggle('is-label-hidden', !place);

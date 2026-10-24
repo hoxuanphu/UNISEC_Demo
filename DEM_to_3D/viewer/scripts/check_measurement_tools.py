@@ -1,5 +1,6 @@
 """Exercise operator measurement tools, persistence, editing and map space."""
 from browser_preferences import use_vietnamese
+from network_browser_fixture import install_network_fixture
 from gis_browser_actions import map_tool
 import argparse
 from pathlib import Path
@@ -11,6 +12,7 @@ def run(url, chrome, captures):
         browser = p.chromium.launch(headless=True, **({'executable_path': chrome} if chrome else {}))
         context = use_vietnamese(browser.new_context(viewport={'width': 1366, 'height': 768}, permissions=['clipboard-read', 'clipboard-write']))
         context.route('**/*', lambda route: route.continue_() if route.request.url.startswith(url) else route.abort())
+        install_network_fixture(context,url)
         page = use_vietnamese(context.new_page())
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
@@ -200,7 +202,8 @@ def run(url, chrome, captures):
         page.keyboard.press('Enter')
         expect(panel.get_by_role('button', name='New', exact=True)).to_be_visible()
         panel.get_by_role('button', name='Close measurement', exact=True).click()
-        page.locator('.incident-priority-row').first.click()
+        page.locator('.workspace-nav button').nth(2).click()
+        page.locator('#response-panel .community').first.click()
         map_tool(page, 'Measure on 2D map').click()
         panel.get_by_role('button', name='Measure selected route', exact=True).click()
         expect(panel.locator('.map-measure-source')).to_be_visible()
@@ -208,7 +211,7 @@ def run(url, chrome, captures):
         assert page.locator('.map-measure-vertex').count() > 2
         panel.get_by_role('button', name='Close measurement', exact=True).click()
         page.locator('.workspace-nav button').first.click()
-        page.locator('.incident-area-link').click()
+        page.locator('.incident-overview-heading .detail-title button').click()
         map_tool(page, 'Measure on 2D map').click()
         panel.get_by_role('button', name='Measure assessment area', exact=True).click()
         expect(panel.locator('.map-measure-result')).to_contain_text('Perimeter')

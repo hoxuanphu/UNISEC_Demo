@@ -42,7 +42,11 @@ def run(url, chrome, captures):
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(url + '/?map=2d&offline=1&demoRole=manager')
         expect(page.locator('.incident-overview-heading')).to_be_visible(timeout=25000)
-        page.evaluate('(r)=>localStorage.setItem("dear.geodata.v1",JSON.stringify(r))', records)
+        page.evaluate('''records=>{
+            const data=JSON.parse(localStorage.getItem('dear.gis.v2'));
+            data.records=records;
+            localStorage.setItem('dear.gis.v2',JSON.stringify(data));
+        }''', records)
         page.reload()
         map_tool(page, 'Dữ liệu GIS').click()
         gis_task(page)
@@ -62,7 +66,7 @@ def run(url, chrome, captures):
         expect(symbol).to_have_count(0)
         expect(card).to_have_count(0)
         expect(page.locator('.geodata-map .field-map-marker')).to_have_count(3)
-        originals = page.evaluate('JSON.parse(localStorage.getItem("dear.geodata.v1")).map(r=>r.feature.geometry.coordinates)')
+        originals = page.evaluate('JSON.parse(localStorage.getItem("dear.gis.v2")).records.map(r=>r.feature.geometry.coordinates)')
         assert originals == [record['feature']['geometry']['coordinates'] for record in records]
         if captures:
             captures.mkdir(parents=True, exist_ok=True)
@@ -70,12 +74,12 @@ def run(url, chrome, captures):
         page.get_by_role('button', name='Đóng dữ liệu GIS', exact=True).click()
         expect(page.locator('.map-2d .map-point-cluster')).to_have_count(0)
         expect(page.locator('.map-2d .field-map-marker')).to_have_count(3)
-        page.get_by_role('button', name='Lớp bản đồ', exact=True).click()
-        main_mode = page.get_by_role('combobox', name='Hiển thị điểm', exact=True)
-        expect(main_mode).to_have_value('individual')
-        main_mode.select_option('group')
+        map_tool(page, 'Dữ liệu GIS').click()
+        gis_task(page)
+        expect(mode).to_have_value('individual')
+        mode.select_option('group')
+        page.get_by_role('button', name='Đóng dữ liệu GIS', exact=True).click()
         expect(page.locator('.map-2d .map-point-cluster')).to_have_count(1)
-        page.get_by_role('button', name='Đóng lớp bản đồ', exact=True).click()
         map_tool(page, 'Dữ liệu GIS').click()
         gis_task(page)
         expect(mode).to_have_value('group')

@@ -22,6 +22,9 @@
 .map-pin-icon {position:absolute;top:6px;left:6px;width:16px;height:16px;display:grid;place-items:center;color:#fff;pointer-events:none;transition:scale 120ms ease;}
 .map-pin-icon svg {width:16px;height:16px;}
 .map-pin-icon[hidden],.map-pin-count[hidden] {display:none;}
+.map-pin.has-road-condition:not(.is-selected) .map-pin-shape {visibility:hidden;}
+.map-pin.has-road-condition:not(.is-selected) .map-pin-icon {left:2px;top:2px;width:24px;height:24px;}
+.map-pin.has-road-condition:not(.is-selected) .map-pin-icon svg {width:24px;height:24px;}
 .map-pin.community {--pin:var(--sym-community);}
 .map-pin.community.is-priority {--pin:var(--sym-priority);}
 .map-pin.landslide {--pin:var(--sym-landslide);}

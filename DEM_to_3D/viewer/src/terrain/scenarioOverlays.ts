@@ -19,6 +19,8 @@ import { mapLayerOrder } from '../features/map/mapLayerOrder';
 import { defaultLayerAppearance, showRoad, type LayerAppearance } from '../features/map/layerAppearance';
 
 import type { OverlayHit } from '../features/map/mapContracts';
+import { contextRoadStyle } from '../features/map/contextRoadStyle';
+import { roadCondition } from '../features/routes/roadConditions';
 
 type ScenarioOverlayOptions = {
   surfaceFrames?: TerrainMetadata[];
@@ -29,6 +31,7 @@ type ScenarioOverlayOptions = {
   communities: Community[];
   hazards: Hazard[];
   roads: RoadSegment[];
+  contextRoads?: RoadSegment[];
   aoi?: AnalysisArea;
   selectedRoute: ScenarioRoute | null;
   selectedCommunityId: string | null;
@@ -113,7 +116,9 @@ export function buildScenarioOverlays(options: ScenarioOverlayOptions): THREE.Gr
     const roadGroup = new THREE.Group();
     roadGroup.name = 'scenario-roads';
 
-    routeRoadDisplay(roads, selectedRoute, Boolean(layers.route)).forEach(({road, sourceId, routeSelected}) => {
+    const contextIds = new Set(options.contextRoads?.map(road=>road.id));
+    routeRoadDisplay([...roads,...(options.contextRoads??[])], selectedRoute, Boolean(layers.route)).forEach(({road, sourceId, routeSelected}) => {
+      if (contextIds.has(sourceId) && layers.localRoads===false && !routeSelected) return;
       if (road.points.length < 2) return;
 
       const densePoints = terrainDrapePoints(road.points, options.surfaceFrames ?? [metadata]);
@@ -123,33 +128,38 @@ export function buildScenarioOverlays(options: ScenarioOverlayOptions): THREE.Gr
       const routeVisible = Boolean(isPartOfSelectedRoute && layers.route);
       if (!layers.roads && !routeVisible) return;
       const appearance = options.appearance ?? defaultLayerAppearance;
-      if (!showRoad(road.status, Boolean(routeVisible || isRoadSelected), appearance.roads)) return;
+      const condition = roadCondition(road);
+      const hasWarning = !!layers.status && condition !== 'open';
+      if (!showRoad(condition, Boolean(routeVisible || isRoadSelected), appearance.roads)) return;
 
       const runs = drapedRuns(densePoints, roadSurfaceOffsetM);
 
       let lineColor: THREE.ColorRepresentation = routeVisible ? roadColors.selected : (options.appearance?.roadPalette === 'schematic' ? '#58c477' : layers.imagery ? roadColors.networkImagery : roadColors.networkTerrain);
       // Route selection must preserve the warning on blocked or uncertain segments.
-      if (layers.status && road.status === 'blocked') lineColor = roadColors.blocked;
-      if (layers.status && road.status === 'uncertain') lineColor = roadColors.uncertain;
-      const lineWidth = routeVisible || isRoadSelected ? roadStroke.emphasis : roadStroke.normal;
+      if (hasWarning) lineColor = condition === 'blocked' ? roadColors.blocked : roadColors.uncertain;
+      const guided = routeVisible && road.status!=='blocked';
+      if (guided) lineColor=roadColors.selected;
+      const lineWidth = guided ? 5 : routeVisible || isRoadSelected ? roadStroke.emphasis : roadStroke.normal;
+      const context = contextIds.has(sourceId) && !routeVisible ? contextRoadStyle(road,14,!!layers.imagery,!!layers.status,isRoadSelected,appearance.networkOpacity) : null;
       const addLine = (color: THREE.ColorRepresentation, width: number, casing: boolean): void => {
         for (const positions of runs) {
           const geometry = surfaceLineGeometry(positions);
-          const opacity = routeVisible || isRoadSelected || (layers.status && road.status !== 'open') ? 1 : appearance.networkOpacity;
-          const material = stabiliseSurfaceLine(new LineMaterial({ color, linewidth: width, depthTest: true, depthWrite: false, transparent: true, opacity,
-            dashed: !casing && layers.status && road.status === 'uncertain', dashSize: 100, gapSize: 70 }));
+          const opacity = routeVisible || isRoadSelected || hasWarning ? 1 : appearance.networkOpacity;
+          const material = stabiliseSurfaceLine(new LineMaterial({ color:context ? casing ? context.casing : context.color : color,
+            linewidth:context ? casing ? context.casingWidth : context.weight : width, depthTest: true, depthWrite: false, transparent: true, opacity:context ? context.opacity * (casing ? .7 : 1) : opacity,
+            dashed: !casing && !guided && (context ? context.dashed : hasWarning && condition !== 'blocked'), dashSize: 100, gapSize: 70 }));
           material.resolution.set(options.resolution?.width ?? 1440, options.resolution?.height ?? 900);
           const line = new Line2(geometry, material);
           line.computeLineDistances();
-          const order = layers.status && road.status !== 'open' ? mapLayerOrder.roadStatus : routeVisible || isRoadSelected ? mapLayerOrder.route : mapLayerOrder.roads;
+          const order = hasWarning ? mapLayerOrder.roadStatus : routeVisible || isRoadSelected ? mapLayerOrder.route : mapLayerOrder.roads;
           line.renderOrder = order * 2 + (casing ? 0 : 1);
-          line.userData = { type: 'road', id: sourceId, segmentId: road.id, casing };
+          line.userData = { type: 'road', id: sourceId, segmentId: road.id, casing, context:contextIds.has(sourceId) };
           roadGroup.add(line);
         }
       };
-      const hasWarning = layers.status && road.status !== 'open';
       // A route-colored casing under warning dashes looks like two overlapping routes.
-      addLine(isRoadSelected ? roadColors.inspectedCasing : routeVisible && !hasWarning ? roadColors.selectedCasing : roadColors.neutralCasing, lineWidth + (isRoadSelected ? roadStroke.inspectedCasing : roadStroke.casing), true);
+      addLine(guided ? hasWarning ? roadColors.uncertain : roadColors.selectedCasing : hasWarning && condition === 'blocked' ? roadColors.neutralCasing : isRoadSelected ? roadColors.inspectedCasing : routeVisible && !hasWarning ? roadColors.selectedCasing : roadColors.neutralCasing,
+        guided ? hasWarning ? 9 : 7.5 : lineWidth + (isRoadSelected ? roadStroke.inspectedCasing : roadStroke.casing), true);
       addLine(lineColor, lineWidth, false);
     });
 

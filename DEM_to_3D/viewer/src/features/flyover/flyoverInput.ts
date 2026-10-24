@@ -23,6 +23,8 @@ export type FlyoverInput = {
   imagery: ImageryRaster[];
   imageryOpacity: number;
   imageryLabel: Localized;
+  /** Named places drawn into every frame, so an exported video reads like the map. */
+  places?: Array<{ name: Localized; kind: 'community' | 'staging' | 'hlz'; projected: { x: number; y: number } }>;
 };
 
 const day = (iso: string) => { const [y, m, d] = iso.slice(0, 10).split('-'); return `${Number(d)}/${Number(m)}/${y}`; };
@@ -78,6 +80,10 @@ export function buildFlyoverInput(options: {
     stops,
     areas,
     imagery, imageryOpacity:selected?.opacity??1,
-    imageryLabel: dates ? [`ảnh PlanetScope ${dates}`, `PlanetScope ${dates}`] : ['ảnh vệ tinh', 'satellite imagery']
+    imageryLabel: dates ? [`ảnh PlanetScope ${dates}`, `PlanetScope ${dates}`] : ['ảnh vệ tinh', 'satellite imagery'],
+    places: [
+      ...communities.map(community => ({ name: [community.name, community.name] as Localized, kind: 'community' as const, projected: community.projected })),
+      ...responseSites.map(site => ({ name: site.name, kind: site.kind, projected: site.projected })),
+    ]
   };
 }

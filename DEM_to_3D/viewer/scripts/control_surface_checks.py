@@ -1,5 +1,6 @@
 """Check English controls in both themes and all fonts, including narrow panels."""
 from gis_browser_actions import map_tool
+from browser_preferences import use_vietnamese
 from playwright.sync_api import expect
 from itertools import product
 from incident_panel_checks import check_incident_layout
@@ -7,7 +8,7 @@ from incident_panel_checks import check_incident_layout
 
 def check_control_surfaces(browser, url, captures=None):
     for theme, font in product(['light', 'dark'], ['classic', 'plex', 'modern', 'source']):
-        context = browser.new_context(viewport={'width': 1366, 'height': 768})
+        context = use_vietnamese(browser.new_context(viewport={'width': 1366, 'height': 768}))
         context.add_init_script(f"localStorage.setItem('dear.theme', '{theme}')")
         context.add_init_script(f"localStorage.setItem('dear.font-choice', '{font}')")
         context.route('**/*', lambda r: r.continue_() if r.request.url.startswith(url + '/') else r.abort())

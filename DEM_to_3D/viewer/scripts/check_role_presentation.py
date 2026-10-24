@@ -20,6 +20,8 @@ def run(base,chrome=None,captures=None):
         if page.evaluate('document.fullscreenEnabled'):
             page.wait_for_function('document.fullscreenElement === document.documentElement')
         switch=page.locator('.app-header').get_by_role('button',name='Switch role',exact=True)
+        expect(switch).to_have_count(0)
+        page.get_by_role('button',name='Account',exact=True).click()
         expect(switch).to_be_visible()
         assert page.locator('.workspace').bounding_box()['width']==page.viewport_size['width']
         switch.click()
@@ -30,6 +32,8 @@ def run(base,chrome=None,captures=None):
         page.get_by_role('button',name='Enter app',exact=True).click()
         expect(page.locator('.citizen-workspace')).to_be_visible()
         assert json.loads(page.evaluate('localStorage.getItem("dear.demo-session.v1")'))['name']=='A Phủ demo'
+        nav=page.locator('.citizen-mobile-switch')
+        expect(page.locator('.citizen-map')).to_be_visible()
         for width,height in [(1440,960),(390,844),(320,640),(1440,650)]:
             page.set_viewport_size({'width':width,'height':height})
             for theme in ['light','dark']:
@@ -41,12 +45,12 @@ def run(base,chrome=None,captures=None):
                 for control in page.locator('.citizen-header button').all():
                     box=control.bounding_box()
                     assert box and box['x']>=frame['x'] and box['x']+box['width']<=frame['x']+frame['width']+1,box
-                expect(page.locator('.citizen-panel')).to_be_visible()
-                expect(page.locator('.citizen-map')).not_to_be_visible()
-                page.locator('.citizen-mobile-switch').get_by_role('button',name='Map',exact=True).click()
+                nav.get_by_role('button',name='Map',exact=True).click()
                 expect(page.locator('.citizen-map')).to_be_visible()
                 expect(page.locator('.citizen-map .leaflet-container')).to_be_visible()
-                page.locator('.citizen-mobile-switch').get_by_role('button',name='Information',exact=True).click()
+                nav.get_by_role('button',name='Road information',exact=True).click()
+                expect(page.locator('.citizen-panel')).to_be_visible()
+                expect(page.locator('.citizen-map')).not_to_be_visible()
                 page.get_by_role('button',name='Report an observation',exact=True).click()
                 expect(page.locator('.citizen-report-form textarea')).to_be_visible()
                 if captures:
@@ -54,7 +58,9 @@ def run(base,chrome=None,captures=None):
                     page.screenshot(path=str(captures/f'resident-{width}-{height}-{theme}.png'))
         page.reload()
         expect(page.locator('.citizen-workspace')).to_be_visible()
-        expect(page.get_by_role('button',name='Switch role',exact=True)).to_have_attribute('title','A Phủ demo')
+        account=page.get_by_role('button',name='Account',exact=True)
+        expect(account).to_have_attribute('title','A Phủ demo')
+        account.click()
         page.get_by_role('button',name='Switch role',exact=True).click()
         expect(page.get_by_label('Your name',exact=True)).to_have_value('A Phủ')
         page.get_by_role('radio',name='Response coordinator',exact=False).check()

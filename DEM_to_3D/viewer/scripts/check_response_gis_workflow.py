@@ -1,17 +1,19 @@
 """Coordinator map -> GIS editing, new response features and operational state checks."""
 from browser_preferences import use_vietnamese
+from network_browser_fixture import install_network_fixture
 from gis_browser_actions import map_tool
 from gis_browser_actions import gis_task, publish_draft, published_edits, scenario_properties
 import argparse,json
 from pathlib import Path
 from playwright.sync_api import sync_playwright,expect
 def run(url,chrome,captures=None):
- packet=json.loads((Path(__file__).parent.parent/'public/scenarios/che-tao/v0.3/incident.json').read_text(encoding='utf-8'))
+ packet=json.loads((Path(__file__).parent.parent/'src/data/fixtures/che-tao-network.json').read_text(encoding='utf-8'))
  hazard=packet['hazards'][0];site=next(s for s in packet['responseSites'] if s['kind']=='hlz')
  with sync_playwright() as p:
   browser=p.chromium.launch(executable_path=chrome,headless=True)
   context=use_vietnamese(browser.new_context(viewport={'width':1440,'height':960}))
   context.route('**/*',lambda r:r.continue_() if r.request.url.startswith(url+'/') else r.abort())
+  install_network_fixture(context,url)
   page=use_vietnamese(context.new_page());errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   page.goto(url+'/?map=2d&offline=1&demoRole=manager')
   expect(page.locator('.incident-overview-heading')).to_be_visible(timeout=30000)
@@ -21,6 +23,9 @@ def run(url,chrome,captures=None):
    row=workspace.locator('.scenario-feature-row').filter(has_text=name).first
    task=row.evaluate("node => node.closest('#geo-panel-layers') ? 'data' : node.closest('[aria-label=\"Đánh giá đường\"]') ? 'roads' : 'areas'")
    gis_task(page, task)
+   collection=workspace.locator('.geodata-scenario-data')
+   if row.evaluate("node=>!!node.closest('.geodata-scenario-data')") and collection.get_attribute('open') is None:
+    collection.locator(':scope > summary').click()
    group=row.locator('xpath=..')
    if group.evaluate("node => node.tagName === 'DETAILS'") and group.get_attribute('open') is None:group.locator('summary').click()
    row.click()
@@ -86,7 +91,8 @@ def run(url,chrome,captures=None):
   # Record a survey, then move the landing site: the new position must be unassessed.
   choose(site['name'][0])
   scenario_properties(card).get_by_label('Tình trạng khảo sát',exact=True).select_option('assessed')
-  card.get_by_label('Nguồn và kết quả khảo sát',exact=True).fill('Tổ khảo sát A, kiểm tra vị trí ban đầu.')
+  card.locator('.status-optional-note > summary').click()
+  card.get_by_label('Ghi chú',exact=True).fill('Tổ khảo sát A, kiểm tra vị trí ban đầu.')
   card.get_by_role('button',name='Lưu thay đổi',exact=True).click()
   page.get_by_role('dialog',name='Cập nhật đối tượng?',exact=True).get_by_role('button',name='Cập nhật',exact=True).click()
   card.get_by_role('button',name='Sửa tọa độ',exact=True).click()
@@ -194,6 +200,7 @@ def run(url,chrome,captures=None):
   page.get_by_role('button',name='Đóng dữ liệu GIS',exact=True).click()
   page.evaluate("(key)=>localStorage.setItem(key,JSON.stringify({applied:true,at:new Date().toISOString()}))",'dear.scenario-revision.v1:'+packet['datasetVersion'])
   page.reload();expect(page.locator('.incident-overview-heading')).to_be_visible(timeout=30000)
+  page.get_by_role('button',name='Sự kiện đang xem',exact=True).click()
   page.get_by_role('button',name='Nhật ký sự kiện',exact=True).click()
   page.get_by_role('radio',name='Đánh giá ban đầu',exact=False).evaluate('(input)=>input.click()')
   expect(page.locator('.revision-notice')).to_be_visible()
@@ -205,6 +212,7 @@ def run(url,chrome,captures=None):
   expect(card.get_by_role('button',name='Sửa tọa độ',exact=True)).to_have_count(0)
   expect(card.get_by_role('button',name='Đổi tên',exact=True)).to_have_count(0)
   page.get_by_role('button',name='Đóng dữ liệu GIS',exact=True).click()
+  page.get_by_role('button',name='Sự kiện đang xem',exact=True).click()
   page.get_by_role('button',name='Nhật ký sự kiện',exact=True).click()
   page.get_by_role('radio',name='Sau báo cáo mới',exact=False).evaluate('(input)=>input.click()')
   expect(page.locator('.revision-notice')).to_have_count(0)

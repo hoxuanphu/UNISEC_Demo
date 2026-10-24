@@ -30,6 +30,8 @@ def run(url,chrome,captures):
   resident_identity=page.evaluate("localStorage.getItem('dear.demo-session.v1')")
   expect(page.locator('.citizen-workspace')).to_be_visible();assert page.get_by_role('button',name='Ghi nhận gửi đến',exact=True).count()==0
   # Village access summaries are separate from the explicit start/end directions form.
+  page.locator('.citizen-mobile-switch').get_by_role('button',name='Thông tin đường',exact=True).click()
+  page.get_by_role('button',name='Đường về thôn, bản',exact=True).click()
   card=page.locator('.citizen-route');expect(card).to_be_visible()
   expect(card.locator('.citizen-route-verdict')).to_have_text(re.compile('Chưa ghi nhận đoạn bị chặn|Có đoạn cần kiểm tra|Tuyến đang có đoạn bị chặn'))
   expect(card.locator('.citizen-route-advice')).not_to_be_empty()
@@ -76,9 +78,9 @@ def run(url,chrome,captures):
   map_tool(page, 'Tìm đường giữa hai điểm').click()
   journey=page.get_by_role('region',name='Tìm đường giữa hai điểm',exact=True)
   start=journey.get_by_label('Điểm đầu',exact=True)
-  start.select_option(start.locator('option[value^="site:"]').first.get_attribute('value'))
+  start.select_option('local:place-23')
   end=journey.get_by_label('Điểm cuối',exact=True)
-  end.select_option(end.locator('option[value^="community:"]').first.get_attribute('value'))
+  end.select_option('local:place-25')
   expect(journey.locator('.journey-result')).to_be_visible();expect(journey).to_contain_text('km')
   journey.get_by_role('button',name='Mặt cắt địa hình',exact=True).click()
   expect(page.get_by_role('region',name='Địa hình dọc tuyến',exact=True)).to_be_visible(timeout=15000)

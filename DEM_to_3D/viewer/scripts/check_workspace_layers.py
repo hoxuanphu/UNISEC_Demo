@@ -55,7 +55,16 @@ def run(url, chrome):
         assert page.locator('.sidebar').bounding_box()['x'] < page.locator('.map-area').bounding_box()['x']
         expect(page.locator('.landslide-area')).to_have_count(2)
         expect(page.locator('.map-reference-point')).to_have_count(1)
-        page.locator('.landslide-area').last.click()
+        # Select the polygon through an uncovered pixel. A road crossing its
+        # centre correctly takes precedence at that centreline.
+        point=page.locator('.landslide-area').last.evaluate('''node=>{
+            const box=node.getBoundingClientRect();
+            for(let y=box.top+3;y<box.bottom-3;y+=3)for(let x=box.left+3;x<box.right-3;x+=3)
+                if(document.elementFromPoint(x,y)===node)return {x,y};
+            return null;
+        }''')
+        assert point,'Polygon has no selectable pixel outside the road hit targets'
+        page.mouse.click(point['x'],point['y'])
         card=page.get_by_role('region',name='Vùng sạt lở',exact=True)
         expect(card).to_be_visible()
         page.get_by_role('button',name='Ẩn bảng thông tin',exact=True).click()
@@ -112,8 +121,17 @@ def run(url, chrome):
         page.get_by_role('button',name='Bản đồ',exact=True).click()
         expect(page.locator('.landslide-area')).to_have_count(2)
         expect(page.locator('.map-reference-point')).to_have_count(0)
-        # Resident default now shows the published route to the selected settlement.
-        expect(page.locator('.map-road-route-line')).to_have_count(4)
+        # Inspect the published village route separately from the local A/B map.
+        nav=page.locator('.citizen-mobile-switch')
+        nav.get_by_role('button',name='Thông tin đường',exact=True).click()
+        page.get_by_role('button',name='Đường về thôn, bản',exact=True).click()
+        nav.get_by_role('button',name='Bản đồ',exact=True).click()
+        # All access sections are blocked after the accepted field report. A
+        # resident must never see that corridor as a blue suggested route.
+        expect(page.locator('.map-road-route-line')).to_have_count(0)
+        blocked=page.locator('.map-road-network-line[data-road-status="blocked"]')
+        expect(blocked.first).to_be_attached()
+        assert blocked.evaluate_all('nodes=>nodes.every(n=>n.getAttribute("stroke")==="#d96552")')
         page.locator('.citizen-map-layers summary').click()
         page.get_by_label('Vùng và điểm sạt lở',exact=True).uncheck()
         expect(page.locator('.landslide-area')).to_have_count(0)

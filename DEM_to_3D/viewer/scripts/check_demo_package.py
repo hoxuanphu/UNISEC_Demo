@@ -51,7 +51,7 @@ def check_english_startup(base, chrome, captures=None):
         page.reload()
         expect(page.locator('html')).to_have_attribute('lang', 'en')
         expect(page.locator('.workspace-nav').get_by_role('button', name='Roads', exact=True)).to_be_visible(timeout=30000)
-        page.get_by_role('button', name='Settings', exact=True).click()
+        page.get_by_role('button', name='Account', exact=True).click()
         page.get_by_role('button', name='Switch role', exact=True).click()
         page.get_by_label('Your name', exact=True).fill('Language test')
         page.get_by_role('button', name='Enter app', exact=True).click()
@@ -136,6 +136,9 @@ def run(archive, chrome=None, captures=None, video=None):
     from check_route_profile_film import run as profile
     from check_gis_draft_publish import run as gis
     from check_citizen_mobile import run as resident
+    from check_citizen_navigation import run as resident_navigation
+    from check_citizen_photos import run as resident_photos
+    from check_main_local_roads import run as main_local_roads
     from check_cartographic_evidence import run as evidence
     from check_flyover import run as film
     from check_local_route_film import run as local_film
@@ -213,6 +216,9 @@ def run(archive, chrome=None, captures=None, video=None):
                              ('profile and film camera', lambda: profile(base, chrome, captures)),
                              ('GIS edit/publish', lambda: gis(base, chrome, captures)),
                              ('resident photo/audio/report', lambda: resident(base, chrome, captures)),
+                             ('resident route advice and warnings', lambda: resident_navigation(base, chrome, captures)),
+                             ('resident capture metadata and approved photos', lambda: resident_photos(base, chrome, captures)),
+                             ('main map local roads and directions', lambda: main_local_roads(base, chrome, captures)),
                              ('Planet/field photos and failure recovery', lambda: evidence(base, chrome, captures)),
                              ('MP4 encoding and decoded frames', lambda: film(base, chrome, video, lang='en'))]
                     for name, check in steps:

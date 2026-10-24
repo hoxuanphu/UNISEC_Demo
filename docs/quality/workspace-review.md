@@ -8,6 +8,7 @@
 
 - Mỗi push/PR: kiểm dữ liệu, unit/Python tests, audit, build, gói offline và các luồng browser chính: ứng phó, nhập GIS, duyệt bản nháp, vùng sạt lở, người dân mobile, nền bản đồ, ký hiệu, chọn bộ dữ liệu và mở gói offline. Kiểm tra chọn từng điểm và đồng bộ liên tab chạy với Vite.
 - Khi thay đổi nhiều về giao diện hoặc trước bàn giao: chọn **Run workflow → Run extended UI and session checks**. Bộ mở rộng kiểm font/theme, bàn phím, khoảng cách, công cụ phụ và phiên 2D/3D. Có thể chạy riêng script liên quan khi sửa lỗi.
+- Điều hướng người dân, chọn tuyến thay thế, cảnh báo đường, EXIF/GPS khi chụp và ảnh đã duyệt được kiểm trên bản production. Mạng đường trong xã được kiểm riêng ở 2D/3D, gồm chọn đoạn và tìm tuyến. Bộ kiểm tra gói Windows chạy lại các luồng này bằng runtime đi kèm với Internet bị chặn.
 - Kiểm tra nghiệp vụ giữ riêng vùng nguy cơ/vết đã sạt, AOI, điểm báo cáo và tình trạng đường. Khoanh polygon không tự kết luận đường bị chặn. Thay đổi GIS chỉ áp dụng sau khi duyệt toàn bộ bản nháp.
 
 ## Tài liệu và ảnh

@@ -1,7 +1,9 @@
-import { photoLimits, type FieldPhoto } from './model';
+import { photoLimits, type AppPhotoCapture, type FieldPhoto } from './model';
+import { validAppPhotoCapture } from './captureMetadata';
 
 /** Read only uploaded bytes. EXIF is provenance, never an automatic change to the observed location. */
-export async function readFieldPhoto(file: File): Promise<FieldPhoto> {
+export async function readFieldPhoto(file: File, capture?: AppPhotoCapture): Promise<FieldPhoto> {
+  if (capture !== undefined && !validAppPhotoCapture(capture)) throw new Error('photo-capture');
   if (file.size <= 0 || file.size > photoLimits.bytes)
     throw new Error('photo-file');
   const raw = new Uint8Array(await file.arrayBuffer());
@@ -107,6 +109,7 @@ export async function readFieldPhoto(file: File): Promise<FieldPhoto> {
       preview,
       sha256,
       exif,
+      ...(capture ? {capture} : {}),
       addedAt: new Date().toISOString()
     };
   } finally {

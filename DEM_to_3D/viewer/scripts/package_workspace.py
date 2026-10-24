@@ -108,12 +108,12 @@ if (Test-Path -LiteralPath $bundled) {
 } else { throw 'Python 3.11+ is required for this non-portable package.' }
 exit $LASTEXITCODE
 '''
-    files['README.md'] = ("""# DEAR — offline competition demo
+    files['README.md'] = ("""# DEAR offline
 
 1. Extract the entire ZIP into a writable folder on the laptop.
 2. Double-click Start-DEAR.cmd. The app opens in its own window without a server console.
 3. The app starts in 3D, defaults to English and remembers your language choice. Choose Response coordinator, then Enter app.
-   Choose Resident instead to demonstrate submitting a field report.
+   Choose Resident to submit a field report.
 
 If the browser does not open, visit http://127.0.0.1:5212/.
 Do not open dist/index.html directly. For startup diagnostics, open Start-Diagnostics.cmd; logs are in user-data/launcher.log.
@@ -134,18 +134,21 @@ source attributes may retain their source language.
 Reports and GIS edits are stored in this browser, without cross-device sync.
 Export anything you need before resetting the session. PDF uses browser Print.
 
-Chế Tạo road network: open the map toolbar link, choose A/B or pick on the map,
+On the main map, use Directions to choose local villages, response sites or a point
+on the map. Layers includes a separate local-road toggle and a fit control for Chế Tạo.
+Select a road to inspect its condition and find a local route.
+For a 3D journey, open the direct link below and choose A/B or pick on the map,
 then Play journey or Export MP4 (25 seconds by default, wide oblique 3D view).
 The timeline stays visible for seeking, pausing and speed changes. The final shot
 shows the whole road network. Yellow polygons match the map; local survey photos
 are illustrative, not evidence for the selected location.
 Direct link after launch: http://127.0.0.1:5212/?workspace=routes
-Road colours in this separate KMZ demonstration are not field verified.
+Road conditions from the KMZ source have not been field verified.
 
-Take a copy of the ZIP and the English backup MP4 on a USB drive. Rehearse on
-the actual laptop and projector with Wi-Fi disabled.
-The scenario includes simulated/unreviewed operational data; sources are shown
-in the app. Version and SHA-256 checksums: release.json.
+Keep a copy of the ZIP on a USB drive. Test on the actual laptop with Wi-Fi disabled.
+Some included incident and road conditions are authored and unreviewed. Source
+records retain their provenance and review status. Version and SHA-256 checksums:
+release.json.
 Licenses: licenses/ and runtime/LICENSE.txt.
 """).encode('utf8')
     files['licenses/lucide.txt'] = (ROOT / 'vendor/lucide/LICENSE').read_bytes()

@@ -128,7 +128,7 @@
   .workspace .app-header .header-actions { gap: 2px; }
   .workspace .app-header .header-actions > :is(.button,.icon-button),
   .workspace .app-header :is(.notification-anchor,.settings-anchor,.account-anchor) > .icon-button { width: 32px; height: 32px; min-height: 32px; padding: 5px; flex: none; }
-  .workspace .app-header :is(.header-report-button, .header-role-button) > span { display: none; }
+  .workspace .app-header .header-report-button > span { display: none; }
   .workspace .app-header .brand-symbol, .workspace .app-header .brand-symbol svg { width: 24px; height: 24px; }
 }
 .app-header[inert] :is(.incident-context, .header-actions) { opacity: .5; }
@@ -141,10 +141,5 @@
 .workspace-shell .brand { font-size:16px; letter-spacing:.04em; }
 
 /* Settings: signed-in role, display options and utilities. */
-.settings-account { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--ws-line); }
-.settings-avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--fill); color: var(--ws-muted); }
-.settings-account-name { display: grid; gap: 1px; min-width: 0; }
-.settings-account-name strong { overflow: hidden; color: var(--ws-text); font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Role switching is part of the demo flow and stays visible outside Settings. */
-.workspace .app-header .header-role-button { gap: 6px; border-color: var(--header-stroke); font-weight: 600; }

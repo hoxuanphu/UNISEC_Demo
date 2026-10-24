@@ -1,5 +1,6 @@
 """Exercise the selected-point inspector and linked manual extents in the real Demo UI."""
 from browser_preferences import use_vietnamese
+from gis_browser_actions import clear_prepared_survey
 from gis_browser_actions import map_tool, open_header_help
 from gis_browser_actions import gis_task, apply_boundary, download_geometry
 import argparse, json, tempfile, uuid
@@ -20,8 +21,14 @@ def run(url, chrome, captures):
         context.route('**/*', lambda route: route.continue_() if route.request.url.startswith(url + '/') else route.abort())
         page = use_vietnamese(context.new_page()); errors=[]; page.on('pageerror', lambda e: errors.append(str(e)))
         page.goto(url + '/?map=2d&offline=1&demoRole=manager')
+        expect(page.locator('.incident-overview-heading')).to_be_visible(timeout=30000)
+        clear_prepared_survey(page)
         expect(page.locator('.incident-overview-heading')).to_be_visible(timeout=25000)
-        page.evaluate('(records)=>localStorage.setItem("dear.geodata.v1",JSON.stringify(records))',[point,aoi]);page.reload()
+        page.evaluate('''records=>{
+            const data=JSON.parse(localStorage.getItem('dear.gis.v2'));
+            data.records=records;
+            localStorage.setItem('dear.gis.v2',JSON.stringify(data));
+        }''',[point,aoi]);page.reload()
         map_tool(page, 'Dữ liệu GIS').click()
         gis_task(page)
         page.locator(f'[data-geodata-id="{pid}"] .geodata-feature').click()

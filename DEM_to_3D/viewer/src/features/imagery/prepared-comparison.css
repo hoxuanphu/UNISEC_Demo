@@ -28,5 +28,9 @@
 .prepared-comparison-sources { display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; padding:10px 20px; border-bottom:1px solid var(--ws-line); }
 .prepared-comparison-sources label { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ws-muted); }
 .prepared-comparison-sources select { min-height:34px; padding:4px 28px 4px 8px; }
+/* Hold frame: an on/off toggle; pressed reads as selected, like the source switch. */
+.prepared-comparison-hold { display:inline-flex; align-items:center; gap:6px; min-height:34px; padding:4px 12px; border:1px solid var(--card-line); border-radius:8px; background:var(--card); color:var(--ws-muted); font-size:13px; font-weight:500; }
+.prepared-comparison-hold:hover { color:var(--ws-text); }
+.prepared-comparison-hold[aria-pressed="true"] { border-color:var(--select); background:color-mix(in srgb,var(--select) 10%,var(--card)); color:var(--select-ink); font-weight:600; }
 .prepared-comparison-sar-scale { color:var(--ws-muted); font-size:12px; font-variant-numeric:tabular-nums; }
 @media(max-width:600px) { .prepared-comparison { width:calc(100vw - 16px); height:calc(100dvh - 16px); } .prepared-comparison-sources,.prepared-comparison-controls { padding:8px 12px; gap:8px; } .prepared-comparison-slider,.prepared-comparison-blink { min-width:0; width:100%; } .prepared-comparison footer { padding:8px 12px; font-size:12px; } }

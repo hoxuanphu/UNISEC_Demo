@@ -27,6 +27,25 @@ const road = (
 const a = { origin: roadProjected(21.77797, 104.03868), source: "map" },
   b = { origin: roadProjected(21.75074, 104.05062), source: "map" };
 describe("journey matching and business rules", () => {
+  it('rescue on foot takes a longer local trail to avoid mapped risk without the everyday detour cap', () => {
+    const roads = [{...road('short-risk', [p(0),p(100)]), hz:'landslide-risk'},
+      road('local-trail', [p(0),p(0,100),p(100,100),p(100)])];
+    const everyday = analyseRoadJourney(roads, selection(0), selection(100), true, 1, 'conditions');
+    const rescue = analyseRoadJourney(roads, selection(0), selection(100), true, 1, 'rescue-foot');
+    expect(everyday.route!.segs[0].id).toContain('short-risk');
+    expect(rescue.route!.segs.every(road=>road.id.startsWith('local-trail'))).toBe(true);
+    expect(rescue.route!.lengthKm).toBeCloseTo(.3);
+  });
+  it('rescue never allows a blocked shortcut, even if everyday blockage avoidance was unchecked', () => {
+    const roads = [road('closed', [p(0),p(100)], 'blocked'), road('trail', [p(0),p(0,100),p(100,100),p(100)])];
+    const result = analyseRoadJourney(roads, selection(0), selection(100), false, 1, 'rescue-foot');
+    expect(result.route!.segs.every(road=>road.status!=='blocked')).toBe(true);
+    expect(analyseRoadJourney([roads[0]],selection(0),selection(100),false,1,'rescue-foot').route).toBeNull();
+  });
+  it('rescue retains an unverified condition when no confirmed passage is mapped', () => {
+    const result = analyseRoadJourney([road('trail',[p(0),p(100)],'uncertain')],selection(0),selection(100),true,1,'rescue-foot');
+    expect(result.route!.status).toBe('uncertain');
+  });
   it("routes the screenshot A/B via eligible roads instead of snapping B onto blocked E8", () => {
     const result = analyseRoadJourney(initialRoadSegments, a, b, true);
     expect(result.kind).toBe("route");
@@ -140,6 +159,49 @@ describe("journey matching and business rules", () => {
     expect(
       analyseRoadJourney(roads, selection(10), selection(50, 40), true).kind,
     ).toBe("disconnected");
+  });
+  it('advises the short road to check over a long open detour', () => {
+    const roads = [
+      road('shortcut', [p(0), p(100)], 'uncertain'),
+      road('open-way', [p(0), p(0, 400), p(100)]),
+    ];
+    const advised = analyseRoadJourney(roads, selection(0), selection(100), true, 250, 'conditions');
+    expect(advised.route?.status).toBe('uncertain');
+    expect(advised.route?.lengthKm).toBeCloseTo(.1);
+  });
+  it('takes an open route when it is only slightly longer than the road to check', () => {
+    const roads = [
+      road('shortcut', [p(0), p(100)], 'uncertain'),
+      road('open-way', [p(0), p(50, 30), p(100)]),
+    ];
+    const advised = analyseRoadJourney(roads, selection(0), selection(100), true, 250, 'conditions');
+    expect(advised.route?.status).toBe('open');
+    expect(advised.route?.segs.every(section => section.sourceRoadId === 'open-way')).toBe(true);
+  });
+  it('offers other unblocked ways round, never one through a blockage', () => {
+    const roads = [
+      road('main', [p(0), p(100)], 'uncertain'),
+      road('north', [p(0), p(0, 30), p(100, 30), p(100)]),
+      road('south', [p(0), p(0, -50), p(100, -50), p(100)], 'blocked'),
+    ];
+    const advised = analyseRoadJourney(roads, selection(0), selection(100), true, 250, 'conditions');
+    expect(advised.route?.lengthKm).toBeCloseTo(.1);
+    expect(advised.alternatives).toHaveLength(1);
+    expect(advised.alternatives[0].segs.every(section => section.status !== 'blocked')).toBe(true);
+    expect(analyseRoadJourney(roads, selection(0), selection(100), true).alternatives).toEqual([]);
+  });
+  it('retains caution on the only usable resident route and never routes through a blockage', () => {
+    const roads = [
+      road('start', [p(0), p(100)]),
+      road('short-blocked', [p(100), p(200)], 'blocked'),
+      road('check-first', [p(100), p(100, 80), p(200)], 'uncertain'),
+      road('finish', [p(200), p(300)]),
+    ];
+    const advised = analyseRoadJourney(roads, selection(20), selection(280), true, 250, 'conditions');
+    expect(advised.route?.status).toBe('uncertain');
+    expect(advised.route?.segs.some(section => section.status === 'blocked')).toBe(false);
+    expect(advised.start?.origin).toEqual(p(20));
+    expect(advised.end?.origin).toEqual(p(280));
   });
   it("does not add straight-line access offsets to mapped road length", () => {
     const result = analyseRoadJourney(

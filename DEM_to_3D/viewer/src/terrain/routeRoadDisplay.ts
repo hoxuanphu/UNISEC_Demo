@@ -20,8 +20,12 @@ export function routeRoadDisplay(
   }));
   if (enabled)
     for (const road of route?.segs ?? []) {
-      if (!ids.has(road.id) && road.sourceRoadId && ids.has(road.sourceRoadId))
-        result.push({ road, sourceId: road.sourceRoadId, routeSelected: true });
+      if (ids.has(road.id)) continue;
+      // A journey cuts the end roads at its anchors ("<road>:part:<n>"). The cut road is the
+      // displayed one; `sourceRoadId` may instead name an upstream source (a KMZ placemark).
+      const cut = road.id.includes(':part:') ? road.id.slice(0, road.id.indexOf(':part:')) : undefined;
+      const sourceId = cut && ids.has(cut) ? cut : road.sourceRoadId && ids.has(road.sourceRoadId) ? road.sourceRoadId : undefined;
+      if (sourceId) result.push({ road, sourceId, routeSelected: true });
     }
   return result;
 }

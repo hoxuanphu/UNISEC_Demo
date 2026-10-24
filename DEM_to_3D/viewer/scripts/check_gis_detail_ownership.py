@@ -1,7 +1,8 @@
 """Verify one GIS detail surface, replacement/close transitions and stable map points."""
 from browser_preferences import use_vietnamese
+from network_browser_fixture import install_network_fixture
 from gis_browser_actions import map_tool
-from gis_browser_actions import gis_task, clear_prepared_survey
+from gis_browser_actions import gis_task, clear_prepared_survey, select_scenario_community
 import argparse
 import json
 from pathlib import Path
@@ -16,6 +17,7 @@ def run(url, chrome, captures=None):
         browser = p.chromium.launch(headless=True, executable_path=chrome)
         context = use_vietnamese(browser.new_context(viewport={'width': 1440, 'height': 960}))
         context.route('**/*', lambda route: route.continue_() if route.request.url.startswith(url + '/') else route.abort())
+        install_network_fixture(context,url)
         page = use_vietnamese(context.new_page())
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
@@ -46,14 +48,12 @@ def run(url, chrome, captures=None):
             expect(dialog).to_have_count(0)
 
         def open_scenario():
-            marker = next(pin for pin in workspace.locator('.map-pin:visible').all() if 'Khau Mang' in (pin.get_attribute('aria-description') or '').split(', '))
-            marker.click()
-            chooser = workspace.locator('.map-object-chooser')
-            if chooser.count(): chooser.get_by_role('button', name='Khau Mang', exact=True).click()
+            select_scenario_community(page,'Khau Mang')
             one(scenario)
 
         def open_group():
-            workspace.locator('.map-point-cluster:visible').first.click()
+            cluster=workspace.locator('.map-point-cluster:visible').first
+            cluster.focus();cluster.press('Enter')
             one(group)
 
         kml = '<kml xmlns="http://www.opengis.net/kml/2.2"><Document>' + ''.join(
@@ -118,7 +118,7 @@ def run(url, chrome, captures=None):
         open_group()
         page.get_by_role('combobox', name='Hiển thị điểm', exact=True).select_option('individual')
         expect(details).to_have_count(0)
-        paths = workspace.locator('.leaflet-points-pane path')
+        paths = workspace.locator('.leaflet-points-pane :is(path.map-reference-point,.geodata-selected-point)')
         expect(paths).to_have_count(3)
         paths.last.click()
         one(inspector)
@@ -149,14 +149,17 @@ def run(url, chrome, captures=None):
         page.get_by_role('button', name='Tìm ảnh', exact=True).click()
         metadata = page.get_by_role('button', name='Thông tin ảnh ', exact=False)
         expect(metadata.first).to_be_visible()
+        def open_scene():
+            page.get_by_role('tab',name='Ảnh vệ tinh',exact=True).click()
+            if not metadata.first.is_visible():page.get_by_role('button',name='Tìm ảnh',exact=True).click()
+            metadata.first.click()
+            one(scene)
         open_scenario()
-        metadata.first.click()
-        one(scene)
+        open_scene()
         expect(scenario).to_have_count(0)
         open_scenario()
         expect(scene).to_have_count(0)
-        metadata.first.click()
-        one(scene)
+        open_scene()
         page.keyboard.press('Escape')
         expect(details).to_have_count(0)
         expect(workspace).to_be_visible()

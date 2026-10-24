@@ -8,9 +8,11 @@ import type {
   RoadSegment,
 } from "../../types/dear";
 import type { useRoadJourney } from "./useRoadJourney";
-import { roadGeographic, roadProjected } from "./selectedRoadJourney";
+import { roadProjected } from "./selectedRoadJourney";
 import type { JourneyPlace } from "./journeyPlaces";
 import { UiIcon } from "../../shared/ui/UiIcon";
+import { roadConditionLabel, roadConditionMessage } from './localRoadLabels';
+import { routeCondition } from './roadConditions';
 import "./road-journey.css";
 
 const sides = ["start", "end"] as const;
@@ -87,6 +89,12 @@ export function RoadJourneyPanel({
     }
   };
   const groups = [...new Set(places.map((p) => p.group))];
+  const localGroups = groups.filter(group => places.some(place => place.group === group && place.key.startsWith('local:')));
+  const placeGroup = (group: string) => <optgroup key={group} label={localGroups.includes(group) ? group : `${m.gisData}: ${group}`}>
+    {places.filter(place => place.group === group).map(place => <option key={place.key} value={place.key}>
+      {place.label}{place.representative ? ` (${m.representativePoint})` : ''}
+    </option>)}
+  </optgroup>;
   /** Only what the select cannot show: map coordinates and any off-road leg. */
   const meta = (side: "start" | "end") => {
     if (picking === side)
@@ -105,6 +113,8 @@ export function RoadJourneyPanel({
       (journey.start?.anchor?.distance ?? 0) +
       (journey.end?.anchor?.distance ?? 0);
   const status = route?.status ?? "open";
+  const local = [journey.start,journey.end].every(point => point?.source.startsWith('local:'));
+  const rescue = journey.preference === 'rescue-foot';
 
   return (
     <section
@@ -113,7 +123,7 @@ export function RoadJourneyPanel({
       data-collapsed={collapsed || undefined}
     >
       <header>
-        <h2>{m.journeyBetweenTwoPoints}</h2>
+        <h2>{t('Chỉ đường', 'Directions')}</h2>
         <button
           className="icon-button"
           title={m.fitJourney}
@@ -144,6 +154,13 @@ export function RoadJourneyPanel({
         </button>
       </header>
       <div className="road-journey-content" hidden={collapsed}>
+        <label className="journey-purpose">
+          <span>{t('Cách đi', 'Travel plan')}</span>
+          <select aria-label={t('Cách đi', 'Travel plan')} value={rescue ? 'rescue-foot' : 'conditions'} onChange={event => journey.setPreference(event.target.value as 'conditions' | 'rescue-foot')}>
+            <option value="conditions">{t('Đi lại trong vùng', 'Local travel')}</option>
+            <option value="rescue-foot">{t('Cứu hộ đi bộ', 'Rescue on foot')}</option>
+          </select>
+        </label>
         <div className="journey-stops">
           {sides.map((side) => {
             const endpoint = journey[side],
@@ -177,6 +194,7 @@ export function RoadJourneyPanel({
                       <option value="map">{m.pickedOnMap}</option>
                     )}
                     <option value="pick">{m.chooseOnMapEllipsis}</option>
+                    {localGroups.map(placeGroup)}
                     <optgroup label={m.responseSites}>
                       {sites.map((s) => (
                         <option key={s.id} value={"site:" + s.id}>
@@ -191,20 +209,7 @@ export function RoadJourneyPanel({
                         </option>
                       ))}
                     </optgroup>
-                    {groups.map((group) => (
-                      <optgroup key={group} label={`${m.gisData}: ${group}`}>
-                        {places
-                          .filter((p) => p.group === group)
-                          .map((p) => (
-                            <option key={p.key} value={p.key}>
-                              {p.label}
-                              {p.representative
-                                ? ` (${m.representativePoint})`
-                                : ""}
-                            </option>
-                          ))}
-                      </optgroup>
-                    ))}
+                    {groups.filter(group => !localGroups.includes(group)).map(placeGroup)}
                   </select>
                   {meta(side) && (
                     <small
@@ -245,55 +250,32 @@ export function RoadJourneyPanel({
             disabled={!journey.start && !journey.end}
             onClick={journey.swap}
           >
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="m21 16-4 4-4-4" />
-              <path d="M17 20V4" />
-              <path d="m3 8 4-4 4 4" />
-              <path d="M7 4v16" />
-            </svg>
+            <UiIcon name="swap" size={18}/>
           </button>
         </div>
 
-        <label className="journey-option">
+        {!rescue && <label className="journey-option">
           <input
             type="checkbox"
             checked={journey.avoidBlocked}
             onChange={(event) => journey.setAvoidBlocked(event.target.checked)}
           />
           {m.avoidBlockedSections}
-        </label>
+        </label>}
 
         {route ? (
           <section className="journey-result" aria-live="polite">
-            <span className={"journey-status is-" + status}>
-              {status === "blocked"
-                ? m.statusBlocked
-                : status === "uncertain"
-                  ? m.statusUncertain
-                  : m.statusOpen}
-            </span>
-            {/* Along-road length, then any straight off-road leg at either end. */}
-            <dl className="journey-figures">
-              <div>
-                <dt>{m.alongRoads}</dt>
-                <dd>
-                  {route.lengthKm < 1
-                    ? Math.round(route.lengthKm * 1000)
-                    : number(route.lengthKm)}{" "}
-                  {route.lengthKm < 1 ? "m" : "km"}
-                </dd>
-              </div>
-              {access > 1 && sides.map((side) => {
+            <div className="journey-result-heading">
+              <strong>{status === 'blocked' ? t('Tuyến có đoạn bị chặn', 'Route has a blocked section') : journey.advised ? rescue ? t('Phương án tiếp cận', 'Approach plan') : t('Đường nên đi', 'Suggested route') : t('Đường bạn chọn', 'Your chosen route')}</strong>
+              <strong className="journey-route-distance">{length(route.lengthKm * 1000)}</strong>
+            </div>
+            <p className={`journey-condition is-${status}`}>{roadConditionMessage(route,locale,local)}</p>
+            {rescue && <p className="journey-note">{t('Có thể dùng đường mòn. Cần xác nhận lối đi với người địa phương.', 'May use local trails. Confirm access with local people.')}</p>}
+            {access > 1 && <p className="journey-note">{t('Đoạn nét đứt chưa có thông tin lối đi.', 'Dotted connections have no mapped access path.')}</p>}
+            {access > 1 && <details className="journey-access">
+              <summary>{t('Đoạn nối vào đường', 'Connections to the road')}</summary>
+              <p>{m.accessNote}</p>
+              <dl className="journey-figures">{sides.map((side) => {
                 const distance = journey[side]?.anchor?.distance ?? 0;
                 return distance > 1 ? (
                   <div key={side}>
@@ -301,8 +283,15 @@ export function RoadJourneyPanel({
                     <dd>{length(distance)}</dd>
                   </div>
                 ) : null;
-              })}
-            </dl>
+              })}</dl>
+            </details>}
+            {!!journey.alternatives.length && <details className="journey-alternatives">
+              <summary>{t('Đường khác', 'Other routes')}</summary>
+              {journey.alternatives.map(alternative => <button type="button" className="journey-alternative" key={alternative.id}
+                onClick={()=>{journey.choose(alternative.id);journey.fit();}}>
+                <span>{roadConditionLabel(routeCondition(alternative),locale,local)}</span><strong>{length(alternative.lengthKm * 1000)}</strong>
+              </button>)}
+            </details>}
             {onProfile && (
               <button className="button journey-profile" onClick={onProfile}>
                 <UiIcon name="route" />

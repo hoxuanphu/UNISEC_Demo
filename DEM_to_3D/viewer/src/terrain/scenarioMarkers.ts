@@ -3,16 +3,23 @@ import type { TerrainMetadata } from '../types/terrain';
 import { terrainSurfaceElevation } from './terrainSurface';
 import { projectedToScene } from './coordinate';
 import { createScreenMarkers, type ScreenMarkerOptions } from './screenMarkers';
+import { createRoadConditionMarkers } from './roadConditionMarkers';
+import type { RoadSegment } from '../types/dear';
+import type { LocalRoadAreaLink } from '../features/route-film/localNetwork';
 
 export function createScenarioMarkers(host: HTMLElement, options: ScreenMarkerOptions & {
   metadata: TerrainMetadata; grid: Float32Array; transform: THREE.Matrix4;
   elevationAt?: (x: number, y: number) => number | undefined;
+  roads?: RoadSegment[]; contextRoads?: RoadSegment[]; roadAreaLinks?: LocalRoadAreaLink[];
 }) {
   const screen = createScreenMarkers(host, options);
+  const roads = options.layers.status && options.layers.roads ? [...(options.roads ?? []), ...(options.layers.localRoads === false ? [] : options.contextRoads ?? [])] : [];
+  const signs = createRoadConditionMarkers(host, roads, options.roadAreaLinks, options.locale,
+    id => options.onSelect({type:'road',id}), options.interactive !== false);
   const point = new THREE.Vector3();
   return {
     update(camera: THREE.Camera): void {
-      screen.update(position => {
+      const project = (position: {x:number;y:number}) => {
         const elevation = options.elevationAt ? options.elevationAt(position.x, position.y) : terrainSurfaceElevation(options.grid, options.metadata, position.x, position.y);
         // Outside every DEM a point can only rest on the flat regional basemap.
         if (elevation === undefined && options.layers.context === false) return null;
@@ -21,8 +28,10 @@ export function createScenarioMarkers(host: HTMLElement, options: ScreenMarkerOp
         return point.z >= -1 && point.z <= 1 ? {
           x: (point.x + 1) * host.clientWidth / 2, y: (1 - point.y) * host.clientHeight / 2
         } : null;
-      });
+      };
+      signs.update(project);
+      screen.update(project);
     },
-    dispose: screen.dispose
+    dispose: () => { signs.dispose(); screen.dispose(); }
   };
 }

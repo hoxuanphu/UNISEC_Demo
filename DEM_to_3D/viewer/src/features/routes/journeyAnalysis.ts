@@ -3,6 +3,7 @@ import {
   nearestRoadAnchor,
   selectedRoadJourney,
   type RoadAnchor,
+  type JourneyPreference,
 } from "./selectedRoadJourney";
 export const JOURNEY_ACCESS_LIMIT_M = 5_000;
 export type JourneySelection = {
@@ -26,6 +27,8 @@ export type JourneyAnalysis = {
   start: JourneyEndpoint | null;
   end: JourneyEndpoint | null;
   route: ScenarioRoute | null;
+  /** Other unblocked routes between the same points (resident advice only). */
+  alternatives: ScenarioRoute[];
   kind: JourneyResultKind;
 };
 /** Matching uses the same eligible roads as routing. A connector is an unverified
@@ -36,7 +39,9 @@ export function analyseRoadJourney(
   b: JourneySelection | null,
   avoidBlocked: boolean,
   accessLimitM = JOURNEY_ACCESS_LIMIT_M,
+  preference: JourneyPreference = 'distance',
 ): JourneyAnalysis {
+  if (preference === 'rescue-foot') avoidBlocked = true;
   const eligible = avoidBlocked
     ? roads.filter((r) => r.status !== "blocked")
     : roads;
@@ -66,7 +71,7 @@ export function analyseRoadJourney(
   const result = (
     kind: JourneyResultKind,
     route: ScenarioRoute | null = null,
-  ): JourneyAnalysis => ({ start, end, kind, route });
+  ): JourneyAnalysis => ({ start, end, kind, route, alternatives: (route as { alternatives?: ScenarioRoute[] } | null)?.alternatives ?? [] });
   if (!start || !end) return result("incomplete");
   if (!start.anchor || !end.anchor) return result("endpoint-unavailable");
   if (
@@ -86,6 +91,7 @@ export function analyseRoadJourney(
     start.anchor,
     end.anchor,
     avoidBlocked,
+    preference,
   );
   if (route) return result("route", route);
   // Explain a blocked graph separately from absent topology. Never create a

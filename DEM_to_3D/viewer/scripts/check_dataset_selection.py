@@ -26,6 +26,7 @@ def run(url, chrome=None):
     packet['datasetVersion'] = 'alternate-v1'
     community = packet['communities'][0]
     community['name'] = 'Địa bàn kiểm thử'
+    community['commune'] = 'Xã kiểm thử'
     x, y = community['projected']['x'], community['projected']['y']
     packet['aoi']['name'] = ['Vùng kiểm thử', 'Test area']
     packet['aoi']['points'] = [{'x': px, 'y': py} for px, py in [
@@ -89,6 +90,23 @@ def run(url, chrome=None):
         assert exported['route']['status'] == 'blocked' and not exported['route'].get('eta')
         assert not any(request.endswith('/scenarios/che-tao/v0.3/manifest.json') for request in requests)
         assert not errors, errors
+        context.close()
+        # Resident views must not load or suggest the Chế Tạo local graph for a
+        # different selected dataset, or keep a hardcoded commune in the header.
+        context = use_vietnamese(browser.new_context(viewport={'width':390,'height':844}))
+        context.route('**/*', respond)
+        page = context.new_page()
+        local_requests=[]
+        page.on('request',lambda request:local_requests.append(request.url) if request.url.endswith('/local-network.json') else None)
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        page.goto(url+'/?map=2d&offline=1')
+        page.get_by_role('button',name='Vào ứng dụng',exact=True).click()
+        expect(page.locator('.citizen-header')).to_contain_text('Xã kiểm thử')
+        page.locator('.citizen-mobile-switch').get_by_role('button',name='Thông tin đường',exact=True).click()
+        expect(page.locator('.citizen-village')).to_be_visible()
+        expect(page.get_by_role('button',name='Trong xã',exact=True)).to_have_count(0)
+        assert not local_requests,local_requests
+        assert not errors,errors
         context.close()
         # A missing selected dataset must not display the prepared default.
         context = use_vietnamese(browser.new_context())

@@ -1,4 +1,4 @@
-import { photoCaptureTime } from './captureMetadata';
+import { photoCaptureTime, photoLocation } from './captureMetadata';
 import { observationOf, type FieldPhoto } from './model';
 import type { GeometryRecord } from '../../geo/vector/types';
 
@@ -30,26 +30,25 @@ export function photoSummary(photo: FieldPhoto, reported?: PhotoReportContext) {
         !!reported.observedLocalTime &&
         !capture.instant &&
         capture.local === reported.observedLocalTime);
-  const gps =
-    typeof photo.exif.latitude === 'number' &&
-    typeof photo.exif.longitude === 'number';
+  const location = photoLocation(photo);
   // The report displays six decimal places. Do not conceal differences beyond that precision.
   const sameLocation =
-    gps &&
+    !!location &&
     !!reported?.coordinates &&
-    Number(photo.exif.latitude).toFixed(6) ===
+    location.latitude.toFixed(6) ===
       reported.coordinates[1].toFixed(6) &&
-    Number(photo.exif.longitude).toFixed(6) ===
+    location.longitude.toFixed(6) ===
       reported.coordinates[0].toFixed(6);
   return {
     capture,
-    showTime: !!photo.exif.DateTimeOriginal && !sameTime,
-    showGps: gps && !sameLocation,
+    location,
+    showTime: !!capture && !sameTime,
+    showGps: !!location && !sameLocation,
     showCamera: !reported && !!(photo.exif.Make || photo.exif.Model),
     differentTime:
       !!capture &&
       !sameTime &&
       !!(reported?.observedAt || reported?.observedLocalTime),
-    differentLocation: gps && !sameLocation && !!reported?.coordinates
+    differentLocation: !!location && !sameLocation && !!reported?.coordinates
   };
 }

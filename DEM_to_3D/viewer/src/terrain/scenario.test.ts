@@ -72,9 +72,9 @@ describe('DEAR Scenario & Overlays', () => {
   });
 
   it.each([
-    { routeType: 'candidate' as const, roadsVisible: true, warningId: 'E13', color: new Color(roadColors.uncertain).getHex(), dashed: true },
+    { routeType: 'candidate' as const, roadsVisible: true, warningId: 'E13', color: new Color(roadColors.selected).getHex(), dashed: false },
     { routeType: 'direct' as const, roadsVisible: true, warningId: 'E8', color: new Color(roadColors.blocked).getHex(), dashed: false },
-    { routeType: 'candidate' as const, roadsVisible: false, warningId: 'E13', color: new Color(roadColors.uncertain).getHex(), dashed: true }
+    { routeType: 'candidate' as const, roadsVisible: false, warningId: 'E13', color: new Color(roadColors.selected).getHex(), dashed: false }
   ])('preserves road warnings on $routeType route with network visible=$roadsVisible', ({ routeType, roadsVisible, warningId, color, dashed }) => {
     const dummyMetadata: TerrainMetadata = {
       schema_version: 1,
@@ -146,8 +146,8 @@ describe('DEAR Scenario & Overlays', () => {
     expect(warning.material.color.getHex()).toBe(color);
     expect(warning.material.dashed).toBe(dashed);
     const casing = roadLines.find(line => line.userData.id === warningId && line.userData.casing)!;
-    // Warning dashes retain a neutral casing instead of the selected-route color.
-    expect(casing.material.color.getHexString()).toBe(roadColors.neutralCasing.slice(1));
+    // A traversable selected route stays blue with an amber caution rim; closures stay red.
+    expect(casing.material.color.getHexString()).toBe((routeType === 'candidate' ? roadColors.uncertain : roadColors.neutralCasing).slice(1));
     expect(casing.material.color.getHexString()).not.toBe(roadColors.selectedCasing.slice(1));
     if (!roadsVisible) {
       const renderedIds = new Set(roadLines.map(line => line.userData.id));

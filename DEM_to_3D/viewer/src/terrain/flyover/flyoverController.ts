@@ -62,6 +62,7 @@ type Prepared = {
   cameraTrack?:{aspect:number;fov:number;at:ReturnType<typeof createFlyoverCameraTrack>};
   trail: { base: Line2; glow: Line2; done: Line2; segments: number };
   text: {start: string; end: string; attribution: string};
+  places: Array<{ world: THREE.Vector3; label: string; kind: 'community' | 'staging' | 'hlz' }>;
   /** Route metres before the first surface point (off every terrain); chainage still counts them. */
   offset: number;
   imagery: Awaited<ReturnType<typeof corridorImagery>>;
@@ -183,7 +184,8 @@ export function createFlyoverController(deps: Deps) {
         key, cameraMode:source.cameraMode??'corridor',context:{
           areas:(source.context?.areas??[]).filter(area=>area.kind==='landslide').map(area=>({id:area.id})),
           closures:(source.context?.closures??[]).flatMap(closure=>{const world=deps.surfaceWorld(closure.point);return world?[world]:[];})
-        }, plan, path, overviewPoints, bearing: createFlyoverBearing(path,plan), stops, areas, start: world[0], end: world[world.length - 1], trail, offset, imagery, imageryOpacity:source.imageryOpacity,
+        }, places:(source.places??[]).flatMap(place=>{const world=deps.surfaceWorld(place.projected);return world?[{world,label:name(place.name),kind:place.kind}]:[];}),
+        plan, path, overviewPoints, bearing: createFlyoverBearing(path,plan), stops, areas, start: world[0], end: world[world.length - 1], trail, offset, imagery, imageryOpacity:source.imageryOpacity,
         text: {start: offset > 100 ? '' : name(source.start), end: name(source.end),
           attribution: [source.imagery.length ? `${source.imageryLabel[locale==='vi'?0:1]} © Planet Labs PBC` : '',imagerySource.credit,'© OpenStreetMap'].filter(Boolean).join(', ')}
       } satisfies Prepared;
@@ -260,6 +262,9 @@ export function createFlyoverController(deps: Deps) {
     return { position, target };
   }
 
+  /** Share of the route a network film keeps in frame while the marker moves. */
+  const NETWORK_WINDOW=.6;
+
   function prepareCameraTrack(p:Prepared){
     if(p.cameraTrack?.aspect===camera.aspect&&p.cameraTrack.fov===camera.fov)return p.cameraTrack;
     const overview=flyoverOverviewPose(p.overviewPoints,p.cameraMode==='network'?{x:.25,z:.97}:p.bearing(p.plan.duration),camera.fov,camera.aspect);
@@ -269,8 +274,22 @@ export function createFlyoverController(deps: Deps) {
       ...p.path.cumulative.map(s=>{const q=p.path.pointAt(s);return new THREE.Vector3(q.x,q.y,q.z);}),
       ...p.stops.map(stop=>stop.world)
     ],{x:.25,z:.97},camera.fov,camera.aspect):null;
+    // While the marker travels, frame a window of about 60% of the route around it (at least
+    // 1.5 km) so the view visibly moves; the opening holds the whole route, the close every road.
+    // The window is sampled evenly along the route, so its framing changes continuously.
+    const networkWindow=(distance:number)=>{
+      const length=p.path.length,span=Math.min(length,Math.max(1500,length*NETWORK_WINDOW));
+      const from=Math.max(0,Math.min(length-span,distance-span/2));
+      const points=Array.from({length:61},(_,i)=>{const q=p.path.pointAt(from+span*i/60);return new THREE.Vector3(q.x,q.y,q.z);});
+      return flyoverOverviewPose(points,{x:.25,z:.97},camera.fov,camera.aspect);
+    };
     const at=createFlyoverCameraTrack(p.plan.duration,time=>{
-      const moment=p.plan.at(time),pose=networkPose?{position:networkPose.position.clone(),target:networkPose.target.clone()}:followPose(p,moment);
+      const moment=p.plan.at(time);
+      let pose=followPose(p,moment);
+      if(networkPose){
+        pose=networkWindow(moment.distance);
+        if(moment.phase==='intro'||moment.phase==='dive'){pose.position.lerp(networkPose.position,moment.overview);pose.target.lerp(networkPose.target,moment.overview);}
+      }
       if(moment.phase==='outro'||moment.phase==='final'){
         pose.position.lerp(overview.position,moment.overview);pose.target.lerp(overview.target,moment.overview);
       }
@@ -293,7 +312,9 @@ export function createFlyoverController(deps: Deps) {
     const closing=moment.phase==='outro'||moment.phase==='final'?moment.overview:0;
     (p.trail.done.material as LineMaterial).linewidth=lerp(3,1.8,closing);
     (p.trail.glow.material as LineMaterial).linewidth=lerp(7,3,closing);
-    const travelled = moment.phase === 'final' || moment.phase === 'outro' ? p.trail.segments : Math.floor(moment.distance / p.path.length * p.trail.segments);
+    // The trail ends at the last route vertex the marker has passed. Vertices are not evenly
+    // spaced, so a share of the vertex count would run ahead of or behind the marker.
+    const travelled = moment.phase === 'final' || moment.phase === 'outro' ? p.trail.segments : passedVertices(p.path.cumulative, moment.distance);
     p.trail.done.geometry.instanceCount = p.trail.glow.geometry.instanceCount = Math.max(0, Math.min(p.trail.segments, travelled));
     finalTarget = target;deps.onFrame?.(target,p.stops[moment.stop]?.info.id);
     return moment;
@@ -323,7 +344,9 @@ export function createFlyoverController(deps: Deps) {
       start: { label: p.text.start, screen: screen(p.start) }, end: { label: p.text.end, screen: screen(p.end) },
       head: screen(new THREE.Vector3(head.x, head.y, head.z)),
       stops: p.stops.map(stop => ({ ...stop.info, screen: screen(stop.world, 30) })),
-      context:{areas:p.context.areas,closures:p.context.closures.map(point=>screen(point,15))}
+      context:{areas:p.context.areas,closures:p.context.closures.map(point=>screen(point,15))},
+      // The map's own place markers are hidden during the film, so every frame carries the names.
+      places:p.places.map(place=>({label:place.label,kind:place.kind,screen:screen(place.world,15)}))
     };
   }
   function drawLive(p: Prepared, moment: FlyoverMoment) {
@@ -484,3 +507,10 @@ export function createFlyoverController(deps: Deps) {
   };
 }
 export type FlyoverController = ReturnType<typeof createFlyoverController>;
+
+/** Segments fully travelled: route vertices at or before `distance`, less the first. */
+function passedVertices(cumulative: readonly number[], distance: number): number {
+  let lo = 0, hi = cumulative.length;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (cumulative[mid] <= distance) lo = mid + 1; else hi = mid; }
+  return Math.max(0, lo - 1);
+}

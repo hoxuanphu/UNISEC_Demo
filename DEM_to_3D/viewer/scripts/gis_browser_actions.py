@@ -23,6 +23,20 @@ def apply_boundary(page):
     (apply if apply.count() else toolbar.get_by_role('button',name='Kết thúc',exact=True)).click()
 
 
+def select_scenario_community(page, name):
+    """Use the community list even when a map symbol is outside the viewport."""
+    gis_task(page)
+    layers=page.get_by_role('tab',name='Lớp',exact=True)
+    if layers.get_attribute('aria-selected') != 'true':layers.click()
+    collection=page.locator('.geodata-scenario-data')
+    if collection.get_attribute('open') is None:
+        collection.locator(':scope > summary').click()
+    for group in collection.locator('.scenario-feature-list > details').all():
+        if group.locator('.scenario-feature-row').filter(has_text=name).count() and group.get_attribute('open') is None:
+            group.locator(':scope > summary').click()
+    collection.get_by_role('button',name=name,exact=True).click()
+
+
 def download_geometry(page, format):
     disclosure=page.locator('.geodata-export > details')
     if disclosure.get_attribute('open') is None: disclosure.locator('summary').click()

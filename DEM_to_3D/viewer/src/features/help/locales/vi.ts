@@ -183,17 +183,17 @@ export const vi: GuideContent = {
         {
           icon: 'people',
           title: 'Chọn khu vực',
-          text: 'Trong Thông tin đường, chọn khu vực bạn muốn đến.'
+          text: 'Chọn Thông tin đường ở thanh dưới. Trong xã hiển thị mạng đường và địa điểm Chế Tạo; Đường về thôn, bản hiển thị các tuyến đã công bố.'
         },
         {
           icon: 'blocked',
           title: 'Xem đường nên đi',
-          text: 'App chọn sẵn đường nên đi. Xanh: đi được. Cam: chưa ai kiểm tra, hỏi trước khi đi. Đỏ: chưa đi được.'
+          text: 'Đi theo đường xanh dương. Trong xã, đoạn màu cam khó đi nhưng vẫn qua được. Đường đỏ bị chặn. Chạm vùng sạt lở để xem thông tin. Nút Hiển thị có chú giải đầy đủ.'
         },
         {
           icon: 'route',
           title: 'Tìm đường giữa hai nơi khác',
-          text: 'Chọn nơi đi và nơi đến để xem đường và quãng đường.'
+          text: 'Chọn nơi đi và nơi đến, hoặc dùng Vị trí của tôi. Bấm Xem trên bản đồ. Chụm hai ngón để phóng bản đồ.'
         }
       ]
     },

@@ -23,4 +23,3 @@
 .layer-appearance label { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 12px 0; font-size: 12px; }
 .layer-appearance input, .layer-appearance select { grid-column: 1 / -1; width: 100%; min-width: 0; accent-color: var(--ws-brand); }
 .layer-appearance select { padding: 8px; color: var(--ws-text); background: var(--ws-surface); border: 1px solid var(--ws-line); border-radius: var(--radius-control); font: inherit; }
-.layer-compare-action { margin-top: 18px; text-align: left; line-height: 1.5; }

@@ -183,17 +183,17 @@ export const en: GuideContent = {
         {
           icon: 'people',
           title: 'Choose an area',
-          text: 'In Road information, choose where you want to go.'
+          text: 'Choose Road information in the bottom bar. In the commune shows Chế Tạo roads and places; Village access shows published routes.'
         },
         {
           icon: 'blocked',
           title: 'See the best way in',
-          text: 'The app picks the route to take. Green: passable. Orange: not checked yet, ask before you go. Red: not passable yet.'
+          text: 'Follow the blue route. Orange sections of the local network are difficult but possible. Red roads are blocked. Tap landslide areas for details. Map display contains the full legend.'
         },
         {
           icon: 'route',
           title: 'Route between two other places',
-          text: 'Choose where you start and where you are going to see the road and distance.'
+          text: 'Choose your start and destination, or use My location. Press View on map. Pinch to zoom.'
         }
       ]
     },

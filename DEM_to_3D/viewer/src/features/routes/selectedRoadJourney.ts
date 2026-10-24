@@ -1,7 +1,11 @@
 import proj4 from "proj4";
 import type { RoadSegment, ScenarioRoute } from "../../types/dear";
 import { projectedPathLength } from "../../terrain/pathGeometry";
-import { findPreparedNetworkPath } from "./networkRouting";
+import { findConditionAwarePath, findPreparedNetworkPath, findRescueFootPath, routingPolicy } from "./networkRouting";
+import { routeStatus } from './roadConditions';
+export type JourneyPreference = 'distance' | 'conditions' | 'rescue-foot';
+/** A resident journey also carries other unblocked routes, so the map can show them as choices. */
+export type JourneyRoute = ScenarioRoute & { alternatives?: ScenarioRoute[] };
 type Point = { x: number; y: number };
 export type RoadAnchor = {
   point: Point;
@@ -73,7 +77,8 @@ export function selectedRoadJourney(
   start: RoadAnchor,
   end: RoadAnchor,
   avoidBlocked = false,
-): ScenarioRoute | null {
+  preference: JourneyPreference = 'distance',
+): JourneyRoute | null {
   if (
     !roads.some((r) => r.id === start.roadId) ||
     !roads.some((r) => r.id === end.roadId) ||
@@ -120,31 +125,43 @@ export function selectedRoadJourney(
       };
     });
   });
-  const steps = findPreparedNetworkPath(
-    split,
-    start.point,
-    end.point,
-    !avoidBlocked,
-    new Set(),
-    1, // This tool measures shortest distance; uncertainty is shown, not a hidden cost penalty.
-  );
+  // Distance tools keep the shortest path. Resident advice takes the shortest unblocked route
+  // unless a route with fewer sections to check is at most `residentDetourTolerance` longer.
+  const shortest = findPreparedNetworkPath(split, start.point, end.point, !avoidBlocked, new Set(), 1);
+  const length = (path: typeof shortest) => path ? path.reduce((sum, step) => sum + projectedPathLength(step.road.points), 0) : Infinity;
+  const steps = preference === 'rescue-foot' ? findRescueFootPath(split, start.point, end.point) : preference === 'conditions'
+    ? findConditionAwarePath(split, start.point, end.point, !avoidBlocked) : shortest;
   if (!steps) return null;
-  const segs = steps.map((s) =>
-      s.reversed ? { ...s.road, points: [...s.road.points].reverse() } : s.road,
-    ),
-    points = segs.flatMap((s, i) => (i ? s.points.slice(1) : s.points));
-  return {
-    id: `journey:${start.roadId}:${start.station}:${end.roadId}:${end.station}:${avoidBlocked}`,
-    communityId: "",
-    type: "candidate",
-    name: ["Tuyến đã chọn", "Selected route"],
-    points,
-    segs,
-    status: segs.some((s) => s.status === "blocked")
-      ? "blocked"
-      : segs.some((s) => s.status === "uncertain")
-        ? "uncertain"
-        : "open",
-    lengthKm: projectedPathLength(points) / 1000,
+  const id = `journey:${start.roadId}:${start.station}:${end.roadId}:${end.station}:${avoidBlocked}:${preference}`;
+  const build = (path: NonNullable<typeof shortest>): ScenarioRoute => {
+    const segs = path.map((s) =>
+        s.reversed ? { ...s.road, points: [...s.road.points].reverse() } : s.road,
+      ),
+      points = segs.flatMap((s, i) => (i ? s.points.slice(1) : s.points));
+    return {
+      // Identity follows the actual directed path, not its rank in the suggestions.
+      id: `${id}:path:${path.map(step => `${encodeURIComponent(step.road.id)}~${step.reversed ? 'r' : 'f'}`).join('/')}`,
+      communityId: "",
+      type: "candidate",
+      name: ["Tuyến đã chọn", "Selected route"],
+      points,
+      segs,
+      status: routeStatus({ status: 'open', segs }),
+      lengthKm: projectedPathLength(points) / 1000,
+    };
   };
+  if (preference === 'distance') return build(steps);
+  // Other ways round: close each section of the advised route in turn. Keep unblocked paths that
+  // share under 70% of their length with the advised route or each other, at most twice as long.
+  const shared = (path: typeof steps, other: typeof steps) => {
+    const ids = new Set(other.map(step => step.road.id));
+    return path.reduce((sum, step) => sum + (ids.has(step.road.id) ? projectedPathLength(step.road.points) : 0), 0) / length(path);
+  };
+  const others: Array<typeof steps> = [];
+  for (const step of steps) {
+    const path = findPreparedNetworkPath(split, start.point, end.point, false, new Set([step.road.id]), routingPolicy.uncertainCostMultiplier);
+    if (!path || length(path) > length(steps) * 2 || [steps, ...others].some(known => shared(path, known) >= 0.7)) continue;
+    others.push(path);
+  }
+  return { ...build(steps), alternatives: others.sort((a, b) => length(a) - length(b)).slice(0, 2).map(build) };
 }

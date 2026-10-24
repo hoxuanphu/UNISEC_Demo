@@ -63,3 +63,9 @@
   .map-area[data-profile="true"] .map-bottom-bar { bottom: calc(min(320px, 60%) + 16px); }
   .map-area[data-profile="true"] .map-bottom-bar[data-expanded="false"] .map-legend { display: none; }
 }
+.map-area:has(.map-advanced-tools:not([hidden])) .map-bottom-bar { --legend-top-clearance:calc(var(--map-toolbar-height) + 16px); }
+@media(min-width:901px) {
+  @container(max-width:600px) {
+    .map-area:has(.map-advanced-tools:not([hidden])) .map-bottom-bar { --legend-top-clearance:calc(var(--size-workspace-toolbar) + 120px); }
+  }
+}

@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import type { FieldPhoto } from './model';
 import type { Locale } from '../../types/dear';
 import { UiIcon } from '../../shared/ui/UiIcon';
+import { photoCaptureLabel, photoCaptureTime, photoLocation } from './captureMetadata';
 export function PhotoPreview({
   photo,
   locale,
@@ -14,6 +15,7 @@ export function PhotoPreview({
 }): JSX.Element {
   const ref = useRef<HTMLDialogElement>(null);
   useNativeDialog(ref);
+  const capture = photoCaptureTime(photo), location = photoLocation(photo);
   return (
     <dialog
       ref={ref}
@@ -39,11 +41,11 @@ export function PhotoPreview({
         </button>
       </header>
       <img src={photo.preview} alt={photo.name} />
-      <p>
-        {locale === 'vi'
-          ? 'Bản xem trước ảnh hiện trường'
-          : 'Field photo preview'}
-      </p>
+      {(capture || location) && <dl className="field-metadata photo-preview-metadata">
+        {capture && <div><dt>{locale === 'vi' ? 'Chụp lúc' : 'Captured at'}</dt><dd>{photoCaptureLabel(photo, locale)}</dd></div>}
+        {location && <div><dt>{locale === 'vi' ? 'Vị trí khi chụp' : 'Capture location'}</dt><dd>{location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}</dd></div>}
+      </dl>}
+      {!capture && !location && <p>{locale === 'vi' ? 'Ảnh chưa có ngày chụp và vị trí.' : 'No capture time or location in this photo.'}</p>}
     </dialog>
   );
 }

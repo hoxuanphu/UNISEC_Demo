@@ -1,5 +1,5 @@
 import type { GeometryRecord } from '../../geo/vector/types';
-import type { FieldPhoto, FieldObservation } from './model';
+import type { AppPhotoCapture, FieldPhoto, FieldObservation } from './model';
 import type { Locale } from '../../types/dear';
 
 export type CaptureTime = { local: string; instant: string; source: string };
@@ -39,7 +39,28 @@ export function photoCaptureTime(photo: FieldPhoto): CaptureTime | null {
     photo.exif.DateTimeOriginal,
     photo.exif.OffsetTimeOriginal,
     photo.name
-  );
+  ) ?? (photo.capture ? captureTime(photo.capture.capturedAt, '', photo.name) : null);
+}
+
+const validPosition = (latitude: unknown, longitude: unknown) =>
+  typeof latitude === 'number' && Number.isFinite(latitude) && Math.abs(latitude) <= 85.05112878 &&
+  typeof longitude === 'number' && Number.isFinite(longitude) && Math.abs(longitude) <= 180;
+
+export function validAppPhotoCapture(raw: unknown): raw is AppPhotoCapture {
+  if (!raw || typeof raw !== 'object') return false;
+  const value = raw as AppPhotoCapture, p = value.position;
+  return value.source === 'app-camera' && !!captureTime(value.capturedAt)?.instant && (p === undefined ||
+    (!!p && typeof p === 'object' && validPosition(p.latitude, p.longitude) && Number.isFinite(p.accuracyM) && p.accuracyM >= 0 && !!captureTime(p.measuredAt)?.instant));
+}
+
+/** Only actual file GPS or a measured app-camera position, never file modification time. */
+export function photoLocation(photo: FieldPhoto) {
+  if (validPosition(photo.exif.latitude, photo.exif.longitude)) return {
+    latitude: Number(photo.exif.latitude), longitude: Number(photo.exif.longitude), accuracyM: null,
+    source: 'exif' as const,
+  };
+  const capture = photo.capture;
+  return capture && validAppPhotoCapture(capture) && capture.position ? {...capture.position, source: 'app-camera' as const} : null;
 }
 export function recordCaptureTime(record: GeometryRecord): CaptureTime | null {
   for (const key of [
@@ -85,6 +106,7 @@ export function observationTimeLabel(
 export function photoCaptureLabel(photo: FieldPhoto, locale: Locale): string {
   const capture = photoCaptureTime(photo);
   if (!capture) return String(photo.exif.DateTimeOriginal ?? '');
+  if (!photo.exif.DateTimeOriginal && photo.capture) return new Date(photo.capture.capturedAt).toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-GB');
   const wall = new Date(capture.local + 'Z').toLocaleString(
     locale === 'vi' ? 'vi-VN' : 'en-GB',
     { timeZone: 'UTC' }

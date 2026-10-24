@@ -1,7 +1,7 @@
 """Verify local field photos, source integrity and GIS-to-response point mapping."""
 from browser_preferences import use_vietnamese
 from gis_browser_actions import map_tool
-from gis_browser_actions import gis_task, download_geometry, published_records, reviewed_records_json
+from gis_browser_actions import gis_task, download_geometry, published_records, reviewed_records_json, clear_prepared_survey
 import argparse, base64, hashlib, json, struct, tempfile
 from pathlib import Path
 from playwright.sync_api import expect, sync_playwright
@@ -18,8 +18,14 @@ def run(url, chrome, captures):
         context.route('**/*',lambda r:r.continue_() if r.request.url.startswith(url+'/') else r.abort())
         page=use_vietnamese(context.new_page());errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
         page.goto(url+'/?map=2d&offline=1&demoRole=manager');expect(page.locator('.incident-overview-heading')).to_be_visible(timeout=25000)
-        original_roads=page.locator('.map-road-target').count()
-        original_road_box=page.locator('.map-road-target').first.bounding_box()
+        clear_prepared_survey(page)
+        page.wait_for_timeout(600)
+        visible_road=page.locator('.map-road-target:visible').first
+        expect(visible_road).to_be_visible(timeout=25000)
+        original_road_id=visible_road.get_attribute('data-road-id')
+        original_roads=page.locator('.map-road-target:not([data-road-id^="local-"])').count()
+        original_road_box=visible_road.bounding_box()
+        original_map_box=page.locator('.map-canvas').bounding_box()
         map_tool(page, 'Dữ liệu GIS').click()
         gis_task(page)
         page.get_by_role('button',name='Thêm điểm tọa độ',exact=True).click()
@@ -59,8 +65,11 @@ def run(url, chrome, captures):
         # GIS fitting must not move the independent response-map camera.
         page.get_by_role('button',name='Đóng dữ liệu GIS',exact=True).click()
         expect(page.locator('.geodata-workspace')).to_have_count(0)
-        road_box=page.locator('.map-road-target').first.bounding_box()
-        assert all(abs(road_box[k]-original_road_box[k])<1 for k in ['x','y','width','height']),(road_box,original_road_box)
+        road_box=page.locator(f'.map-road-target[data-road-id="{original_road_id}"]').bounding_box()
+        map_box=page.locator('.map-canvas').bounding_box()
+        # Notices may move the whole map; compare within its own surface.
+        assert all(abs((road_box[k]-map_box[k])-(original_road_box[k]-original_map_box[k]))<1 for k in ['x','y']),(road_box,original_road_box)
+        assert all(abs(road_box[k]-original_road_box[k])<1 for k in ['width','height']),(road_box,original_road_box)
         map_tool(page, 'Dữ liệu GIS').click()
         gis_task(page)
         form=page.locator('.field-observation')
@@ -69,23 +78,33 @@ def run(url, chrome, captures):
         expect(page.locator(f'[data-field-id="{oid}"]')).to_be_visible()
         expect(page.locator('.field-map-card')).to_contain_text('Chờ kiểm tra')
         expect(page.locator('.field-map-card img')).to_have_count(1)
-        assert page.locator('.map-road-target').count()==original_roads
+        assert page.locator('.map-road-target:not([data-road-id^="local-"])').count()==original_roads
         # Explicit visibility is separate from field classification and incident assessments.
         page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
         page.locator('.layer-context > summary').click()
         page.get_by_label('Dữ liệu tham chiếu',exact=True).uncheck()
         expect(page.locator(f'[data-field-id="{oid}"]')).to_have_count(0)
+        expect(page.locator('.field-map-card')).to_have_count(0)
         page.get_by_label('Dữ liệu tham chiếu',exact=True).check();page.get_by_role('button',name='Đóng lớp bản đồ',exact=True).click()
         expect(page.locator(f'[data-field-id="{oid}"]')).to_be_visible()
+        page.locator(f'[data-field-id="{oid}"]').click()
         for width in [1440,1024,390,320]:
             page.set_viewport_size({'width':width,'height':900})
+            if width < 900:
+                page.locator('.mobile-view-switch').get_by_role('button', name='Thông tin', exact=True).click()
+            expect(page.locator('.field-map-card')).to_be_visible()
             for theme in ['light','dark']:
                 page.evaluate('(t)=>document.documentElement.dataset.theme=t',theme)
                 page.wait_for_timeout(220)
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(width,theme)
                 assert page.locator('.field-map-card').evaluate('n=>n.scrollWidth<=n.clientWidth'),(width,theme)
-                card=page.locator('.field-map-card').bounding_box(); toolbar=page.locator('.map-toolbar').bounding_box()
-                assert card['y'] >= toolbar['y']+toolbar['height'],(width,theme,card,toolbar)
+                card=page.locator('.field-map-card').bounding_box()
+                if width >= 900:
+                    toolbar=page.locator('.map-toolbar').bounding_box()
+                    assert card['y'] >= toolbar['y']+toolbar['height'],(width,theme,card,toolbar)
+                else:
+                    body=page.locator('#response-details').bounding_box()
+                    assert card['x'] >= body['x'] and card['x']+card['width'] <= body['x']+body['width'],(width,theme,card,body)
                 if captures and width in [1440,320]:page.screenshot(path=str(captures/f'field-response-{width}-{theme}.png'))
         page.set_viewport_size({'width':1440,'height':960})
         page.locator('.field-map-card').get_by_role('button',name='Mở trong GIS',exact=True).click()

@@ -34,6 +34,9 @@ export function PreparedImageryComparison({layers,records,selected,locale,onClos
   const [position,setPosition]=useState(50),[status,setStatus]=useState<'loading'|'ready'|'error'>('loading'),[attempt,setAttempt]=useState(0);
   const [mode,setMode]=useState<Mode>('swipe'),[frame,setFrame]=useState<'before'|'after'>('before'),[playing,setPlaying]=useState(true),[delay,setDelay]=useState(1000);
   const [gifState,setGifState]=useState<'idle'|'working'|'error'>('idle');
+  // Hold frame: switching between optical and SAR keeps the current view, so both read the same ground.
+  const [hold,setHold]=useState(false),holdRef=useRef(hold);holdRef.current=hold;
+  const lastView=useRef<{center:L.LatLng;zoom:number}|null>(null);
   const tone=kind==='optical'&&supportsBasemapTone(layers)&&!imagerySource.custom;
   const mask=useRef<{before:HTMLElement;after:HTMLElement}|null>(null),view=useRef({position,mode,frame});view.current={position,mode,frame};
   const applyMask=()=>{
@@ -68,7 +71,8 @@ export function PreparedImageryComparison({layers,records,selected,locale,onClos
     }
     all.addTo(map);
     const fit=selected?L.geoJSON(selected.feature).getBounds():all.getBounds();
-    if(before.kind==='sar'&&after.kind==='sar'&&!selected){
+    if(holdRef.current&&lastView.current)map.setView(lastView.current.center,lastView.current.zoom,{animate:false});
+    else if(before.kind==='sar'&&after.kind==='sar'&&!selected){
       const a=before.modes.vv.web.latLngBounds,b=after.modes.vv.web.latLngBounds;
       const common=L.latLngBounds([[Math.max(a[0][0],b[0][0]),Math.max(a[0][1],b[0][1])],[Math.min(a[1][0],b[1][0]),Math.min(a[1][1],b[1][1])]]);
       map.fitBounds(common,{padding:[24,24],maxZoom:17});
@@ -76,7 +80,7 @@ export function PreparedImageryComparison({layers,records,selected,locale,onClos
     else map.fitBounds(selectedRasters(layers,{layer:after.id,sarMode,opacity:1})[0].web.latLngBounds);
     applyMask();
     const resize=new ResizeObserver(()=>{map.invalidateSize();applyMask();});resize.observe(host.current);
-    return ()=>{resize.disconnect();mask.current=null;mapRef.current=null;removeLeafletMap(map);};
+    return ()=>{lastView.current={center:map.getCenter(),zoom:map.getZoom()};resize.disconnect();mask.current=null;mapRef.current=null;removeLeafletMap(map);};
   },[records,selected,attempt,kind]);
   useEffect(()=>{
     const map=mapRef.current;if(!map||!before||!after)return;
@@ -128,6 +132,7 @@ export function PreparedImageryComparison({layers,records,selected,locale,onClos
       <div className="prepared-comparison-modes" role="group" aria-label={t('Loại ảnh','Imagery type')}>
         {available.map(value=><button key={value} type="button" disabled={gifState==='working'} aria-pressed={kind===value} onClick={()=>{setRequestedKind(value);setFrame('before');}}>{value==='sar'?'Sentinel-1 SAR':'PlanetScope'}</button>)}
       </div>
+      {available.length>1&&<button type="button" className="prepared-comparison-hold" aria-pressed={hold} title={t('Đổi loại ảnh vẫn giữ nguyên vùng đang xem','Switching imagery type keeps the current view')} onClick={()=>setHold(value=>!value)}><UiIcon name="fit" size={16}/>{t('Giữ khung','Hold frame')}</button>}
       {kind==='sar'&&<>
         <label>{t('Kênh SAR','SAR channel')}<select aria-label={t('Kênh SAR','SAR channel')} value={sarMode} disabled={gifState==='working'} onChange={event=>setSarMode(event.target.value as SarMode)}><option value="vv">VV</option><option value="vh">VH</option><option value="rgb">{t('Tổ hợp','Composite')}</option></select></label>
         <span className="prepared-comparison-sar-scale">{sarMode==='rgb'?'R: VV, G: VH, B: VV/VH':before?.kind==='sar'?`${before.rangesDb[sarMode][0]} – ${before.rangesDb[sarMode][1]} dB`:''}</span>

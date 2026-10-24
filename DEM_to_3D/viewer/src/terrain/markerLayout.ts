@@ -80,6 +80,21 @@ export function layoutMarkerGroups(points: ScreenMarker[], width: number, height
   return groups;
 }
 
+/** Individual places do not merge merely because they are nearby. A covered
+ * feature remains selectable behind a normal symbol, without count or offset. */
+export function layoutPlaceMarkers(points: ScreenMarker[], width: number, height: number, controls: ScreenRect[]): MarkerGroup[] {
+  const placed: MarkerGroup[] = [];
+  for (const point of [...points].sort(byPriority)) {
+    const rect = markerRect(point, 28);
+    if (!Number.isFinite(point.x) || !Number.isFinite(point.y) || rect.x < 4 || rect.y < 4 ||
+      rect.x + rect.width > width - 4 || rect.y + rect.height > height - 4 || controls.some(control => overlaps(rect, control, 3))) continue;
+    const covered = placed.find(item => overlaps(item.rect, rect, 3));
+    if (covered) covered.members.push(point);
+    else placed.push({anchor: point, members: [point], rect});
+  }
+  return placed;
+}
+
 /** Place a contextual label near its geographic anchor without covering symbols or controls.
  * Suppress the label when space is exhausted; never displace the geographic feature. */
 export function placeMapLabel(anchor: {x:number;y:number}, size: {width:number;height:number}, viewport: {width:number;height:number}, obstacles: ScreenRect[]): ScreenRect | undefined {

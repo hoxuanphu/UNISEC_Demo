@@ -1,7 +1,8 @@
 """Check stable map hover, modal entry and GIS/response edit continuity."""
 from browser_preferences import use_vietnamese
+from network_browser_fixture import install_network_fixture
 from gis_browser_actions import map_tool
-from gis_browser_actions import gis_task, clear_prepared_survey
+from gis_browser_actions import gis_task, clear_prepared_survey, select_scenario_community
 import argparse, json
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
@@ -12,11 +13,13 @@ def run(url, chrome, captures=None):
         browser = p.chromium.launch(headless=True, executable_path=chrome)
         context = use_vietnamese(browser.new_context(viewport={'width': 1440, 'height': 960}))
         context.route('**/*', lambda route: route.continue_() if route.request.url.startswith(url + '/') else route.abort())
+        install_network_fixture(context,url)
         page = use_vietnamese(context.new_page()); errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(url + '/?map=2d&offline=1&demoRole=manager')
         expect(page.locator('.incident-overview-heading')).to_be_visible(timeout=30000)
         baseline=clear_prepared_survey(page)
+        page.wait_for_timeout(300)
         def fixed_hover(marker):
             before = marker.bounding_box()
             marker.hover()
@@ -25,7 +28,8 @@ def run(url, chrome, captures=None):
             assert max(abs(before[key]-after[key]) for key in ['x','y','width','height']) < .5, (before,after)
             page.mouse.move(2,2)
         markers = page.locator('.map-pin:not(.is-selected):visible')
-        for marker in markers.all()[:5]: fixed_hover(marker)
+        for identity in markers.evaluate_all('nodes=>nodes.slice(0,5).map(n=>n.dataset.mapObject)'):
+            fixed_hover(page.locator(f'[data-map-object="{identity}"]:visible'))
         search = page.get_by_role('combobox', name='Tìm trên bản đồ', exact=True)
         search.fill('Nậm')
         results = page.get_by_role('listbox', name='Kết quả tìm kiếm')
@@ -83,11 +87,7 @@ def run(url, chrome, captures=None):
         for marker in page.locator('.geodata-map .map-pin:visible').all():
             box=marker.bounding_box()
             if box and box['x']>surface['x']+28 and box['y']>surface['y']+28 and box['x']+box['width']<surface['x']+surface['width']-28 and box['y']+box['height']<surface['y']+surface['height']-28: fixed_hover(marker)
-        community = next(pin for pin in page.locator('.geodata-map .map-pin:visible').all() if 'Khau Mang' in (pin.get_attribute('aria-description') or '').split(', '))
-        expect(community).to_be_visible(timeout=5000)
-        community.click()
-        chooser=page.locator('.geodata-map .map-object-chooser')
-        if chooser.count(): chooser.get_by_role('button',name='Khau Mang',exact=True).click()
+        select_scenario_community(page,'Khau Mang')
         card = page.locator('.scenario-card')
         expect(card).to_be_visible(timeout=5000)
         card.get_by_role('button',name='Đổi tên',exact=True).click(timeout=5000)
@@ -104,7 +104,7 @@ def run(url, chrome, captures=None):
         page.get_by_role('dialog', name='Áp dụng thay đổi GIS?', exact=True).get_by_role('button', name='Áp dụng', exact=True).click()
         card.get_by_role('button',name='Đóng',exact=True).click()
         page.locator('.geodata-feature').filter(has_text='Điểm đã đổi tên').click()
-        page.get_by_role('button',name='Xem trên bản đồ ứng phó',exact=True).click()
+        page.get_by_role('button',name='Về bản đồ ứng phó',exact=True).click()
         expect(page.locator('.map-marker-layer')).to_contain_text('Khau Mang kiểm tra')
         expect(page.locator('.field-map-card')).to_contain_text('Điểm đã đổi tên')
         expect(page.locator('.leaflet-dear-selection-pane .map-selected-reference').first).to_be_visible()

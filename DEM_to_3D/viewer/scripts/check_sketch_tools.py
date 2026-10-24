@@ -14,7 +14,7 @@ def run(url, chrome, captures=None):
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(url + '/?map=2d&offline=1&demoRole=manager')
-        expect(page.locator('.leaflet-image-layer')).to_have_count(1, timeout=25000)
+        expect(page.locator('img[alt="Ảnh nền khu vực Chế Tạo"]')).to_be_visible(timeout=25000)
         box = page.locator('.map-2d-surface').bounding_box()
         at = lambda x, y: (box['x'] + box['width'] * x, box['y'] + box['height'] * y)
 
@@ -24,7 +24,7 @@ def run(url, chrome, captures=None):
         for x, y in [(.45, .25), (.62, .32), (.7, .55)]: page.mouse.click(*at(x, y))
         page.mouse.move(*at(.78, .6))
         # Leaflet fades a replaced tooltip out for 200 ms; read the newest one.
-        expect(page.locator('.map-sketch-cursor').last).to_contain_text('Tổng')
+        expect(page.locator('.map-sketch-cursor').last).to_contain_text('tổng')
         rows = panel.locator('.vertex-table tbody tr')
         expect(rows).to_have_count(3)
         expect(page.locator('.map-measure-midpoint')).to_have_count(2)

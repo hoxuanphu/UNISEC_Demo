@@ -12,6 +12,12 @@ export type NetworkPlace = {
     };
     placemarkIndex: number;
 };
+export type LocalRoadAreaLink = {
+    roadId: string; areaId: string;
+    state: 'occurred' | 'potential';
+    roadPoint: { x: number; y: number }; areaPoint: { x: number; y: number };
+    distanceM: number;
+};
 export type LocalNetwork = {
     schemaVersion: 1;
     crs: 'EPSG:32648';
@@ -38,6 +44,7 @@ export type LocalNetwork = {
         coordinates: number[][];
     }>;
     roads: RoadSegment[];
+    conditions?: { source: 'authored-scenario'; observedAt: null; roadIds: readonly string[]; areaLinks: LocalRoadAreaLink[] };
     places: NetworkPlace[];
     areas: Array<{
         id: string;

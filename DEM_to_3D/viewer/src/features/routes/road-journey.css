@@ -1,6 +1,6 @@
 .road-journey-panel {
   --journey-a: #246b9a;
-  --journey-b: #c2410c;
+  --journey-b: #2b7354;
   --journey-ok: #2b8a5e;
   position: absolute;
   z-index: 750;
@@ -16,6 +16,8 @@
   background: var(--ws-surface);
   box-shadow: var(--shadow-float);
 }
+.journey-purpose { display:flex; align-items:center; gap:12px; margin-bottom:14px; color:var(--ws-muted); font-size:13px; }
+.journey-purpose select { flex:1; min-width:0; min-height:40px; padding:6px 30px 6px 10px; color:var(--ws-text); background:var(--ws-card); border:1px solid var(--ws-line); border-radius:var(--radius-control); font:inherit; }
 .road-journey-panel > header {
   display: flex;
   align-items: center;
@@ -51,7 +53,7 @@
   min-height: 0;
 }
 
-/* A/B stops: pin · field · pick-on-map, with a swap control spanning both rows. */
+/* A/B stops with map picking and a swap control spanning both rows. */
 .journey-stops {
   display: grid;
   grid-template-columns: 1fr 32px;
@@ -116,8 +118,11 @@
   color: var(--journey-a, #246b9a);
 }
 .journey-map-pin.is-b {
-  color: var(--journey-b, #c2410c);
+  color: var(--journey-b, #2b7354);
 }
+.workspace .resident-route-pins .resident-route-endpoint { display:grid; place-items:center; width:28px; height:28px; padding:0; border:2px solid white; border-radius:50%; background:#246b9a; color:white; font:600 13px/24px var(--font-map); pointer-events:auto; }
+.workspace .resident-route-pins .resident-route-endpoint.is-b { background:#2b7354; }
+.workspace .resident-route-pins .resident-route-endpoint b { position:static; color:inherit; font:inherit; }
 .journey-map-pin > span {
   position: relative;
   display: block;
@@ -337,4 +342,23 @@
 }
 .road-journey-panel[data-collapsed] > header {
   border-bottom: 0;
+}
+.journey-result-heading { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.journey-result-heading > strong:first-child { font-size:14px; font-weight:600; }
+.journey-route-distance { flex:none; font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; }
+.journey-condition { margin:0; font-size:13px; line-height:1.5; color:var(--ws-muted); }
+.journey-condition.is-uncertain { color:var(--warning-ink); }
+.journey-condition.is-blocked { color:var(--critical-ink); }
+:is(.journey-access,.journey-alternatives) { border-top:1px solid var(--ws-line); padding-top:8px; font-size:13px; }
+:is(.journey-access,.journey-alternatives) > summary { min-height:32px; cursor:pointer; color:var(--ws-muted); }
+.journey-access p { margin:0 0 12px; color:var(--ws-muted); line-height:1.5; }
+.journey-alternative { display:flex; justify-content:space-between; align-items:center; width:100%; gap:12px; padding:10px 0; border:0; border-top:1px solid var(--ws-line); background:transparent; color:var(--ws-text); font:inherit; text-align:left; }
+.journey-alternative:hover { color:var(--select-ink); }
+@media(max-width:760px) {
+  .road-journey-panel { top:auto; bottom:12px; max-height:55%; }
+  .workspace-shell .map-area .road-journey-panel > header .icon-button { width:40px; height:40px; min-height:40px; }
+  .journey-stop { grid-template-columns:24px minmax(0,1fr) 40px; }
+  .journey-stop-field select,.journey-pick { height:40px; min-height:40px; }
+  .journey-pick { width:40px; }
+  .workspace-shell .map-area:has(:is(.road-journey-panel,.local-road-card)) :is(.map-attribution,.map-overview,.map-bottom-bar) { visibility:hidden; }
 }

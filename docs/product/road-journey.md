@@ -6,7 +6,17 @@ A/B là hai vị trí được chọn. Giữ tọa độ gốc và mã nguồn; 
 
 Điểm chọn ngoài đường được đối chiếu với mạng đã có trong phạm vi 5 km. Đây là giới hạn hiển thị/phân tích của demo, không phải sai số GPS hay xác nhận có lối đi. Các nét đứt chỉ là khoảng cách thẳng từ tọa độ gốc tới điểm nối; không đưa các nét đó vào graph và không tính chúng như đường đi đã có. Nếu không tìm được điểm nối hợp lệ, giữ vị trí vừa chọn, bỏ kết quả cũ và báo lỗi tại A/B. Preset chọn từ GIS/vùng là tọa độ tại lúc chọn; muốn chọn một vị trí mới thì chọn lại hoặc bấm lên bản đồ.
 
-Mạng đường tình huống dùng mặt bằng UTM/WGS84, EPSG:32648, đơn vị m. Chiều dài theo hình học đường, không lấy số `len` hiển thị cũ hoặc đường thẳng nối A/B. Chế độ này tối ưu chiều dài trên mạng đủ điều kiện; đoạn cần xác minh vẫn mang trạng thái cần xác minh, không tự cộng hệ số phạt ẩn. Chính sách ưu tiên nghiệp vụ của các phương án ứng phó chuẩn bị sẵn là một luồng riêng, có hệ số bất định được khai báo trong `routingPolicy`.
+Mạng đường tình huống dùng mặt bằng UTM/WGS84, EPSG:32648, đơn vị m. Chiều dài theo hình học đường, không lấy số `len` hiển thị cũ hoặc đường thẳng nối A/B. **Đi lại trong vùng** ưu tiên ít đoạn có nguy cơ/cần hỏi lại trong giới hạn vòng thêm 25% so với tuyến không bị chặn ngắn nhất. **Cứu hộ đi bộ** luôn loại đoạn bị chặn, ưu tiên ít chiều dài đi qua nguy cơ, sau đó ít đoạn chưa rõ tình trạng, cuối cùng mới tối ưu chiều dài; không áp giới hạn vòng thêm của đi lại thường ngày. Công cụ đo khoảng cách độc lập vẫn tối ưu chiều dài. Trạng thái chưa xác minh được giữ nguyên trong mọi kết quả.
+
+## Tiếp cận bằng đường địa phương
+
+Giá trị của DEAR là kết hợp mạng đường địa phương, thông tin hiện trường và lớp sạt lở có nguồn gốc, để lập phương án tiếp cận theo điều kiện đang biết. Không mô tả Google Maps hay Apple Maps là chỉ tối ưu đường ngắn nhất hoặc khẳng định họ thiếu một tuyến cụ thể khi chưa có đối chiếu.
+
+Luồng vận hành cần có người dân/cán bộ địa bàn cung cấp dấu đường hoặc GPX, ghi rõ đoạn đi bộ/xe máy/ô tô, vị trí nối đường, người dẫn đường và lần đi qua gần nhất. Người điều phối kiểm tra hình học, quyền tiếp cận và độ mới của thông tin trước khi áp dụng vào mạng chung. Ảnh vệ tinh khoanh vùng cần kiểm tra; báo cáo thực địa và quyết định duyệt xác định đoạn đường bị chặn. Một polygon chạm đường không tự chứng minh đường bị vùi lấp hay đi bộ qua được.
+
+Người điều phối chọn điểm xuất phát, nơi cần tiếp cận và **Cứu hộ đi bộ**. Phương án có thể dùng đường mòn đã có trong graph, kèm các đoạn cần hỏi lại và hình ảnh liên quan. Nếu không tìm được tuyến đủ điều kiện thì báo không tìm được, không nối đường thẳng qua núi. Kết quả là phương án cần xác nhận với người địa phương; không tự coi đường mở là an toàn. Đường xe cơ giới, lối mang cáng, tải trọng cầu, thời gian hiệu lực của báo cáo và đồng bộ đội hiện trường cần dữ liệu riêng trước khi hỗ trợ định tuyến theo các điều kiện đó. Hiện tại không tự suy ra khả năng đi xe từ màu đường hay lớp `track`.
+
+Mô hình thu thập tri thức địa phương tham khảo [HOT Field Tasking Manager](https://field.hotosm.org/); quyền đi bộ và phương tiện cần phân biệt theo [OSM access](https://wiki.openstreetmap.org/wiki/Key:access). Đây là định hướng vận hành, không phải xác nhận đã có dịch vụ tiếp nhận và duyệt nhiều người dùng.
 
 Chỉ kết nối tại nút đã có trong mạng chuẩn bị. Hai đường cắt nhau trên hình không tự tạo nút giao. Dữ liệu demo hiện coi các đoạn là hai chiều, chưa mô hình hóa đường một chiều, cấm rẽ hoặc khả năng đi qua theo loại xe. Không gọi kết quả này là chỉ dẫn giao thông trực tiếp. Ngưỡng 1 mm chỉ ổn định tính toán tại đỉnh; không phải độ chính xác thực địa.
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { photoSummary } from './photoSummary';
-import { photoCaptureLabel } from './captureMetadata';
+import { photoCaptureLabel, photoCaptureTime, photoLocation } from './captureMetadata';
+import { validPhoto } from './model';
 import type { FieldPhoto } from './model';
 const photo: FieldPhoto = {
   id: 'photo-1',
@@ -26,6 +27,29 @@ const reported = {
   coordinates: [104.05, 21.783333]
 };
 describe('photo metadata in report context', () => {
+  it('retains actual in-app capture time and GPS separately from the original file EXIF', () => {
+    const captured: FieldPhoto = {...photo, exif: {}, capture: {source:'app-camera',capturedAt:'2026-10-24T02:30:15.123Z',
+      position:{latitude:21.78,longitude:104.05,accuracyM:12,measuredAt:'2026-10-24T02:30:12Z'}}};
+    expect(validPhoto(captured)).toBe(true);
+    expect(photoCaptureTime(captured)?.instant).toBe('2026-10-24T02:30:15.123Z');
+    expect(photoLocation(captured)).toMatchObject({latitude:21.78,longitude:104.05,accuracyM:12,source:'app-camera'});
+    expect(photoSummary(captured,{observedAt:captured.capture!.capturedAt,coordinates:[104.05,21.78]})).toMatchObject({showTime:false,showGps:false});
+    expect(captured.exif).toEqual({});
+    expect(photoCaptureTime({...photo,exif:{}})).toBeNull();
+    expect(photoLocation({...photo,exif:{}})).toBeNull();
+  });
+
+  it('rejects invalid captured locations and does not use upload time as capture time', () => {
+    const capture = {source:'app-camera' as const,capturedAt:'2026-10-24T02:30:15Z'};
+    expect(validPhoto({...photo,capture})).toBe(true);
+    for (const position of [null, {latitude:99,longitude:104,accuracyM:2,measuredAt:capture.capturedAt},
+      {latitude:21,longitude:104,accuracyM:-1,measuredAt:capture.capturedAt},
+      {latitude:21,longitude:104,accuracyM:2,measuredAt:'not a date'}]) {
+      expect(validPhoto({...photo,capture:{...capture,position}})).toBe(false);
+    }
+    expect(photoLocation({...photo,exif:{latitude:Infinity,longitude:104}})).toBeNull();
+    expect(photoLocation({...photo,exif:{latitude:0,longitude:0}})).toMatchObject({latitude:0,longitude:0});
+  });
   it('hides duplicate capture time and coordinates but keeps them in the photo source', () => {
     expect(photoSummary(photo, reported)).toMatchObject({
       showTime: false,

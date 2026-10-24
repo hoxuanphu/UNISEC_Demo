@@ -1,7 +1,7 @@
 """GIS edits, deletion and export must be reviewed and report only persisted success."""
 from browser_preferences import use_vietnamese
 from gis_browser_actions import map_tool
-from gis_browser_actions import gis_task, published_records, reviewed_records
+from gis_browser_actions import gis_task, published_records, reviewed_records, clear_prepared_survey
 import argparse, json
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
@@ -17,6 +17,7 @@ def run(url, chrome, captures=None):
         page.on('download',lambda download:downloads.append(download))
         page.goto(url+'/?offline=1&map=2d&demoRole=manager')
         expect(page.locator('.incident-overview-heading')).to_be_visible(timeout=30000)
+        clear_prepared_survey(page)
         map_tool(page, 'Dữ liệu GIS').click()
         gis_task(page)
         read=lambda:reviewed_records(page)
@@ -86,6 +87,7 @@ def run(url, chrome, captures=None):
         notice('Đã cập nhật tọa độ')
         expect(name).to_have_value('Điểm đã lưu')
         # Preparing or cancelling an export must not download a file.
+        page.locator('.geodata-export > details > summary').click()
         page.get_by_role('button',name='GeoJSON',exact=True).click()
         export=confirmation('Xuất dữ liệu GIS')
         expect(export).to_contain_text('dear-all.geojson');assert not downloads
@@ -110,7 +112,8 @@ def run(url, chrome, captures=None):
         notice('Đã lưu ranh giới')
         # AOI names use the same explicit save flow.
         area_name=page.get_by_label('Tên vùng',exact=True)
-        area_name.fill('AOI mới');assert read()[1]['name']=='AOI'
+        original_area_name=read()[1]['name']
+        area_name.fill('AOI mới');assert read()[1]['name']==original_area_name
         area_name.press('Enter');assert read()[1]['name']=='AOI mới'
         page.get_by_role('tab',name='Lớp',exact=True).click()
         page.locator('.geodata-feature').filter(has_text='AOI mới').click()

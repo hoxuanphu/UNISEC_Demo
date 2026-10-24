@@ -32,7 +32,8 @@ def run(url,chrome,captures):
     page.keyboard.press('Escape');expect(details).to_have_count(0);expect(trigger).to_be_focused()
     settings=page.get_by_role('button',name='Cài đặt',exact=True);settings.click()
     popup=page.locator('.settings-menu');inside(popup,width,height)
-    expect(page.locator('.app-header').get_by_role('button',name='Đổi vai trò',exact=True)).to_be_visible()
+    expect(page.locator('.app-header').get_by_role('button',name='Tài khoản',exact=True)).to_be_visible()
+    expect(page.locator('.app-header').get_by_role('button',name='Đổi vai trò',exact=True)).to_have_count(0)
     page.keyboard.press('Escape');expect(settings).to_be_focused()
     if captures and theme=='light':
      captures.mkdir(parents=True,exist_ok=True);page.screenshot(path=str(captures/f'header-{width}.png'))

@@ -44,19 +44,20 @@ def run(url,chrome=None,fixture=False,output=None,captures=None):
         destination=page.get_by_role('combobox',name='Destination',exact=True)
         expect(origin).to_have_value('place-23');expect(destination).to_have_value('place-25')
         origin.select_option('place-24')
-        expect(page.locator('.route-film-result')).to_contain_text('Includes difficult roads')
+        expect(page.locator('.route-film-result')).to_contain_text('Landslide risk')
+        expect(page.locator('.route-film-legend')).to_contain_text('Difficult but possible')
         detour=page.locator('.route-film-result strong').inner_text()
         avoid=page.get_by_role('checkbox',name='Avoid blocked roads',exact=True)
-        avoid.uncheck();expect(page.locator('.route-film-result')).to_contain_text('Includes a blocked road')
+        avoid.uncheck();expect(page.locator('.route-film-result')).to_contain_text('Road blocked. Do not cross.')
         baseline=page.locator('.route-film-result strong').inner_text()
         assert float(detour.split()[0])>float(baseline.split()[0]),(detour,baseline)
         avoid.check();expect(play).to_be_enabled()
         stops=page.locator('.route-film-stops button')
         assert 1<=stops.count()<=3
         stops.first.click()
-        card=page.get_by_role('complementary',name='Demo landslide area',exact=True)
+        card=page.get_by_role('complementary',name='Landslide area',exact=True)
         expect(card.locator('img')).to_be_visible(timeout=20000)
-        expect(card).to_contain_text('Illustrative photo, not evidence')
+        expect(card).to_contain_text('not evidence of conditions')
         page.get_by_role('button',name='Close landslide area',exact=True).click()
         page.get_by_role('button',name='Pick on map A',exact=True).click()
         page.keyboard.press('Escape')
@@ -68,7 +69,8 @@ def run(url,chrome=None,fixture=False,output=None,captures=None):
         pause=page.get_by_role('button',name='Pause',exact=True)
         expect(pause).to_be_visible(timeout=60000);expect(origin).to_be_disabled()
         timeline=page.get_by_role('slider',name='Route playback position',exact=True)
-        expect(timeline).to_have_attribute('max','25')
+        duration=float(timeline.get_attribute('max'))
+        assert 20 <= duration <= 30, duration
         page.wait_for_timeout(2700)
         expect(timeline).to_be_visible()
         assert float(timeline.evaluate('el=>getComputedStyle(el.parentElement).opacity'))>.9
@@ -81,7 +83,7 @@ def run(url,chrome=None,fixture=False,output=None,captures=None):
         speed=page.get_by_role('combobox',name='Playback speed',exact=True)
         speed.select_option('1.25');expect(speed).to_have_value('1.25')
         speed.select_option('1')
-        for time in [0,8,12,18,24.9]:
+        for time in [0,8,12,18,min(24.9,int(duration*10)/10)]:
             timeline.fill(str(time));expect(timeline).to_have_value(str(time))
             page.wait_for_timeout(120)
             if captures:page.screenshot(path=str(captures/f'local-3d-{time}.png'))
@@ -96,7 +98,7 @@ def run(url,chrome=None,fixture=False,output=None,captures=None):
                 const src=URL.createObjectURL(await(await fetch('/__local-film.mp4')).blob()),video=document.createElement('video');video.muted=true;
                 await new Promise((resolve,reject)=>{video.onloadedmetadata=resolve;video.onerror=reject;video.src=src;});
                 const canvas=document.createElement('canvas');canvas.width=1920;canvas.height=1080;const ctx=canvas.getContext('2d'),frames=[];
-                for(const time of [.2,8,12,18,24.8]){
+                for(const time of [.2,8,12,18,Math.min(24.8,video.duration-.2)]){
                     await new Promise(resolve=>{video.onseeked=resolve;video.currentTime=time;});
                     await new Promise(resolve=>{video.requestVideoFrameCallback(resolve);setTimeout(resolve,200);});
                     ctx.drawImage(video,0,0);const d=ctx.getImageData(0,0,1920,1080).data;let hash=2166136261,green=0,yellow=0,red=0;
@@ -105,7 +107,7 @@ def run(url,chrome=None,fixture=False,output=None,captures=None):
                 }
                 const result={duration:video.duration,width:video.videoWidth,height:video.videoHeight,frames};URL.revokeObjectURL(src);return result;
             }''')
-            assert abs(decoded['duration']-25)<.1 and (decoded['width'],decoded['height'])==(1920,1080),decoded
+            assert abs(decoded['duration']-duration)<.1 and (decoded['width'],decoded['height'])==(1920,1080),decoded
             assert len(set(frame['hash'] for frame in decoded['frames']))>=4,decoded
             assert all(frame['green']>15000 for frame in decoded['frames']),decoded
             assert any(frame['yellow']>100 for frame in decoded['frames']),decoded
@@ -125,12 +127,25 @@ def run(url,chrome=None,fixture=False,output=None,captures=None):
         page.goto(url+'/?map=2d&demoRole=manager&lang=en')
         expect(page.locator('.map-context-landslide').first).to_be_attached(timeout=30000)
         expect(page.locator('.map-context-point')).to_have_count(0)
-        candidates=page.locator('.map-context-landslide').all()
-        chosen=None
-        for candidate in candidates:
-            point=candidate.evaluate('el=>{const p=el.getPointAtLength(el.getTotalLength()*.3),m=el.getScreenCTM();return {x:p.x*m.a+p.y*m.c+m.e,y:p.x*m.b+p.y*m.d+m.f};}')
-            if 460<point['x']<1350 and 140<point['y']<800:
-                chosen=point;break
+        page.locator('.map-layer-launcher').click()
+        page.get_by_role('button',name='Fit Chế Tạo local roads',exact=True).click()
+        close=page.get_by_role('button',name='Close map layers',exact=True)
+        if close.is_visible():close.click()
+        page.wait_for_timeout(700)
+        # Click a visible interior, not an outline underneath a road hit target.
+        chosen=page.locator('.map-context-landslide').evaluate_all('''polygons => {
+            for (const polygon of polygons) {
+                const bounds=polygon.getBoundingClientRect(), matrix=polygon.getScreenCTM();
+                if (!matrix) continue;
+                const inverse=matrix.inverse();
+                for (let ix=1;ix<12;ix++) for (let iy=1;iy<12;iy++) {
+                    const x=bounds.left+bounds.width*ix/12, y=bounds.top+bounds.height*iy/12;
+                    if (x<460 || x>1350 || y<140 || y>800) continue;
+                    if (polygon.isPointInFill(new DOMPoint(x,y).matrixTransform(inverse)) && document.elementFromPoint(x,y)===polygon) return {x,y};
+                }
+            }
+            return null;
+        }''')
         assert chosen,'No visible shared polygon on the main map'
         page.mouse.click(chosen['x'],chosen['y'])
         expect(page.locator('.local-area-card')).to_be_visible(timeout=10000)

@@ -96,6 +96,9 @@ jobs:
           python scripts/check_gis_draft_publish.py --url http://127.0.0.1:5213
           python scripts/check_landslide_areas.py --url http://127.0.0.1:5213
           python scripts/check_citizen_mobile.py --url http://127.0.0.1:5213
+          python scripts/check_citizen_navigation.py --url http://127.0.0.1:5213
+          python scripts/check_citizen_photos.py --url http://127.0.0.1:5213
+          python scripts/check_main_local_roads.py --url http://127.0.0.1:5213
           python scripts/check_role_presentation.py --url http://127.0.0.1:5213
           python scripts/check_map_symbol_consistency.py --url http://127.0.0.1:5213
           python scripts/check_dataset_selection.py --url http://127.0.0.1:5213

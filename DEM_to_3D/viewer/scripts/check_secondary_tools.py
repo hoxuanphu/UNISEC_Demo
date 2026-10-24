@@ -9,6 +9,13 @@ from pathlib import Path
 from playwright.sync_api import expect, sync_playwright
 
 
+def open_comparison(page):
+    # Before/after lives in the map's additional tools.
+    tools = page.get_by_role('button', name='Công cụ bổ sung', exact=True)
+    if tools.get_attribute('aria-expanded') != 'true': tools.click()
+    page.get_by_role('button', name='So sánh ảnh trước và sau', exact=True).click()
+
+
 def fixture_tiff(path, color, longitude=104, epsg=4326):
     """Small RGB display GeoTIFF with a known footprint; not operational imagery."""
     entries = [(256, 4, [16]), (257, 4, [16]), (258, 3, [8, 8, 8]), (259, 3, [1]),
@@ -92,7 +99,7 @@ def run(url, chrome, captures):
         expect(page.locator('.route-action')).to_contain_text('Không sử dụng tuyến này')
         if captures:
             page.screenshot(path=str(captures / 'workspace-layer-options.png'))
-        page.get_by_role('button', name='So ảnh trước và sau sự kiện', exact=True).click()
+        open_comparison(page)
         for i, filename in enumerate(['before.tif', 'after.tif']):
             field = page.locator('.comparison-form fieldset').nth(i)
             field.locator('input[type=file]').set_input_files(fixture_dir / filename)
@@ -129,7 +136,7 @@ def run(url, chrome, captures):
             page.screenshot(path=str(captures / 'workspace-image-comparison.png'))
         page.keyboard.press('Escape')
         page.get_by_role('button', name='Lớp bản đồ', exact=True).click()
-        page.get_by_role('button', name='So ảnh trước và sau sự kiện', exact=True).click()
+        open_comparison(page)
         expect(page.locator('.comparison-map .leaflet-image-layer')).to_have_count(2)
         page.keyboard.press('Escape')
         page.get_by_role('button', name='Xuất đánh giá', exact=True).click()

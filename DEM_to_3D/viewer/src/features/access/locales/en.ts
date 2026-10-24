@@ -1,7 +1,7 @@
 export const en = {
   roadInformationAndDisasterResponse: 'Road information and disaster response',
   simulatedSignInForTwoRolesSubmissions:
-    'Simulated sign-in for two roles. Submissions are stored in this browser only.',
+    'Choose how to use the app and enter your name.',
   yourRole: 'Your role',
   resident: 'Resident',
   viewRoadsAndSubmitFieldPhotosAnd:
@@ -23,7 +23,6 @@ export const en = {
   couldNotSaveTheReportCheckCoordinates:
     'Could not save the report. Check coordinates or browser storage.',
   communityInformation: 'Community information',
-  demoScenario: 'Demo scenario',
   help: 'Help',
   switchRole: 'Switch role',
   residentTasks: 'Resident tasks',
@@ -34,8 +33,6 @@ export const en = {
   areaToView: 'Village to view',
   noMappedRouteInTheCurrentDataset: 'No road information to this place yet. Ask the commune office before you go.',
   chooseAnotherJourney: 'Find a route between two other places',
-  demoScenarioInformationRoadSafetyHasNot:
-    'Demo scenario information. Road safety has not been confirmed.',
   fieldObservation: 'Field observation',
   attachPhotosDescribeWhatYouSawAnd:
     'Attach photos, describe what you saw and check the location before submitting.',
@@ -96,7 +93,6 @@ export const en = {
     'This reviews the submitted report. Road status and access assessment are not changed automatically.',
   selectAReportToViewPhotosLocation:
     'Select a report to view photos, location and review it.',
-  nameSavedInTheDemoSession: 'Name saved in the demo session.',
   couldNotSaveTheName: 'Could not save the name.',
   renameLoadedFeaturesIdsGeometryAndAssessment:
     'Rename loaded features. IDs, geometry and assessment status stay the same; source data is retained.',
@@ -117,7 +113,7 @@ export const en = {
   roadUnchecked: 'not checked yet',
   watchOut: 'Watch out',
   avoidedBlocked: 'Not via {name}: that road is blocked.',
-  avoidedUncertain: 'Not via {name}: nobody has checked that road yet.',
+  avoidedUncertain: 'Avoids {name} because road conditions are unclear.',
   byCar: 'about {time} by car',
   onFoot: 'about {time} on foot',
   minutes: '{n} min',

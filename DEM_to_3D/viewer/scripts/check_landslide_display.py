@@ -31,9 +31,11 @@ def run(url, captures, chrome=None):
 
         def areas(opacity, prefix=''):
             expect(page.locator(prefix+'path.landslide-area')).to_have_count(47)
-            assert page.locator(prefix+'path.landslide-area').evaluate_all('''(nodes,value)=>nodes.every(n=>
-                Math.abs(Number(n.getAttribute('fill-opacity'))-value)<.001 &&
-                n.getAttribute('stroke')==='#ffe36a' && Number(n.getAttribute('stroke-width'))>=2.5)''',opacity)
+            assert page.locator(prefix+'path.landslide-area').evaluate_all('''(nodes,value)=>nodes.every(n=>{
+                const compact=Number(n.getAttribute('stroke-width'))<2.5;
+                return Math.abs(Number(n.getAttribute('fill-opacity'))-value*(compact?.16/.22:1))<.001 &&
+                    n.getAttribute('stroke')==='#ffe36a' && Number(n.getAttribute('stroke-width'))>=1.6;
+            })''',opacity)
 
         def symbol(selector, selected=True):
             marker=page.locator(selector)
@@ -61,13 +63,12 @@ def run(url, captures, chrome=None):
         symbol('.field-map-marker.map-selected-reference')
         oid=page.locator('.field-map-marker [data-field-id]').get_attribute('data-field-id')
         areas(.22)
-        page.locator('.citizen-map-layers summary').click()
-        fill(60);areas(.6)
-        fill(0);areas(0)
-        fill(35);areas(.35)
+        # Residents have simple visibility controls; styling belongs to the
+        # coordinator. Compact extents remain visible when viewing whole routes.
+        expect(page.get_by_role('slider',name='Độ phủ màu vùng sạt lở',exact=True)).to_have_count(0)
         page.reload()
         expect(page.locator('.citizen-workspace')).to_be_visible()
-        areas(.35)
+        areas(.22)
         page.get_by_role('button',name='Đã gửi',exact=True).click()
         page.locator('.citizen-mobile-switch').get_by_role('button',name='Bản đồ',exact=True).click()
         symbol('.field-map-marker',False)
@@ -87,7 +88,7 @@ def run(url, captures, chrome=None):
         page.goto(url+'/?map=2d&offline=1&gisPoint='+oid)
         expect(page.locator('.incident-landslide-row')).to_have_count(3,timeout=45000)
         symbol('.field-map-marker.map-selected-reference')
-        areas(.35)
+        areas(.22)
         page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
         fill(70);areas(.7)
         page.screenshot(path=str(captures/'response-fill.png'))

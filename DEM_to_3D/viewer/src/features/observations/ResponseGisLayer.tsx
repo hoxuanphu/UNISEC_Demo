@@ -4,6 +4,7 @@ import {surveyPointSvg} from '../../terrain/poiFrame';
 import { detailInset } from '../map/detailInset';
 import { areaMapLabel } from '../landslides/areaMapLabel';
 import { usePointRendering } from '../map/usePointRendering';
+import type { PointRenderingMode } from '../map/pointRendering';
 import { landslideAreaOf, landslideAreaStyle, landslideBoundaryCasing } from '../landslides/landslideAreas';
 import { addAreaRoadSections } from '../landslides/leafletAreaRoads';
 import type { RoadSegment } from '../../types/dear';
@@ -33,7 +34,7 @@ export function ResponseGisLayer({
   groupIds = [],
   onSelect,
   onGroup,
-  roads = emptyRoads, networkVersion
+  roads = emptyRoads, networkVersion, pointMode: modeOverride, compact = false
 }: {
   mapRef: React.MutableRefObject<L.Map | null>;
   records: GeometryRecord[];
@@ -48,8 +49,11 @@ export function ResponseGisLayer({
   onGroup?: (ids: string[]) => void;
   roads?: RoadSegment[];
   networkVersion?: string;
+  pointMode?: PointRenderingMode;
+  compact?: boolean;
 }): null {
-  const { mode: pointMode } = usePointRendering();
+  const { mode: preferenceMode } = usePointRendering();
+  const pointMode = modeOverride ?? preferenceMode;
   const { fillOpacity } = useLandslideAppearance();
   const action = useRef(onSelect);
   action.current = onSelect;
@@ -83,7 +87,7 @@ export function ResponseGisLayer({
           style: (feature) =>
             feature?.geometry.type === 'Point'
               ? {}
-              : mappedArea ? { ...landslideAreaStyle(mappedArea, selected, fillOpacity), className: 'landslide-area is-' + mappedArea.state } : {
+              : mappedArea ? { ...landslideAreaStyle(mappedArea, selected, fillOpacity, compact), className: 'landslide-area is-' + mappedArea.state } : {
                   color,
                   weight: referenceRoad ? selected ? 3 : 2 : selected ? 3 : 1.5,
                   fillOpacity: owner ? 0.18 : 0.03,
@@ -147,8 +151,11 @@ export function ResponseGisLayer({
       if (referenceRoad) L.geoJSON(record.feature,{pane:mapPane('boundary'),interactive:false,
         style:{color:roadColors.referenceCasing,weight:selected ? 5 : 4,opacity:.9,lineCap:'round',lineJoin:'round'}}).addTo(group);
       if (mappedArea) L.geoJSON(record.feature, { pane: mapPane('boundary'), interactive: false,
-        style: { color: landslideBoundaryCasing, weight: landslideAreaStyle(mappedArea, selected).weight + 1.2, opacity: .8, fill: false, lineCap: 'round', lineJoin: 'round' } }).addTo(group);
-      render().addTo(group);
+        style: { color: landslideBoundaryCasing, weight: landslideAreaStyle(mappedArea, selected, fillOpacity, compact).weight + 1.2, opacity: .8, fill: false, lineCap: 'round', lineJoin: 'round' } }).addTo(group);
+      const displayed = render().addTo(group);
+      if (mappedArea) displayed.eachLayer(item => {
+        if (item instanceof L.Path) item.getElement()?.setAttribute('data-landslide-area', record.id);
+      });
       if (mappedArea && selected && mappedArea.networkVersion === networkVersion) addAreaRoadSections(group, mappedArea, roads, mapPane('boundary'));
     }
     const disposeClusters = attachPointClusters(map, group, clustered, {
@@ -166,7 +173,7 @@ export function ResponseGisLayer({
       group.remove();
     };
     // groupKey stands in for groupIds so a new array with the same members does not redraw.
-  }, [mapRef, records, selectedId, enabled, interactive, locale, groupKey, pointMode, roads, networkVersion, fillOpacity]);
+  }, [mapRef, records, selectedId, enabled, interactive, locale, groupKey, pointMode, roads, networkVersion, fillOpacity, compact]);
   useEffect(() => {
     if (pointMode === 'individual' && groupKey) openGroup.current?.([]);
   }, [pointMode, groupKey]);

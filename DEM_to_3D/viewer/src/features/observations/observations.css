@@ -53,6 +53,7 @@
   gap: 16px;
 }
 .field-photo-gallery figure {
+  min-width: 0;
   margin: 0;
   border: 1px solid var(--ws-line);
   border-radius: 3px;
@@ -91,6 +92,16 @@
   color: var(--select-ink);
   padding: 4px 0;
 }
+.field-photo-gallery .field-photo-info { display: grid; gap: 10px; min-width: 0; padding: 12px; }
+.field-photo-info > .field-photo-caption { display: grid; gap: 4px; min-width: 0; padding: 0; }
+.field-photo-info > .field-metadata { margin: 0; }
+.field-photo-info > .field-photo-difference { margin: 0; padding: 0; }
+.field-photo-info > details { min-width: 0; padding: 0; border-top: 1px solid var(--ws-line); }
+.field-photo-info > details > summary { display: flex; align-items: center; min-height: 44px; padding: 8px 0; }
+.field-photo-info > details > p { margin: 0; padding-bottom: 4px; color: var(--ws-muted); line-height: 1.5; }
+.field-photo-info .field-metadata > div { min-width: 0; grid-template-columns: minmax(0,.9fr) minmax(0,1.3fr); gap: 4px 12px; }
+.field-photo-info .field-metadata :is(dt, dd) { min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+@media (max-width: 360px) { .field-photo-info .field-metadata > div { grid-template-columns: 1fr; gap: 2px; } }
 .field-hash {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -246,7 +257,10 @@
   font-size: 15px;
   margin: 0;
   overflow-wrap: anywhere;
+  min-width: 0;
 }
+.field-photo-preview header .icon-button { flex: none; width: 44px; height: 44px; min-height: 44px; }
+.field-photo-preview .photo-preview-metadata { margin: 12px 0 0; line-height: 1.5; }
 .field-photo-preview > img {
   display: block;
   width: 100%;

@@ -4,6 +4,8 @@ import type { useRoadJourney } from "../routes/useRoadJourney";
 import { roadProjected } from "../routes/selectedRoadJourney";
 import type { useDeviceLocation } from "../../shared/hooks/useDeviceLocation";
 import { UiIcon } from "../../shared/ui/UiIcon";
+import { roadConditionLabel, roadConditionMessage } from '../routes/localRoadLabels';
+import { roadCondition } from '../routes/roadConditions';
 
 /** Two places, each picked from a list, from the map or (for the start) from the phone's location. */
 export function CitizenDirections({
@@ -15,6 +17,7 @@ export function CitizenDirections({
   gpsError,
   onPick,
   onMap,
+  local = false,
 }: {
   journey: ReturnType<typeof useRoadJourney>;
   communities: Community[];
@@ -24,6 +27,7 @@ export function CitizenDirections({
   gpsError: ReactNode;
   onPick: (side: "start" | "end") => void;
   onMap: () => void;
+  local?: boolean;
 }): JSX.Element {
   const t = (vi: string, en: string) => (locale === "vi" ? vi : en);
   const places = [
@@ -55,7 +59,7 @@ export function CitizenDirections({
             {communities.length > 0 && <optgroup label={t("Thôn, bản", "Villages")}>
               {places.filter((p) => p.key.startsWith("community:")).map((p) => <option key={p.key} value={p.key} disabled={p.key === other}>{p.name}</option>)}
             </optgroup>}
-            {sites.length > 0 && <optgroup label={t("Điểm tập kết", "Staging points")}>
+            {sites.length > 0 && <optgroup label={local ? t('Địa điểm khác', 'Other places') : t("Điểm tập kết", "Staging points")}>
               {places.filter((p) => p.key.startsWith("site:")).map((p) => <option key={p.key} value={p.key} disabled={p.key === other}>{p.name}</option>)}
             </optgroup>}
           </select>
@@ -103,14 +107,14 @@ export function CitizenDirections({
           {journey.route ? (
             <>
               <p className="citizen-direction-verdict">
-                {journey.route.status === "uncertain"
-                  ? t("Có đoạn cần kiểm tra trước khi đi", "Some sections need checking before travel")
-                  : t("Chưa ghi nhận đoạn bị chặn", "No blocked section recorded")}
+                {journey.route.status === 'blocked' ? t('Chưa có đường nên đi', 'No passable route found') : journey.advised ? t('Đường nên đi', 'Suggested route') : t('Đường bạn chọn', 'Your chosen route')}
               </p>
               <p className="citizen-direction-length"><strong>{km(journey.route.lengthKm)}</strong> km {t("theo đường", "by road")}</p>
+              <p className="citizen-direction-note">{roadConditionMessage(journey.route, locale, local)}</p>
+              {journey.route.segs.some(road => roadCondition(road) !== 'open') && <details className="citizen-road-checks"><summary>{t('Đoạn cần chú ý', 'Sections to check')}</summary><ul>{journey.route.segs.filter(road => roadCondition(road) !== 'open').map(road => <li key={road.id}><span>{t(...road.name)}</span><small>{roadConditionLabel(roadCondition(road), locale, local)}</small></li>)}</ul></details>}
               {(journey.start.anchor?.distance ?? 0) + (journey.end.anchor?.distance ?? 0) > 1 && (
                 <p className="citizen-direction-note">
-                  {t("Đoạn từ điểm đã chọn ra đường chưa được kiểm tra.", "Access from the chosen points to the road has not been checked.")}
+                  {t("Đoạn nối nét chấm chưa có thông tin đường đi.", "Dotted connections have no mapped access path.")}
                 </p>
               )}
               <button type="button" className="button" onClick={() => { journey.fit(); onMap(); }}>
@@ -125,10 +129,12 @@ export function CitizenDirections({
                 : journey.kind === "same-connection"
                   ? t("Hai điểm nối vào cùng một vị trí trên đường. Chưa có đường đi giữa hai điểm.", "Both points connect to the same road location. A route between them is unavailable.")
                   : journey.kind === "endpoint-unavailable"
-                    ? t("Vị trí đã chọn nằm ngoài mạng đường đang có dữ liệu.", "A selected location is outside the available road network.")
+                    ? journey.start?.problem === 'blocked' || journey.end?.problem === 'blocked'
+                      ? t('Đường gần điểm đã chọn đang bị chặn.', 'Roads near the chosen point are blocked.')
+                      : t("Chưa có đường đến điểm đã chọn.", "No road is mapped to the chosen point.")
                     : journey.kind === "blocked-network"
                       ? t("Tuyến nối hai nơi có đoạn bị chặn.", "The route between these places includes a blocked section.")
-                      : t("Chưa có tuyến nối hai nơi trong dữ liệu hiện tại.", "No connecting route is available in this dataset.")}
+                      : t("Chưa tìm được đường nối hai nơi.", "No connecting route was found.")}
             </p>
           )}
         </div>

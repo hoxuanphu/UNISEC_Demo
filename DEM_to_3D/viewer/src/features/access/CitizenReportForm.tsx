@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "../../types/dear";
 import { readFieldPhoto } from "../observations/photo";
-import { photoCaptureTime, deviceLocal } from "../observations/captureMetadata";
+import { photoCaptureTime, photoLocation, deviceLocal } from "../observations/captureMetadata";
 import {
   photoLimits,
   type FieldObservation,
   type FieldPhoto,
+  type AppPhotoCapture,
 } from "../observations/model";
 import { VoiceRecorder } from "../observations/VoiceRecorder";
 import type { FieldVoice } from "../observations/voice";
@@ -13,7 +14,7 @@ import { PhotoPreview } from "../observations/PhotoPreview";
 import { UiIcon } from "../../shared/ui/UiIcon";
 import { CameraCapture, canStreamCamera } from "./CameraCapture";
 
-/** Phones open their own camera from the file input; other devices use the in-app camera view. */
+/** A native picker remains available when the browser cannot stream its camera. */
 const nativeCapture = () => typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
 export function CitizenReportForm({
   locale,
@@ -22,7 +23,7 @@ export function CitizenReportForm({
   accuracy,
   active,
   onSave,
-  onPhotosRead,
+  onPhotosChange,
 }: {
   locale: Locale;
   observer: string;
@@ -30,7 +31,7 @@ export function CitizenReportForm({
   accuracy: number | null;
   active: boolean;
   onSave: (o: FieldObservation) => boolean;
-  onPhotosRead: (photos: FieldPhoto[]) => void;
+  onPhotosChange: (photos: FieldPhoto[]) => void;
 }): JSX.Element {
   const t = (vi: string, en: string) => (locale === "vi" ? vi : en);
   const [photos, setPhotos] = useState<FieldPhoto[]>([]),
@@ -63,7 +64,17 @@ export function CitizenReportForm({
       alive.current = false;
     };
   }, []);
-  async function attach(files: File[]) {
+  function updatePhotos(next: FieldPhoto[]) {
+    setError('');
+    setPhotos(next);
+    onPhotosChange(next);
+    if (!timeTouched.current) {
+      const capture = next.map(photoCaptureTime).find(Boolean);
+      setObserved(capture ? capture.instant ? deviceLocal(capture.instant) : capture.local : '');
+      setUnknownZone(!!capture && !capture.instant);
+    }
+  }
+  async function attach(files: File[], capture?: AppPhotoCapture) {
     if (reading.current) return;
     if (photos.length + files.length > photoLimits.count) {
       setError(t("Mỗi báo cáo tối đa 3 ảnh.", "Up to 3 photos per report."));
@@ -74,19 +85,9 @@ export function CitizenReportForm({
     setError("");
     try {
       const added: FieldPhoto[] = [];
-      for (const f of files) added.push(await readFieldPhoto(f));
+      for (const f of files) added.push(await readFieldPhoto(f, capture));
       if (!alive.current) return;
-      setPhotos((p) => [...p, ...added]);
-      onPhotosRead(added);
-      if (!observed && !timeTouched.current) {
-        const capture = added.map(photoCaptureTime).find(Boolean);
-        if (capture) {
-          setObserved(
-            capture.instant ? deviceLocal(capture.instant) : capture.local,
-          );
-          setUnknownZone(!capture.instant);
-        }
-      }
+      updatePhotos([...photos, ...added]);
     } catch {
       if (alive.current)
         setError(
@@ -182,7 +183,7 @@ export function CitizenReportForm({
               type="button"
               className="button"
               disabled={busy || photos.length >= photoLimits.count}
-              onClick={() => (nativeCapture() ? camera.current?.click() : setCameraOpen(true))}
+              onClick={() => (canStreamCamera() ? setCameraOpen(true) : camera.current?.click())}
             >
               <UiIcon name="camera" size={20} />
               {t("Chụp ảnh", "Take photo")}
@@ -219,7 +220,7 @@ export function CitizenReportForm({
                   disabled={busy}
                   aria-label={t("Xóa ảnh", "Remove")}
                   title={t("Xóa ảnh", "Remove")}
-                  onClick={() => setPhotos((v) => v.filter((x) => x.id !== p.id))}
+                  onClick={() => updatePhotos(photos.filter(x => x.id !== p.id))}
                 >
                   <UiIcon name="close" size={16} />
                 </button>
@@ -227,6 +228,15 @@ export function CitizenReportForm({
             ))}
           </ul>
         )}
+        {!!photos.length && <p className="citizen-hint citizen-photo-metadata" role="status">{
+          photos.some(photo => photoCaptureTime(photo))
+            ? photos.some(photo => photoLocation(photo))
+              ? t('Đã đọc ngày chụp và vị trí.', 'Photo time and location found.')
+              : t('Đã đọc ngày chụp. Ảnh chưa có vị trí.', 'Photo time found. No photo location.')
+            : photos.some(photo => photoLocation(photo))
+              ? t('Đã đọc vị trí. Ảnh chưa có ngày chụp.', 'Photo location found. No capture date.')
+              : t('Ảnh chưa có ngày chụp và vị trí. Bạn có thể bổ sung bên dưới.', 'No photo time or location. You can add them below.')
+        }</p>}
       </section>
       <section className="citizen-card" aria-labelledby="citizen-note-title">
         <h2 id="citizen-note-title">{t("Bạn thấy gì?", "What did you see?")}<small>{t("Viết hoặc ghi âm", "Type or record")}</small></h2>
@@ -252,6 +262,7 @@ export function CitizenReportForm({
         <h2 id="citizen-time-title">{t("Thời gian xảy ra", "When it happened")}<small>{t("Nếu biết", "If known")}</small></h2>
         <input
           type="datetime-local"
+          step="0.001"
           aria-labelledby="citizen-time-title"
           value={observed}
           onChange={(e) => {
@@ -265,6 +276,7 @@ export function CitizenReportForm({
             {t("Giờ lấy từ ảnh, chưa có múi giờ.", "Time taken from the photo, without a time zone.")}
           </p>
         )}
+        {observed && !unknownZone && !timeTouched.current && <p className="citizen-hint">{t('Giờ chụp được điền từ ảnh.', 'Capture time filled from the photo.')}</p>}
       </section>
       {error && (
         <p className="field-error" role="alert">
@@ -281,7 +293,7 @@ export function CitizenReportForm({
           {t("Gửi báo cáo", "Send report")}
         </button>
       </div>
-      {cameraOpen && <CameraCapture locale={locale} onCapture={(file) => void attach([file])} onClose={() => {restoreCameraFocus.current = true;setCameraOpen(false);}} />}
+      {cameraOpen && <CameraCapture locale={locale} onCapture={(file, capture) => void attach([file], capture)} onClose={() => {restoreCameraFocus.current = true;setCameraOpen(false);}} />}
       {preview && (
         <PhotoPreview
           photo={preview}

@@ -12,6 +12,7 @@ import {
 import { observationLabel } from './labels';
 import { readFieldPhoto } from './photo';
 import { PhotoGallery } from './PhotoGallery';
+import { reportPhotoContext } from './photoSummary';
 import { VoicePlayback } from './VoicePlayback';
 import { VoiceRecorder } from './VoiceRecorder';
 import type { FieldVoice } from './voice';
@@ -155,6 +156,7 @@ export function ObservationEditor({
           )}
           {current.note && <p className="field-note">{current.note}</p>}
           <dl className="field-metadata">
+            {record.feature.geometry.type === 'Point' && <div><dt>{t('Vị trí ghi nhận', 'Reported location')}</dt><dd>{record.feature.geometry.coordinates[1].toFixed(6)}, {record.feature.geometry.coordinates[0].toFixed(6)}</dd></div>}
             <div>
               <dt>{t('Ghi nhận lúc', 'Observed at')}</dt>
               <dd>{observationTimeLabel(current, locale)}</dd>
@@ -180,7 +182,7 @@ export function ObservationEditor({
           </dl>
           {submissionLocationLabel(record,locale)&&<p className="field-hint">{submissionLocationLabel(record,locale)}</p>}
           <VoicePlayback voice={current.voice} locale={locale}/>
-          <PhotoGallery photos={current.photos} locale={locale} />
+          <PhotoGallery photos={current.photos} locale={locale} reported={reportPhotoContext(record)} />
           <div className="geodata-actions">
             <button
               className="button"

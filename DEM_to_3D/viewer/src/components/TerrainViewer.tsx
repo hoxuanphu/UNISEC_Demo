@@ -420,6 +420,7 @@ export function TerrainViewer({
           communities: sp.communities,
           hazards: sp.hazards,
           roads: sp.roads,
+          contextRoads:sp.contextRoads,
           aoi: sp.aoi,
           selectedRoute: flyoverActive && flyoverInputRef.current?.retainContext ? null : sp.selectedRoute,
           selectedCommunityId: sp.selectedCommunityId,
@@ -1001,7 +1002,7 @@ export function TerrainViewer({
   useEffect(() => { if (terrainOverlays) overlaysRef.current?.setOptions(terrainOverlays); }, [terrainOverlays]);
   useEffect(() => { runtimeRef.current?.updateSurface(); if (!flyoverRef.current?.active && !flyoverRef.current?.exporting) void analysisRef.current?.set(analysisImagery?.rasters ?? [], analysisImagery?.opacity ?? 1); }, [analysisImagery]);
   useEffect(() => { flyoverRef.current?.setInput(flyover ?? null); }, [flyover]);
-  useEffect(() => { runtimeRef.current?.updateScenario(); }, [scenarioProps?.aoi, scenarioProps?.layers, scenarioProps?.appearance, scenarioProps?.communities, scenarioProps?.responseSites, scenarioProps?.hazards, scenarioProps?.roads, scenarioProps?.selectedRoute, scenarioProps?.selectedCommunityId, scenarioProps?.selectedObjectId, locale, gisRecords, gisSelectedId, measureMode, fillOpacity, contextGeometry, selectedContextAreaId, routeEndpoints]);
+  useEffect(() => { runtimeRef.current?.updateScenario(); }, [scenarioProps?.aoi, scenarioProps?.layers, scenarioProps?.appearance, scenarioProps?.communities, scenarioProps?.responseSites, scenarioProps?.hazards, scenarioProps?.roads, scenarioProps?.contextRoads, scenarioProps?.selectedRoute, scenarioProps?.selectedCommunityId, scenarioProps?.selectedObjectId, locale, gisRecords, gisSelectedId, measureMode, fillOpacity, contextGeometry, selectedContextAreaId, routeEndpoints]);
   useLayoutEffect(() => { runtimeRef.current?.setMode(mapMode); }, [mapMode]);
   useEffect(() => { runtimeRef.current?.updateSurface(); }, [theme, surfaceLayers]);
   useEffect(() => { runtimeRef.current?.invalidate(); }, [focusPoint, profile, measureMode, profileMetadata]);

@@ -6,11 +6,13 @@ import { UiIcon } from './UiIcon';
 export function HeaderAccount({
   locale,
   identityName,
-  onSwitchRole
+  onSwitchRole,
+  role = 'manager'
 }: {
   locale: Locale;
   identityName: string;
   onSwitchRole: () => void;
+  role?: 'resident' | 'manager';
 }): JSX.Element {
   const t = (vi: string, en: string) => (locale === 'vi' ? vi : en);
   const [open, setOpen] = useState(false);
@@ -40,7 +42,7 @@ export function HeaderAccount({
           data-popover
         >
           <strong>{identityName}</strong>
-          <p>{t('Điều phối viên', 'Response coordinator')}</p>
+          <p>{role === 'resident' ? t('Người dân', 'Resident') : t('Điều phối viên', 'Response coordinator')}</p>
           <button
             className="button"
             onClick={() => {

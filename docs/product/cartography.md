@@ -4,9 +4,15 @@ Quy tắc cho bản đồ ứng phó DEAR, đối chiếu proposal trang 2–3.
 
 ## Góc nhìn và lớp mặc định
 
-Mở ở 2D để đọc ranh sạt lở, địa bàn và đường tiếp cận; nút 3D dùng khi cần xem sườn dốc. Khung nhìn đầu tiên bao gồm vùng đã khoanh và các điểm nghiệp vụ, không thu nhỏ toàn bộ chỉ vì một tuyến tham chiếu kéo dài ra ngoài khu vực. 3D lấy phạm vi vùng trên cả DEM chính và DEM ngữ cảnh.
+Điều phối mở ở 3D khi trình duyệt hỗ trợ WebGL; có thể chuyển sang 2D để đọc ranh sạt lở, địa bàn và đường tiếp cận. Khung nhìn đầu tiên bao gồm vùng đã khoanh và các điểm nghiệp vụ, không thu nhỏ toàn bộ chỉ vì một tuyến tham chiếu kéo dài ra ngoài khu vực. 3D lấy phạm vi vùng trên cả DEM chính và DEM ngữ cảnh.
 
 Mặc định bật ảnh nền, vùng/điểm sạt lở, tình trạng đường, mạng đường, thôn bản, cầu và điểm tập kết. Mạng đường nền ở 65% độ rõ, nhãn tự động tránh chồng. AOI và bãi đáp đề xuất tắt lúc mở, có thể bật khi cần. Bản đồ khu vực bật khi trực tuyến; nguồn ảnh phân tích và các tùy chọn chuyên môn mở theo nhu cầu.
+
+Mạng đường trong xã Chế Tạo hiện trên cả bản đồ chính 2D và 3D, giữ riêng khỏi các đoạn đường được đánh giá trong tình huống. Nét đường địa phương mảnh ở mức nhìn tổng thể, rõ dần khi phóng gần; không ghi tên cho từng nhánh. Đỏ chỉ đoạn bị chặn, vàng đứt là đoạn cần chú ý. Tuyến địa phương đang chọn dùng xanh liền, giữ viền vàng ở đoạn cần kiểm tra. Bật tắt và căn khung đường trong xã tại hàng tương ứng trong bảng lớp. Chạm đoạn để xem tên, chiều dài và tình trạng. Chỉ đường nằm cạnh ô tìm kiếm; các bản trong xã đứng đầu danh sách chọn điểm. Gợi ý dùng chung quy tắc điều kiện đường với bản người dân; có thể chọn tuyến khác trong kết quả. Khung nhìn chừa khoảng cho bảng chỉ đường và nhãn A/B, cả khi bảng đổi kích thước. Chỉ nối theo đồ thị đã có, không tạo đường thẳng giữa mạng địa phương và mạng ứng phó. Lớp này không tự thay đổi đánh giá, thứ tự ưu tiên hay đường tiếp cận đã công bố của tình huống.
+
+Kiểm tra vùng sạt sát đường áp dụng cho toàn mạng địa phương, không giới hạn ở hành lang phía bắc. Điểm neo nằm trên đường tại vị trí gần polygon nhất trong ngưỡng 10 m, không kéo polygon về đường. Giữ cả các vòng trong của polygon: đường nằm trong phần khoét rỗng chỉ nhận cảnh báo khi sát biên vùng thực sự. Tình trạng chặn có sẵn và lớp điều kiện đóng đường được tác giả cung cấp giữ nguyên căn cứ; vùng khoanh chưa xác minh ở đường khác chỉ nâng cảnh báo, không tự đóng đường. Chia đoạn giữ đúng tổng chiều dài và các nút mạng. Chặn, nguy cơ và độ dài chưa rõ cùng tham gia lựa chọn tuyến; không bỏ qua vùng vàng để tạo một đường gợi ý có vẻ thuận lợi hơn.
+
+Tắt lớp hoặc ẩn một hình học chỉ đổi hiển thị, không hủy cảnh báo đang dùng để tính đường. Gỡ/sửa nguồn vùng mới làm thay đổi liên kết cảnh báo. Việc xác nhận mở lại đường cần quyết định cập nhật tình trạng, không suy ra từ thao tác ẩn polygon.
 
 Bảng lớp đặt **Ưu tiên ứng phó** lên đầu, có số vùng và nút đưa bản đồ tới các vùng. Bản đồ nền chọn riêng; ảnh phân tích, điểm hỗ trợ/tham chiếu, tùy chỉnh và phân tích 3D nằm trong các nhóm thu gọn. Khôi phục hiển thị chỉ đặt lại lớp và độ rõ, không sửa dữ liệu GIS.
 
@@ -16,11 +22,12 @@ Polygon đã lưu vẫn hiện khi cập nhật phiên bản mạng đường. P
 
 | Đối tượng | Thể hiện | Điều kiện |
 |---|---|---|
-| Đường bị chặn | Đỏ, nét liền | Có báo cáo đoạn bị chặn |
+| Đường bị chặn | Đỏ, nét liền, biển tròn đỏ có vạch trắng | Có thông tin đoạn bị chặn |
+| Đường có nguy cơ sạt lở | Vàng đứt, tam giác vàng | Có đánh giá nguy cơ trên đoạn đường, chưa xác nhận bị chặn |
 | Đường chưa rõ | Vàng, nét đứt | Cần kiểm tra khả năng đi qua |
 | Chưa ghi nhận tắc đường | Nét trung tính | Không suy ra là đường đi được |
-| Tuyến đang xem / hành trình | Đỏ tươi, viền đỏ sẫm | Chỉ phần tuyến đã chọn; đoạn bị chặn/chưa rõ vẫn giữ màu cảnh báo, viền trung tính |
-| Cộng đồng | POI đầu bo tròn, mũi neo ngắn, nền trắng và nét xanh xám | Có tọa độ địa bàn |
+| Tuyến đang xem / hành trình | Xanh liền, viền tối; viền vàng ở đoạn cần kiểm tra | Chỉ phần tuyến đã chọn; đoạn bị chặn luôn đỏ, không tô xanh |
+| Cộng đồng | Đĩa xanh xám, hình ngôi nhà và viền trắng; khi chọn đổi thành ghim lớn | Có tọa độ địa bàn |
 | Cộng đồng ưu tiên | Ký hiệu nâu trầm có viền sáng mảnh | Mức ưu tiên, không phải kết luận cô lập |
 | Sạt lở được báo | Núi/đá màu đỏ | Báo cáo hiện trường có thời điểm |
 | Nghi sạt lở | Núi/đá đỏ nhạt hơn điểm đã xác minh | Nhận định chưa kiểm chứng |
@@ -44,7 +51,7 @@ Polygon đã lưu vẫn hiện khi cập nhật phiên bản mạng đường. P
 - Nhãn có ba chế độ: tự động, chỉ đối tượng đang xem, tắt. Bật lại lớp giữ nguyên tọa độ. Đỉnh hình đo là dữ liệu người dùng vẽ, có thể chỉnh riêng.
 - 2D dùng Bắc địa lý và thước khoảng cách ngang tại tâm bản đồ theo zoom. 3D dùng Bắc lưới, xoay theo camera. Không dùng thước phẳng cho góc nhìn nghiêng.
 - Đường, vùng và neo điểm 3D lấy độ cao hiển thị trên đúng tam giác của DEM xuất, không dùng mặt nội suy song tuyến tính thay cho mesh. Đường được cắt ở cạnh ô và đường chéo tam giác, giữ nguyên XY và ngắt tại NoData. Các cách biểu diễn đường và tuyến chọn dùng cùng độ nâng hiển thị, không đẩy tuyến lên cao khi chọn. Phép đo độ cao vẫn giữ phương pháp nội suy phân tích đã công bố.
-- Đoạn được kiểm tra có viền sáng, vẫn giữ màu tình trạng. Đỏ tươi đánh dấu phần tuyến đang xem; cảnh báo đoạn bị chặn/chưa rõ vẫn có ưu tiên. Các đoạn nối điểm A/B vào mạng đường giữ nét chấm xanh để phân biệt với đường hành trình thực sự.
+- Đoạn được kiểm tra giữ màu tình trạng; đoạn bị chặn dùng viền tối để không thành hai nét đỏ/trắng cạnh tranh. Phần tuyến đang xem dùng xanh liền, viền vàng ở đoạn cần kiểm tra. Biển cấm đỏ và tam giác nguy cơ dùng cùng SVG, cùng điểm neo trên đường trong bản người dân, điều phối 2D và 3D. Các đoạn nối điểm A/B vào mạng đường giữ nét chấm xanh để phân biệt với đường hành trình thực sự.
 - Nguồn đầy đủ mở từ nút thông tin dưới phải. Credit tối thiểu của nền ngoài vẫn hiện theo yêu cầu của nhà cung cấp.
 
 Phạm vi và cách kiểm tra nằm trong [kiểm tra workspace](../quality/workspace-review.md).

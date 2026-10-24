@@ -1,7 +1,7 @@
 export const vi = {
   roadInformationAndDisasterResponse: 'Thông tin đường và ứng phó thiên tai',
   simulatedSignInForTwoRolesSubmissions:
-    'Chọn vai trò để vào demo. Báo cáo lưu trên thiết bị này.',
+    'Chọn cách sử dụng và tên của bạn.',
   yourRole: 'Bạn sử dụng với vai trò',
   resident: 'Người dân',
   viewRoadsAndSubmitFieldPhotosAnd:
@@ -23,7 +23,6 @@ export const vi = {
   couldNotSaveTheReportCheckCoordinates:
     'Chưa lưu được ghi nhận. Kiểm tra tọa độ hoặc dung lượng lưu trữ.',
   communityInformation: 'Thông tin cộng đồng',
-  demoScenario: 'Tình huống mô phỏng',
   help: 'Hướng dẫn',
   switchRole: 'Đổi vai trò',
   residentTasks: 'Công việc của người dân',
@@ -34,8 +33,6 @@ export const vi = {
   areaToView: 'Thôn/bản cần xem',
   noMappedRouteInTheCurrentDataset: 'Chưa có thông tin đường đến nơi này. Hỏi cán bộ xã trước khi đi.',
   chooseAnotherJourney: 'Tìm đường giữa hai nơi khác',
-  demoScenarioInformationRoadSafetyHasNot:
-    'Thông tin trong tình huống demo. Chưa xác nhận đường an toàn để đi.',
   fieldObservation: 'Ghi nhận tại hiện trường',
   attachPhotosDescribeWhatYouSawAnd:
     'Thêm ảnh, mô tả điều bạn thấy và kiểm tra vị trí trước khi gửi.',
@@ -95,7 +92,6 @@ export const vi = {
     'Kết quả được lưu vào ghi nhận. Để đổi tình trạng đường, mở hồ sơ đoạn đường và cập nhật riêng.',
   selectAReportToViewPhotosLocation:
     'Chọn một ghi nhận để xem ảnh, vị trí và kiểm tra.',
-  nameSavedInTheDemoSession: 'Đã lưu tên trong phiên demo.',
   couldNotSaveTheName: 'Chưa lưu được tên.',
   renameLoadedFeaturesIdsGeometryAndAssessment:
     'Chọn đối tượng, nhập tên mới rồi bấm Lưu tên. Tên mới được dùng trong danh sách và trên bản đồ.',
@@ -109,14 +105,14 @@ export const vi = {
   routeOpen: 'Chưa ghi nhận đoạn bị chặn',
   routeUncertain: 'Có đoạn cần kiểm tra',
   routeBlocked: 'Tuyến đang có đoạn bị chặn',
-  adviceOpen: 'Tình trạng trên tuyến có thể thay đổi. Kiểm tra thông tin địa phương trước khi đi.',
-  adviceUncertain: 'Hỏi cán bộ xã về đoạn chưa xác minh trước khi đi.',
+  adviceOpen: 'Hỏi thông tin mới nhất trước khi đi.',
+  adviceUncertain: 'Hỏi cán bộ xã về đoạn chưa kiểm tra.',
   adviceBlocked: 'Không đi qua đoạn bị chặn.',
   roadBlocked: 'bị chặn, không qua được',
   roadUnchecked: 'cần xác minh',
   watchOut: 'Đoạn cần chú ý',
   avoidedBlocked: 'Không đi {name} vì đường đang bị chặn.',
-  avoidedUncertain: 'Không đi {name} vì chưa ai kiểm tra đường đó.',
+  avoidedUncertain: 'Tránh {name} vì chưa rõ tình trạng đường.',
   byCar: 'đi xe khoảng {time}',
   onFoot: 'đi bộ khoảng {time}',
   minutes: '{n} phút',
