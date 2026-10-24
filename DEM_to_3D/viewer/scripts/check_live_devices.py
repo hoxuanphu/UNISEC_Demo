@@ -22,11 +22,18 @@ def run(url,chrome=None,captures=None):
         page.wait_for_function("""before=>Array.from(document.querySelectorAll('.tracked-device')).some(n=>n.dataset.worldX!==before[n.dataset.deviceId][0]||n.dataset.worldY!==before[n.dataset.deviceId][1])""",arg=before)
         warnings=page.locator('.road-closure-sign').count()
         def open_device(selector):
-            marker=page.locator(selector+':visible').first
+            target=page.locator(selector).first
+            target_id=target.get_attribute('data-device-id')
+            leader=target.get_attribute('data-group-leader')
+            marker=page.locator(f'.tracked-device[data-device-id="{leader}"]')
             expect(marker).to_be_visible();box=marker.bounding_box();
             assert marker.evaluate('(n)=>{const b=n.getBoundingClientRect();return n.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2))}'), marker.evaluate('(n)=>{const b=n.getBoundingClientRect();return {device:n.dataset.deviceId,rect:{x:b.x,y:b.y,width:b.width,height:b.height},hit:document.elementFromPoint(b.x+b.width/2,b.y+b.height/2)?.closest("button")?.outerHTML.slice(0,1200)}}')
             page.mouse.click(box['x']+box['width']/2,box['y']+box['height']/2)
-            card=page.locator('.tracked-device-card');expect(card).to_be_visible();return card
+            card=page.locator('.tracked-device-card');expect(card).to_be_visible()
+            peer=card.locator(f'[data-device-peer="{target_id}"]')
+            if peer.is_visible():peer.click()
+            expect(card.locator('header small')).to_have_text(target_id)
+            return card
         # Fit the local network to expose its road devices independently of the initial selection.
         page.bring_to_front()
         page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
@@ -38,22 +45,23 @@ def run(url,chrome=None,captures=None):
         expect(card).to_contain_text(re.compile('chặn|cứu hộ|điểm tập kết'))
         expect(card).to_contain_text('Tín hiệu lúc')
         expect(card).not_to_contain_text(re.compile('giả lập|mô phỏng|simulat|demo',re.I))
-        expect(card.locator('small')).to_contain_text('ND-')
+        expect(card.locator('header small')).to_contain_text('ND-')
         if captures:page.screenshot(path=str(captures/'live-devices-blocked-2d.png'))
         page.keyboard.press('Escape');expect(card).to_be_hidden()
         card=open_device('.tracked-device[data-device-role="rescue"]')
-        expect(card).to_contain_text('Đội cứu hộ');expect(card.locator('small')).to_contain_text('CH-')
+        expect(card).to_contain_text('Đội cứu hộ');expect(card.locator('header small')).to_contain_text('CH-')
         civilian=page.locator('.tracked-device[data-device-role="resident"]').first
         rescue=page.locator('.tracked-device[data-device-role="rescue"]').first
         assert civilian.locator('.tracked-device-dot').evaluate('n=>getComputedStyle(n).backgroundColor')=='rgb(49, 134, 230)'
         assert rescue.locator('.tracked-device-dot').evaluate('n=>getComputedStyle(n).backgroundColor')=='rgb(38, 166, 91)'
         assert devices.locator('.tracked-device-dot').evaluate_all('nodes=>nodes.every(n=>n.getBoundingClientRect().width<=14)')
-        def clear_symbols():
-            assert devices.evaluate_all('''nodes=>{
-                const dots=nodes.filter(n=>!n.hidden).map(n=>n.querySelector('.tracked-device-dot').getBoundingClientRect());
-                return dots.every((a,i)=>dots.slice(i+1).every(b=>Math.hypot(a.x+a.width/2-b.x-b.width/2,a.y+a.height/2-b.y-b.height/2)>=16));
-            }'''), 'Location dots overlap'
-        clear_symbols()
+        def anchored_symbols():
+            assert page.locator('.tracked-devices svg,.tracked-device-leaders').count()==0
+            assert devices.evaluate_all('''nodes=>nodes.filter(n=>!n.hidden).every(n=>{
+                const b=n.getBoundingClientRect(),host=n.parentElement.getBoundingClientRect();
+                return Math.abs(b.x+b.width/2-host.x-Number(n.dataset.screenX))<.8&&Math.abs(b.y+b.height/2-host.y-Number(n.dataset.screenY))<.8;
+            })'''), 'A visible dot has been displaced from its projection'
+        anchored_symbols()
         page.keyboard.press('Escape')
         # Hiding just this layer preserves roads and warnings. The same IDs return afterwards.
         page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
@@ -62,6 +70,14 @@ def run(url,chrome=None,captures=None):
         choice.check();expect(devices).to_have_count(8)
         page.get_by_role('button',name='Đóng lớp bản đồ',exact=True).click()
         assert page.locator('.road-closure-sign').count()==warnings
+        for name in ['Phóng to','Phóng to','Thu nhỏ','Thu nhỏ']:
+            page.get_by_role('button',name=name,exact=True).click();page.wait_for_timeout(400);anchored_symbols()
+        pulse=devices.locator('.location-signal-dot').first
+        assert pulse.evaluate('n=>getComputedStyle(n,"::after").animationName')=='location-signal'
+        assert float(pulse.evaluate('n=>getComputedStyle(n).opacity'))==1
+        page.emulate_media(reduced_motion='reduce')
+        assert pulse.evaluate('n=>getComputedStyle(n,"::after").animationName')=='none'
+        page.emulate_media(reduced_motion='no-preference')
         signal=int(devices.first.get_attribute('data-signal'))
         page.get_by_role('button',name='Chuyển sang 3D',exact=True).click()
         canvas=page.locator('canvas.terrain-canvas');expect(canvas).to_be_visible(timeout=60000)
@@ -72,7 +88,9 @@ def run(url,chrome=None,captures=None):
         at=devices.evaluate_all('nodes=>nodes.map(n=>n.dataset.worldX+","+n.dataset.worldY).join("|")')
         page.wait_for_function("""at=>Array.from(document.querySelectorAll('.tracked-device')).map(n=>n.dataset.worldX+','+n.dataset.worldY).join('|')!==at""",arg=at)
         expect(canvas).to_have_attribute('data-device-renderer','retained')
-        clear_symbols()
+        anchored_symbols()
+        for name in ['Phóng to','Thu nhỏ']:
+            page.get_by_role('button',name=name,exact=True).click();page.wait_for_timeout(400);anchored_symbols()
         card=open_device('.tracked-device[data-device-role="rescue"]');expect(card).to_contain_text('Đội cứu hộ')
         if captures:page.screenshot(path=str(captures/'live-devices-rescue-3d.png'))
         card.get_by_role('button',name='Đóng thiết bị',exact=True).click()

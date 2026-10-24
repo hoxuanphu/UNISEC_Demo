@@ -152,8 +152,8 @@ h3 {
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
-.button:hover, .icon-button:hover {
-  background: var(--ws-bg);
+@media(hover:hover) {
+  .button:hover:not(:disabled), .icon-button:hover:not(:disabled) { background:var(--ws-bg); }
 }
 
 .button.primary {

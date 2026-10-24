@@ -106,11 +106,12 @@
 .settings-group + .settings-group { border-top: 1px solid var(--ws-line); }
 .settings-label { display: block; margin: 0; color: var(--ws-muted); font-size: 11px; font-weight: 600; }
 .settings-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 2px; border: 0; border-radius: var(--radius-control); overflow: hidden; background: var(--ws-raised); }
-.settings-option { min-width: 0; min-height: 32px; padding: 5px 7px; border: 0; border-radius: 3px; background: transparent; color: var(--ws-muted); font-size: 12px; }
+.settings-option { min-width: 0; min-height: 32px; padding: 5px 7px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--ws-muted); font-size: 12px; }
 .settings-option + .settings-option { border-left: 0; }
 .settings-options button:focus-visible { outline-offset: -3px; }
-.settings-option:hover { color: var(--ws-text); }
-.settings-option[aria-pressed="true"] { color: var(--select-ink); background: var(--ws-surface); box-shadow: 0 1px 3px rgb(0 0 0 / 8%); font-weight: 600; }
+@media(hover:hover) { .settings-option:hover:not([aria-pressed="true"]) { color:var(--ws-text); background:var(--hover); } }
+.settings-option[aria-pressed="true"] { color:var(--on-primary); background:var(--primary); box-shadow:none; font-weight:600; }
+.settings-option[aria-pressed="true"]:focus-visible { outline-color:var(--on-primary); outline-offset:-4px; }
 .settings-typeface { display: block; }
 .settings-font { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 12px; }
 .settings-font select { width: 100%; min-width: 0; min-height: 32px; font-size: 12px; }
@@ -134,7 +135,7 @@
 .app-header[inert] :is(.incident-context, .header-actions) { opacity: .5; }
 
 .settings-utilities { display:grid; grid-template-columns:minmax(0,1fr); gap:2px; padding:6px 8px; }
-.settings-utilities .settings-link { display:flex; align-items:center; gap:10px; width:100%; min-height:36px; padding:6px 8px; border-radius:6px; color:var(--ws-text); font-size:12.5px; }
+.settings-utilities .settings-link { display:flex; align-items:center; gap:10px; width:100%; min-height:36px; padding:6px 8px; border-radius:var(--radius-control); color:var(--ws-text); font-size:12.5px; }
 .settings-utilities .settings-link svg { flex:none; color:var(--ws-muted); }
 .settings-utilities .settings-link:hover { background:var(--hover); color:var(--ws-text); }
 .workspace-shell .incident-context-trigger { min-height:40px; }

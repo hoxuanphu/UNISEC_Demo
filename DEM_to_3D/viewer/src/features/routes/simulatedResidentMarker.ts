@@ -4,7 +4,7 @@ import type { RouteSimulation } from './routeSimulation';
 export function simulatedResidentMarker(simulation:RouteSimulation,locale:Locale) {
   const node=document.createElement('div');node.className='simulated-resident';
   node.tabIndex=0;node.setAttribute('role','img');node.setAttribute('aria-label',`${simulation.name}, ${locale==='vi'?'vị trí trên tuyến':'position on route'}`);
-  const body=document.createElement('span');body.className='simulated-resident-body';
+  const body=document.createElement('span');body.className='simulated-resident-body location-signal-dot';
   const name=document.createElement('span');name.className='simulated-resident-name';name.textContent=simulation.name;
   node.append(body,name);
   return {node,name};
