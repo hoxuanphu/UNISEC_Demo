@@ -23,7 +23,7 @@ def run(url,chrome=None,captures=None):
         def open_device(selector):
             marker=page.locator(selector+':visible').first
             expect(marker).to_be_visible();box=marker.bounding_box();
-            assert marker.evaluate('(n)=>{const b=n.getBoundingClientRect();return n.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2))}'), 'Another device or label covers the selected device'
+            assert marker.evaluate('(n)=>{const b=n.getBoundingClientRect();return n.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2))}'), marker.evaluate('(n)=>{const b=n.getBoundingClientRect();return {device:n.dataset.deviceId,rect:{x:b.x,y:b.y,width:b.width,height:b.height},hit:document.elementFromPoint(b.x+b.width/2,b.y+b.height/2)?.closest('button')?.outerHTML.slice(0,1200)}}')
             page.mouse.click(box['x']+box['width']/2,box['y']+box['height']/2)
             card=page.locator('.tracked-device-card');expect(card).to_be_visible();return card
         # Fit the local network to expose its road devices independently of the initial selection.

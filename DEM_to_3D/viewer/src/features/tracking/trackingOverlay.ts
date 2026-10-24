@@ -60,9 +60,12 @@ export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Lo
       marker.classList.toggle('is-selected',selected===device.id);
       const partner=device.targetId?feed.getSnapshot().find(item=>item.id===device.targetId):undefined;
       const partnerAt=partner?project(partner.point):null;
-      const paired=!!at&&!!partnerAt&&Math.hypot(at.x-partnerAt.x,at.y-partnerAt.y)<42;
-      const displayX=(at?.x??0)+(paired?(device.role==='rescue'?19:-19):0);
-      if(at)marker.style.transform=`translate(${displayX-(device.role==='rescue'?14.5:13)}px,${at.y-(device.role==='rescue'?14.5:13)}px)`;
+      const separation=at&&partnerAt?Math.hypot(at.x-partnerAt.x,at.y-partnerAt.y):Infinity;
+      const spread=Math.max(0,(40-separation)/2);
+      const dx=at&&partnerAt&&separation>.01?(at.x-partnerAt.x)/separation:device.role==='rescue'?1:-1;
+      const dy=at&&partnerAt&&separation>.01?(at.y-partnerAt.y)/separation:0;
+      const displayX=(at?.x??0)+spread*dx,displayY=(at?.y??0)+spread*dy;
+      if(at)marker.style.transform=`translate(${displayX-(device.role==='rescue'?14.5:13)}px,${displayY-(device.role==='rescue'?14.5:13)}px)`;
       if(selected===device.id&&at&&at.visible&&!marker.hidden&&enabled){selectedVisible=true;updateCard(device,at);}
     }
     if(!selectedVisible)card.hidden=true;
