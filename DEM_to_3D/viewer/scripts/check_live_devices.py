@@ -27,8 +27,12 @@ def run(url,chrome=None,captures=None):
             leader=target.get_attribute('data-group-leader')
             marker=page.locator(f'.tracked-device[data-device-id="{leader}"]')
             expect(marker).to_be_visible();box=marker.bounding_box();
-            assert marker.evaluate('(n)=>{const b=n.getBoundingClientRect();return n.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2))}'), marker.evaluate('(n)=>{const b=n.getBoundingClientRect();return {device:n.dataset.deviceId,rect:{x:b.x,y:b.y,width:b.width,height:b.height},hit:document.elementFromPoint(b.x+b.width/2,b.y+b.height/2)?.closest("button")?.outerHTML.slice(0,1200)}}')
-            page.mouse.click(box['x']+box['width']/2,box['y']+box['height']/2)
+            hit=marker.evaluate('(n)=>{const b=n.getBoundingClientRect(),hit=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return {own:n.contains(hit),warning:!!hit?.closest(".road-condition-sign,.map-pin")}}')
+            if hit['own']:page.mouse.click(box['x']+box['width']/2,box['y']+box['height']/2)
+            else:
+                # Geographic coincidence preserves priority of the warning/place; every device stays keyboard selectable.
+                assert hit['warning'],hit
+                marker.press('Enter')
             card=page.locator('.tracked-device-card');expect(card).to_be_visible()
             peer=card.locator(f'[data-device-peer="{target_id}"]')
             if peer.is_visible():peer.click()

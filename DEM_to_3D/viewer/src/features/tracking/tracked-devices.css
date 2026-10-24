@@ -1,20 +1,20 @@
 @import '../map/location-dot.css';
 /* Operational dots stay above vectors and below map controls/inspectors. */
-.tracked-devices { position:absolute; inset:0; z-index:9; pointer-events:none; overflow:hidden; }
-.tracked-device { position:absolute; top:0; left:0; display:grid; place-items:center; width:22px; height:22px; min-height:22px; padding:0; border:0; border-radius:50%; background:transparent; pointer-events:auto; cursor:pointer; }
+.tracked-devices { position:absolute; inset:0; z-index:auto; pointer-events:none; overflow:hidden; }
+.tracked-device { z-index:1; position:absolute; top:0; left:0; display:grid; place-items:center; width:22px; height:22px; min-height:22px; padding:0; border:0; border-radius:50%; background:transparent; pointer-events:auto; cursor:pointer; }
 .tracked-device-dot { display:block; width:11px; height:11px; box-sizing:border-box; border:1.5px solid #fff; border-radius:50%; background:var(--location-resident); box-shadow:0 1px 3px #0008; pointer-events:none; }
 .tracked-device.is-rescue { --location-dot-color:var(--location-rescue); }
 .tracked-device.is-mixed .tracked-device-dot { background-image:conic-gradient(var(--location-rescue) 0deg 180deg,var(--location-resident) 180deg 360deg); }
 .tracked-device.is-rescue .tracked-device-dot { width:13px; height:13px; background-color:var(--location-rescue); }
 .tracked-device[hidden],.tracked-device-card[hidden] { display:none; }
-.tracked-device.is-selected { z-index:2; }
+.tracked-device.is-selected,.tracked-device:focus-visible { z-index:12; }
 .tracked-device.is-selected .tracked-device-dot { box-shadow:0 0 0 3px #ffffff40,0 1px 3px #0008; }
 .tracked-device:focus-visible { outline:2px solid #d7ecff; outline-offset:0; }
 .tracked-device-name { pointer-events:none; display:none; position:absolute; left:24px; width:max-content; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:3px 6px; border-radius:3px; background:var(--ws-surface); color:var(--ws-text); font:500 12px/1.35 var(--font-map,Roboto,sans-serif); box-shadow:0 1px 4px #0004; }
 @media(hover:hover) { .tracked-device:hover .tracked-device-name { display:block; } }
 .tracked-device:focus-visible .tracked-device-name { display:block; }
 .tracked-device.is-selected .tracked-device-name { display:none; }
-.tracked-device-card { position:absolute; width:250px; max-width:calc(100% - 24px); max-height:calc(100% - 24px); overflow:auto; padding:12px; border:1px solid var(--ws-line); border-radius:var(--radius-popover); background:var(--ws-surface); color:var(--ws-text); box-shadow:var(--shadow-float); pointer-events:auto; font:13px/1.4 var(--font-sans); z-index:4; }
+.tracked-device-card { position:absolute; width:250px; max-width:calc(100% - 24px); max-height:calc(100% - 24px); overflow:auto; padding:12px; border:1px solid var(--ws-line); border-radius:var(--radius-popover); background:var(--ws-surface); color:var(--ws-text); box-shadow:var(--shadow-float); pointer-events:auto; font:13px/1.4 var(--font-sans); z-index:14; }
 .tracked-device-card > header { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
 .tracked-device-card strong { font-size:15px; font-weight:600; }
 .tracked-device-card small { display:block; color:var(--ws-muted); font-size:12px; }
