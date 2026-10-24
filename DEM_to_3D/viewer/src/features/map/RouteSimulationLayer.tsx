@@ -12,15 +12,15 @@ export function RouteSimulationLayer({map,simulation,locale}:{map:L.Map|null;sim
     const {node,name}=simulatedResidentMarker(simulation,locale);
     const marker=L.marker([0,0],{pane:mapPane('selection'),interactive:false,keyboard:false,zIndexOffset:2000,
       icon:L.divIcon({html:node,className:'simulated-resident-anchor',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);
-    let lastLayout=0;
+    let lastLayout=0,labelFrame=0;
     const update=()=>{
       const state=simulation.getSnapshot(),position=roadGeographic(state.point);
       marker.setLatLng([position.latitude,position.longitude]);
-      if(performance.now()-lastLayout>100){positionResidentLabel(node,name,map.getContainer());lastLayout=performance.now();}
+      if(!labelFrame && performance.now()-lastLayout>100)labelFrame=requestAnimationFrame(()=>{labelFrame=0;positionResidentLabel(node,name,map.getContainer());lastLayout=performance.now();});
       node.dataset.progress=state.progress.toFixed(5);node.dataset.distance=state.distance.toFixed(3);node.dataset.status=state.status;
     };
     const unsubscribe=simulation.subscribe(update);update();map.on('move zoom resize',update);
-    return()=>{unsubscribe();map.off('move zoom resize',update);marker.remove();};
+    return()=>{unsubscribe();cancelAnimationFrame(labelFrame);map.off('move zoom resize',update);marker.remove();};
   },[map,simulation,locale]);
   return null;
 }
