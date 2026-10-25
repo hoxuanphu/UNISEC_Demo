@@ -1,6 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import type { Locale } from '../../types/dear';
-import type { DeviceFeed } from '../tracking/deviceFeed';
+import type { LocationFeed } from '../tracking/deviceFeed';
 import { deviceStatusText } from '../tracking/trackingOverlay';
 import { workStatusText, type WorkStatus } from '../incident/responseWork';
 import { UiIcon } from '../../shared/ui/UiIcon';
@@ -12,7 +12,7 @@ export const householdClock = (iso: string, locale: Locale) =>
 
 /** One isolated hut cluster: how many people, how recently the app saw them, and what cuts the way out. */
 /** The team sent to these huts, live from the same feed as the map dots. */
-function TeamRow({ feed, id, locale, onShow }: { feed: DeviceFeed; id: string; locale: Locale; onShow: (point: { x: number; y: number }) => void }) {
+function TeamRow({ feed, id, locale, onShow }: { feed: LocationFeed; id: string; locale: Locale; onShow: (point: { x: number; y: number }) => void }) {
   // Re-render on a change of state only, not on every position update.
   useSyncExternalStore(feed.subscribe, () => feed.getSnapshot().find(device => device.id === id)?.state ?? null);
   const device = feed.getSnapshot().find(item => item.id === id);
@@ -33,7 +33,7 @@ export function HouseholdCard({ item, areaName, locale, onClose, workStatus, onW
   onDirections?: () => void;
   /** Nearest landing site, straight-line distance: the fallback when no road gets through. */
   helipad?: { name: [vi: string, en: string]; distanceKm: number };
-  team?: { feed: DeviceFeed; id: string; onShow: (point: { x: number; y: number }) => void };
+  team?: { feed: LocationFeed; id: string; onShow: (point: { x: number; y: number }) => void };
 }) {
   const vi = locale !== 'en', t = (a: string, b: string) => vi ? a : b, { cluster } = item;
   useEffect(() => {

@@ -1,3 +1,6 @@
+import {useResidentLocation} from '../features/tracking/useResidentLocation';
+import {mergeLocationFeeds} from '../features/tracking/residentLocation';
+import {ResidentDeviceList,ResidentDeviceDetail} from '../features/tracking/ResidentDevices';
 import { useDeviceFeed } from '../features/tracking/useDeviceFeed';
 import { useLocalNetwork } from '../features/route-film/networkContext';
 import { LocalAreaCard } from '../features/route-film/LocalAreaCard';
@@ -460,7 +463,9 @@ export function ResponseWorkspace({
   // Teams sent to the isolated huts move in the same feed as the other rescue and resident dots.
   const householdTeams=useMemo(()=>localNetwork.network?householdRescues(localNetwork.network,households,bases):[],[localNetwork.network,households,bases]);
   const householdMissions=useMemo(()=>householdTeams.map(team=>team.plan),[householdTeams]);
-  const deviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks,householdMissions,bases);
+  const operationalDeviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks,householdMissions,bases);
+  const residentLocation=useResidentLocation(historical?null:localNetwork.network);
+  const deviceFeed=useMemo(()=>mergeLocationFeeds(operationalDeviceFeed,residentLocation),[operationalDeviceFeed,residentLocation]);
   // Huts a team has reached; a string so the workspace re-renders on arrival, not on every move.
   const attendedHouseholds=useSyncExternalStore(deviceFeed?.subscribe??noSubscription,()=>deviceFeed?householdTeams.filter(team=>['on-site','escorting','evacuated'].includes(deviceFeed.getSnapshot().find(device=>device.id===team.plan.id)?.state??'')).map(team=>team.householdId).join(','):'');
   const localJourneyRoadIds=useMemo(()=>localNetwork.network?.roads.map(road=>road.id)??[],[localNetwork.network]);
@@ -486,6 +491,13 @@ export function ResponseWorkspace({
     const device=deviceFeed?.getSnapshot().find(item=>item.id===id);
     if(device)focusMapOn([device.point]);
   };
+  const selectDevice=(id:string)=>{
+    const device=deviceFeed?.getSnapshot().find(device=>device.id===id);
+    if(device?.role==='rescue'){selectTeam(id);return;}
+    inspectObject('device:'+id);
+    if(device)focusMapOn([device.point]);
+  };
+  const selectedDeviceId=selectedObjectId?.startsWith('device:')?selectedObjectId.slice(7):selectedObjectId?.startsWith('team:')?selectedObjectId.slice(5):null;
   const showHouseholds=()=>{
     const isolated=households.filter(entry=>entry.isolated);if(!isolated.length)return;
     setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(null);resetTools();setMobileView('map');setMapMode('2d');
@@ -690,7 +702,7 @@ export function ResponseWorkspace({
     rememberDetailTrigger();
     setCameraIntent(previous=>({kind:'selection',version:previous.version+1}));
     const hazard = id.startsWith('hazard:') ? hazards.find(item => `hazard:${item.id}` === id) : undefined;
-    const layer = hazard ? hazard.kind === 'landslide' ? 'landslide' : hazard.kind === 'flood' ? 'flood' : 'crossings'
+    const layer = id.startsWith('device:') || id.startsWith('team:') ? 'devices' : hazard ? hazard.kind === 'landslide' ? 'landslide' : hazard.kind === 'flood' ? 'flood' : 'crossings'
       : id.startsWith('road:') ? 'roads' : id.startsWith('aoi:') ? 'aoi' : responseSites.find(item => `poi:${item.id}` === id)?.kind;
     if (layer) setLayers(previous => ({ ...previous, [layer]: true }));
     navigation.dispatch({ type: 'inspect-object', id });
@@ -1103,7 +1115,7 @@ export function ResponseWorkspace({
 
       <main className="work-area">
         <WorkspaceNav view={view} locale={locale} onChangeView={changeView} rescue={bases.length > 0} />
-        <ResponsePanel
+        <ResponsePanel residentDevices={!historical&&<ResidentDeviceList selectedId={selectedDeviceId} feed={deviceFeed} roads={journeyRoads} locale={locale} onSelect={selectDevice}/>}
           fieldPhotos={fieldPhotos}
           survey={!historical && runtime.fieldDataset ? {areas:gis.records.filter(r => r.feature.properties.sourceDatasetId === runtime.fieldDataset!.id && r.feature.geometry.type !== 'Point').length,points:gis.records.filter(r => r.feature.properties.sourceDatasetId === runtime.fieldDataset!.id && r.feature.geometry.type === 'Point').length} : undefined}
           onShowCorridor={!historical && gis.records.some(r => r.feature.properties.referenceKind === 'road-corridor') ? () => {
@@ -1146,7 +1158,7 @@ export function ResponseWorkspace({
         />
 
         <ResponseDetails
-          renderObject={(objectId,close)=>objectId.startsWith('team:')?<RescueTeamDetail key={objectId} feed={deviceFeed} id={objectId.slice(5)} bases={bases} locale={locale} onClose={close}
+          renderObject={(objectId,close)=>objectId.startsWith('device:')?<ResidentDeviceDetail feed={deviceFeed} id={objectId.slice(7)} roads={journeyRoads} locale={locale} onClose={close} onShow={point=>focusMapOn([point])} onRoad={id=>handleOverlayHit({type:'road',id})}/>:objectId.startsWith('team:')?<RescueTeamDetail onRoad={id=>handleOverlayHit({type:'road',id})} key={objectId} feed={deviceFeed} id={objectId.slice(5)} bases={bases} locale={locale} onClose={close}
             onShow={point=>focusMapOn([point])} onSelectBase={id=>inspectObject('poi:'+id)}
             onSelectTarget={team=>{
               if(team.missionId?.startsWith('household:'))inspectHousehold(team.missionId.slice(10));
@@ -1232,7 +1244,7 @@ export function ResponseWorkspace({
           )}
           <div className="map-canvas">
             {mapMode === '2d' ? (
-              <Map2D deviceFeed={layers.devices!==false?deviceFeed:null} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
+              <Map2D selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} deviceFeed={layers.devices!==false?deviceFeed:null} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
                 households={historical?[]:households} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold} attendedHouseholds={attendedHouseholds}
                 analysisImagery={analysisDisplay}
                 gisEnabled={true}
@@ -1321,7 +1333,7 @@ export function ResponseWorkspace({
                 <React.Suspense
                   fallback={terrain3DBusy ? null : terrainLoading(null)}
                 >
-                  <TerrainViewer deviceFeed={layers.devices!==false?deviceFeed:null}
+                  <TerrainViewer selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} deviceFeed={layers.devices!==false?deviceFeed:null}
                     pointPickActive={journey.open && !!journey.picking}
                     onPointPick={journey.pick}
                     routeEndpoints={journeyTerrainEndpoints}

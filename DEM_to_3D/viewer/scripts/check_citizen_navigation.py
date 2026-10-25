@@ -98,8 +98,10 @@ def run(url, chrome, captures):
         expect(page.locator(".journey-map-pin")).to_have_count(2)
         expect(page.locator(".map-road-route-line").first).to_be_attached()
         expect(page.locator(".resident-route-arrow")).to_have_count(0)
-        expect(page.locator(".simulated-resident")).to_have_count(1)
-        expect(page.locator(".route-simulation-heading")).to_contain_text(resident_name)
+        # Planning another journey must not relocate the resident to its starting point.
+        expect(page.locator(".simulated-resident")).to_have_count(0)
+        expect(page.locator('.tracked-device[data-device-id="GPS-AP01"]')).to_have_count(1)
+        expect(page.locator(".route-simulation-heading")).to_have_count(0)
         expect(page.locator('.resident-blocked-comparison')).to_have_count(1)
         expect(page.locator('.map-context-landslide')).to_have_count(29)
         expect(page.locator('.road-closure-sign.is-landslide')).to_have_count(6)
@@ -164,7 +166,7 @@ def run(url, chrome, captures):
             if captures:
                 page.screenshot(path=str(captures / f'resident-northern-comparison-{width}.png'))
         page.set_viewport_size({'width': 390, 'height': 844})
-        page.locator('.road-closure-sign.is-landslide').first.click()
+        page.locator('.road-closure-sign.is-landslide:visible').first.click()
         expect(page.locator('.citizen-map-summary')).to_contain_text('Bị chặn do sạt lở. Không đi qua.')
         page.get_by_role('button', name='Đóng đoạn đường', exact=True).click()
         expect(page.locator('.citizen-map-summary')).to_contain_text('Đường nên đi')

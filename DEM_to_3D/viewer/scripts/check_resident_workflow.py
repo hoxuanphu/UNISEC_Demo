@@ -43,7 +43,7 @@ def run(url,chrome,captures):
   assert page.locator('.field-extra[open]').count()==0
   assert page.get_by_label('Sai số vị trí (m)',exact=True).count()==0
   if captures:captures.mkdir(parents=True,exist_ok=True);page.screenshot(path=str(captures/'citizen-photo-first.png'))
-  page.locator('.citizen-report-form').get_by_role('button',name='Gửi báo cáo',exact=True).click()
+  page.locator('.citizen-report-form').get_by_role('button',name='Gửi ghi nhận',exact=True).click()
   expect(page.locator('.citizen-submission')).to_contain_text('Chờ kiểm tra')
   submitted=next(r for r in json.loads(reviewed_records_json(page)) if 'dearSubmission' in r['feature']['properties']);oid=submitted['id']
   assert submitted['feature']['properties']['dearSubmission']['authorName']=='Người dân A'

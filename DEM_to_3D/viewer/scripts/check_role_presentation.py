@@ -51,7 +51,7 @@ def run(base,chrome=None,captures=None):
                 nav.get_by_role('button',name='Road information',exact=True).click()
                 expect(page.locator('.citizen-panel')).to_be_visible()
                 expect(page.locator('.citizen-map')).not_to_be_visible()
-                page.get_by_role('button',name='Report an observation',exact=True).click()
+                page.get_by_role('button',name='Report',exact=True).click()
                 expect(page.locator('.citizen-report-form textarea')).to_be_visible()
                 if captures:
                     captures.mkdir(parents=True,exist_ok=True)

@@ -5,3 +5,6 @@
 @keyframes location-signal { 0%,65%,100% { opacity:0; transform:scale(.9); } 12% { opacity:.32; } 45% { opacity:0; transform:scale(1.7); } }
 @keyframes location-breathe { 0%,60%,100% { opacity:1; transform:scale(1); } 25% { opacity:.94; transform:scale(1.055); } }
 @media(prefers-reduced-motion:reduce) { .location-signal-dot,.location-signal-dot::after { animation:none; } }
+/* "You" beside a GPS fix, as on the tracked position. */
+.leaflet-tooltip.self-location-tag { padding:1px 8px; border:0; border-radius:10px; background:#1a73e8; color:#fff; font:600 12px/1.4 var(--font-map,Roboto,sans-serif); box-shadow:0 1px 3px #0005; }
+.leaflet-tooltip.self-location-tag::before { display:none; }

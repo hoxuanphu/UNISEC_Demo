@@ -10,7 +10,6 @@
 .tracked-device.is-selected .tracked-device-dot { box-shadow:0 0 0 3px #ffffff40,0 1px 3px #0008; }
 .tracked-device:focus-visible { outline:2px solid #d7ecff; outline-offset:0; }
 .tracked-device-name { pointer-events:none; display:none; position:absolute; left:24px; width:max-content; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:3px 6px; border-radius:3px; background:var(--ws-surface); color:var(--ws-text); font:500 12px/1.35 var(--font-map,Roboto,sans-serif); box-shadow:0 1px 4px #0004; }
-@media(hover:hover) { .tracked-device:hover .tracked-device-name { display:block; } }
 .tracked-device:focus-visible .tracked-device-name { display:block; }
 .tracked-device.is-selected .tracked-device-name { display:none; }
 .tracked-device-card { position:absolute; width:250px; max-width:calc(100% - 24px); max-height:calc(100% - 24px); overflow:auto; padding:12px; border:1px solid var(--ws-line); border-radius:var(--radius-popover); background:var(--ws-surface); color:var(--ws-text); box-shadow:var(--shadow-float); pointer-events:auto; font:13px/1.4 var(--font-sans); z-index:14; }
@@ -35,3 +34,13 @@
 
 .tracked-devices.is-zooming .tracked-device { transition:transform 250ms cubic-bezier(0,0,.25,1); }
 @media(prefers-reduced-motion:reduce) { .tracked-devices.is-zooming .tracked-device { transition:none; } }
+
+/* Your own position: a larger blue dot in a white ring with a soft halo and a "You" tag, above every other dot. */
+.tracked-device.is-self { z-index:13; --self:#1a73e8; --location-dot-color:var(--self); }
+.tracked-device.is-self .tracked-device-dot { width:18px; height:18px; border:3px solid #fff; background:var(--self); box-shadow:0 0 0 7px color-mix(in srgb, var(--self) 22%, transparent),0 1px 4px #0006; animation:none; }
+.tracked-device.is-self .tracked-device-name,.tracked-device.is-self.is-selected .tracked-device-name { display:block; left:50%; top:-26px; transform:translateX(-50%); padding:1px 8px; border-radius:10px; background:var(--self); color:#fff; font-weight:600; box-shadow:0 1px 3px #0005; }
+/* Which way the phone faces, when it reports a heading. */
+.tracked-device-heading { display:none; position:absolute; left:50%; top:50%; width:44px; height:44px; margin:-22px 0 0 -22px; border-radius:50%;
+  background:conic-gradient(from calc(var(--heading, 0deg) - 30deg), color-mix(in srgb, var(--self) 45%, transparent) 0 60deg, transparent 60deg); pointer-events:none;
+  mask:radial-gradient(circle, #000 0 60%, transparent 61%); }
+.tracked-device.is-self.has-heading .tracked-device-heading { display:block; }

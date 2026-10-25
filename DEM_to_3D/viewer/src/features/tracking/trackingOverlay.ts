@@ -1,5 +1,5 @@
 import type { Locale } from '../../types/dear';
-import type { DeviceFeed,DevicePosition } from './deviceFeed';
+import type { LocationFeed,DevicePosition } from './deviceFeed';
 import { groupDeviceDots } from './deviceDotGroups';
 type Pixel={x:number;y:number;visible:boolean};
 /** What a device is doing, in words; shared by the map card and the household card. */
@@ -17,10 +17,12 @@ export function deviceStatusText(device:Pick<DevicePosition,'state'|'role'|'miss
     :device.state==='approaching'?t('Đang tiếp cận đoạn chặn','Approaching a closure'):device.state==='stopped'?t('Đã dừng','Stopped'):t('Đang di chuyển','Moving');
 }
 /** Both map adapters share symbols, selection, keyboard handling and the same location snapshots. */
-export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Locale,
+export function createTrackingOverlay(host:HTMLElement,feed:LocationFeed,locale:Locale,
   project:(point:{x:number;y:number})=>Pixel|null,interactive:()=>boolean,onRoad?:(id:string)=>void,
   /** Brings a chosen device to the middle of the map, as every other map object. */
-  onFocus?:(point:{x:number;y:number})=>void) {
+  onFocus?:(point:{x:number;y:number})=>void,onDevice?:(id:string)=>void,selectedId:()=>string|null=()=>null,
+  /** The phone's own position: drawn as "You", above and apart from every other dot. */
+  selfId?:string|null) {
   const vi=locale==='vi',t=(a:string,b:string)=>vi?a:b;
   const layer=document.createElement('div');layer.className='tracked-devices';layer.setAttribute('aria-label',t('Vị trí người dân và cứu hộ','Resident and rescue locations'));host.append(layer);
   const markers=new Map<string,HTMLButtonElement>();
@@ -29,8 +31,10 @@ export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Lo
     button.dataset.deviceId=device.id;button.dataset.deviceRole=device.role;
     button.setAttribute('aria-label',device.name[vi?0:1]);
     const dot=document.createElement('span');dot.className='tracked-device-dot location-signal-dot';dot.setAttribute('aria-hidden','true');button.append(dot);
-    const name=document.createElement('span');name.className='tracked-device-name';name.textContent=device.name[vi?0:1];button.append(name);
-    button.addEventListener('click',event=>{event.stopPropagation();selected=device.id;update();const now=feed.getSnapshot().find(d=>d.id===device.id);if(now)onFocus?.(now.point);});
+    const self=device.id===selfId;
+    if(self){button.classList.add('is-self');const heading=document.createElement('span');heading.className='tracked-device-heading';heading.setAttribute('aria-hidden','true');button.prepend(heading);}
+    const name=document.createElement('span');name.className='tracked-device-name';name.textContent=self?t('Bạn','You'):device.name[vi?0:1];button.append(name);
+    button.addEventListener('click',event=>{event.stopPropagation();selected=device.id;const members=JSON.parse(button.dataset.members??'[]') as string[];if(onDevice&&members.length<2){selected=null;onDevice(device.id);}update();const now=feed.getSnapshot().find(d=>d.id===device.id);if(now&&!onDevice)onFocus?.(now.point);});
     button.style.setProperty('--signal-delay',`${markers.size*.31}s`);
     layer.append(button);markers.set(device.id,button);
   }
@@ -44,12 +48,13 @@ export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Lo
   const peerButtons=new Map<string,HTMLButtonElement>();
   const state=document.createElement('p'),road=document.createElement('p'),signal=document.createElement('p');signal.className='device-signal';
   card.append(header,nearby,state,road,signal);
-  if(onRoad){const inspect=document.createElement('button');inspect.type='button';inspect.className='text-button';inspect.textContent=t('Xem đoạn đường','Inspect road section');inspect.onclick=()=>{const device=feed.getSnapshot().find(d=>d.id===selected);if(device){closeCard();onRoad(device.roadId);}};card.append(inspect);}
+  if(onDevice){id.hidden=true;state.hidden=true;road.hidden=true;signal.hidden=true;}
+  if(onRoad&&!onDevice){const inspect=document.createElement('button');inspect.type='button';inspect.className='text-button';inspect.textContent=t('Xem đoạn đường','Inspect road section');inspect.onclick=()=>{const device=feed.getSnapshot().find(d=>d.id===selected);if(device){closeCard();onRoad(device.roadId);}};card.append(inspect);}
   layer.append(card);
   const text=(node:HTMLElement,value:string)=>{if(node.textContent!==value)node.textContent=value;};
   const clock=new Intl.DateTimeFormat(vi?'vi-VN':'en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Asia/Ho_Chi_Minh'});
   function updateCard(device:DevicePosition,at:Pixel) {
-    if(card.hidden)card.hidden=false;text(title,device.name[vi?0:1]);text(id,device.id);
+    if(card.hidden)card.hidden=false;text(title,onDevice?t('Thiết bị tại đây','Devices here'):device.name[vi?0:1]);text(id,[device.householdName?.[vi?0:1],device.id].filter(Boolean).join(', '));
     const target=device.targetName?.[vi?0:1];
     const status=deviceStatusText(device,locale);
     text(state,status+(target&&device.role==='rescue'?`, ${target}`:''));
@@ -69,7 +74,9 @@ export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Lo
     if(zooming)return;
     const enabled=interactive();layer.style.pointerEvents=enabled?'':'none';
     const snapshot=feed.getSnapshot(),projected=new Map(snapshot.map(device=>[device.id,project(device.point)]));
-    const groups=groupDeviceDots(snapshot.flatMap(device=>{const at=projected.get(device.id);return at?.visible&&at.x>=0&&at.y>=0&&at.x<=host.clientWidth&&at.y<=host.clientHeight?[{id:device.id,x:at.x,y:at.y}]:[];}));
+    const onScreen=snapshot.flatMap(device=>{const at=projected.get(device.id);return at?.visible&&at.x>=0&&at.y>=0&&at.x<=host.clientWidth&&at.y<=host.clientHeight?[{id:device.id,x:at.x,y:at.y}]:[];});
+    // Your own dot is never folded into a group with others.
+    const groups=[...groupDeviceDots(onScreen.filter(anchor=>anchor.id!==selfId)),...onScreen.filter(anchor=>anchor.id===selfId).map(anchor=>({...anchor,members:[anchor.id]}))];
     const membership=new Map(groups.flatMap(group=>group.members.map(id=>[id,group] as const)));
     for(const device of snapshot){
       const marker=markers.get(device.id);if(!marker)continue;
@@ -78,10 +85,10 @@ export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Lo
       marker.dataset.deviceRoad=device.roadId;marker.dataset.roadState=device.roadStatus;marker.dataset.motion=device.state;marker.dataset.closureRoad=device.closureRoadId??'';marker.dataset.mission=device.missionId??'';marker.dataset.targetDevice=device.targetId??'';
       marker.dataset.worldX=device.point.x.toFixed(3);marker.dataset.worldY=device.point.y.toFixed(3);marker.dataset.signal=String(device.updatedAt);
       marker.dataset.groupLeader=group?.id??'';marker.dataset.members=JSON.stringify(group?.members??[]);
-      marker.classList.toggle('is-selected',!!selected&&!!group?.members.includes(selected));
-      const label=device.name[vi?0:1]+(group&&group.members.length>1?t(`, ${group.members.length} thiết bị tại đây`,`, ${group.members.length} devices here`):'');
+      const active=selectedId()??selected;marker.classList.toggle('is-selected',!!active&&!!group?.members.includes(active));
+      const label=device.id===selfId?t('Vị trí của bạn','Your location'):device.name[vi?0:1]+(group&&group.members.length>1?t(`, ${group.members.length} thiết bị tại đây`,`, ${group.members.length} devices here`):'');
       marker.setAttribute('aria-label',label);
-      const name=marker.querySelector<HTMLElement>('.tracked-device-name');if(name)text(name,label);
+      const name=marker.querySelector<HTMLElement>('.tracked-device-name');if(name&&device.id!==selfId)text(name,label);
       if(at){marker.style.transform=`translate(${at.x-11}px,${at.y-11}px)`;marker.dataset.screenX=String(at.x);marker.dataset.screenY=String(at.y);}
     }
     const selectedDevice=snapshot.find(device=>device.id===selected),group=selected?membership.get(selected):undefined;
@@ -94,7 +101,7 @@ export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Lo
           button=document.createElement('button');button.type='button';button.className='device-peer';button.dataset.devicePeer=device.id;
           const dot=document.createElement('i');dot.className='tracked-device-symbol is-'+device.role;dot.setAttribute('aria-hidden','true');
           const name=document.createElement('span');name.textContent=device.name[vi?0:1];button.append(dot,name);
-          button.onclick=()=>{selected=device.id;update();};nearby.append(button);peerButtons.set(device.id,button);
+          button.onclick=()=>{if(onDevice){closeCard();onDevice(device.id);}else selected=device.id;update();};nearby.append(button);peerButtons.set(device.id,button);
         }
         const hidden=!group.members.includes(device.id);
         if(button.hidden!==hidden)button.hidden=hidden;
@@ -109,5 +116,11 @@ export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Lo
   const escape=(event:KeyboardEvent)=>{if(selected&&event.key==='Escape'){event.preventDefault();event.stopPropagation();closeCard(true);}};
   document.addEventListener('pointerdown',outside,true);document.addEventListener('keydown',escape,true);
   const unsubscribe=feed.subscribe(update);update();
-  return {update,setZooming:(active:boolean)=>{zooming=false;layer.classList.toggle('is-zooming',active);update();zooming=active;},dispose:()=>{unsubscribe();document.removeEventListener('pointerdown',outside,true);document.removeEventListener('keydown',escape,true);layer.remove();}};
+  /** The way the phone faces, in degrees from north, shown as a cone on your own dot. */
+  const setHeading=(degrees:number|null)=>{
+    const marker=selfId?markers.get(selfId):undefined;if(!marker)return;
+    marker.classList.toggle('has-heading',degrees!==null);
+    if(degrees!==null)marker.style.setProperty('--heading',`${degrees}deg`);
+  };
+  return {update,setHeading,setZooming:(active:boolean)=>{zooming=false;layer.classList.toggle('is-zooming',active);update();zooming=active;},dispose:()=>{unsubscribe();document.removeEventListener('pointerdown',outside,true);document.removeEventListener('keydown',escape,true);layer.remove();}};
 }

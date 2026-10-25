@@ -118,11 +118,13 @@ export function TerrainViewer({
   onUnavailable,
   scenarioProps,
   onSelectOverlayHit,
-  pointPickActive, onPointPick, deviceFeed,
+  pointPickActive, onPointPick, deviceFeed, onSelectDevice, selectedDeviceId,
   viewControlRef,
   onViewReady, onOrbitChange,
   gisRecords, gisSelectedId, onGisSelect, flyover, onFlyoverState, routeEndpoints, contextGeometry, selectedContextAreaId, onSelectContextArea
 }: Props): JSX.Element {
+  const selectedDeviceRef=useRef(selectedDeviceId);selectedDeviceRef.current=selectedDeviceId;
+  const onSelectDeviceRef=useRef(onSelectDevice);onSelectDeviceRef.current=onSelectDevice;
   const deviceFeedRef=useRef(deviceFeed);deviceFeedRef.current=deviceFeed;
   const endpointsRef=useRef(routeEndpoints);endpointsRef.current=routeEndpoints;
   const contextRef = useRef({geometry:contextGeometry,selectedId:selectedContextAreaId,onSelect:onSelectContextArea});
@@ -372,7 +374,7 @@ export function TerrainViewer({
         deviceProjection.copy(world).project(camera);
         return{x:(deviceProjection.x+1)*host.clientWidth/2,y:(1-deviceProjection.y)*host.clientHeight/2,visible:deviceProjection.z>=-1&&deviceProjection.z<=1};
       },()=>!measureModeRef.current&&!pointPickRef.current.active&&!flyoverActive,id=>onSelectOverlayHitRef.current?.({type:'road',id}),
-      point=>viewControlRef?.current?.focusProjected(point,detailInset(host)));
+      point=>viewControlRef?.current?.focusProjected(point,detailInset(host)),onSelectDeviceRef.current?id=>onSelectDeviceRef.current?.(id):undefined,()=>selectedDeviceRef.current??null);
     };
     let endpointLayer:ReturnType<typeof createRouteEndpoints>|null=null;
     let contextLayer:ReturnType<typeof createContextAreaOverlay>|null=null;
@@ -1033,7 +1035,7 @@ export function TerrainViewer({
     };
   }, [geographicPlacements, models]);
 
-  useEffect(() => { runtimeRef.current?.updateDevices(); }, [deviceFeed,locale]);
+  useEffect(() => { runtimeRef.current?.updateDevices(); }, [deviceFeed,locale,selectedDeviceId]);
   useEffect(() => { if (terrainOverlays) overlaysRef.current?.setOptions(terrainOverlays); }, [terrainOverlays]);
   useEffect(() => { runtimeRef.current?.updateSurface(); if (!flyoverRef.current?.active && !flyoverRef.current?.exporting) void analysisRef.current?.set(analysisImagery?.rasters ?? [], analysisImagery?.opacity ?? 1); }, [analysisImagery]);
   useEffect(() => { flyoverRef.current?.setInput(flyover ?? null); }, [flyover]);

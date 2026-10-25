@@ -37,6 +37,7 @@ type Props = Pick<
   survey?: {areas:number;points:number}; onShowSurvey?:()=>void; onShowCorridor?:()=>void;
   households?: HouseholdAccess[]; onSelectHousehold?: (id: string) => void; onShowHouseholds?: () => void;
   /** The rescue tab, where teams are tracked. */
+  residentDevices?: import('react').ReactNode;
   rescueView?: import('react').ReactNode;
   /** Under the community list: the commune's villages and the people around them. */
   communityExtra?: import('react').ReactNode;
@@ -62,7 +63,7 @@ export function ResponsePanel({
   onSelectCommunity,
   onInspectObject,
   onRevealPanel,
-  onOpenDialog, fieldPhotos, households, onSelectHousehold, onShowHouseholds, rescueView, communityExtra
+  onOpenDialog, fieldPhotos, households, onSelectHousehold, onShowHouseholds, rescueView, residentDevices, communityExtra
 }: Props): JSX.Element {
   const {
     view,
@@ -115,7 +116,7 @@ export function ResponsePanel({
     );
   } else if (view === 'incident') {
     content = (
-      <IncidentView
+      <IncidentView residentDevices={residentDevices}
         incident={incident}
         hazards={hazards}
         roads={roads}

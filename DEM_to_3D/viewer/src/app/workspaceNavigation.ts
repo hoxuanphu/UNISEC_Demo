@@ -55,7 +55,7 @@ export function workspaceNavigationReducer(state: WorkspaceNavigation, action: N
     case 'inspect-object': {
       // Roads and hazards belong to the road tab, teams to the rescue tab. Other places open where
       // the user already is, so picking a staging site from the road or rescue tab does not switch tabs.
-      const owner: ObjectView = action.id.startsWith('team:') ? 'rescue'
+      const owner: ObjectView = action.id.startsWith('device:') ? 'incident' : action.id.startsWith('team:') ? 'rescue'
         : action.id.startsWith('road:') || action.id.startsWith('hazard:') || state.view === 'impact' ? 'impact'
         : state.view === 'rescue' ? 'rescue' : 'incident';
       return { ...state, view: owner, objectIds: { ...state.objectIds, [owner]: action.id } };

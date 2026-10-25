@@ -22,28 +22,30 @@ export function DeviceLocationLayer({
     L.circle(point, {
       pane: mapPane("selection"),
       radius: location.accuracy,
-      color: "#246b9a",
+      color: "#1a73e8",
       weight: 1,
-      fillColor: "#246b9a",
-      fillOpacity: 0.08,
+      fillColor: "#1a73e8",
+      fillOpacity: 0.1,
       interactive: false,
     }).addTo(group);
     const marker = L.circleMarker(point, {
       pane: mapPane("selection"),
-      radius: 5,
+      // The same "You" dot as the tracked position: larger, white-ringed, labelled.
+      radius: 8,
       color: "#fff",
-      weight: 2,
-      fillColor: "#246b9a",
+      weight: 3,
+      fillColor: "#1a73e8",
       fillOpacity: 1,
       interactive: false,
     }).addTo(group);
+    marker.bindTooltip(locale === "vi" ? "Bạn" : "You", { permanent: true, direction: "top", offset: [0, -10], className: "self-location-tag" });
     const tip = document.createElement("span");
     tip.textContent =
       (locale === "vi" ? "Vị trí của bạn" : "Your location") +
       (locale === "vi" ? ", sai số ±" : ", accuracy ±") +
       Math.round(location.accuracy) +
       " m";
-    marker.bindTooltip(tip);
+    marker.getElement()?.setAttribute("aria-label", tip.textContent ?? "");
     if (request && request !== last.current) {
       last.current = request;
       map.setView(point, Math.min(16, Math.max(14, map.getZoom())), {

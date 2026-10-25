@@ -164,7 +164,7 @@ export function PreparedImageryComparison({layers,records,selected,locale,onClos
         <UiIcon name="download" size={16}/>{gifState==='working'?t('Đang tạo GIF','Creating GIF'):t('Tải GIF','Download GIF')}
       </button>
     </div>
-    <footer><p>{kind==='sar'?t('Cùng thang dB. Chưa xác minh cùng quỹ đạo; khác biệt độ sáng không tự xác nhận sạt lở.','Shared dB scale. Matching orbit not verified; brightness differences do not confirm landslides.'):t('Màu ảnh gốc. Ranh KML chưa xác nhận cùng ngày ảnh.','Original image colours. KML extents have not been verified against these acquisition dates.')}</p><small>{sourceCredit}. {t('Ảnh nền','Basemap')}: {imagerySource.name}</small>
+    <footer><p>{kind==='sar'?t('Cùng thang dB, chưa kiểm tra cùng quỹ đạo.','Same dB scale; orbit match not checked.'):t('Màu gốc. Ranh KML có thể khác ngày ảnh.','Original colours. KML dates may differ.')}</p><small>{sourceCredit}. {t('Ảnh nền','Basemap')}: {imagerySource.name}</small>
       {gifState==='error'&&<span role="alert">{t('Chưa tạo được GIF. Đợi ảnh nền tải xong rồi thử lại.','Could not create the GIF. Wait for the basemap to load and retry.')}</span>}
       {status==='loading'&&<span role="status">{t('Đang tải ảnh','Loading imagery')}</span>}
       {status==='error'&&<span role="status">{t('Chưa tải được cặp ảnh.','Could not load the image pair.')} <button className="text-button" onClick={()=>setAttempt(value=>value+1)}>{t('Thử lại','Retry')}</button></span>}

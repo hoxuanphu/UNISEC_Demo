@@ -1,0 +1,10 @@
+/* A compact compass rose under the map controls: red north needle, the four directions around it. */
+.map-compass { display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--ws-line); border-radius:50%; background:var(--ws-surface); color:var(--ws-text); box-shadow:0 1px 4px #0003; }
+.map-compass svg { width:40px; height:40px; overflow:visible; }
+.map-compass text { font:600 7.5px/1 var(--font-map, Roboto, sans-serif); fill:var(--ws-muted); text-anchor:middle; dominant-baseline:middle; }
+.map-compass text.is-north { fill:#c62828; font-size:8.5px; }
+.map-compass-north { fill:#c62828; }
+.map-compass-south { fill:var(--ws-muted); opacity:.55; }
+button.map-compass { cursor:pointer; }
+button.map-compass[aria-pressed='true'] { border-color:#1a73e8; box-shadow:0 0 0 2px color-mix(in srgb, #1a73e8 30%, transparent), 0 1px 4px #0003; }
+@media (hover:hover) { button.map-compass:hover { background:var(--hover); } }

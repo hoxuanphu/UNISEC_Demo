@@ -68,8 +68,13 @@ export type ViewControls = {
 
 export type MapDisplayProps = {
   locale?: Locale;
-  /** Explicit demo person. Kept separate from real device position and road assessments. */
-  deviceFeed?: import('../tracking/deviceFeed').DeviceFeed | null;
+  /** Location rendering is read-only; scenario signals never change GPS evidence or road assessments. */
+  selectedDeviceId?: string|null;
+  /** The phone's own device in the feed, drawn as "You"; and the way the phone faces, in degrees from north. */
+  selfDeviceId?: string|null;
+  selfHeading?: number|null;
+  onSelectDevice?: (id:string)=>void;
+  deviceFeed?: import('../tracking/deviceFeed').LocationFeed | null;
   routeSimulation?: import('../routes/routeSimulation').RouteSimulation | null;
   /** Choosing route endpoints takes priority over feature inspection. */
   pointPickActive?: boolean;

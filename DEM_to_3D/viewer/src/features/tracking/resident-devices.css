@@ -1,0 +1,13 @@
+.resident-devices-section .incident-section-title {display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.resident-devices-section .incident-section-title small {color:var(--ws-muted);font-size:12px;font-weight:500}
+.resident-road-group + .resident-road-group {margin-top:12px}
+.resident-road-group h3 {margin:0 0 4px;color:var(--ws-muted);font-size:12px;font-weight:500;line-height:1.4;overflow-wrap:anywhere}
+.resident-device-row > .tracked-device-symbol {justify-self:center}
+.resident-device-heading .detail-name > p {margin:0 0 4px;color:var(--ws-muted);font-size:13px}
+.resident-device-facts dl {margin:0}
+.resident-device-facts dl > div {display:grid;grid-template-columns:minmax(72px,.7fr) minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--ws-line)}
+.resident-device-facts dl > div:last-child {border:0;padding-bottom:0}
+.resident-device-facts dt {color:var(--ws-muted);font-size:13px}
+.resident-device-facts dd {margin:0;overflow-wrap:anywhere;font-size:14px;font-variant-numeric:tabular-nums}
+.resident-device-detail .object-row span {display:grid;gap:4px}
+.resident-device-detail .object-row small {color:var(--ws-muted);font-size:12px}

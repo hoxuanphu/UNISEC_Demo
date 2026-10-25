@@ -3,7 +3,7 @@ import type { PreparedPhotoPoint } from '../features/fieldPhotos/preparedPhotos'
 import type { ScenarioTarget } from '../features/geodata/scenarioOverlay';
 import type { GeometryRecord } from '../geo/vector/types';
 import { UiIcon } from '../shared/ui/UiIcon';
-import { useLayoutEffect, useRef, type ComponentProps } from 'react';
+import { useEffect, useLayoutEffect, useRef, type ComponentProps } from 'react';
 import { CommunityDetailView } from '../components/dear/CommunityDetailView';
 import { ObjectDetailView } from '../components/dear/ObjectDetailView';
 import { usePanelScroll } from '../shared/hooks/usePanelScroll';
@@ -117,6 +117,16 @@ export function ResponseDetails({
       focusedDetail.current = detailKey;
     }
   }, [detailKey, visible]);
+
+  useEffect(()=>{
+    if(!visible||!objectId||!/^(device|team):/.test(objectId))return;
+    const dismiss=(event:KeyboardEvent)=>{
+      if(event.key!=='Escape'||event.defaultPrevented||document.querySelector('[role="dialog"],dialog[open],.tracked-device-card:not([hidden])'))return;
+      event.preventDefault();onNavigate({type:'close-object'});onResetTools();onReturnFocus();
+    };
+    document.addEventListener('keydown',dismiss);
+    return()=>document.removeEventListener('keydown',dismiss);
+  },[visible,objectId,onNavigate,onResetTools,onReturnFocus]);
 
   const openCommunities = () => {
     onNavigate({

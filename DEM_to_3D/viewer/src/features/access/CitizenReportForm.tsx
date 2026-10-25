@@ -290,7 +290,7 @@ export function CitizenReportForm({
           disabled={busy || voiceBusy}
         >
           <UiIcon name="send" size={18} />
-          {t("Gửi báo cáo", "Send report")}
+          {t("Gửi ghi nhận", "Send report")}
         </button>
       </div>
       {cameraOpen && <CameraCapture locale={locale} onCapture={(file, capture) => void attach([file], capture)} onClose={() => {restoreCameraFocus.current = true;setCameraOpen(false);}} />}

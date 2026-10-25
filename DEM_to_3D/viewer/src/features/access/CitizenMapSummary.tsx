@@ -23,9 +23,11 @@ type Props = {
   comparison?: boolean;
   risk?: boolean;
   blocked?: boolean;
+  /** The rescue team closest to the resident: one line, tap to see it on the map. */
+  nearestTeam?: {name: string; detail: string; onShow: () => void};
 };
 
-export function CitizenMapSummary({locale, route, endpoints, place, road, onCloseRoad, onDetails, onFind, onPlaces, loadError, onRetry, local, advised = true, comparison = false, risk = false, blocked = false}: Props) {
+export function CitizenMapSummary({locale, route, endpoints, place, road, onCloseRoad, onDetails, onFind, onPlaces, loadError, onRetry, local, advised = true, comparison = false, risk = false, blocked = false, nearestTeam}: Props) {
   const t = (vi: string, en: string) => locale === 'vi' ? vi : en;
   const condition = road && roadCondition(road);
   const status = condition === 'risk' ? 'uncertain' : condition ?? (route ? routeStatus(route) : undefined);
@@ -36,6 +38,11 @@ export function CitizenMapSummary({locale, route, endpoints, place, road, onClos
       <header><strong>{place.name}</strong><button className="icon-button" aria-label={t('Đóng địa điểm', 'Close place')} onClick={place.onClose}><UiIcon name="close" size={18}/></button></header>
       <button className="button citizen-primary" onClick={place.onDirections}><UiIcon name="route" size={18}/>{t('Tìm đường đến đây', 'Directions here')}</button>
     </> : road ? <header><div><strong>{t(...road.name)}</strong><p data-road-state={status}>{message}</p></div><button className="icon-button" aria-label={t('Đóng đoạn đường', 'Close road section')} onClick={onCloseRoad}><UiIcon name="close" size={18}/></button></header> : <>
+      {nearestTeam && <button className="citizen-team" onClick={nearestTeam.onShow}>
+        <span className="citizen-team-icon" aria-hidden="true"><UiIcon name="myLocation" size={16}/></span>
+        <span className="citizen-team-copy"><strong>{nearestTeam.name}</strong><small>{nearestTeam.detail}</small></span>
+        <UiIcon name="next" size={16}/>
+      </button>}
       {(comparison || blocked || risk) && <div className="citizen-map-legend citizen-comparison-legend" aria-label={t('Chú giải đường đi', 'Route legend')}>
         {comparison && <span><i style={{borderColor: roadColors.alternative}}/>{t('Đường khác', 'Other routes')}</span>}
         {blocked && <span><RoadConditionSymbol condition="blocked"/>{t('Bị chặn', 'Blocked')}</span>}
@@ -49,7 +56,7 @@ export function CitizenMapSummary({locale, route, endpoints, place, road, onClos
         </div>
         <span className="citizen-route-distance"><strong>{route.lengthKm.toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-GB', {maximumFractionDigits: 1})}</strong><span>km</span></span>
         <UiIcon name="next" size={18}/>
-      </button> : <header><div><strong>{endpoints ? t('Chưa tìm được đường đi', 'No route found') : t('Bạn muốn đi đâu?', 'Where are you going?')}</strong><p>{endpoints ? t('Hỏi cán bộ xã trước khi đi.', 'Check with the commune office before travel.') : t('Chọn nơi đi và nơi đến.', 'Choose your start and destination.')}</p></div></header>}
+      </button> : <header><div><strong>{endpoints ? t('Chưa tìm được đường đi', 'No route found') : t('Bạn muốn đi đâu?', 'Where are you going?')}</strong>{endpoints && <p>{t('Hỏi cán bộ xã trước khi đi.', 'Check with the commune office before travel.')}</p>}</div></header>}
       {loadError && <p className="field-error" role="alert">{t('Chưa tải được đường.', 'Roads could not load.')} <button className="text-button" onClick={onRetry}>{t('Thử lại', 'Retry')}</button></p>}
       {!route && <div className="citizen-map-actions"><button className="button citizen-primary" onClick={onFind}><UiIcon name="route" size={18}/>{t('Tìm đường', 'Find a route')}</button><button className="button" onClick={onPlaces}>{t('Địa điểm', 'Places')}</button></div>}
     </>}

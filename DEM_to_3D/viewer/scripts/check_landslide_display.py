@@ -57,7 +57,7 @@ def run(url, captures, chrome=None):
         page.get_by_role('button',name='Gửi ghi nhận',exact=True).click()
         page.get_by_label('Chọn ảnh hiện trường',exact=True).set_input_files(str(photo))
         expect(page.get_by_label('Vĩ độ ghi nhận',exact=True)).to_have_value('21.783333')
-        page.locator('.citizen-report-form').get_by_role('button',name='Gửi báo cáo',exact=True).click()
+        page.locator('.citizen-report-form').get_by_role('button',name='Gửi ghi nhận',exact=True).click()
         # Residents use the mobile Information/Map navigation at every viewport size.
         page.locator('.citizen-mobile-switch').get_by_role('button',name='Bản đồ',exact=True).click()
         symbol('.field-map-marker.map-selected-reference')

@@ -38,6 +38,7 @@ type Props = {
   onOpenRoads: (filter: 'blocked' | 'uncertain') => void;
   onOpenArea: () => void;
   /** Field huts the resident app still places people at, with every road out cut. */
+  residentDevices?: import('react').ReactNode;
   households?: HouseholdAccess[];
   onSelectHousehold?: (id: string) => void;
   onShowHouseholds?: () => void;
@@ -47,7 +48,7 @@ type Props = {
 export function IncidentView({
   incident, locale, areaName, tasks, entries, communities, onSelectCommunity, onOpenWork, onOpenArea,
   hazards, roads, fieldPhotos, onInspectObject, reportPending, pendingReport,
-  onOpenReport, historical, onOpenRoads, onOpenCommunities, households = [], onSelectHousehold, onShowHouseholds
+  onOpenReport, historical, onOpenRoads, onOpenCommunities, residentDevices, households = [], onSelectHousehold, onShowHouseholds
 }: Props): JSX.Element {
   const householdSection = useRef<HTMLElement>(null);
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
@@ -109,6 +110,8 @@ export function IncidentView({
           </button>)}
         </div>
       </section>}
+
+      {residentDevices}
 
       {/* Landslides first: what happened, with its survey photos. */}
       <section className="incident-landslides">

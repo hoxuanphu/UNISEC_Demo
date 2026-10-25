@@ -71,7 +71,7 @@ export function DataDialog({ incident, locale, updated, manifest, terrainMetadat
           {unit.population !== undefined && <div><dt>{t('Dân số', 'Population')}</dt><dd>{unit.population.toLocaleString(locale)}</dd></div>}
         </dl>)}{administrative?.source && <p className="data-context">{t('Nguồn', 'Source')}: {administrative.source}</p>}</>}
         <h3 className="data-section-title">{t('Cách đánh giá', 'Assessment method')}</h3>
-        <dl className="assessment-method"><div><dt>{t('Ưu tiên địa bàn', 'Community priority')}</dt><dd>{t('Dựa vào ảnh hưởng trên đường tiếp cận, tình trạng liên lạc và yêu cầu hỗ trợ khẩn cấp.', 'Uses reported road impacts, community contact and urgent assistance requests.')}</dd></div><div><dt>{t('Phương án tiếp cận', 'Access options')}</dt><dd>{t('Tìm tuyến trên mạng đường hiện có, tránh đoạn bị chặn và hạn chế đoạn cần xác minh. Kiểm tra khả năng đi qua trước khi sử dụng tuyến.', 'Routing uses the available road network, excludes blocked sections and penalises uncertain ones. Check passage conditions before using a route.')}</dd></div></dl>
+        <dl className="assessment-method"><div><dt>{t('Ưu tiên địa bàn', 'Community priority')}</dt><dd>{t('Dựa vào ảnh hưởng trên đường tiếp cận, tình trạng liên lạc và yêu cầu hỗ trợ khẩn cấp.', 'Uses reported road impacts, community contact and urgent assistance requests.')}</dd></div><div><dt>{t('Phương án tiếp cận', 'Access options')}</dt><dd>{t('Tránh đoạn bị chặn, hạn chế đoạn cần xác minh.', 'Avoids blocked sections and limits unverified ones.')}</dd></div></dl>
       </div>
     </section>
   </div>;

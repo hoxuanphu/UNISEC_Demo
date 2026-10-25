@@ -16,6 +16,8 @@ export type DevicePosition = {
   missionId?:string;closureRoadId?:string;targetId?:string;targetName?:[string,string];
   /** The assembly point a team left from. */
   baseId?:string;
+  householdName?:[string,string];
+  source?:'scenario' | 'gps';
 };
 /** A team's job, in path metres: leave `homeM`, ride to `endM`, work there, come back.
  * An escorted resident walks up to `endM` from `startM` and is brought back to `safeM`. */
@@ -216,7 +218,11 @@ export function createDeviceFeed(roads:RoadSegment[],links:readonly LocalRoadAre
   const listeners=new Set<()=>void>();
   return {getSnapshot:()=>snapshot,subscribe:(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener);};},
     advance:(seconds:number)=>{if(!Number.isFinite(seconds)||seconds<=0)return;const step=Math.min(seconds,.25);real+=step;elapsed+=step*deviceTimeLapse;snapshot=plans.map(plan=>locate(plan,elapsed,at()));listeners.forEach(listener=>listener());},
+    synchronise:(seconds:number)=>{if(!Number.isFinite(seconds)||seconds<0)return;real=seconds;elapsed=seconds*deviceTimeLapse;snapshot=plans.map(plan=>locate(plan,elapsed,at()));listeners.forEach(listener=>listener());},
     refreshSignal:()=>{epoch=Date.now()-Math.floor(real)*1000;snapshot=plans.map(plan=>locate(plan,elapsed,at()));listeners.forEach(listener=>listener());},
   };
 }
 export type DeviceFeed=ReturnType<typeof createDeviceFeed>;
+
+/** Read-only location snapshots consumed by maps and inspectors. */
+export type LocationFeed=Pick<DeviceFeed,'getSnapshot'|'subscribe'>;

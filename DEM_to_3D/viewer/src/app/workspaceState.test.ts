@@ -140,3 +140,14 @@ describe('workspace interaction ownership', () => {
     expect(interact(state, { type: 'reset' }).dialog).toBeNull();
   });
 });
+
+
+describe('tracked resident navigation',()=>{
+  it('opens a device in Incident and keeps the road selection for later',()=>{
+    const road=navigate(initial,{type:'inspect-object',id:'road:E8'});
+    const person=navigate(road,{type:'inspect-object',id:'device:GPS-AP01'});
+    expect(person.view).toBe('incident');expect(person.objectIds.impact).toBe('road:E8');
+    expect(selectedMapObject(person)).toBe('device:GPS-AP01');
+    expect(selectedMapObject(navigate(person,{type:'close-object'}))).toBeNull();
+  });
+});

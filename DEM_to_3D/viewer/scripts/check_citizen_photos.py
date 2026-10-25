@@ -78,7 +78,7 @@ def run(url, chrome, captures):
         expect(form.locator('.citizen-photo-strip img')).to_have_count(2)
         expect(latitude).to_have_value('21.780000')
         form.locator('textarea').first.fill('Đất đá rơi cạnh đường vào bản.')
-        form.get_by_role('button',name='Gửi báo cáo',exact=True).click()
+        form.get_by_role('button',name='Gửi ghi nhận',exact=True).click()
         expect(page.locator('.citizen-submission')).to_have_count(1)
         records = page.evaluate('JSON.parse(localStorage.getItem("dear.gis.v2")).records.filter(r=>r.feature.properties.dearSubmission)')
         observation = records[0]['feature']['properties']['dearObservation']

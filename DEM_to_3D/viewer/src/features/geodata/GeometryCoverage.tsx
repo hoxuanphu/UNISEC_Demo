@@ -89,14 +89,14 @@ export function GeometryCoverage({
         <div className="geodata-method">
           <p>
             {t(
-              'Phần giao AOI với hợp của các phạm vi ảnh. Diện tích xấp xỉ trên mặt cầu (R = 6.371.008,8 m), hình học WGS84 trong kinh/vĩ độ.',
-              'AOI intersection with the union of image footprints. Approximate spherical area (R = 6,371,008.8 m), WGS84 geometry in longitude/latitude.'
+              'Phần AOI nằm trong vùng phủ của ảnh.',
+              'Share of the AOI inside the image footprints.'
             )}
           </p>
           <p>
             {t(
-              'Ẩn lớp chỉ đổi hiển thị. Độ phủ hình học chưa đánh giá mây, thời gian chụp hoặc chất lượng ảnh.',
-              'Hiding layers only changes display. Geometric coverage does not assess clouds, acquisition time or image quality.'
+              'Chưa tính mây và chất lượng ảnh.',
+              'Clouds and image quality not assessed.'
             )}
           </p>
           <code>polygon-coverage-v1</code>
