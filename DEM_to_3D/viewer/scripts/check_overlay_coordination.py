@@ -32,8 +32,9 @@ def run(url,chrome=None,captures=None):
     expect(overview.locator('.map-overview-surface')).to_be_visible()
     # The 2D canvas begins below the toolbar. Drag coordinates must still match the cursor.
     area=page.locator('.map-area').bounding_box();header=overview.locator('.overview-title').bounding_box()
+    before=overview.bounding_box();offset_x=header['x']+12-before['x'];offset_y=header['y']+12-before['y']
     page.mouse.move(header['x']+12,header['y']+12);page.mouse.down()
-    page.mouse.move(area['x']+36,area['y']+92,steps=8);page.mouse.up()
+    page.mouse.move(area['x']+24+offset_x,area['y']+80+offset_y,steps=8);page.mouse.up()
     actual=overview.bounding_box();assert abs(actual['x']-(area['x']+24))<3 and abs(actual['y']-(area['y']+80))<3,(mode,actual,area)
    mobile=context.new_page()
    mobile.set_viewport_size({'width':390,'height':844});mobile.on('pageerror',lambda e:errors.append(e.stack));mobile.goto(url+'/?offline=1&map=2d&lang=en')
