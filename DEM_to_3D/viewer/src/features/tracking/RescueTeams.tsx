@@ -5,7 +5,6 @@ import { UiIcon } from '../../shared/ui/UiIcon';
 import type { DeviceFeed, DevicePosition } from './deviceFeed';
 import type { RescueBase } from './rescueBase';
 import { deviceStatusText } from './trackingOverlay';
-import { DeviceLegendSymbol } from './deviceSymbols';
 import './rescue-teams.css';
 
 const noSubscription = () => () => undefined;
@@ -19,15 +18,15 @@ function useTeams(feed: DeviceFeed | null): DevicePosition[] {
 }
 
 /** One short word for the list; the full sentence is in the detail. */
-function teamStatus(team: DevicePosition, locale: Locale): { text: string; tone: 'selected' | 'warning' | 'neutral' } {
+function teamStatus(team: DevicePosition, locale: Locale): { text: string; tone: 'active' | 'warning' | 'neutral' } {
   const t = (vi: string, en: string) => locale === 'vi' ? vi : en;
   switch (team.state) {
     // Same words as the detail, shortened: the list and the panel never disagree.
     case 'dispatching': return { text: t('Chờ điều động', 'Awaiting dispatch'), tone: 'neutral' };
-    case 'responding': return { text: t('Đang tới', 'Responding'), tone: 'selected' };
-    case 'assisting': return { text: t('Đang hỗ trợ', 'Assisting'), tone: 'selected' };
+    case 'responding': return { text: t('Đang tới', 'Responding'), tone: 'active' };
+    case 'assisting': return { text: t('Đang hỗ trợ', 'Assisting'), tone: 'active' };
     case 'waiting': return { text: t('Chờ tiếp cận', 'Awaiting access'), tone: 'warning' };
-    case 'escorting': return { text: t('Đang đưa về', 'Escorting'), tone: 'selected' };
+    case 'escorting': return { text: t('Đang đưa về', 'Escorting'), tone: 'active' };
     case 'moving': return { text: t('Đang về', 'Returning'), tone: 'neutral' };
     case 'arrived': return { text: t('Đã về', 'Back at base'), tone: 'neutral' };
     default: return { text: deviceStatusText(team, locale), tone: 'neutral' };
@@ -99,9 +98,9 @@ export function RescueTeamList({ feed, locale, onSelect, baseId, title, selected
       {teams.map(team => {
         const status = teamStatus(team, locale);
         return <button className="incident-landslide-row rescue-team-row" key={team.id} aria-current={selectedId === `team:${team.id}` || undefined} onClick={() => onSelect(team.id)}>
-          <span className="rescue-team-symbol"><DeviceLegendSymbol role="rescue"/></span>
-          <span className="incident-landslide-copy"><strong>{team.name[locale === 'vi' ? 0 : 1]}</strong><small>{teamTask(team, locale)}</small></span>
-          <StatusText tone={status.tone}>{status.text}</StatusText>
+          <span className="rescue-team-symbol" aria-hidden="true"><UiIcon name="myLocation" size={16}/></span>
+          <span className="incident-landslide-copy"><strong>{team.name[locale === 'vi' ? 0 : 1]}</strong><small title={teamTask(team, locale)}>{teamTask(team, locale)}</small></span>
+          <small className="incident-status" data-tone={status.tone === 'active' ? undefined : status.tone}>{status.text}</small>
         </button>;
       })}
     </div>
@@ -123,7 +122,7 @@ export function RescueTeamDetail({ feed, id, bases, locale, onClose, onShow, onS
         <div className="detail-name"><h1 id="object-title">{team ? team.name[locale === 'vi' ? 0 : 1] : t('Đội cứu hộ', 'Rescue team')}</h1></div>
         <button className="icon-button panel-close" onClick={onClose} aria-label={t('Đóng chi tiết đội', 'Close team details')} title={t('Đóng chi tiết đội', 'Close team details')}><UiIcon name="close"/></button>
       </div>
-      {team && status && <div className="detail-priority detail-meta"><StatusText tone={status.tone}>{deviceStatusText(team, locale)}</StatusText></div>}
+      {team && status && <div className="detail-priority detail-meta"><StatusText tone={status.tone === 'active' ? 'selected' : status.tone}>{deviceStatusText(team, locale)}</StatusText></div>}
     </div>
     <div className="sidebar-scroll rescue-team-detail">
       {!team ? <p className="detail-empty">{t('Không còn tín hiệu của đội này.', 'No signal from this team.')}</p> : <>

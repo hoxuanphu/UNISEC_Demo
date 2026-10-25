@@ -39,7 +39,14 @@ def run(url, chrome=None, captures=None):
         expect(panel.locator('.analysis-legend')).to_contain_text('5 dB')
         # Changing the basemap or its opacity never replaces or fades the selected EO scene.
         image=page.locator('img[alt="Ảnh phân tích"]')
-        expect(image).to_be_visible(timeout=30000)
+        try:
+            expect(image).to_be_visible(timeout=30000)
+        except Exception:
+            print('STRIX 2D status: '+str(page.locator('.analysis-load-status').all_text_contents()),flush=True)
+            print('Browser warnings: '+str(warnings[-12:]),flush=True)
+            print('Recent imagery requests: '+str([request for request in requests if 'imagery/' in request][-8:]),flush=True)
+            if captures:page.screenshot(path=str(captures/'strix-2d-failure.png'))
+            raise
         source=image.get_attribute('src')
         panel.get_by_role('slider',name='Độ rõ ảnh phân tích',exact=True).fill('60')
         expect(image).to_have_css('opacity','0.6')

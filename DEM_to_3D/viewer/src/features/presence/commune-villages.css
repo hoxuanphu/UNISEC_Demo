@@ -4,7 +4,6 @@
 .commune-villages .incident-section-title small { color:var(--ws-muted); font-size:12px; font-weight:500; text-align:right; }
 .commune-village + .commune-village { border-top:1px solid var(--ws-line); }
 .commune-village-icon { display:grid; place-items:center; width:32px; height:32px; justify-self:center; border-radius:50%; background:#4f6d8a; color:#fff; }
-.commune-village-row .status-text { white-space:nowrap; font-size:12px; }
 .commune-huts { display:grid; margin:0 0 6px 30px; padding-left:4px; border-left:2px solid var(--ws-line); }
 #response-panel .commune-huts .commune-hut-row { grid-template-columns:28px minmax(0,1fr) auto; gap:10px; }
 .commune-hut-row > svg:last-child { color:var(--ws-muted); }

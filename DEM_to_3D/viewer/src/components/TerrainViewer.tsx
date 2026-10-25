@@ -1,3 +1,4 @@
+import { hasRoutePlaceSymbol } from '../features/map/routePlaceSymbol';
 import { createTrackingOverlay } from '../features/tracking/trackingOverlay';
 import '../features/tracking/tracked-devices.css';
 import { createRouteEndpoints, type RouteEndpoint } from '../terrain/routeEndpoints';
@@ -454,7 +455,7 @@ export function TerrainViewer({
         scenarioOverlayGroup.visible = !flyoverActive || Boolean(flyoverInputRef.current?.retainContext);
         scene.add(scenarioOverlayGroup);
         scenarioMarkers = createScenarioMarkers(host, {
-          ...sp, focusId, elevationAt, metadata: primaryModel.metadata, grid: primaryModel.grid,
+          ...sp, focusId, elevationAt, routePlaces: endpointsRef.current?.map(endpoint=>endpoint.point), metadata: primaryModel.metadata, grid: primaryModel.grid,
           interactive: !measureModeRef.current,
           transform: entries[0].group.matrixWorld, locale: localeRef.current,
           canExpandGroup: () => camera.position.distanceTo(controls.target) > controls.minDistance * 1.15,
@@ -464,7 +465,7 @@ export function TerrainViewer({
         });
       }
       endpointLayer?.dispose();endpointLayer=null;
-      if(endpointsRef.current?.length && entries.length){endpointLayer=createRouteEndpoints(host,endpointsRef.current,projectedWorld,{width:host.clientWidth,height:host.clientHeight});scene.add(endpointLayer.group);}
+      if(endpointsRef.current?.length && entries.length){endpointLayer=createRouteEndpoints(host,endpointsRef.current.map(endpoint=>({...endpoint,reusePlaceSymbol:hasRoutePlaceSymbol(endpoint.point,sp)})),projectedWorld,{width:host.clientWidth,height:host.clientHeight});scene.add(endpointLayer.group);}
       contextLayer?.dispose();contextLayer=null;
       const context=contextRef.current;
       if(context.geometry && entries.length){

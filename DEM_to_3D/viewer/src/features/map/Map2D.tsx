@@ -1,3 +1,4 @@
+import { hasRoutePlaceSymbol } from './routePlaceSymbol';
 import { TrackedDevices2D } from '../tracking/TrackedDevices2D';
 import { RouteSimulationLayer } from './RouteSimulationLayer';
 import { POINT_ZOOM, SELECTION_MAX_ZOOM } from './selectionScale';
@@ -218,6 +219,7 @@ export function Map2D(props: Props): JSX.Element {
       markers?.dispose(); overlay?.remove(); markers = null; overlay = L.layerGroup().addTo(map);
       if (scenario && terrain) {
         markers = createScreenMarkers(host, { ...scenario, locale, focusId,
+          routePlaces: propsRef.current.journeyEndpoints?.map(point => roadProjected(point.latitude,point.longitude)),
           interactive: !propsRef.current.pointPickActive && !propsRef.current.locationOpen && !propsRef.current.drawOpen && !(propsRef.current.measurementOpen && (!propsRef.current.measureSession.finished || propsRef.current.measureSession.editing)),
           presentation: propsRef.current.routeGuidance ? 'places' : 'groups',
           routeStops: propsRef.current.routeGuidance ? propsRef.current.journeyEndpoints?.length
@@ -451,12 +453,12 @@ export function Map2D(props: Props): JSX.Element {
         L.polyline([[p.latitude,p.longitude],[p.road.latitude,p.road.longitude]],{pane:mapPane('selection'),color:'#246b9a',weight:2.5,dashArray:'2 6',lineCap:'round',interactive:false}).addTo(group);
         L.circleMarker([p.road.latitude,p.road.longitude],{pane:mapPane('selection'),radius:4,color:'#246b9a',weight:2,fillColor:'#fff',fillOpacity:1,interactive:false}).addTo(group);
       }
-      if (separatePins) continue;
+      if (separatePins || hasRoutePlaceSymbol(roadProjected(p.latitude,p.longitude),props.scenarioProps)) continue;
       const pin=document.createElement('span');pin.innerHTML=teardropPinSvg();const letter=document.createElement('b');letter.innerHTML=routeStopSvg(p.label==='A');pin.append(letter);
       L.marker([p.latitude,p.longitude],{pane:mapPane('selection'),interactive:false,keyboard:false,icon:L.divIcon({html:pin,className:'journey-map-pin is-'+p.label.toLowerCase(),iconSize:[PIN.width,PIN.height],iconAnchor:[PIN.tipX,PIN.tipY+(p.place?PLACE_SYMBOL_CLEARANCE:0)]}),zIndexOffset:1000}).addTo(group);
     }
     return ()=>{removeResidentPins?.();group.remove();};
-  },[mapReady,props.journeyEndpoints,props.routeGuidance]);
+  },[mapReady,props.journeyEndpoints,props.routeGuidance,props.scenarioProps?.layers,props.scenarioProps?.communities,props.scenarioProps?.responseSites]);
   useEffect(() => {
     const map=mapRef.current;
     // Resident framing includes alternatives and the sheet inset in its workspace.

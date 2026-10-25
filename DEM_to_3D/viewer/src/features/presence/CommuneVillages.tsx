@@ -1,5 +1,4 @@
 import type { Locale } from '../../types/dear';
-import { StatusText } from '../../shared/ui/StatusText';
 import { UiIcon } from '../../shared/ui/UiIcon';
 import type { CommuneVillage, VillageAccess } from './communeSites';
 import './commune-villages.css';
@@ -28,7 +27,7 @@ export function CommuneVillages({ villages, entryName, locale, onSelectVillage, 
             <span className="commune-village-icon" aria-hidden="true"><UiIcon name="home" size={18}/></span>
             <span className="incident-landslide-copy"><strong>{l(village.name)}</strong>
               <small>{cutOff.length ? t(`${people} người bị cô lập quanh bản`, `${people} people cut off nearby`) : t('Chưa ghi nhận cô lập', 'No isolation reported')}</small></span>
-            <StatusText tone={accessTone[village.access]}>{l(accessText[village.access])}</StatusText>
+            <small className="incident-status" data-tone={accessTone[village.access]}>{l(accessText[village.access])}</small>
           </button>
           {village.huts.length > 0 && <div className="commune-huts">{village.huts.map(item => <button className="incident-landslide-row commune-hut-row" key={item.cluster.id} data-isolated={item.isolated || undefined} onClick={() => onSelectHuts(item.cluster.id)}>
             <span className="commune-hut-icon" aria-hidden="true"><UiIcon name="people" size={14}/></span>

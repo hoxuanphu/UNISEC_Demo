@@ -54,6 +54,18 @@ def run(url, chrome=None, captures=None):
         expect(start).to_have_value('map')
         # All offsets are shown as offsets; no surveyed connection is fabricated.
         expect(directions.locator('.journey-pick').first).to_have_attribute('aria-pressed','false')
+        # A named community is already a geographic endpoint: do not add a second pin.
+        start.select_option('site:MCC');end.select_option('community:CT')
+        expect(page.locator('.map-pin[data-map-object="community:CT"]')).to_be_visible()
+        expect(page.locator('.journey-map-pin.is-b')).to_have_count(0)
+        if captures:page.screenshot(path=str(captures/'community-route-2d.png'))
+        page.get_by_role('button',name='Chuyển sang 3D',exact=True).click()
+        expect(page.locator('canvas.terrain-canvas')).to_be_visible(timeout=60000)
+        expect(page.locator('.map-pin[data-map-object="community:CT"]')).to_be_visible()
+        expect(page.locator('.terrain-route-endpoint.is-b')).to_have_count(0)
+        if captures:page.screenshot(path=str(captures/'community-route-3d.png'))
+        page.get_by_role('button',name='Chuyển sang 2D',exact=True).click()
+        expect(page.locator('.map-2d-surface')).to_be_visible()
         start.select_option('local:place-22');end.select_option('local:place-23')
         if captures:page.screenshot(path=str(captures/'named-directions-2d.png'))
         page.get_by_role('button',name='Chuyển sang 3D',exact=True).click()

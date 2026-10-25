@@ -25,6 +25,7 @@ export type ScreenMarkerOptions = {
   allowCounts?: () => boolean;
   presentation?: 'groups' | 'places';
   routeStops?: Array<{x: number; y: number}>;
+  routePlaces?: Array<{x: number; y: number}>;
   appearance?: import('../features/map/layerAppearance').LayerAppearance;
   onPreviewFocus?: (point:{x:number;y:number})=>void;
   onExpandGroup?: (points: Array<{ x: number; y: number }>) => void;
@@ -36,7 +37,7 @@ type Marker = {
   count: HTMLSpanElement; point: { x: number; y: number }; selected: boolean; priority: number; width: number; labelEligible: boolean;
   condition?: 'blocked' | 'risk';
   /** Belongs to the commune scale (a secondary assembly point): left out of a wider view. */
-  local?: boolean;
+  local?: boolean; routePlace?: boolean;
 };
 
 /** Screen-sized, keyboard-accessible markers remain legible while the terrain zooms. */
@@ -134,6 +135,7 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
   document.addEventListener('focusin', dismissFocus);
   const add = (hit: OverlayHit, pos: { x: number; y: number }, name: string, kind: string, symbol: MapSymbolName, selected: boolean, labelVisible: boolean): void => {
     if (hit.type !== 'hazard' && options.routeStops?.some(stop => Math.hypot(stop.x-pos.x, stop.y-pos.y) < 2)) return;
+    const routePlace = hit.type !== 'hazard' && options.routePlaces?.some(stop=>Math.hypot(stop.x-pos.x,stop.y-pos.y)<2);
     const displayName = name;
     const button = document.createElement('button');
     button.className = `map-pin ${kind}${selected ? ' is-selected' : ''}`;
@@ -163,7 +165,7 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
     layer.appendChild(button);
     const priority = markerPriority({ selected, hazard: hit.type === 'hazard', suspected: kind.includes('is-suspected'),
       priorityCommunity: kind.includes('is-priority'), staging: kind.startsWith('staging') });
-    markers.push({ id: button.dataset.mapObject!, hit, name, symbol, button, label, icon, count, point: pos, selected, priority, width: 0, labelEligible: labelVisible });
+    markers.push({ id: button.dataset.mapObject!, hit, name, symbol, button, label, icon, count, point: pos, selected, routePlace, priority, width: 0, labelEligible: labelVisible });
   };
   // One selected pin: an inspected point replaces the open community's pin; a road selection keeps it.
   const selectedPin = /^(community|hazard|poi):/.test(options.selectedObjectId ?? '') ? options.selectedObjectId
@@ -239,9 +241,9 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
     const scaleAt = markers[0] && project(markers[0].point), scaleTo = markers[0] && project({ x: markers[0].point.x + 1000, y: markers[0].point.y });
     const communeScale = !scaleAt || !scaleTo || Math.hypot(scaleTo.x - scaleAt.x, scaleTo.y - scaleAt.y) >= 80;
     let positions = markers.flatMap(marker => {
-      if (marker.local && !marker.selected && !communeScale) return [];
+      if (marker.local && !marker.selected && !marker.routePlace && !communeScale) return [];
       const position = project(marker.point);
-      return position ? [{ id: marker.id, ...position, priority: marker.priority, selected: marker.selected, category: marker.symbol,
+      return position ? [{ id: marker.id, ...position, priority: marker.priority, selected: marker.selected || Boolean(marker.routePlace), category: marker.symbol,
         featured: marker.hit.type === 'hazard' && marker.labelEligible }] : [];
     });
     const stopRects = Array.from(host.querySelectorAll<HTMLElement>('.resident-route-pins > button')).map(pin => {
