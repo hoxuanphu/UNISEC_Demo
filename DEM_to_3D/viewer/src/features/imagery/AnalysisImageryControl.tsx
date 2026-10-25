@@ -22,7 +22,7 @@ export function AnalysisImageryControl({ locale, layers, selection, onChange, on
     </fieldset>)}
     {active && <div className="analysis-active-details">
     {/* Ground resolution and coverage of the image in view, on one line. */}
-    <div className="analysis-meta"><span>{t('Pixel', 'Pixel')} {(active.kind === 'sar' ? active.nativePixelM ?? active.pixelM : Math.max(...active.parts.map(part => part.gsdM ?? part.pixelM))).toLocaleString(locale, {maximumFractionDigits:1})} m{active.kind === 'optical' && active.mosaic ? t(`, ghép ${active.parts.length} dải`, `, ${active.parts.length}-strip mosaic`) : ''}</span>
+    <div className="analysis-meta"><span>{t('Pixel', 'Pixel')} {(active.kind === 'sar' ? active.nativePixelM ?? active.pixelM : Math.max(...active.parts.map(part => part.gsdM ?? part.pixelM))).toLocaleString(locale, {maximumFractionDigits:2})} m{active.kind === 'optical' && active.mosaic ? t(`, ghép ${active.parts.length} dải`, `, ${active.parts.length}-strip mosaic`) : ''}</span>
       {onFit && <button type="button" className="icon-button layer-fit" onClick={onFit} aria-label={t('Xem vùng ảnh', 'Fit image coverage')} title={t('Xem vùng ảnh', 'Fit image coverage')}><UiIcon name="fit" size={16}/></button>}</div>
     {active?.kind === 'sar' && <>
       {availableSarModes(active).length > 1 && <div className="analysis-sar-modes" role="radiogroup" aria-label={t('Kênh SAR', 'SAR channel')}>
