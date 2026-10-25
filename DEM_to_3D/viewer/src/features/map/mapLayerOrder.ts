@@ -13,20 +13,11 @@ export const mapLayerOrder = {
 } as const;
 export type MapPane = keyof typeof mapLayerOrder;
 export const mapPane = (name: MapPane) => `dear-${name}`;
+/** Top to bottom, the cartographic convention: lines over polygons, rasters below.
+ * Fixed, so every map draws the same stack the layers panel lists. */
 export const defaultDrawingOrder = ['roads', 'reference', 'landslides', 'boundary'] as const;
 export type DrawingLayer = typeof defaultDrawingOrder[number];
-/** Top to bottom, matching a GIS layer stack. Ignore obsolete/duplicate saved entries. */
-export function normaliseDrawingOrder(value: unknown): DrawingLayer[] {
-  const supplied = Array.isArray(value) ? value : [];
-  return [...new Set([...supplied.filter((id): id is DrawingLayer =>
-    defaultDrawingOrder.includes(id)), ...defaultDrawingOrder])];
-}
-export function moveDrawingLayer(order: readonly DrawingLayer[], id: DrawingLayer, direction: -1 | 1): DrawingLayer[] {
-  const next = normaliseDrawingOrder(order), index = next.indexOf(id), to = index + direction;
-  if (to >= 0 && to < next.length) [next[index], next[to]] = [next[to], next[index]];
-  return next;
-}
-export function drawingLayerRank(name: MapPane, order: readonly DrawingLayer[]): number {
+export function drawingLayerRank(name: MapPane, order: readonly DrawingLayer[] = defaultDrawingOrder): number {
   const index = order.indexOf(name as DrawingLayer);
   // Reserve [2, 3.75] between imagery and navigation overlays.
   return index < 0 ? mapLayerOrder[name] : 2 + (order.length - 1 - index) * .5;
@@ -38,7 +29,7 @@ export function setDrawingLayer<T extends { userData: Record<string, unknown>; r
   object.renderOrder = drawingLayerRank(layer, defaultDrawingOrder) * 2 + offset;
   return object;
 }
-export function applyDrawingOrder(root: { traverse: (visit: (object: {userData: Record<string, unknown>; renderOrder: number}) => void) => void }, order: readonly DrawingLayer[]): void {
+export function applyDrawingOrder(root: { traverse: (visit: (object: {userData: Record<string, unknown>; renderOrder: number}) => void) => void }, order: readonly DrawingLayer[] = defaultDrawingOrder): void {
   root.traverse(object => {
     const layer = object.userData.drawingLayer;
     if (defaultDrawingOrder.includes(layer as DrawingLayer))

@@ -22,11 +22,11 @@ def run(url, captures, chrome=None):
         page.set_default_timeout(20000)
 
         def fill(value):
-            page.get_by_role('slider',name='Độ phủ màu vùng sạt lở',exact=True).evaluate('''(e,value)=>{
+            page.get_by_role('slider',name='Độ phủ màu',exact=True).evaluate('''(e,value)=>{
                 const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;
                 setter.call(e,String(value));e.dispatchEvent(new Event('input',{bubbles:true}));
                 e.dispatchEvent(new Event('change',{bubbles:true}));}''',value)
-            control=page.get_by_role('slider',name='Độ phủ màu vùng sạt lở',exact=True)
+            control=page.get_by_role('slider',name='Độ phủ màu',exact=True)
             assert control.evaluate("e=>getComputedStyle(e.parentElement).display==='grid'")
 
         def areas(opacity, prefix=''):
@@ -65,7 +65,7 @@ def run(url, captures, chrome=None):
         areas(.22)
         # Residents have simple visibility controls; styling belongs to the
         # coordinator. Compact extents remain visible when viewing whole routes.
-        expect(page.get_by_role('slider',name='Độ phủ màu vùng sạt lở',exact=True)).to_have_count(0)
+        expect(page.get_by_role('slider',name='Độ phủ màu',exact=True)).to_have_count(0)
         page.reload()
         expect(page.locator('.citizen-workspace')).to_be_visible()
         areas(.22)
@@ -99,7 +99,7 @@ def run(url, captures, chrome=None):
         symbol('[data-map-reference="'+oid+'"]')
         page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
         fill(50)
-        expect(page.get_by_role('slider',name='Độ phủ màu vùng sạt lở',exact=True)).to_have_value('50')
+        expect(page.get_by_role('slider',name='Độ phủ màu',exact=True)).to_have_value('50')
         page.get_by_role('button',name='Đóng lớp bản đồ',exact=True).click()
         page.screenshot(path=str(captures/'terrain-report.png'))
         page.get_by_role('button',name='Chuyển sang 2D',exact=True).click()

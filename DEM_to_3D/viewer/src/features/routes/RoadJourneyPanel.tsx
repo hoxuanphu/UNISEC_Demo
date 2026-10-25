@@ -1,5 +1,3 @@
-import { RouteSimulationControl } from './RouteSimulationControl';
-import type { RouteSimulation } from './routeSimulation';
 import { isSelectPickerEvent } from "../../shared/ui/selectKeyboard";
 import { useEffect, useState } from "react";
 import { journeyMessages } from "./locales";
@@ -26,10 +24,9 @@ export function RoadJourneyPanel({
   sites,
   roads,
   places = [],
-  onProfile, simulation,
+  onProfile,
 }: {
   locale: Locale;
-  simulation?: RouteSimulation | null;
   journey: ReturnType<typeof useRoadJourney>;
   communities: Community[];
   sites: ResponseSite[];
@@ -296,7 +293,6 @@ export function RoadJourneyPanel({
                 <span>{roadConditionLabel(routeCondition(alternative),locale,local)}</span><strong>{length(alternative.lengthKm * 1000)}</strong>
               </button>)}
             </details>}
-            {simulation && <RouteSimulationControl simulation={simulation} locale={locale} onPlay={journey.fit}/>}
             {onProfile && (
               <button className="button journey-profile" onClick={()=>{setCollapsed(true);onProfile();}}>
                 <UiIcon name="route" />

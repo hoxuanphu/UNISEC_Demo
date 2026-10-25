@@ -16,20 +16,18 @@ def run(url, chrome=None, captures=None):
         def layers():
             page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
             panel=page.locator('.layers-panel')
-            panel.locator('.layer-order > summary').click()
             return panel
         panel=layers()
-        panel.get_by_role('button',name='Đưa xuống: Mạng đường',exact=True).click()
-        panel.get_by_role('button',name='Đưa xuống: Mạng đường',exact=True).click()
-        def order(): return page.locator('[data-drawing-layer]').evaluate_all('nodes=>nodes.map(n=>n.dataset.drawingLayer)')
-        assert order()==['reference','landslides','roads','boundary'],order()
+        def order(): return panel.locator('[data-layer-stack]').evaluate_all('nodes=>nodes.map(n=>n.dataset.layerStack)')
+        expected=['points','lines','areas','reference','raster','basemap']
+        assert order()==expected,order()
         def ranks():
-            return page.evaluate("""()=>Object.fromEntries(['reference','landslides','roads','boundary','route','roadStatus'].map(id=>[id,Number(getComputedStyle(document.querySelector('.leaflet-dear-'+id+'-pane')).zIndex)]))""")
-        rank=ranks(); assert rank['reference']>rank['landslides']>rank['roads']>rank['boundary']
-        assert rank['roadStatus']>rank['route']>rank['reference']
+            return page.evaluate("""()=>Object.fromEntries(['reference','landslides','roads','boundary','route','roadStatus','analysis','imagery'].map(id=>[id,Number(getComputedStyle(document.querySelector('.leaflet-dear-'+id+'-pane')).zIndex)]))""")
+        rank=ranks(); assert rank['roads']>rank['reference']>rank['landslides']>rank['boundary']>rank['analysis']>rank['imagery']
+        assert rank['roadStatus']>rank['route']>rank['roads']
         page.reload(wait_until='domcontentloaded')
         expect(page.locator('.map-road-target').first).to_be_attached(timeout=30000)
-        panel=layers();assert order()==['reference','landslides','roads','boundary']
+        panel=layers();assert order()==expected
         if captures:
             captures.mkdir(parents=True,exist_ok=True);page.screenshot(path=str(captures/'drawing-order.png'))
         panel.get_by_role('button',name='Đóng lớp bản đồ',exact=True).click()
@@ -64,8 +62,9 @@ def run(url, chrome=None, captures=None):
         expect(page.locator('.terrain-route-endpoint')).to_have_count(2)
         canvas.evaluate('n=>n.dataset.retainedRenderer="yes"')
         panel=layers()
-        assert order()==['reference','landslides','roads','boundary']
-        panel.get_by_role('button',name='Đưa lên: Mạng đường',exact=True).click()
+        assert order()==expected
+        panel.get_by_label('Mạng đường',exact=True).uncheck()
+        panel.get_by_label('Mạng đường',exact=True).check()
         expect(canvas).to_have_attribute('data-retained-renderer','yes')
         panel.get_by_role('button',name='Đóng lớp bản đồ',exact=True).click()
         directions.get_by_role('button',name='Đóng bảng tìm đường',exact=True).click()
@@ -93,7 +92,7 @@ def run(url, chrome=None, captures=None):
             if captures:page.screenshot(path=str(captures/f'named-directions-3d-{width}.png'))
         assert not errors,errors
         browser.close()
-    print('Drawing order and directions passed: persisted stack, protected warnings, named endpoints, road picks, retained 3D, offline and responsive layout.')
+    print('Drawing order and directions passed: ordered layer groups, protected warnings, named endpoints, road picks, retained 3D, offline and responsive layout.')
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)

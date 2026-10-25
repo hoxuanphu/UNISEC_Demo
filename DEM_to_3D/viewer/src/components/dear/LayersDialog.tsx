@@ -1,6 +1,3 @@
-import { LayerOrderControl } from '../../features/map/LayerOrderControl';
-import { useMapLayerOrder } from '../../features/map/useMapLayerOrder';
-import { defaultDrawingOrder } from '../../features/map/mapLayerOrder';
 import { LandslideFillControl } from '../../features/landslides/LandslideFillControl';
 import { useLandslideAppearance } from '../../features/landslides/useLandslideAppearance';
 import { defaultLandslideFillOpacity } from '../../features/landslides/landslideAppearance';
@@ -32,7 +29,6 @@ type PreviewProps = { imageryPreview?: string; terrainOverlays?: ReturnType<type
 export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance, hasFloodData, hasHLZData, hasSelectedRoute, hasIncidentLayers, areaCount, onShowAreas, onReset, onToggleLayer, onClose, imageryPreview, terrainOverlays, hasTerrainGrid = false, analysisImagery, hasLocalRoads, onShowLocalRoads, onShowAnalysisImagery }: Props & PreviewProps): JSX.Element {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const panelRef = useRef<HTMLElement>(null);
-  const { setOrder } = useMapLayerOrder();
   const { setFillOpacity } = useLandslideAppearance();
   const floating = useFloatingPanel(panelRef, 'layers');
   const closeRef = useRef(onClose);
@@ -52,7 +48,7 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
   }, []);
 
   const row = (id: string, label: string) => <div className="layer-row" key={id} data-layer={id}>
-    <label><input type="checkbox" aria-label={label} checked={layers[id] !== false} onChange={() => onToggleLayer(id)}/><MapLayerSample kind={id} imagery={layers.imagery}/><span>{label}</span>
+    <label><input type="checkbox" aria-label={label} checked={layers[id] !== false} onChange={() => onToggleLayer(id)}/>{id === 'gis' ? <span className="layer-key-sample reference-sample"><UiIcon name="layers" size={18}/></span> : <MapLayerSample kind={id} imagery={layers.imagery}/>}<span>{label}</span>
       {id === 'landslide' && areaCount > 0 && <small className="layer-count">{areaCount}</small>}
     </label>
     {id === 'landslide' && areaCount > 0 && <button className="icon-button layer-fit" onClick={onShowAreas} aria-label={t('Xem các vùng sạt lở', 'Fit landslide extents')} title={t('Xem các vùng sạt lở', 'Fit landslide extents')}><UiIcon name="fit" size={16}/></button>}
@@ -63,33 +59,38 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
   const localRaster=terrainOverlays?.options.sarVisible ? terrainOverlays.options.sar : null;
   const externalRasterActive=!!localRaster || !!terrainOverlays?.busy;
   const imageName=activeImage ? t(...activeImage.name) : terrainOverlays?.busy ? t('Đang đọc GeoTIFF','Reading GeoTIFF') : localRaster ? `${localRaster.name} (3D)` : t('Đã tắt','Off');
+  // Listed top to bottom as drawn: points over lines over areas, then rasters (GIS convention).
+  const tiers = [
+    { id: 'points', name: t('Điểm', 'Points'), rows: [
+      hasLocalRoads && row('devices', t('Thiết bị định vị', 'Location devices')),
+      hasIncidentLayers && row('communities', t('Địa bàn dân cư', 'Communities')),
+      hasIncidentLayers && row('crossings', t('Cầu, điểm vượt khe', 'Bridges and crossings')),
+      hasIncidentLayers && row('staging', t('Điểm tập kết', 'Staging point')),
+      hasIncidentLayers && hasHLZData && row('hlz', t('Bãi đáp đề xuất', 'Proposed landing sites')),
+    ] },
+    { id: 'lines', name: t('Đường', 'Lines'), rows: [
+      hasIncidentLayers && hasSelectedRoute && row('route', t('Tuyến đang xem', 'Selected route')),
+      hasIncidentLayers && row('status', t('Tình trạng đường', 'Road status')),
+      hasIncidentLayers && row('roads', t('Mạng đường', 'Road network')),
+      hasLocalRoads && row('localRoads', t('Đường trong xã Chế Tạo', 'Chế Tạo local roads')),
+    ] },
+    { id: 'areas', name: t('Vùng', 'Areas'), rows: [
+      hasIncidentLayers && row('landslide', t('Sạt lở', 'Landslides')),
+      hasIncidentLayers && areaCount > 0 && <LandslideFillControl key="fill" locale={locale} disabled={layers.landslide === false}/>,
+      hasIncidentLayers && hasFloodData && row('flood', t('Nghi ngập lũ quét', 'Possible flash flooding')),
+      hasIncidentLayers && row('aoi', t('Vùng đánh giá', 'Assessment area')),
+    ] },
+    { id: 'reference', name: t('Tham chiếu', 'Reference'), rows: [row('gis', t('Dữ liệu tham chiếu', 'Reference data'))] },
+  ].map(tier => ({ ...tier, rows: tier.rows.filter(Boolean) })).filter(tier => tier.rows.length);
   return <section className="layers-panel" id="map-layers-panel" ref={panelRef} role="dialog" aria-modal="false" aria-labelledby="map-layers-title">
     <div className="layers-heading floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={t('Vị trí bảng lớp', 'Layers panel position')} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home"><h2 id="map-layers-title">{t('Lớp bản đồ', 'Map layers')}</h2><button className="icon-button" onClick={onClose} aria-label={t('Đóng lớp bản đồ', 'Close map layers')}><UiIcon name="close" /></button></div>
     <div className="layers-content">
-      <p className="layer-stack-note">{t('Các nhóm được xếp từ trên xuống như trên bản đồ.', 'Groups are listed from top to bottom as drawn on the map.')}</p>
-      {hasIncidentLayers && <fieldset className="map-layer-group response-layer-group" data-layer-stack="data"><legend>{t('Đường, cảnh báo và địa điểm', 'Roads, warnings and places')}</legend>
-        {hasLocalRoads && row('devices',t('Thiết bị định vị','Location devices'))}
-        {row('status', t('Tình trạng đường', 'Road status'))}
-        {hasSelectedRoute && row('route', t('Tuyến đang xem', 'Selected route'))}
-        {row('communities', t('Địa bàn dân cư', 'Communities'))}
-        {row('landslide', t('Sạt lở', 'Landslides'))}
-        {areaCount > 0 && <LandslideFillControl locale={locale} disabled={layers.landslide === false}/>}
-        {row('roads', t('Mạng đường', 'Road network'))}
-        {hasLocalRoads && row('localRoads', t('Đường trong xã Chế Tạo', 'Chế Tạo local roads'))}
-        {hasFloodData && row('flood', t('Nghi ngập lũ quét', 'Possible flash flooding'))}
-      </fieldset>}
-      <details className="layer-section layer-context"><summary>{t('Điểm hỗ trợ và tham chiếu', 'Support and reference')}</summary>
-        <fieldset className="map-layer-group"><legend className="sr-only">{t('Đối tượng bổ sung', 'Additional features')}</legend>
-          {hasIncidentLayers && <>{row('crossings', t('Cầu, điểm vượt khe', 'Bridges and crossings'))}{row('staging', t('Điểm tập kết', 'Staging point'))}{hasHLZData && row('hlz', t('Bãi đáp đề xuất', 'Proposed landing sites'))}{row('aoi', t('Vùng đánh giá', 'Assessment area'))}</>}
-          <label className="reference-layer-toggle"><input type="checkbox" checked={layers.gis !== false} onChange={() => onToggleLayer('gis')}/><UiIcon name="layers" size={18}/><span>{t('Dữ liệu tham chiếu', 'Reference data')}</span></label>
-        </fieldset>
-      </details>
-      <LayerOrderControl locale={locale}/>
+      {tiers.map(tier => <fieldset className="map-layer-group layer-tier" data-layer-stack={tier.id} key={tier.id}><legend>{tier.name}</legend>{tier.rows}</fieldset>)}
       {((analysisImagery && analysisImagery.catalogState !== 'off') || terrainOverlays) && <details className="layer-section layer-analysis" data-layer-stack="raster" open><summary>{t('Ảnh phủ', 'Image overlay')}<small title={imageName}>{imageName}</small></summary>
         {analysisImagery?.catalogState==='loading' && <p className="analysis-note" role="status">{t('Đang tải danh sách ảnh','Loading imagery catalog')}</p>}
         {analysisImagery?.catalogState==='error' && <p className="analysis-note" role="status">{t('Chưa tải được danh sách ảnh.','Imagery catalog could not be loaded.')} <button type="button" className="text-button" onClick={analysisImagery.retryCatalog}>{t('Thử lại','Retry')}</button></p>}
         {analysisImagery && analysisImagery.catalogState!=='off' && <AnalysisImageryControl locale={locale} layers={analysisImagery.layers} selection={analysisImagery.selection} onChange={analysisImagery.setSelection} onFit={onShowAnalysisImagery} externalActive={externalRasterActive}/>}
-        {terrainOverlays && <SarRasterControl locale={locale} mapMode={mapMode} overlays={terrainOverlays} onActivate={()=>analysisImagery?.setSelection({...analysisImagery.selection,layer:null})}/>}
+        {terrainOverlays && mapMode === '3d' && <SarRasterControl locale={locale} mapMode={mapMode} overlays={terrainOverlays} onActivate={()=>analysisImagery?.setSelection({...analysisImagery.selection,layer:null})}/>}
       </details>}
       <details className="layer-section layer-basemap" data-layer-stack="basemap" open><summary>{t('Bản đồ nền', 'Base map')}<small>{layers.imagery ? t('Ảnh nền', 'Imagery') : t('Địa hình', 'Terrain')}</small></summary>
         <fieldset className="basemap-choices"><legend>{t('Chọn bản đồ nền', 'Choose a basemap')}</legend>
@@ -101,18 +102,17 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
           </label>)}
         </fieldset>
         <div className="basemap-extras"><label><input type="checkbox" checked={Boolean(layers.context)} onChange={() => onToggleLayer('context')}/>{t('Nền bản đồ khu vực', 'Regional basemap')}</label><label><input type="checkbox" checked={layers.hillshade} onChange={() => onToggleLayer('hillshade')}/>{t('Bóng địa hình', 'Terrain shading')}</label></div>
-        <label className="basemap-opacity">{t('Độ rõ ảnh nền (2D)', 'Basemap opacity (2D)')}<output>{Math.round(appearance.imageryOpacity * 100)}%</output><input type="range" aria-label={t('Độ rõ ảnh nền', 'Imagery opacity')} disabled={mapMode !== '2d' || !layers.imagery} min="30" max="100" value={appearance.imageryOpacity * 100} onChange={event => onAppearance({ ...appearance, imageryOpacity: clampOpacity(Number(event.target.value) / 100) })}/></label>
+        {mapMode === '2d' && <label className="basemap-opacity">{t('Độ rõ ảnh nền', 'Basemap opacity')}<output>{Math.round(appearance.imageryOpacity * 100)}%</output><input type="range" aria-label={t('Độ rõ ảnh nền', 'Imagery opacity')} disabled={!layers.imagery} min="30" max="100" value={appearance.imageryOpacity * 100} onChange={event => onAppearance({ ...appearance, imageryOpacity: clampOpacity(Number(event.target.value) / 100) })}/></label>}
         {analysisImagery && supportsBasemapTone(analysisImagery.layers) && activeImage?.kind === 'optical' && <label className="analysis-tone-choice"><input type="checkbox" checked={analysisImagery.balanceBasemap} onChange={event=>analysisImagery.setBalanceBasemap(event.target.checked)}/>{t('Cân màu nền theo Planet','Match basemap tone to Planet')}</label>}
-        <p className="layer-stack-note">{t('Ngoài vùng ảnh phủ, bản đồ nền vẫn hiển thị.', 'The basemap remains visible outside the image coverage.')}</p>
       </details>
-      <details className="layer-section layer-appearance"><summary>{t('Tùy chỉnh hiển thị', 'Display options')}</summary>
+      <details className="layer-section layer-appearance"><summary>{t('Hiển thị', 'Display')}</summary>
         <label>{t('Độ rõ mạng đường nền', 'Background road opacity')}<output>{Math.round(appearance.networkOpacity * 100)}%</output><input type="range" aria-label={t('Độ rõ mạng đường nền', 'Background road opacity')} min="30" max="100" value={appearance.networkOpacity * 100} onChange={event => onAppearance({ ...appearance, networkOpacity: clampOpacity(Number(event.target.value) / 100) })}/></label>
         <label>{t('Đường hiển thị', 'Road filter')}<select aria-label={t('Đường hiển thị', 'Road filter')} value={appearance.roads} onChange={event => onAppearance({ ...appearance, roads: event.target.value as LayerAppearance['roads'] })}><option value="all">{t('Toàn bộ mạng đường', 'All roads')}</option><option value="affected">{t('Đoạn bị ảnh hưởng và tuyến đang xem', 'Affected roads and selected route')}</option></select></label>
         <label>{t('Nhãn địa danh', 'Place labels')}<select aria-label={t('Nhãn địa danh', 'Place labels')} value={appearance.labels} onChange={event => onAppearance({ ...appearance, labels: event.target.value as LayerAppearance['labels'] })}><option value="auto">{t('Tự động theo vùng nhìn', 'Automatic')}</option><option value="selected">{t('Chỉ đối tượng đang xem', 'Selected object only')}</option><option value="none">{t('Tắt nhãn', 'Off')}</option></select></label>
         <PointRenderingControl locale={locale} disabled={mapMode !== '2d' || layers.gis === false}/>
       </details>
-      {terrainOverlays && mapMode === '3d' && <details className="layer-section layer-terrain"><summary>{t('Phân tích địa hình 3D', '3D terrain analysis')}</summary><TerrainOverlayControls locale={locale} mapMode={mapMode} hasGrid={hasTerrainGrid} overlays={terrainOverlays}/></details>}
+      {terrainOverlays && mapMode === '3d' && <details className="layer-section layer-terrain"><summary>{t('Địa hình 3D', '3D terrain')}</summary><TerrainOverlayControls locale={locale} mapMode={mapMode} hasGrid={hasTerrainGrid} overlays={terrainOverlays}/></details>}
     </div>
-    <div className="layers-footer"><button className="text-button" onClick={() => { setFillOpacity(defaultLandslideFillOpacity); setOrder(defaultDrawingOrder); onReset(); }}>{t('Khôi phục hiển thị mặc định', 'Restore default display')}</button></div>
+    <div className="layers-footer"><button className="text-button" onClick={() => { setFillOpacity(defaultLandslideFillOpacity); onReset(); }}>{t('Khôi phục mặc định', 'Restore defaults')}</button></div>
   </section>;
 }

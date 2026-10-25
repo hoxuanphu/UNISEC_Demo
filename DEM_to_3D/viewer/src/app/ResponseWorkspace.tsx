@@ -1,12 +1,12 @@
 import { useDeviceFeed } from '../features/tracking/useDeviceFeed';
 import { useLocalNetwork } from '../features/route-film/networkContext';
-import { useRouteSimulation } from '../features/routes/useRouteSimulation';
 import { LocalAreaCard } from '../features/route-film/LocalAreaCard';
 import { useResidentPresence } from '../features/presence/residentPresence';
 import { assessHouseholdAccess } from '../features/presence/householdIsolation';
 import { HouseholdCard } from '../features/presence/HouseholdCard';
 import { householdWork } from '../features/presence/householdWork';
 import { householdRescues } from '../features/presence/householdRescue';
+import { rescueBases } from '../features/tracking/rescueBase';
 import { surveyConditionAreas } from '../features/routes/surveyRoadConditions';
 import { LocalRoadCard } from '../features/route-film/LocalRoadCard';
 import { supportsBasemapTone } from '../features/imagery/basemapTone';
@@ -450,10 +450,14 @@ export function ResponseWorkspace({
   // Condition signs sit where a mapped extent touches the road, on the main road and the commune roads alike.
   const roadAreaLinks=useMemo(()=>[...incidentSnapshot.surveyLinks,...(localNetwork.network?.conditions?.areaLinks??[])],[incidentSnapshot.surveyLinks,localNetwork.network]);
   const journeyRoads=useMemo(()=>[...roads,...(localNetwork.network?.roads??[])],[roads,localNetwork.network]);
+  // Teams set out from a few assembly points: where teams from staging enter the commune, and the outlying villages.
+  const stagingPoint=responseSites.find(site=>site.kind==='staging')?.projected;
+  const bases=useMemo(()=>localNetwork.network?rescueBases(localNetwork.network.places,stagingPoint,localNetwork.network.roads):[],[localNetwork.network,stagingPoint]);
+  const basePoints=useMemo(()=>bases.map(base=>base.projected),[bases]);
   // Teams sent to the isolated huts move in the same feed as the other rescue and resident dots.
-  const householdTeams=useMemo(()=>localNetwork.network?householdRescues(localNetwork.network,households):[],[localNetwork.network,households]);
+  const householdTeams=useMemo(()=>localNetwork.network?householdRescues(localNetwork.network,households,bases):[],[localNetwork.network,households,bases]);
   const householdMissions=useMemo(()=>householdTeams.map(team=>team.plan),[householdTeams]);
-  const deviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks,householdMissions);
+  const deviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks,householdMissions,basePoints);
   // Huts a team has reached; a string so the workspace re-renders on arrival, not on every move.
   const attendedHouseholds=useSyncExternalStore(deviceFeed?.subscribe??noSubscription,()=>deviceFeed?householdTeams.filter(team=>['on-site','escorting','evacuated'].includes(deviceFeed.getSnapshot().find(device=>device.id===team.plan.id)?.state??'')).map(team=>team.householdId).join(','):'');
   const localJourneyRoadIds=useMemo(()=>localNetwork.network?.roads.map(road=>road.id)??[],[localNetwork.network]);
@@ -550,7 +554,6 @@ export function ResponseWorkspace({
     [models, defaultTerrainData,contextTerrain]
   );
   const journey = useRoadJourney(journeyRoads, undefined, 'conditions');
-  const routeSimulation = useRouteSimulation(journey.route, journey.open && !journey.picking && !['loading','playing','paused','exporting'].includes(flyoverState.status));
   const journeyTerrainEndpoints = useMemo(() => journey.open ? [journey.start, journey.end].flatMap((endpoint, index) => endpoint ? [{label: index === 0 ? 'A' : 'B', point: endpoint.origin, anchor: endpoint.anchor?.point}] : []) : [], [journey.open, journey.start, journey.end]);
   const framedJourney = useRef<{route: typeof journey.route; start: typeof journey.start; end: typeof journey.end; sequence: number; canvas: Element} | null>(null);
   useEffect(() => {
@@ -1208,7 +1211,7 @@ export function ResponseWorkspace({
           )}
           <div className="map-canvas">
             {mapMode === '2d' ? (
-              <Map2D deviceFeed={layers.devices!==false?deviceFeed:null} routeSimulation={routeSimulation} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
+              <Map2D deviceFeed={layers.devices!==false?deviceFeed:null} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
                 households={historical?[]:households} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold} attendedHouseholds={attendedHouseholds}
                 analysisImagery={analysisDisplay}
                 gisEnabled={true}
@@ -1297,7 +1300,7 @@ export function ResponseWorkspace({
                 <React.Suspense
                   fallback={terrain3DBusy ? null : terrainLoading(null)}
                 >
-                  <TerrainViewer deviceFeed={layers.devices!==false?deviceFeed:null} routeSimulation={routeSimulation}
+                  <TerrainViewer deviceFeed={layers.devices!==false?deviceFeed:null}
                     pointPickActive={journey.open && !!journey.picking}
                     onPointPick={journey.pick}
                     routeEndpoints={journeyTerrainEndpoints}
@@ -1540,7 +1543,7 @@ export function ResponseWorkspace({
             }
           />
           {journey.open && !localArea && !localRoad && !gisCard && (
-            <RoadJourneyPanel simulation={routeSimulation}
+            <RoadJourneyPanel
               locale={locale}
               journey={journey}
               communities={communities}

@@ -5,8 +5,16 @@ import { validateLocalNetwork } from '../route-film/localNetwork';
 import { validateIncidentPacket } from '../../data/incidentPacket';
 import { nearestRoadAnchor } from '../routes/selectedRoadJourney';
 import type { RoadSegment } from '../../types/dear';
-import { buildDevicePlans,createDeviceFeed,deviceSpeeds,deviceTimeLapse } from './deviceFeed';
-const roads=[...validateIncidentPacket(incident).roads,...validateLocalNetwork(data).roads];
+import { buildDevicePlans,createDeviceFeed,deviceSpeeds,deviceTimeLapse,type DevicePlan,type DeviceState } from './deviceFeed';
+import { rescueBases } from './rescueBase';
+import { withLocalRoadConditions } from '../route-film/localRoadConditions';
+import { assessHouseholdAccess } from '../presence/householdIsolation';
+import { householdRescues } from '../presence/householdRescue';
+import { validateResidentPresence } from '../presence/residentPresence';
+import presenceData from '../../../public/scenarios/che-tao/resident-presence.json';
+const packet=validateIncidentPacket(incident),network=validateLocalNetwork(data);
+const roads=[...packet.roads,...network.roads];
+const until=(plan:DevicePlan,state:DeviceState)=>plan.script!.legs.find(leg=>leg.state===state)!.until;
 const line=(id:string,status:RoadSegment['status']='open'):RoadSegment=>({id,status,name:[id,id],cls:'track',len:1,points:[{x:0,y:0},{x:1000,y:0}]});
 describe('resident and rescue device feed',()=>{
   it('places six residents and two distinct rescue teams on the shipped road geometry',()=>{
@@ -49,21 +57,22 @@ describe('resident and rescue device feed',()=>{
     const closed={...line('closed','blocked'),points:[{x:1000,y:0},{x:1300,y:0}]};
     const roads=[approach,closed],plans=buildDevicePlans(roads),person=plans.find(p=>p.role==='resident'&&p.missionId)!;
     const team=plans.find(p=>p.role==='rescue'&&p.missionId===person.missionId)!;
-    expect(person.timing!.dispatchAt).toBeGreaterThan(person.timing!.residentAt);
-    expect(person.timing!.rescueAt).toBeGreaterThan(person.timing!.dispatchAt);
-    expect(person.timing!.escortAt).toBeGreaterThan(person.timing!.rescueAt);
+    expect(until(team,'dispatching')).toBeGreaterThan(until(person,'approaching'));
+    expect(until(team,'responding')).toBe(until(person,'waiting'));
+    expect(until(team,'assisting')).toBe(until(person,'assisting'));
+    expect(until(team,'escorting')).toBe(until(person,'escorting'));
     expect(person.road.id).toBe('local-approach');expect(team.road.id).toBe('local-approach');
     const feed=createDeviceFeed(roads,[],0),stages=new Set<string>();
     for(let i=0;i<1600;i++){
-      feed.advance(.25);const elapsed=((i+1)*.25*deviceTimeLapse)%person.timing!.cycle;
+      feed.advance(.25);const elapsed=((i+1)*.25*deviceTimeLapse)%person.script!.cycle;
       const resident=feed.getSnapshot().find(p=>p.id===person.id)!,rescue=feed.getSnapshot().find(p=>p.id===team.id)!;
       stages.add(resident.state+':'+rescue.state);
       expect(resident.point.x).toBeLessThan(1000);expect(rescue.point.x).toBeLessThan(1000);
-      if(elapsed>=person.timing!.residentAt&&elapsed<person.timing!.rescueAt){
-        expect(resident.state).toBe('waiting');expect(resident.stationM).toBe(person.timing!.meetingStation);
+      if(elapsed>=until(person,'approaching')&&elapsed<until(person,'waiting')){
+        expect(resident.state).toBe('waiting');expect(resident.stationM).toBe(team.sortie!.endM);
       }
-      if(elapsed<person.timing!.dispatchAt)expect(rescue.stationM).toBe(person.timing!.rescueStation);
-      if(elapsed>=person.timing!.rescueAt&&elapsed<person.timing!.returnAt)expect(resident.point).toEqual(rescue.point);
+      if(elapsed<until(team,'dispatching'))expect(rescue.stationM).toBe(team.sortie!.homeM);
+      if(elapsed>=until(person,'waiting')&&elapsed<until(person,'escorting'))expect(resident.point).toEqual(rescue.point);
       expect(resident.targetId).toBe(rescue.id);expect(rescue.targetId).toBe(resident.id);
     }
     expect(stages.has('waiting:dispatching')).toBe(true);expect(stages.has('waiting:responding')).toBe(true);
@@ -72,10 +81,12 @@ describe('resident and rescue device feed',()=>{
   });
   it('keeps moving at field speeds: walkers keep walking, missions replay, teams ride far faster than people walk',()=>{
     const approach=line('local-approach'),closed={...line('closed','blocked'),points:[{x:1000,y:0},{x:1300,y:0}]};
-    const plans=buildDevicePlans([approach,closed]),person=plans.find(p=>p.role==='resident'&&p.missionId)!,t=person.timing!;
-    expect(t.meetingStation-t.rescueStation).toBeGreaterThanOrEqual(400);
-    expect((t.meetingStation-t.residentStation)/t.residentAt).toBeCloseTo(deviceSpeeds.walk);
-    expect((t.meetingStation-t.rescueStation)/(t.rescueAt-t.dispatchAt)).toBeCloseTo(deviceSpeeds.rescue);
+    const plans=buildDevicePlans([approach,closed]),person=plans.find(p=>p.role==='resident'&&p.missionId)!,t=person.script!;
+    const team=plans.find(p=>p.role==='rescue')!,sortie=team.sortie!,legs=team.script!.legs;
+    expect(sortie.endM-sortie.escort!.safeM).toBeGreaterThanOrEqual(400);
+    expect((sortie.endM-sortie.escort!.startM)/until(person,'approaching')).toBeCloseTo(deviceSpeeds.walk);
+    const ride=legs.find(leg=>leg.state==='responding')!;
+    expect((ride.to-ride.from)/(ride.until-until(team,'dispatching'))).toBeCloseTo(deviceSpeeds.rescue);
     const walker=createDeviceFeed([line('road')],[],0),start=walker.getSnapshot()[0].stationM,seen:number[]=[];
     for(let i=0;i<4000;i++){walker.advance(.25);seen.push(walker.getSnapshot()[0].stationM);}
     expect(Math.max(...seen)-Math.min(...seen)).toBeGreaterThan(100);
@@ -107,7 +118,40 @@ describe('resident and rescue device feed',()=>{
     const unrelated={...line('unrelated'),points:[{x:1100,y:-500},{x:1100,y:500}]};
     const plans=buildDevicePlans([closed,unrelated]);
     expect(plans.filter(p=>p.role==='rescue')).toEqual([]);
-    expect(plans.filter(p=>p.closureRoadId).every(p=>!p.timing)).toBe(true);
+    expect(plans.filter(p=>p.closureRoadId).every(p=>!p.script)).toBe(true);
+  });
+  it('sends every team from an assembly point, one after another, and never head-on into another team',()=>{
+    // As the workspace loads it: commune roads cut where mapped slides meet them.
+    const commune=withLocalRoadConditions(network),all=[...packet.roads,...commune.roads];
+    const staging=packet.responseSites.find(site=>site.kind==='staging')!.projected,bases=rescueBases(network.places,staging,commune.roads);
+    expect(bases.map(base=>base.name)).toEqual(['Helipad','Village B','Village C']);
+    const huts=householdRescues(commune,assessHouseholdAccess(commune,validateResidentPresence(presenceData).clusters),bases).map(rescue=>rescue.plan);
+    const feed=createDeviceFeed(all,[],0,huts,bases.map(base=>base.projected));
+    const teams=()=>feed.getSnapshot().filter(device=>device.role==='rescue');
+    expect(teams()).toHaveLength(4);
+    // Every team waits exactly at an assembly point before it leaves.
+    for(const team of teams())expect(Math.min(...bases.map(base=>Math.hypot(team.point.x-base.projected.x,team.point.y-base.projected.y)))).toBeLessThan(1);
+    const cycle=huts[0].script!.cycle;
+    let previous=teams();
+    for(let i=0;i<Math.ceil(cycle/deviceTimeLapse/.25);i++){
+      feed.advance(.25);const now=teams();
+      const moves=now.map(team=>{const before=previous.find(item=>item.id===team.id)!;return {team,dx:team.point.x-before.point.x,dy:team.point.y-before.point.y};});
+      for(const a of moves)for(const b of moves){
+        if(a.team.id>=b.team.id||Math.hypot(a.team.point.x-b.team.point.x,a.team.point.y-b.team.point.y)>60)continue;
+        if(Math.hypot(a.dx,a.dy)<1||Math.hypot(b.dx,b.dy)<1)continue;
+        expect(a.dx*b.dx+a.dy*b.dy,`${a.team.id} meets ${b.team.id} head-on`).toBeGreaterThan(0);
+      }
+      previous=now;
+    }
+    // Leaving: spaced apart, in a fixed order.
+    const departs=feed.getSnapshot().filter(device=>device.role==='rescue').map(device=>device.id);
+    expect(new Set(departs).size).toBe(departs.length);
+  });
+  it('does not invent a rescue starting point when the assembly point has no connected approach',()=>{
+    const approach=line('local-approach'),closed={...line('closed','blocked'),points:[{x:1000,y:0},{x:1300,y:0}]};
+    const plans=buildDevicePlans([approach,closed],[],[{x:10000,y:10000}]);
+    expect(plans.filter(plan=>plan.role==='rescue')).toEqual([]);
+    expect(plans.some(plan=>plan.role==='resident'&&plan.closureRoadId===closed.id)).toBe(true);
   });
   it('handles missing roads and invalid signals without fabricated coordinates or jumps',()=>{
     expect(createDeviceFeed([]).getSnapshot()).toEqual([]);

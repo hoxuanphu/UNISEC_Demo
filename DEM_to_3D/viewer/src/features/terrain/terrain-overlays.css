@@ -12,4 +12,6 @@
 .terrain-sar-controls > summary { padding-block: 8px; font-size: 12px; cursor: pointer; }
 .terrain-overlay-controls select { max-width: 100%; }
 .terrain-overlay-controls p, .terrain-overlay-controls small { font-size: 12px; color: var(--ws-muted); }
-.terrain-raster-upload input { max-width: 100%; }
+.terrain-raster-upload { display: inline-flex; width: auto; align-items: center; gap: 6px; min-height: 32px; padding-inline: 12px; font-size: 12px; cursor: pointer; }
+.terrain-raster-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.terrain-raster-upload:focus-within { outline: 2px solid var(--focus, #2f80ed); outline-offset: 2px; }

@@ -1,6 +1,5 @@
 import { TrackedDevices2D } from '../tracking/TrackedDevices2D';
 import { RouteSimulationLayer } from './RouteSimulationLayer';
-import { useMapLayerOrder } from './useMapLayerOrder';
 import { drawingLayerRank } from './mapLayerOrder';
 import { routeStopSvg } from '../routes/routeStopSymbol';
 import { ContextAreas2D } from './ContextAreas2D';
@@ -69,7 +68,6 @@ type Props = MapDisplayProps & {
 };
 
 export function Map2D(props: Props): JSX.Element {
-  const { order: drawingOrder } = useMapLayerOrder();
   const interacting = (props.measurementOpen && (!props.measureSession.finished || props.measureSession.editing)) || Boolean(props.drawOpen);
   // Landslide pins on the map: road signs at them merge into the pin (see roadConditionSigns).
   const hazardPoints = useMemo(() => {
@@ -95,9 +93,9 @@ export function Map2D(props: Props): JSX.Element {
     for (const name of Object.keys(mapLayerOrder) as MapPane[]) {
       if (name === 'imagery') continue; // The basemap owns its terrain/imagery transition.
       const pane = mapRef.current.getPane(mapPane(name));
-      if (pane) pane.style.zIndex = String(200 + drawingLayerRank(name, drawingOrder) * 30);
+      if (pane) pane.style.zIndex = String(200 + drawingLayerRank(name) * 30);
     }
-  }, [mapReady, drawingOrder]);
+  }, [mapReady]);
   const analysisRef = useRef<ReturnType<typeof createAnalysisOverlay2d> | null>(null);
   useEffect(() => {
     const map = mapRef.current;

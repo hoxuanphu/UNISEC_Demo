@@ -2,9 +2,9 @@ import { useEffect,useMemo } from 'react';
 import type { RoadSegment } from '../../types/dear';
 import type { LocalRoadAreaLink } from '../route-film/localNetwork';
 import { createDeviceFeed, type DevicePlan } from './deviceFeed';
-const noLinks:readonly LocalRoadAreaLink[]=[],noMissions:readonly DevicePlan[]=[];
-export function useDeviceFeed(roads:RoadSegment[],enabled:boolean,links:readonly LocalRoadAreaLink[]=noLinks,missions:readonly DevicePlan[]=noMissions) {
-  const feed=useMemo(()=>createDeviceFeed(roads,links,Date.now(),missions),[roads,links,missions]);
+const noLinks:readonly LocalRoadAreaLink[]=[],noMissions:readonly DevicePlan[]=[],noBases:readonly {x:number;y:number}[]=[];
+export function useDeviceFeed(roads:RoadSegment[],enabled:boolean,links:readonly LocalRoadAreaLink[]=noLinks,missions:readonly DevicePlan[]=noMissions,bases:readonly {x:number;y:number}[]=noBases) {
+  const feed=useMemo(()=>createDeviceFeed(roads,links,Date.now(),missions,bases),[roads,links,missions,bases]);
   useEffect(()=>{
     if(!enabled)return;
     let frame=0,last:number|null=null;

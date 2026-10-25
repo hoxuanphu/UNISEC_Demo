@@ -104,10 +104,10 @@ def run(url, chrome):
         expect(page.locator('.terrain-contour-label').first).to_be_attached(timeout=30000)
         layers.locator('.terrain-sar-controls > summary').click()
         checkpoint('import SAR raster')
-        layers.get_by_label('Nhập lớp SAR GeoTIFF',exact=True).set_input_files(str(root/'sar.tif'))
+        layers.get_by_label('Nhập GeoTIFF',exact=True).set_input_files(str(root/'sar.tif'))
         expect(layers.get_by_label('Kênh SAR',exact=True)).to_be_visible(timeout=15000)
         expect(layers.get_by_label('Kênh SAR',exact=True).locator('option')).to_have_text(['VV','VH'])
-        assert layers.get_by_label('Nhập lớp SAR GeoTIFF',exact=True).bounding_box()['width'] > 160
+        expect(layers.locator('.terrain-raster-upload')).to_be_visible()
         assert layers.get_by_label('Độ rõ lớp SAR',exact=True).bounding_box()['width'] > 160
         layers.get_by_label('Kênh SAR',exact=True).select_option('1')
         layers.get_by_label('Độ rõ lớp SAR',exact=True).fill('40')
@@ -133,17 +133,17 @@ def run(url, chrome):
                 window.releaseSarFileRead=()=>read.call(this,blob);
               };
             }''')
-            layers.get_by_label('Nhập lớp SAR GeoTIFF',exact=True).set_input_files({'name':'sar-late.tif','mimeType':'image/tiff','buffer':(root/'sar.tif').read_bytes()})
+            layers.get_by_label('Nhập GeoTIFF',exact=True).set_input_files({'name':'sar-late.tif','mimeType':'image/tiff','buffer':(root/'sar.tif').read_bytes()})
             page.wait_for_function('window.sarFileReadStarted===true')
             expect(layers.get_by_role('radio',name='Tắt ảnh phủ',exact=True)).not_to_be_checked()
             layers.get_by_role('radio',name=next_source).check()
-            expect(layers.get_by_label('Nhập lớp SAR GeoTIFF',exact=True)).to_be_enabled()
+            expect(layers.get_by_label('Nhập GeoTIFF',exact=True)).to_be_enabled()
             page.evaluate('window.releaseSarFileRead()')
             page.wait_for_timeout(400)
             expect(layers.get_by_role('radio',name=next_source)).to_be_checked()
             expect(layers.get_by_role('checkbox',name='sar-late.tif',exact=True)).to_have_count(0)
         # Continue the original remove/restore checks with the imported raster active.
-        layers.get_by_label('Nhập lớp SAR GeoTIFF',exact=True).set_input_files(str(root/'sar.tif'))
+        layers.get_by_label('Nhập GeoTIFF',exact=True).set_input_files(str(root/'sar.tif'))
         expect(layers.get_by_label('Kênh SAR',exact=True)).to_be_visible(timeout=15000)
         checkpoint('retain terrain renderer after SAR update')
         assert page.evaluate('window.originalTerrainCanvas===document.querySelector(".terrain-canvas")'), 'Overlay controls reset the renderer'
@@ -213,7 +213,7 @@ def run(url, chrome):
         assert page.screenshot(clip=clip)==tile_image, 'Turning imagery on did not restore local tiles'
         layers.locator('.terrain-sar-controls > summary').click()
         checkpoint('import SAR raster')
-        layers.get_by_label('Nhập lớp SAR GeoTIFF',exact=True).set_input_files(str(root/'sar.tif'))
+        layers.get_by_label('Nhập GeoTIFF',exact=True).set_input_files(str(root/'sar.tif'))
         expect(layers.get_by_label('Kênh SAR',exact=True)).to_be_visible(timeout=15000)
         page.wait_for_timeout(500)
         checkpoint('verify SAR shades local tile model')

@@ -1,9 +1,6 @@
 import { createTrackingOverlay } from '../features/tracking/trackingOverlay';
 import '../features/tracking/tracked-devices.css';
-import { createSimulatedResident } from '../terrain/simulatedResident';
-import '../features/routes/route-simulation.css';
 import { createRouteEndpoints, type RouteEndpoint } from '../terrain/routeEndpoints';
-import { useMapLayerOrder } from '../features/map/useMapLayerOrder';
 import { applyDrawingOrder } from '../features/map/mapLayerOrder';
 import { createContextAreaOverlay } from '../terrain/contextAreas';
 import '../features/map/context-areas.css';
@@ -119,13 +116,12 @@ export function TerrainViewer({
   onUnavailable,
   scenarioProps,
   onSelectOverlayHit,
-  pointPickActive, onPointPick, routeSimulation, deviceFeed,
+  pointPickActive, onPointPick, deviceFeed,
   viewControlRef,
   onViewReady, onOrbitChange,
   gisRecords, gisSelectedId, onGisSelect, flyover, onFlyoverState, routeEndpoints, contextGeometry, selectedContextAreaId, onSelectContextArea
 }: Props): JSX.Element {
   const deviceFeedRef=useRef(deviceFeed);deviceFeedRef.current=deviceFeed;
-  const simulationRef=useRef(routeSimulation);simulationRef.current=routeSimulation;
   const endpointsRef=useRef(routeEndpoints);endpointsRef.current=routeEndpoints;
   const contextRef = useRef({geometry:contextGeometry,selectedId:selectedContextAreaId,onSelect:onSelectContextArea});
   contextRef.current={geometry:contextGeometry,selectedId:selectedContextAreaId,onSelect:onSelectContextArea};
@@ -134,8 +130,6 @@ export function TerrainViewer({
   const flyoverStateRef = useRef(onFlyoverState); flyoverStateRef.current = onFlyoverState;
   const surfaceLayersRef = useRef(surfaceLayers); surfaceLayersRef.current = surfaceLayers;
   const overlaysRef = useRef<ReturnType<typeof createTerrainOverlays> | null>(null);
-  const { order: drawingOrder } = useMapLayerOrder();
-  const drawingOrderRef = useRef(drawingOrder); drawingOrderRef.current = drawingOrder;
   const { fillOpacity } = useLandslideAppearance();
   const fillOpacityRef = useRef(fillOpacity); fillOpacityRef.current = fillOpacity;
   const [imageryState,setImageryState]=useState<ImageryLoadState>('off');
@@ -161,7 +155,7 @@ export function TerrainViewer({
   const onViewReadyRef = useRef(onViewReady);
   const mappedAreasRef = useRef({records:gisRecords,selectedId:gisSelectedId,onSelect:onGisSelect});
   const propsUnavailableRef = useRef(onUnavailable);
-  const runtimeRef = useRef<{ updateScenario: () => void; setMode: (mode: '2d' | '3d') => void; updateSurface: () => void; updateSimulation: () => void; updateDevices: () => void; invalidate: () => void } | null>(null);
+  const runtimeRef = useRef<{ updateScenario: () => void; setMode: (mode: '2d' | '3d') => void; updateSurface: () => void; updateDevices: () => void; invalidate: () => void } | null>(null);
 
   measureModeRef.current = measureMode;
   onPickRef.current = onPick;
@@ -378,11 +372,6 @@ export function TerrainViewer({
       },()=>!measureModeRef.current&&!pointPickRef.current.active&&!flyoverActive,id=>onSelectOverlayHitRef.current?.({type:'road',id}),
       point=>viewControlRef?.current?.focusProjected(point,detailInset(host)));
     };
-    let residentMarker:ReturnType<typeof createSimulatedResident>|null=null;
-    const updateSimulation=()=>{
-      residentMarker?.dispose();residentMarker=null;
-      if(simulationRef.current)residentMarker=createSimulatedResident(host,simulationRef.current,localeRef.current,projectedWorld,camera);
-    };
     let endpointLayer:ReturnType<typeof createRouteEndpoints>|null=null;
     let contextLayer:ReturnType<typeof createContextAreaOverlay>|null=null;
     let mappedAreaGroup: THREE.Group | null = null;
@@ -482,7 +471,7 @@ export function TerrainViewer({
         contextLayer.group.visible=!flyoverActive||Boolean(flyoverInputRef.current?.context);
         scene.add(contextLayer.group);
       }
-      for (const group of [scenarioOverlayGroup, mappedAreaGroup, contextLayer?.group]) if (group) applyDrawingOrder(group, drawingOrderRef.current);
+      for (const group of [scenarioOverlayGroup, mappedAreaGroup, contextLayer?.group]) if (group) applyDrawingOrder(group);
       markerLayoutDirty = true;
       invalidate();
     };
@@ -587,8 +576,8 @@ export function TerrainViewer({
       markerLayoutDirty = true;
     };
     refreshReferenceRelief = () => {rebuildScenarioOverlays();invalidate();onViewReady?.();};
-    runtimeRef.current = { updateScenario: rebuildScenarioOverlays, setMode: mode => setInitialCamera(mode, true), updateSurface, updateSimulation, updateDevices, invalidate: () => invalidate() };
-    updateSimulation();updateDevices();
+    runtimeRef.current = { updateScenario: rebuildScenarioOverlays, setMode: mode => setInitialCamera(mode, true), updateSurface, updateDevices, invalidate: () => invalidate() };
+    updateDevices();
 
     const moveCamera = (position: THREE.Vector3, target: THREE.Vector3, duration = 480) => {
       interruptCameraTransition();
@@ -963,7 +952,7 @@ export function TerrainViewer({
       updateFocusMarker();
       if (markerLayoutDirty) {
         mapReference.update(camera, controls.target, controls.getAzimuthalAngle(), mapModeRef.current, localeRef.current, entries[0]?.model.metadata, entries[0]?.group.matrixWorld);
-        referencePoints?.update(camera);contextLayer?.update(camera);endpointLayer?.update(camera);residentMarker?.update();devices?.update();
+        referencePoints?.update(camera);contextLayer?.update(camera);endpointLayer?.update(camera);devices?.update();
         scenarioMarkers?.update(camera);
         mappedLabel?.update(camera);
         optionalOverlays.updateLabels(camera);
@@ -981,7 +970,7 @@ export function TerrainViewer({
 
     return () => {
       flyoverRef.current = null;
-      flyoverController.dispose();contextLayer?.dispose();endpointLayer?.dispose();residentMarker?.dispose();devices?.dispose();
+      flyoverController.dispose();contextLayer?.dispose();endpointLayer?.dispose();devices?.dispose();
       runtimeRef.current = null;
       overlaysRef.current = null;
       optionalOverlays.dispose();
@@ -1043,11 +1032,10 @@ export function TerrainViewer({
   }, [geographicPlacements, models]);
 
   useEffect(() => { runtimeRef.current?.updateDevices(); }, [deviceFeed,locale]);
-  useEffect(() => { runtimeRef.current?.updateSimulation(); }, [routeSimulation,locale]);
   useEffect(() => { if (terrainOverlays) overlaysRef.current?.setOptions(terrainOverlays); }, [terrainOverlays]);
   useEffect(() => { runtimeRef.current?.updateSurface(); if (!flyoverRef.current?.active && !flyoverRef.current?.exporting) void analysisRef.current?.set(analysisImagery?.rasters ?? [], analysisImagery?.opacity ?? 1); }, [analysisImagery]);
   useEffect(() => { flyoverRef.current?.setInput(flyover ?? null); }, [flyover]);
-  useEffect(() => { runtimeRef.current?.updateScenario(); }, [scenarioProps?.aoi, scenarioProps?.layers, scenarioProps?.appearance, scenarioProps?.communities, scenarioProps?.responseSites, scenarioProps?.hazards, scenarioProps?.roads, scenarioProps?.contextRoads, scenarioProps?.selectedRoute, scenarioProps?.selectedCommunityId, scenarioProps?.selectedObjectId, locale, gisRecords, gisSelectedId, measureMode, fillOpacity, drawingOrder, contextGeometry, selectedContextAreaId, routeEndpoints]);
+  useEffect(() => { runtimeRef.current?.updateScenario(); }, [scenarioProps?.aoi, scenarioProps?.layers, scenarioProps?.appearance, scenarioProps?.communities, scenarioProps?.responseSites, scenarioProps?.hazards, scenarioProps?.roads, scenarioProps?.contextRoads, scenarioProps?.selectedRoute, scenarioProps?.selectedCommunityId, scenarioProps?.selectedObjectId, locale, gisRecords, gisSelectedId, measureMode, fillOpacity, contextGeometry, selectedContextAreaId, routeEndpoints]);
   useLayoutEffect(() => { runtimeRef.current?.setMode(mapMode); }, [mapMode]);
   useEffect(() => { runtimeRef.current?.updateSurface(); }, [theme, surfaceLayers]);
   useEffect(() => { runtimeRef.current?.invalidate(); }, [focusPoint, profile, measureMode, profileMetadata]);

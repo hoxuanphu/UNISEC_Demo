@@ -1,16 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { applyDrawingOrder, defaultDrawingOrder, drawingLayerRank, mapLayerOrder, moveDrawingLayer, normaliseDrawingOrder, setDrawingLayer } from './mapLayerOrder';
+import { applyDrawingOrder, defaultDrawingOrder, drawingLayerRank, mapLayerOrder, setDrawingLayer, type DrawingLayer } from './mapLayerOrder';
 describe('GIS drawing order', () => {
-  it('repairs incomplete, obsolete and duplicate saved layer stacks', () => {
-    expect(normaliseDrawingOrder(['landslides', 'obsolete', 'landslides', null])).toEqual(['landslides', 'roads', 'reference', 'boundary']);
-    expect(normaliseDrawingOrder({roads: 9})).toEqual(defaultDrawingOrder);
-  });
-  it('moves only the requested layer and bounds moves at the stack edges', () => {
-    const next = moveDrawingLayer(defaultDrawingOrder, 'roads', 1);
-    expect(next).toEqual(['reference', 'roads', 'landslides', 'boundary']);
-    expect(defaultDrawingOrder[0]).toBe('roads');
-    expect(moveDrawingLayer(defaultDrawingOrder, 'roads', -1)).toEqual(defaultDrawingOrder);
+  it('stacks lines over polygons over rasters, as the layers panel lists them', () => {
+    expect(defaultDrawingOrder).toEqual(['roads', 'reference', 'landslides', 'boundary']);
+    expect(drawingLayerRank('roads')).toBeGreaterThan(drawingLayerRank('landslides'));
+    expect(drawingLayerRank('landslides')).toBeGreaterThan(drawingLayerRank('analysis'));
+    expect(drawingLayerRank('analysis')).toBeGreaterThan(drawingLayerRank('imagery'));
   });
   it('draws upper layers later in both pane and terrain ordering, retaining casings and warnings', () => {
     const root = new THREE.Group();
@@ -21,7 +17,7 @@ describe('GIS drawing order', () => {
     root.add(road, fill, outline, warning);
     applyDrawingOrder(root, defaultDrawingOrder);
     expect(road.renderOrder).toBeGreaterThan(outline.renderOrder);
-    const reordered = normaliseDrawingOrder(['landslides']);
+    const reordered: DrawingLayer[] = ['landslides', 'roads', 'reference', 'boundary'];
     applyDrawingOrder(root, reordered);
     expect(fill.renderOrder).toBeGreaterThan(road.renderOrder);
     expect(outline.renderOrder).toBeGreaterThan(fill.renderOrder);

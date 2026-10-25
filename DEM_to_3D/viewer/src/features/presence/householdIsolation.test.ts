@@ -8,6 +8,9 @@ import { assessHouseholdAccess } from './householdIsolation';
 import { validateResidentPresence } from './residentPresence';
 import { householdWork } from './householdWork';
 import { householdRescues } from './householdRescue';
+import { rescueBases } from '../tracking/rescueBase';
+import { validateIncidentPacket } from '../../data/incidentPacket';
+import incident from '../../../public/scenarios/che-tao/v0.3/incident.json';
 import { nearestRoadAnchor } from '../routes/selectedRoadJourney';
 import { createDeviceFeed, deviceTimeLapse } from '../tracking/deviceFeed';
 
@@ -60,7 +63,8 @@ describe('relief work for isolated households', () => {
 });
 
 describe('rescue teams to isolated huts', () => {
-  const rescues = householdRescues(network, assessHouseholdAccess(network, presence.clusters));
+  const bases = rescueBases(network.places, validateIncidentPacket(incident).responseSites.find(site => site.kind === 'staging')!.projected, network.roads);
+  const rescues = householdRescues(network, assessHouseholdAccess(network, presence.clusters), bases);
   it('approaches priority households on mapped roads and waits before the cut', () => {
     expect(rescues.map(rescue => rescue.householdId)).toEqual(['HH-03', 'HH-01']);
     for (const { plan, rideM } of rescues) {

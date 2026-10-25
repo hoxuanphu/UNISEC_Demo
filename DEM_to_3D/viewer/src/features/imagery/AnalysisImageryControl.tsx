@@ -21,7 +21,9 @@ export function AnalysisImageryControl({ locale, layers, selection, onChange, on
       </label>)}
     </fieldset>)}
     {active && <div className="analysis-active-details">
-    {onFit && <button type="button" className="button analysis-fit" onClick={onFit}><UiIcon name="fit" size={16}/>{t('Xem vùng ảnh', 'Fit image coverage')}</button>}
+    {/* Ground resolution and coverage of the image in view, on one line. */}
+    <div className="analysis-meta"><span>{t('Pixel', 'Pixel')} {(active.kind === 'sar' ? active.nativePixelM ?? active.pixelM : Math.max(...active.parts.map(part => part.gsdM ?? part.pixelM))).toLocaleString(locale, {maximumFractionDigits:1})} m{active.kind === 'optical' && active.mosaic ? t(`, ghép ${active.parts.length} dải`, `, ${active.parts.length}-strip mosaic`) : ''}</span>
+      {onFit && <button type="button" className="icon-button layer-fit" onClick={onFit} aria-label={t('Xem vùng ảnh', 'Fit image coverage')} title={t('Xem vùng ảnh', 'Fit image coverage')}><UiIcon name="fit" size={16}/></button>}</div>
     {active?.kind === 'sar' && <>
       {availableSarModes(active).length > 1 && <div className="analysis-sar-modes" role="radiogroup" aria-label={t('Kênh SAR', 'SAR channel')}>
         {availableSarModes(active).map(value => <button key={value} type="button" role="radio" aria-checked={mode === value} onClick={() => set({ sarMode: value })}>{value === 'rgb' ? t('Tổ hợp', 'Composite') : value.toUpperCase()}</button>)}
@@ -29,16 +31,10 @@ export function AnalysisImageryControl({ locale, layers, selection, onChange, on
       {mode === 'rgb'
         ? <p className="analysis-legend">R: VV, G: VH, B: VV/VH</p>
         : range && <p className="analysis-legend"><span>{range[0]} dB</span><i aria-hidden="true"/><span>{range[1]} dB</span></p>}
-      <p className="analysis-note">{active.nativePixelM
-        ? t(`Pixel nguồn ${active.nativePixelM.toLocaleString('vi-VN')} m, hiển thị ${active.pixelM} m.`, `Source pixels ${active.nativePixelM} m, display ${active.pixelM} m.`)
-        : t(`Pixel hiển thị ${active.pixelM} m.`, `Display pixels ${active.pixelM} m.`)}</p>
-      <p className="analysis-note">{t('Độ sáng SAR không tự xác nhận sạt lở.', 'SAR brightness alone does not confirm a landslide.')}</p>
     </>}
-    {active?.kind === 'optical' && <p className="analysis-note" title={t('Ngoài vùng phủ ảnh PlanetScope là nền bản đồ khu vực.', 'Outside PlanetScope coverage, the regional basemap remains visible.')}>{active.mosaic ? t(`Ảnh ghép ${active.parts.length} dải, chi tiết gốc khoảng `, `${active.parts.length}-strip mosaic, native detail about `) : t('Chi tiết gốc khoảng ', 'Native detail about ')}{Math.max(...active.parts.map(part => part.gsdM ?? part.pixelM)).toLocaleString(locale, {maximumFractionDigits:1})} m</p>}
     {active && <label className="analysis-opacity">{t('Độ rõ ảnh phủ', 'Overlay opacity')}<output>{Math.round(selection.opacity * 100)}%</output>
       <input type="range" min="30" max="100" value={selection.opacity * 100} aria-label={t('Độ rõ ảnh phân tích', 'Analysis imagery opacity')} onChange={event => set({ opacity: Number(event.target.value) / 100 })}/>
     </label>}
     </div>}
-    <p className="analysis-note analysis-order-note">{t('Mỗi lần xem một ảnh. Ngày chụp được ghi dưới tên ảnh.', 'View one image at a time. Acquisition dates appear below each name.')}</p>
   </fieldset>;
 }
