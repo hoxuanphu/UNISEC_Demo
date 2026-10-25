@@ -11,6 +11,7 @@ const ranks: ReadonlyArray<readonly [selector: string, rank: number]> = [
   // Who needs help.
   ['.household-alert:is(.is-cut-off,.is-team)', 90],
   ['.tracked-device.is-stranded', 88],  // a resident held at a closure
+  ['.map-point-cluster', 86],        // grouped observations obey the same collision policy
   ['.field-map-marker.is-help', 86],    // a rescue request; the stranded dot it came from already says it
   ['.household-alert.is-unverified', 85],
   // Who is helping.

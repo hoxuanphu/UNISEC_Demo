@@ -1,6 +1,12 @@
+import data from '../../../public/scenarios/che-tao/local-network.json';
+import incidentData from '../../../public/scenarios/che-tao/v0.3/incident.json';
+import { validateIncidentPacket } from '../../data/incidentPacket';
+import { validateLocalNetwork } from '../route-film/localNetwork';
+import { withLocalRoadConditions } from '../route-film/localRoadConditions';
+import { rescueBases } from './rescueBase';
 import {createResidentLocation} from './residentLocation';
 import {describe,expect,it} from 'vitest';
-import {guidanceRoute,plannedGuidance,validGuidance,routeProposalOf} from './residentGuidance';
+import {initialGuidance,guidanceRoute,plannedGuidance,validGuidance,routeProposalOf} from './residentGuidance';
 import type {RoadSegment} from '../../types/dear';
 import type {LocalNetwork} from '../route-film/localNetwork';
 const road:RoadSegment={id:'r',name:['r','r'],status:'open',cls:'track',len:1,points:[{x:0,y:0},{x:1000,y:0}]};
@@ -41,4 +47,10 @@ describe('coordinator travel guidance',()=>{
   const entry=plannedGuidance(network.roads,target,null,'Coordinator')!;expect(entry.mode).toBe('hold');expect(guidanceRoute(network,entry)).toBeNull();
   expect(validGuidance({...entry,origin:{x:NaN,y:0}})).toBe(false);expect(validGuidance({...entry,mode:'route'})).toBe(false);
  });
+});
+
+it('ships a connected default instruction for the authored resident',()=>{
+ const network=withLocalRoadConditions(validateLocalNetwork(data)),packet=validateIncidentPacket(incidentData),bases=rescueBases(packet.responseSites,network.roads);
+ const entry=initialGuidance(network,'GPS-AP01',bases);
+ expect(entry).not.toBeNull();expect(guidanceRoute(network,entry!)?.segs.every(road=>road.status!=='blocked')).toBe(true);
 });

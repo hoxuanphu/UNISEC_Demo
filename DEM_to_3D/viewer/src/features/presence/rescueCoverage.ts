@@ -16,8 +16,8 @@ export type CoverageSpot = { kind: CoverageKind; point: Point; radiusM: number }
 export type CoverageLayers = Record<'fog' | 'need' | 'unverified' | 'team' | 'rescued', boolean>;
 export const defaultCoverageLayers: CoverageLayers = { fog: true, need: true, unverified: true, team: true, rescued: true };
 
-/** How far a team sees around itself and an assembly point covers, in metres. */
-export const REACH_M = 400;
+/** Display buffer around recorded team presence, in metres; not a verified safe-area boundary. */
+export const REACH_M = 900;
 /** The trail keeps one point per cell of this size, in metres. */
 const TRAIL_CELL_M = 100;
 
@@ -42,16 +42,18 @@ export function coverageSpots({ households, devices, trail, bases, requests }: {
   households: readonly HouseholdView[]; devices: readonly DevicePosition[]; trail: readonly Point[];
   bases: readonly Point[]; requests: readonly Point[];
 }): CoverageSpot[] {
-  return [
+  const spots:CoverageSpot[] = [
     ...bases.map(point => ({ kind: 'reached' as const, point, radiusM: REACH_M * 1.5 })),
     ...trail.map(point => ({ kind: 'reached' as const, point, radiusM: REACH_M })),
     ...households.filter(item => item.status === 'rescued').map(item => ({ kind: 'reached' as const, point: item.projected, radiusM: REACH_M })),
-    ...households.filter(item => item.status === 'cut-off' || item.status === 'team').map(item => ({ kind: 'need' as const, point: item.projected, radiusM: 250 })),
-    ...devices.filter(stranded).map(device => ({ kind: 'need' as const, point: device.point, radiusM: 150 })),
-    ...requests.map(point => ({ kind: 'need' as const, point, radiusM: 150 })),
-    ...households.filter(item => item.status === 'unverified').map(item => ({ kind: 'unverified' as const, point: item.projected, radiusM: 250 })),
+    ...households.filter(item => item.status === 'cut-off' || item.status === 'team').map(item => ({ kind: 'need' as const, point: item.projected, radiusM: Math.min(1000,350+150*Math.sqrt(item.cluster.households||1)) })),
+    ...devices.filter(stranded).map(device => ({ kind: 'need' as const, point: device.point, radiusM: 350 })),
+    ...requests.map(point => ({ kind: 'need' as const, point, radiusM: 350 })),
+    ...households.filter(item => item.status === 'unverified').map(item => ({ kind: 'unverified' as const, point: item.projected, radiusM: Math.min(1000,350+150*Math.sqrt(item.cluster.households||1)) })),
     ...devices.filter(device => device.role === 'rescue').map(device => ({ kind: 'team' as const, point: device.point, radiusM: REACH_M })),
   ];
+  // One request may also be a stranded phone. Keep one symbol at that location.
+  return spots.filter((spot,index)=>spot.kind!=='need'||!spots.slice(0,index).some(other=>other.kind==='need'&&Math.hypot(other.point.x-spot.point.x,other.point.y-spot.point.y)<10));
 }
 
 /** Share of the signals needing rescue that no team has reached yet: the headline of the coverage view. */

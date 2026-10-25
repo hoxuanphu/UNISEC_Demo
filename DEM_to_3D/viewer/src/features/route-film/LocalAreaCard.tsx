@@ -1,3 +1,4 @@
+import { useFloatingPanel } from '../../shared/hooks/useFloatingPanel';
 import { useEffect, useRef, useState } from 'react';
 import type { ContextArea } from '../map/contextGeometry';
 import type { Locale } from '../../types/dear';
@@ -16,6 +17,7 @@ function IllustrativePhoto({image,title,caption,locale,onClose}:{image:string;ti
   </dialog>;
 }
 export function LocalAreaCard({area,photos,locale,onClose,linkToJourney=false}:{area:ContextArea;photos:Map<string,PreparedPhotoPoint>;locale:Locale;onClose:()=>void;linkToJourney?:boolean}) {
+  const panel=useRef<HTMLElement>(null),floating=useFloatingPanel(panel,'area-case',true,'fit');
   const [loaded,setLoaded]=useState<{key:string;url:string}|null>(null);
   const [failed,setFailed]=useState(false),[attempt,setAttempt]=useState(0),[zoomed,setZoomed]=useState(false);
   const photo=illustrativePhotoForArea(area.id,photos);
@@ -27,8 +29,8 @@ export function LocalAreaCard({area,photos,locale,onClose,linkToJourney=false}:{
   const vi=locale==='vi',title=area.name[vi?0:1].replace(/ \([^)]*\)$/,'');
   const caption=vi?'Ảnh tham chiếu · Chế Tạo':'Reference photo · Chế Tạo';
   const url=new URL(location.href);url.searchParams.set('workspace','routes');url.searchParams.set('area',area.id);
-  return <aside className="local-area-card" aria-label={vi?'Vùng sạt lở':'Landslide area'}>
-    <header><div><small>{vi?'Vùng sạt lở':'Landslide extent'}</small><h2>{title}</h2></div><button type="button" className="icon-button" aria-label={vi?'Đóng vùng sạt':'Close landslide area'} onClick={onClose}><UiIcon name="close"/></button></header>
+  return <aside ref={panel} className="local-area-card" aria-label={vi?'Vùng sạt lở':'Landslide area'}>
+    <header className="floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={vi?'Vị trí hồ sơ':'Case position'}><div><small>{vi?'Vùng sạt lở':'Landslide extent'}</small><h2>{title}</h2></div><button type="button" className="icon-button" aria-label={vi?'Đóng vùng sạt':'Close landslide area'} onClick={onClose}><UiIcon name="close"/></button></header>
     <div className="local-area-body">
       {photo && <figure><button type="button" className="local-area-photo" disabled={!image} aria-label={vi?'Xem ảnh minh họa':'View illustrative photo'} onClick={()=>setZoomed(true)}>
         {image?<><img src={image} alt={vi?'Ảnh khảo sát Chế Tạo':'Chế Tạo survey photo'}/><span><UiIcon name="expand" size={18}/></span></>:<span className="local-area-photo-loading">{failed?vi?'Chưa tải được ảnh':'Photo unavailable':vi?'Đang tải ảnh':'Loading photo'}</span>}

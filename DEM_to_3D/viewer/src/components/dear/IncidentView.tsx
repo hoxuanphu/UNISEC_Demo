@@ -62,7 +62,7 @@ export function IncidentView({
   const priority = communities.filter(community => community.prio === 1);
   const openTasks = tasks.filter(task => task.kind !== 'report' && workState(task, entries).status !== 'done');
   const activeTasks = openTasks.filter(task => workState(task, entries).status === 'active');
-  const concern = historical ? [] : householdsOfConcern(households);
+  const concern = historical ? [] : householdsOfConcern(households).filter(item=>item.status!=='rescued');
   const isolated = concern.filter(item => item.status === 'cut-off' || item.status === 'team');
   return <>
     <div className="sidebar-top incident-overview-heading">
@@ -94,10 +94,9 @@ export function IncidentView({
     </div>
     <div className="sidebar-scroll incident-overview">
 
-      {!historical && reportPending && <button className="incident-report-review" onClick={onOpenReport}>
-        <UiIcon name="bell" size={18}/><span><strong>{t('Báo cáo mới chờ kiểm tra', 'New report to review')}</strong>
-        {pendingReport && <small>{t(...pendingReport)}</small>}</span><UiIcon name="next" size={16}/>
-      </button>}
+
+
+      {residentDevices}
 
       {/* People the app places at huts who need a responder, most urgent first, each with where it stands. */}
       {concern.length > 0 && <section className="incident-households" ref={householdSection}>
@@ -111,7 +110,10 @@ export function IncidentView({
         </div>
       </section>}
 
-      {residentDevices}
+      {!historical && reportPending && <button className="incident-report-review" onClick={onOpenReport}>
+        <UiIcon name="bell" size={18}/><span><strong>{t('Báo cáo mới chờ kiểm tra', 'New report to review')}</strong>
+        {pendingReport && <small>{t(...pendingReport)}</small>}</span><UiIcon name="next" size={16}/>
+      </button>}
 
       {/* Landslides first: what happened, with its survey photos. */}
       <section className="incident-landslides">

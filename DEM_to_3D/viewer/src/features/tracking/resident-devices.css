@@ -25,3 +25,5 @@
 
 .resident-device-actions { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; }
 .resident-device-actions .button { flex:0 1 auto; min-height:34px; font-size:12px; }
+
+.resident-report-history > summary { padding:10px 0; color:var(--ws-muted); font-size:12px; cursor:pointer; }

@@ -1,3 +1,5 @@
+import { useFloatingPanel } from '../../shared/hooks/useFloatingPanel';
+import { localMapSource } from './localMapSource';
 import { useEffect, useRef, useState, useSyncExternalStore, type MutableRefObject } from 'react';
 import * as L from 'leaflet';
 import type { Locale } from '../../types/dear';
@@ -56,6 +58,7 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
   const layersRef = useRef(shownLayers); layersRef.current = shownLayers;
   const fogRef = useRef<{ draw: () => void } | null>(null);
   const root = useRef<HTMLElement>(null), host = useRef<HTMLDivElement>(null);
+  const floating=useFloatingPanel(root,'overview-map',enabled,'fit');
   const t = (vi: string, en: string) => locale === 'vi' ? vi : en;
   const waiting = useSyncExternalStore(coverage?.subscribe ?? noSubscription, () => coverage ? unreachedNeeds(coverage.spots()) : 0);
   useEffect(() => { fogRef.current?.draw(); }, [shownLayers]);
@@ -70,6 +73,8 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
     });
     L.DomEvent.disableClickPropagation(container);
     L.DomEvent.disableScrollPropagation(container);
+    const local=localMapSource();
+    if(local)L.tileLayer(local.imagery.url,{maxNativeZoom:local.imagery.maxZoom,maxZoom:18,noWrap:true,bounds:L.latLngBounds([local.bounds[1],local.bounds[0]],[local.bounds[3],local.bounds[2]]),errorTileUrl:'/offline-map/blank.webp'}).addTo(overview);
     L.imageOverlay(raster.url, raster.bounds, { interactive: false }).addTo(overview);
     if (area.length) L.polygon(area, { fill: false, color: '#e7f0f8', weight: 1, dashArray: '3 3', interactive: false }).addTo(overview);
     const extent = main ? L.rectangle(main.getBounds(), {
@@ -143,15 +148,16 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
   const chips: Array<[keyof CoverageLayers, string]> = [
     ['fog', t('Đội chưa tới', 'Not reached')], ['need', t('Cần cứu', 'Needs rescue')], ['unverified', t('Chưa rõ', 'Unverified')], ['team', t('Đội cứu hộ', 'Rescue teams')], ['rescued', t('Đã cứu', 'Rescued')]];
   return <section ref={root} className="map-overview" data-expanded={expanded} data-coverage={!!coverage || undefined} data-large={large || undefined} aria-label={t('Bản đồ tổng quan', 'Overview map')}>
-    <div className="overview-head">
+    <div className="overview-head floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={t('Vị trí bản đồ tổng quan','Overview position')}>
+      <span className="overview-title"><UiIcon name="area" size={15}/>{t('Tổng quan','Overview')}</span>
       <button className="overview-toggle" aria-expanded={expanded} aria-controls="overview-map-surface"
         aria-label={expanded ? t('Thu gọn bản đồ tổng quan', 'Hide overview map') : t('Mở bản đồ tổng quan', 'Show overview map')}
         onClick={() => setExpanded(value => !value)}>
-        <UiIcon name="area" size={15}/><span>{coverage ? t('Vùng cứu hộ', 'Rescue coverage') : t('Tổng quan', 'Overview')}</span><UiIcon name={expanded ? 'collapse' : 'expand'} size={14}/>
+        <UiIcon name={expanded ? 'collapse' : 'expand'} size={14}/>
       </button>
       {expanded && coverage && <button className="icon-button overview-size" aria-pressed={large} aria-label={large ? t('Thu nhỏ', 'Smaller') : t('Phóng to', 'Larger')} title={large ? t('Thu nhỏ', 'Smaller') : t('Phóng to', 'Larger')}
-        onClick={() => setLarge(value => !value)}><UiIcon name={large ? 'collapse' : 'fit'} size={14}/></button>}
-      {expanded && coverage?.onOpenLayers && <button className="icon-button overview-size" aria-label={t('Lớp cứu hộ', 'Rescue layers')} title={t('Lớp cứu hộ', 'Rescue layers')} onClick={coverage.onOpenLayers}><UiIcon name="layers" size={15}/></button>}
+        onClick={() => setLarge(value => !value)}><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d={large ? "M3 8h5V3M17 12h-5v5M8 8 2 2m10 10 6 6" : "M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6"}/></svg></button>}
+
     </div>
     {expanded && <div ref={host} id="overview-map-surface" className="map-overview-surface" tabIndex={0} role="group"
       aria-label={t('Định hướng bản đồ chính', 'Navigate the main map')}
@@ -160,8 +166,8 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
       {!raster && <p className="overview-loading" role="status">{rasterError ? <button className="text-button" onClick={() => setAttempt(value => value + 1)}>{t('Thử lại', 'Retry')}</button> : t('Đang tải bản đồ…', 'Loading map…')}</p>}
     </div>}
     {expanded && coverage && <div className="overview-coverage">
-      <p className="overview-meaning"><i aria-hidden="true"/>{t('Sáng: đội đã đi qua, chưa có nghĩa đã cứu.', 'Light: teams passed through; rescue is recorded separately.')}</p>
-      <p className={waiting ? 'is-alert' : undefined}>{waiting ? t(`${waiting} điểm cần cứu ngoài vùng đã tới`, `${waiting} rescue ${waiting === 1 ? 'location' : 'locations'} outside team coverage`) : t('Không có điểm cần cứu ngoài vùng đã tới', 'No rescue locations outside team coverage')}</p>
+      <p className="overview-meaning"><i aria-hidden="true"/>{t('Đội đã tiếp cận', 'Team coverage')}</p>
+      <p className={waiting ? 'is-alert' : undefined}>{waiting ? t(`${waiting} điểm chờ tiếp cận`, `${waiting} awaiting access`) : t('Đã tiếp cận các điểm cầu cứu', 'All requests reached')}</p>
       {coverage.onOpenLayers ? <div className="overview-key" aria-label={t('Chú giải cứu hộ', 'Rescue legend')}>
         {chips.filter(([key]) => shownLayers[key]).map(([key,label]) => <span data-layer={key} key={key}><i aria-hidden="true"/>{label}</span>)}
       </div> :       <fieldset aria-label={t('Lớp vùng cứu hộ', 'Coverage layers')}>

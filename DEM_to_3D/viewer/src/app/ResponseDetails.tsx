@@ -40,7 +40,7 @@ type Props = Pick<
   | 'workTasks'
   | 'workEntries'
   | 'onOpenWork'
-> & { onCompareImagery?:()=>void; gisRecords?: GeometryRecord[]; gisRecord?: GeometryRecord; gisRoads: ComponentProps<typeof ResponseObservationCard>['roads']; onCloseGis: () => void; onEditGis: () => void; onBackToGisGroup?: () => void; visible: boolean; onReturnFocus: () => void; onEditScenario?: (target:ScenarioTarget)=>void; mappedAreas?: GeometryRecord[]; onOpenMappedArea?: (id: string) => void;
+> & { onDispatchReport?:(record:GeometryRecord)=>void; onCompareImagery?:()=>void; gisRecords?: GeometryRecord[]; gisRecord?: GeometryRecord; gisRoads: ComponentProps<typeof ResponseObservationCard>['roads']; onCloseGis: () => void; onEditGis: () => void; onBackToGisGroup?: () => void; visible: boolean; onReturnFocus: () => void; onEditScenario?: (target:ScenarioTarget)=>void; mappedAreas?: GeometryRecord[]; onOpenMappedArea?: (id: string) => void;
   onSetRoadStatus?: ComponentProps<typeof ObjectDetailView>['onSetRoadStatus']; onRevertEdit?: (editId: string) => boolean;
   signals?: Record<string, CommunitySignal>; fieldPhotos?: Map<string, PreparedPhotoPoint>;
   /** Objects the workspace details itself, such as a rescue team; null for the others. */
@@ -49,7 +49,7 @@ type Props = Pick<
 
 /** One detail surface: map dock on wide screens, the information pane on compact screens. */
 export function ResponseDetails({
-  onCompareImagery,gisRecords, gisRecord, gisRoads, onCloseGis, onEditGis, onBackToGisGroup,
+  onDispatchReport,onCompareImagery,gisRecords, gisRecord, gisRoads, onCloseGis, onEditGis, onBackToGisGroup,
   fieldPhotos,
   locale,
   navigation,
@@ -146,7 +146,7 @@ export function ResponseDetails({
   let content: JSX.Element;
   if (!ready) return null;
   if (gisRecord) {
-    content = <ResponseObservationCard onCompare={onCompareImagery} key={gisRecord.id} docked record={gisRecord} records={gisRecords} fieldPhotos={fieldPhotos} locale={locale}
+    content = <ResponseObservationCard onRespond={onDispatchReport?()=>onDispatchReport(gisRecord):undefined} onCompare={onCompareImagery} key={gisRecord.id} docked record={gisRecord} records={gisRecords} fieldPhotos={fieldPhotos} locale={locale}
       roads={gisRoads} onRoad={id => onInspectObject('road:'+id)} onClose={onCloseGis}
       onEdit={onEditGis} onBack={onBackToGisGroup}/>;
   } else if (view === 'priority' && community && routePair) {

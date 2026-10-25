@@ -1,3 +1,4 @@
+import { useFloatingPanel } from '../../shared/hooks/useFloatingPanel';
 import { isSelectPickerEvent } from '../../shared/ui/selectKeyboard';
 import { reportReviewLabel } from '../access/reportReviewLabel';
 import { useEffect, useRef, useState } from 'react';
@@ -38,6 +39,7 @@ export function PointGroupCard({
 }): JSX.Element {
   const t = (vi: string, en: string) => (locale === 'vi' ? vi : en);
   const panel = useRef<HTMLElement>(null);
+  const floating=useFloatingPanel(panel,'observation-group',true,'fit');
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (
@@ -84,7 +86,7 @@ export function PointGroupCard({
       className={'field-map-card point-group-card ' + className}
       aria-label={t('Nhóm điểm gần nhau', 'Group of nearby points')}
     >
-      <header>
+      <header className="floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={t('Vị trí nhóm điểm','Group position')}>
         <div>
           <h2>
             {site

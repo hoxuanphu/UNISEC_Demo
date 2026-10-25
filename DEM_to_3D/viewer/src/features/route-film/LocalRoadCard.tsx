@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { useFloatingPanel } from '../../shared/hooks/useFloatingPanel';
 import type { Locale, RoadSegment } from '../../types/dear';
 import { UiIcon } from '../../shared/ui/UiIcon';
 import { roadConditionLabel, roadConditionMessage } from '../routes/localRoadLabels';
@@ -8,9 +10,10 @@ import './local-road-card.css';
 export function LocalRoadCard({road,locale,onClose,onDirections}: {
   road: RoadSegment; locale: Locale; onClose:()=>void; onDirections:()=>void;
 }) {
+  const panel=useRef<HTMLElement>(null),floating=useFloatingPanel(panel,'road-case',true,'fit');
   const vi=locale==='vi', condition=roadCondition(road);
-  return <aside className="local-road-card" aria-label={vi?'Đường trong xã Chế Tạo':'Chế Tạo local road'}>
-    <header><div><small>{vi?'Đường trong xã Chế Tạo':'Chế Tạo local road'}</small><h2>{road.name[vi?0:1]}</h2></div>
+  return <aside ref={panel} className="local-road-card" aria-label={vi?'Đường trong xã Chế Tạo':'Chế Tạo local road'}>
+    <header className="floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={vi?'Vị trí hồ sơ':'Case position'}><div><small>{vi?'Đường trong xã Chế Tạo':'Chế Tạo local road'}</small><h2>{road.name[vi?0:1]}</h2></div>
       <button className="icon-button" onClick={onClose} aria-label={vi?'Đóng đoạn đường':'Close road section'}><UiIcon name="close"/></button></header>
     <div className="local-road-body"><dl><div><dt>{vi?'Chiều dài đoạn':'Section length'}</dt><dd>{(projectedPathLength(road.points)/1000).toLocaleString(vi?'vi-VN':'en-GB',{maximumFractionDigits:2})} km</dd></div>
       <div><dt>{vi?'Tình trạng':'Condition'}</dt><dd data-condition={condition}>{roadConditionLabel(condition,locale,true)}</dd></div></dl>

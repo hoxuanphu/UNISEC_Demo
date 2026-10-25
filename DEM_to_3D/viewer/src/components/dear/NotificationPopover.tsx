@@ -6,7 +6,7 @@ import { UiIcon } from '../../shared/ui/UiIcon';
 export type RescueAlert = {id:string;name:string;at:string;kind:'help'|'proposal'};
 type Props = {rescueAlerts?:RescueAlert[];onOpenReports?:()=>void;onRescueOpen?:(id:string)=>void; locale: Locale; incident: IncidentModel; report: IncidentPacket['report']; road?: RoadSegment; updated: boolean; onClose: () => void; onOpenDetails: () => void; onOpenIncident: () => void; onOpenAll: () => void };
 
-export function NotificationPopover({ rescueAlerts=[], onOpenReports, onRescueOpen, locale, incident, report, road, updated, onClose, onOpenDetails, onOpenIncident, onOpenAll }: Props): JSX.Element {
+export function NotificationPopover({ rescueAlerts=[], onOpenReports, onRescueOpen, locale, incident, report, updated, onClose, onOpenDetails, onOpenIncident, onOpenAll }: Props): JSX.Element {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   return <section className="notification-popover" id="incident-notifications" data-popover role="dialog" aria-modal="false" aria-labelledby="notification-preview-title">
     <div className="notification-heading"><h2 id="notification-preview-title">{t('Thông báo', 'Notifications')}</h2><button className="icon-button" onClick={onClose} aria-label={t('Đóng thông báo', 'Close notifications')}><UiIcon name="close" size={16}/></button></div>
@@ -15,17 +15,14 @@ export function NotificationPopover({ rescueAlerts=[], onOpenReports, onRescueOp
       <strong>{alert.name}</strong><time dateTime={alert.at}>{localClock(alert.at)}</time><UiIcon name="next" size={16}/>
     </button>)}
     {rescueAlerts.length>4&&<button className="text-button notification-all" onClick={onOpenReports}>{t(`Tất cả yêu cầu (${rescueAlerts.length})`,`All requests (${rescueAlerts.length})`)}</button>}
-    <div className="notification-preview">
-      <div className="notification-preview-heading"><strong className="notification-critical-title">{t(...report.hazard.name)}</strong><time dateTime={report.evidence.receivedAt}>{localClock(report.evidence.receivedAt)}</time></div>
-      {road && <span className="notification-road-name">{t(...road.name)}</span>}
-      <p>{t(...report.evidence.finding)}</p>
-      <span className="small">{updated ? t('Đã cập nhật bản đồ', 'Applied to map') : t('Chờ cập nhật bản đồ', 'Pending map update')}</span>
-      <button className="text-button" onClick={onOpenDetails}>{t('Xem chi tiết', 'View details')}</button>
-    </div>
-    <div className="notification-preview notification-incident">
-      <div className="notification-preview-heading"><strong>{incident.title ? t(...incident.title) : t('Cảnh báo sự kiện', 'Incident alert')}</strong><time dateTime={incident.triggeredAt}>{localClock(incident.triggeredAt)}</time></div>
-      <button className="text-button" onClick={onOpenIncident}>{t('Mở sự kiện', 'Open incident')}</button>
-    </div>
+    <button className="notification-rescue-row" onClick={onOpenDetails}>
+      <span className="notification-critical-title">{updated?t('Đường bị chặn','Road blocked'):t('Báo cáo mới','New report')}</span>
+      <strong>{t(...report.hazard.name)}</strong><time dateTime={report.evidence.receivedAt}>{localClock(report.evidence.receivedAt)}</time><UiIcon name="next" size={16}/>
+    </button>
+    <button className="notification-rescue-row" onClick={onOpenIncident}>
+      <span>{t('Sự kiện','Incident')}</span><strong>{incident.title?t(...incident.title):t('Cảnh báo sự kiện','Incident alert')}</strong>
+      <time dateTime={incident.triggeredAt}>{localClock(incident.triggeredAt)}</time><UiIcon name="next" size={16}/>
+    </button>
     <button className="text-button notification-all" onClick={onOpenAll}>{t('Nhật ký sự kiện', 'Incident journal')}</button>
   </section>;
 }

@@ -1,3 +1,4 @@
+import { createResidentLocation } from './residentLocation';
 import { useEffect, useMemo, useState } from 'react';
 import type { LocalNetwork } from '../route-film/localNetwork';
 import type { RoadSegment } from '../../types/dear';
@@ -29,11 +30,28 @@ export function validGuidance(value:unknown):value is ResidentGuidance{
     (e.startedAt===undefined||Number.isFinite(e.startedAt)&&e.startedAt>0)&&(e.pausedAt===undefined||Number.isFinite(e.pausedAt)&&!!e.startedAt&&e.pausedAt>=e.startedAt)&&Number.isFinite(Date.parse(e.issuedAt))&&typeof e.issuedBy==='string'&&e.issuedBy.length<=100&&p(e.origin)&&Array.isArray(e.roadIds)&&e.roadIds.length<3000&&e.roadIds.every(id=>typeof id==='string'&&id.length<200)&&
     (e.mode==='hold'&&e.destination===null||e.mode==='route'&&!!e.destination&&typeof e.destination.id==='string'&&p(e.destination.projected)&&Array.isArray(e.destination.name)&&e.destination.name.length===2&&e.destination.name.every(s=>typeof s==='string'&&s.length<=200));
 }
-export function useResidentGuidance(network:LocalNetwork|null,recipientId:string|null){
+export function initialGuidance(network:LocalNetwork,recipientId:string,bases:readonly RescueBase[]):ResidentGuidance|null {
+  const position=createResidentLocation(network.roads,network.conditions?.areaLinks??[],0,0,bases)?.getSnapshot()[0];
+  if(!position)return null;
+  const target={id:recipientId,name:position.name,point:position.point};
+  return bases.flatMap(base=>{const entry=plannedGuidance(network.roads,target,base,'Coordination');const route=entry&&guidanceRoute(network,entry);return entry&&route?[{entry,length:route.lengthKm}]:[];})
+    .filter(item=>item.length>.05).sort((a,b)=>a.length-b.length)[0]?.entry??null;
+}
+const emptyBases:readonly RescueBase[]=[];
+export function useResidentGuidance(network:LocalNetwork|null,recipientId:string|null,bases:readonly RescueBase[]=emptyBases){
   const key=network?'dear.resident-guidance.v1:'+network.source.sha256:'', [revision,setRevision]=useState(0);
   const entries=useMemo(()=>{try{const raw=key?localStorage.getItem(key):null;if(!raw||raw.length>1_000_000)return[];const data:unknown=JSON.parse(raw);return Array.isArray(data)?data.filter(validGuidance).slice(-100):[];}catch{return[];}},[key,revision]);
   useEffect(()=>{const sync=(event:Event)=>{if(!(event instanceof StorageEvent)||event.key===key)setRevision(n=>n+1);};window.addEventListener('storage',sync);window.addEventListener(eventName,sync);return()=>{window.removeEventListener('storage',sync);window.removeEventListener(eventName,sync);};},[key]);
-  const entry=[...entries].reverse().find(item=>item.recipientId===recipientId)??null;
+  const seed=useMemo(()=>network&&recipientId&&bases.length?initialGuidance(network,recipientId,bases):null,[network,recipientId,bases]);
+  const savedEntry=[...entries].reverse().find(item=>item.recipientId===recipientId)??null;
+  const entry=savedEntry??seed;
+  useEffect(()=>{
+    if(!key||!seed||savedEntry)return;
+    try{const raw=localStorage.getItem(key),data:unknown=raw?JSON.parse(raw):[];const current=Array.isArray(data)?data.filter(validGuidance):[];
+      if(current.some(item=>item.recipientId===seed.recipientId))return;
+      localStorage.setItem(key,JSON.stringify([...current,seed].slice(-100)));window.dispatchEvent(new Event(eventName));
+    }catch{/* Keep the locally configured guidance available if persistence is unavailable. */}
+  },[key,seed,savedEntry]);
   const route=useMemo(()=>network&&entry?guidanceRoute(network,entry):null,[network,entry]);
   const issue=(target:DispatchTarget,destination:RescueBase|null,issuedBy:string,approvedRoadIds?:readonly string[])=>{
     if(!network||!key)return false;const next=plannedGuidance(approvedRoadIds?network.roads.filter(road=>approvedRoadIds.includes(road.id)):network.roads,target,destination,issuedBy);if(!next)return false;

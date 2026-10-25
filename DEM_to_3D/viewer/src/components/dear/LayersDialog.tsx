@@ -29,7 +29,7 @@ type Props = {
 };
 type PreviewProps = { imageryPreview?: string; terrainOverlays?: ReturnType<typeof useTerrainOverlays>; hasTerrainGrid?: boolean; analysisImagery?: AnalysisImageryState };
 
-export function LayersDialog({ initialSection='map', coverage, locale, layers, appearance, mapMode, onAppearance, hasFloodData, hasHLZData, hasSelectedRoute, hasIncidentLayers, areaCount, onShowAreas, onReset, onToggleLayer, onClose, imageryPreview, terrainOverlays, hasTerrainGrid = false, analysisImagery, hasLocalRoads, onShowLocalRoads, onShowAnalysisImagery }: Props & PreviewProps): JSX.Element {
+export function LayersDialog({ coverage, locale, layers, appearance, mapMode, onAppearance, hasFloodData, hasHLZData, hasSelectedRoute, hasIncidentLayers, areaCount, onShowAreas, onReset, onToggleLayer, onClose, imageryPreview, terrainOverlays, hasTerrainGrid = false, analysisImagery, hasLocalRoads, onShowLocalRoads, onShowAnalysisImagery }: Props & PreviewProps): JSX.Element {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const panelRef = useRef<HTMLElement>(null);
   const { setFillOpacity } = useLandslideAppearance();
@@ -89,6 +89,13 @@ export function LayersDialog({ initialSection='map', coverage, locale, layers, a
   return <section className="layers-panel" id="map-layers-panel" ref={panelRef} role="dialog" aria-modal="false" aria-labelledby="map-layers-title">
     <div className="layers-heading floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={t('Vị trí bảng lớp', 'Layers panel position')} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home"><h2 id="map-layers-title">{t('Lớp bản đồ', 'Map layers')}</h2><button className="icon-button" onClick={onClose} aria-label={t('Đóng lớp bản đồ', 'Close map layers')}><UiIcon name="close" /></button></div>
     <div className="layers-content">
+      {coverage && <details className="layer-section layer-rescue" data-layer-stack="rescue" open><summary>{t('Vùng cứu hộ', 'Rescue coverage')}</summary>
+        <div className="layer-row"><label><input type="checkbox" checked={layers.rescueCoverage===true} onChange={()=>onToggleLayer('rescueCoverage')}/><span>{t('Phủ vùng tiếp cận lên bản đồ chính','Coverage on main map')}</span></label></div>
+        <p className="analysis-note rescue-layer-caption">{t('Bản đồ tổng quan', 'Overview map')}</p>
+        <div className="rescue-layer-grid">{([['fog',t('Đội chưa tới','Not reached')],['need',t('Cần cứu','Needs rescue')],['unverified',t('Chưa rõ','Unverified')],['team',t('Đội cứu hộ','Rescue teams')],['rescued',t('Đã cứu','Rescued')]] as Array<[keyof CoverageLayers,string]>).map(([key,label])=>
+          <div className="layer-row" key={key}><label><input type="checkbox" checked={coverage.layers[key]} onChange={()=>coverage.toggle(key)}/><i className={`coverage-key is-${key}`} aria-hidden="true"/><span>{label}</span></label></div>)}</div>
+      </details>}
+
       {((analysisImagery && analysisImagery.catalogState !== 'off') || terrainOverlays) && <details className="layer-section layer-analysis" data-layer-stack="raster"><summary>{t('Ảnh phủ', 'Image overlay')}<small title={imageName}>{imageName}</small></summary>
         {analysisImagery?.catalogState==='loading' && <p className="analysis-note" role="status">{t('Đang tải danh sách ảnh','Loading imagery catalog')}</p>}
         {analysisImagery?.catalogState==='error' && <p className="analysis-note" role="status">{t('Chưa tải được danh sách ảnh.','Imagery catalog could not be loaded.')} <button type="button" className="text-button" onClick={analysisImagery.retryCatalog}>{t('Thử lại','Retry')}</button></p>}
@@ -97,12 +104,6 @@ export function LayersDialog({ initialSection='map', coverage, locale, layers, a
       </details>}
 
       {tiers.map(tier => <fieldset className="map-layer-group layer-tier" data-layer-stack={tier.id} key={tier.id}><legend>{tier.name}</legend>{tier.rows}</fieldset>)}
-      {coverage && <details className="layer-section layer-rescue" data-layer-stack="rescue" open={initialSection==='rescue'}><summary>{t('Vùng cứu hộ', 'Rescue coverage')}</summary>
-        <div className="layer-row"><label><input type="checkbox" checked={layers.rescueCoverage===true} onChange={()=>onToggleLayer('rescueCoverage')}/><span>{t('Phủ vùng tiếp cận lên bản đồ chính','Coverage on main map')}</span></label></div>
-        <p className="analysis-note rescue-layer-caption">{t('Bản đồ tổng quan', 'Overview map')}</p>
-        <div className="rescue-layer-grid">{([['fog',t('Đội chưa tới','Not reached')],['need',t('Cần cứu','Needs rescue')],['unverified',t('Chưa rõ','Unverified')],['team',t('Đội cứu hộ','Rescue teams')],['rescued',t('Đã cứu','Rescued')]] as Array<[keyof CoverageLayers,string]>).map(([key,label])=>
-          <div className="layer-row" key={key}><label><input type="checkbox" checked={coverage.layers[key]} onChange={()=>coverage.toggle(key)}/><i className={`coverage-key is-${key}`} aria-hidden="true"/><span>{label}</span></label></div>)}</div>
-      </details>}
       <details className="layer-section layer-basemap" data-layer-stack="basemap"><summary>{t('Bản đồ nền', 'Base map')}<small>{layers.imagery ? t('Ảnh nền', 'Imagery') : t('Địa hình', 'Terrain')}</small></summary>
         <fieldset className="basemap-choices"><legend>{t('Chọn bản đồ nền', 'Choose a basemap')}</legend>
           {bases.map(([imagery, label]) => <label className={'basemap-choice ' + (layers.imagery === imagery ? 'is-active' : '')} key={String(imagery)}>

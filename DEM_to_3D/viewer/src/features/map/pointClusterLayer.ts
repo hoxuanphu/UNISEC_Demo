@@ -127,7 +127,7 @@ export function attachPointClusters(
     marker.bindTooltip(selected ? tipTitle : tip, {
       direction: 'top',
       offset: [0, selected ? -30 : -size / 2],
-      permanent: !!selected,
+      permanent: false,
       className: options.tooltipClass
     });
     marker.on('add', () =>
@@ -161,6 +161,7 @@ export function attachPointClusters(
     marker.on('click', (event: L.LeafletMouseEvent) => {
       if (event.originalEvent) L.DomEvent.stopPropagation(event.originalEvent);
       clearHull();
+      marker.closeTooltip();
       options.onOpenGroup(members.map((member) => member.id));
     });
     return marker;

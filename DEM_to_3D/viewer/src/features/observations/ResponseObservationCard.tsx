@@ -13,7 +13,7 @@ import { UiIcon } from '../../shared/ui/UiIcon';
 import { observationOf } from './model';
 import { observationLabel } from './labels';
 import { VoicePlayback } from './VoicePlayback';
-import { submissionLocationLabel } from '../access/submissions';
+import { submissionOf, submissionLocationLabel } from '../access/submissions';
 import { PhotoGallery } from './PhotoGallery';
 export function ResponseObservationCard({
   record,
@@ -21,7 +21,7 @@ export function ResponseObservationCard({
   records = [], fieldPhotos,
   locale,
   onClose,
-  onEdit, onCompare,
+  onEdit, onCompare, onRespond,
   onBack,
   roads = [], onRoad
 }: {
@@ -30,7 +30,7 @@ export function ResponseObservationCard({
   records?: GeometryRecord[]; fieldPhotos?: Map<string,PreparedPhotoPoint>;
   locale: Locale;
   onClose: () => void;
-  onEdit: () => void; onCompare?:()=>void;
+  onEdit: () => void; onCompare?:()=>void; onRespond?:()=>void;
   /** Returns to the point group this record was opened from. */
   onBack?: () => void;
   roads?: RoadSegment[];
@@ -44,13 +44,14 @@ export function ResponseObservationCard({
       record.feature.geometry.type === 'Point'
         ? record.feature.geometry.coordinates
         : null;
+  const submission=submissionOf(record), emergency=observation?.kind==='help';
   const areaPhotos=areaPhotoEvidence(record,records,fieldPhotos);
   const stationPhotos=record.feature.geometry.type==='Point'?[...(fieldPhotos?.values()??[])].find(point=>point.surveyName.trim()===String(record.feature.properties.sourceName??record.name).trim()):undefined;
   const areaHead = landslideAreaHead(record, locale);
   return (
     <section
       className={"field-map-card" + (docked ? " is-docked" : "")}
-      aria-label={reference === 'road-corridor' ? t('Tuyến đường tham chiếu', 'Reference road corridor') : landslideAreaOf(record) ? t('Vùng sạt lở', 'Landslide area') : t('Điểm dữ liệu GIS', 'GIS data point')}
+      aria-label={reference === 'road-corridor' ? t('Tuyến đường tham chiếu', 'Reference road corridor') : landslideAreaOf(record) ? t('Vùng sạt lở', 'Landslide area') : emergency ? t('Yêu cầu cứu hộ', 'Rescue request') : t('Điểm dữ liệu GIS', 'GIS data point')}
     >
       <header>
         {onBack && (
@@ -65,11 +66,11 @@ export function ResponseObservationCard({
         )}
         <div className="detail-name">
           {areaHead && <p className="sheet-kind">{areaHead.kind}</p>}
-          <h2>{areaHead ? areaDisplayName(record,locale) : record.name}</h2>
+          <h2>{areaHead ? areaDisplayName(record,locale) : submission?.authorName ?? record.name}</h2>
         </div>
         <button
           className="icon-button"
-          aria-label={t('Đóng điểm GIS', 'Close GIS point')}
+          aria-label={t('Đóng chi tiết', 'Close details')}
           onClick={onClose}
         >
           <UiIcon name="close" />
@@ -96,7 +97,7 @@ export function ResponseObservationCard({
               {reportReviewLabel(record, locale)}
             </span>
           </div>
-          {observation.note&&<p className="field-note">{observation.note}</p>}
+          {observation.note&&!['Rescue needed at this location.','Cần cứu hộ tại vị trí này.'].includes(observation.note)&&<p className="field-note">{observation.note}</p>}
           <VoicePlayback voice={observation.voice} locale={locale}/>
           {submissionLocationLabel(record,locale)&&<p className="field-hint">{submissionLocationLabel(record,locale)}</p>}
         </>
@@ -115,10 +116,10 @@ export function ResponseObservationCard({
           </>
         )}
         {reference === 'road-corridor' && typeof record.feature.properties.lengthM === 'number' && <div><dt>{t('Chiều dài theo đường', 'Mapped length')}</dt><dd>{(record.feature.properties.lengthM/1000).toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-GB',{maximumFractionDigits:2})} km</dd></div>}
-        <div>
+        {!emergency && <div>
           <dt>{t('Nguồn', 'Source')}</dt>
           <dd>{sourceUrl ? <a href={sourceUrl} target="_blank" rel="noreferrer">{record.source.name}</a> : record.source.name}</dd>
-        </div>
+        </div>}
         {observation &&
           (observation.observedAt || observation.observedLocalTime) && (
             <div>
@@ -131,9 +132,10 @@ export function ResponseObservationCard({
         <PhotoGallery photos={observation.photos} locale={locale} />
       )}
       </div>
-      <footer>{areaHead&&onCompare&&<button className="button" onClick={onCompare}>{t('Đối chiếu ảnh','Compare imagery')}</button>}<button className="button" onClick={onEdit}>
+      {emergency&&onRespond&&<footer><button className="button primary" onClick={onRespond}>{t('Điều đội cứu hộ','Dispatch team')}</button></footer>}
+      {!emergency && <footer>{areaHead&&onCompare&&<button className="button" onClick={onCompare}>{t('Đối chiếu ảnh','Compare imagery')}</button>}<button className="button" onClick={onEdit}>
         {t('Mở trong GIS', 'Open in GIS')}
-      </button></footer>
+      </button></footer>}
     </section>
   );
 }

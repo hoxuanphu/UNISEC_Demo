@@ -1,3 +1,5 @@
+import type { GeometryRecord } from '../geo/vector/types';
+import { latestOperationalReports } from '../features/observations/operationalReports';
 import { routeProposalOf, useResidentGuidance } from '../features/tracking/residentGuidance';
 import { GuidanceDialog } from '../features/tracking/GuidanceDialog';
 import { useRescueDispatch } from '../features/tracking/useRescueDispatch';
@@ -211,6 +213,8 @@ export function ResponseWorkspace({
     (record) => record.visible && gisGroupIds.includes(record.id)
   );
   const inspectGisRecord = (id: string, keepGroup = false) => {
+    const record=gis.records.find(item=>item.id===id),submission=record&&submissionOf(record);
+    if(record&&(observationOf(record)?.kind==='help'||record.feature.properties.dearRouteProposal)&&submission?.locationSource==='device'&&submission.deviceId&&deviceFeed?.getSnapshot().some(device=>device.id===submission.deviceId)){selectDevice(submission.deviceId);return;}
     setLocalAreaId(null);setHouseholdId(null);
     setLocalRoadId(null);
     navigation.dispatch({type:'view',view:navigation.view,list:true});
@@ -222,7 +226,9 @@ export function ResponseWorkspace({
     resetTools();
   };
   const showGisOnResponse = (id: string) => {
-    setLocalRoadId(null);
+    const record=gis.records.find(item=>item.id===id),submission=record&&submissionOf(record);
+    if(record&&(observationOf(record)?.kind==='help'||record.feature.properties.dearRouteProposal)&&submission?.locationSource==='device'&&submission.deviceId&&deviceFeed?.getSnapshot().some(device=>device.id===submission.deviceId)){selectDevice(submission.deviceId);return;}
+    setLocalAreaId(null);setHouseholdId(null);setLocalRoadId(null);
     navigation.dispatch({type:'view',view:navigation.view,list:true});
     gis.select(id);
     setGisCardId(id);
@@ -463,7 +469,7 @@ export function ResponseWorkspace({
   const bases=useMemo(()=>localNetwork.network?rescueBases(responseSites,localNetwork.network.roads):[],[localNetwork.network,responseSites]);
   const [guidanceProposal,setGuidanceProposal]=useState<{destination:{id:string;name:[string,string];projected:{x:number;y:number}};roadIds:string[]}|null>(null);
   const [guidanceTarget,setGuidanceTarget]=useState<DispatchTarget|null>(null);
-  const guidance=useResidentGuidance(localNetwork.network,residentDeviceId);
+  const guidance=useResidentGuidance(localNetwork.network,residentDeviceId,bases);
   const rescueDispatch=useRescueDispatch(localNetwork.network,bases);
   // Teams sent to the isolated huts move in the same feed as the other rescue and resident dots.
   const householdTeams=useMemo(()=>localNetwork.network?householdRescues(localNetwork.network,households,bases):[],[localNetwork.network,households,bases]);
@@ -488,12 +494,26 @@ export function ResponseWorkspace({
   useEffect(()=>{const previous=rescueTrailMemory.current;const trail=createRescueTrail(deviceFeed,previous?.dataset===packet.datasetVersion?previous.trail.points():[]);
     rescueTrailMemory.current={dataset:packet.datasetVersion,trail};setRescueTrail(trail);return trail.dispose;
   },[deviceFeed,packet.datasetVersion]);
-  const rescueRequests=useMemo(()=>gis.records.flatMap(record=>{const geometry=record.feature.geometry;
-    return observationOf(record)?.kind==='help'&&geometry.type==='Point'?[roadProjected(geometry.coordinates[1],geometry.coordinates[0])]:[];}),[gis.records]);
+  const currentReports=useMemo(()=>latestOperationalReports(gis.records),[gis.records]);
+  const responseMapRecords=useMemo(()=>{
+    const current=new Set(currentReports.map(record=>record.id));
+    const devices=new Set(deviceFeed?.getSnapshot().map(device=>device.id)??[]);
+    return displayedGis.filter(record=>{
+      const submission=submissionOf(record);
+      if(observationOf(record)?.kind!=='help'||!submission)return true;
+      if(submission.review.status!=='pending'||!current.has(record.id))return record.id===gisCardId;
+      return !(submission.locationSource==='device'&&submission.deviceId&&devices.has(submission.deviceId));
+    }).map(record=>{const submission=submissionOf(record);return submission?{...record,name:submission.authorName}:record;});
+  },[displayedGis,currentReports,deviceFeed,gisCardId]);
   const dispatchTo=(target:DispatchTarget)=>{
     const result=rescueDispatch.dispatch(target);
     if(result==='ok'&&!guidance.issue(target,null,identity.name)){showToast(['Đã giao đội; chưa gửi được hướng dẫn chờ.','Team assigned; wait instruction could not be sent.']);return;}
     showToast(result==='ok'?['Đã giao đội cứu hộ 05.','Rescue team 05 assigned.']:result==='busy'?['Đội 05 đang có nhiệm vụ.','Team 05 already has a task.']:result==='storage-error'?['Chưa lưu được lệnh điều đội.','Dispatch could not be saved.']:['Chưa có tuyến tiếp cận liên thông.','No connected approach route.']);
+  };
+  const dispatchReport=(record:GeometryRecord)=>{
+    const geometry=record.feature.geometry;if(geometry.type!=='Point')return;
+    const name=submissionOf(record)?.authorName??record.name;
+    dispatchTo({id:`report:${record.id}`,name:[name,name],point:roadProjected(geometry.coordinates[1],geometry.coordinates[0])});
   };
   const inspectApproach=(target:DispatchTarget)=>{
     if(!localNetwork.network)return;
@@ -506,12 +526,10 @@ export function ResponseWorkspace({
   const selectedDeviceId=selectedObjectId?.startsWith('device:')?selectedObjectId.slice(7):selectedObjectId?.startsWith('team:')?selectedObjectId.slice(5):null;
   const [layerSection,setLayerSection]=useState<'map'|'rescue'>('map');
   const [coverageLayers,setCoverageLayers]=useState(defaultCoverageLayers);
-  const liveAlerts=useMemo(()=>historical?[]:gis.records.flatMap(record=>{
-    const observation=observationOf(record),submission=submissionOf(record);
-    if(!observation||!submission||submission.review.status!=='pending')return[];
-    const kind=observation.kind==='help'?'help' as const:record.feature.properties.dearRouteProposal?'proposal' as const:null;
-    return kind?[{id:record.id,name:submission.authorName,at:submission.submittedAt,kind}]:[];
-  }).sort((a,b)=>b.at.localeCompare(a.at)),[gis.records,historical]);
+  const liveAlerts=useMemo(()=>historical?[]:latestOperationalReports(gis.records).map(record=>{
+    const submission=submissionOf(record)!;
+    return {id:record.id,name:submission.authorName,at:submission.submittedAt,kind:observationOf(record)?.kind==='help'?'help' as const:'proposal' as const};
+  }),[gis.records,historical]);
   const knownAlerts=useRef<Set<string>|null>(null);
   useEffect(()=>{if(historical)return;const previous=knownAlerts.current;knownAlerts.current=new Set(liveAlerts.map(alert=>alert.id));
     const incoming=previous?liveAlerts.find(alert=>alert.kind==='help'&&!previous.has(alert.id)):null;
@@ -523,11 +541,15 @@ export function ResponseWorkspace({
     selected:()=>{if(household)return {point:household.projected,label:household.cluster.name[locale==='vi'?0:1]};
       const device=deviceFeed?.getSnapshot().find(item=>item.id===selectedDeviceId);
       return device?{point:device.point,label:device.name[locale==='vi'?0:1]}:null;},
-    spots:()=>coverageSpots({households:householdViews,devices:deviceFeed?.getSnapshot()??[],trail:rescueTrail?.points()??[],bases:bases.map(base=>base.projected),requests:rescueRequests}),
+    spots:()=>coverageSpots({households:householdViews,devices:deviceFeed?.getSnapshot()??[],trail:rescueTrail?.points()??[],bases:bases.map(base=>base.projected),requests:currentReports.flatMap(record=>{
+      if(observationOf(record)?.kind!=='help'||record.feature.geometry.type!=='Point')return [];
+      const submission=submissionOf(record),device=submission?.locationSource==='device'?deviceFeed?.getSnapshot().find(item=>item.id===submission.deviceId):undefined;
+      return [device?.point??roadProjected(record.feature.geometry.coordinates[1],record.feature.geometry.coordinates[0])];
+    })}),
     rescued:()=>householdViews.filter(item=>item.status==='rescued').map(item=>item.projected),
     subscribe:deviceFeed?.subscribe??(()=>()=>undefined),
     focus:localNetwork.network.roads.flatMap(road=>[road.points[0],road.points[road.points.length-1]]),
-  }:undefined,[localNetwork.network,historical,householdViews,deviceFeed,rescueTrail,bases,rescueRequests,coverageLayers,household,selectedDeviceId,locale]);
+  }:undefined,[localNetwork.network,historical,householdViews,deviceFeed,rescueTrail,bases,currentReports,coverageLayers,household,selectedDeviceId,locale]);
   const localJourneyRoadIds=useMemo(()=>localNetwork.network?.roads.map(road=>road.id)??[],[localNetwork.network]);
   const localContext=useMemo(()=>localNetwork.context?{areas:localNetwork.context.areas.filter(area=>area.kind==='landslide' && layers.landslide!==false),closures:[]}:undefined,[localNetwork.context,layers.landslide]);
   const localArea=localContext?.areas.find(area=>area.id===localAreaId);
@@ -1105,7 +1127,7 @@ export function ResponseWorkspace({
       data-response-profile={showProfile && !!profileTarget}
     >
       {guidanceTarget&&localNetwork.network&&<GuidanceDialog network={localNetwork.network} bases={bases} target={guidanceTarget} locale={locale} activeTeam={rescueDispatch.order?.target.id===guidanceTarget.id&&!rescueDispatch.order.recalledAt?rescueDispatch.order.teamId:null} onOpenTeam={()=>{setGuidanceTarget(null);if(rescueDispatch.order)selectTeam(rescueDispatch.order.teamId);}} proposal={guidanceProposal} onIssue={(destination,roadIds)=>{if(destination&&rescueDispatch.order?.target.id===guidanceTarget.id&&!rescueDispatch.order.recalledAt)return false;const current=deviceFeed?.getSnapshot().find(device=>device.id===guidanceTarget.id);const saved=guidance.issue(current?{...guidanceTarget,point:current.point}:guidanceTarget,destination,identity.name,roadIds);if(saved)showToast([`Đã gửi hướng dẫn cho ${guidanceTarget.name[0]}.`,`Guidance sent to ${guidanceTarget.name[1]}.`]);return saved;}} onClose={()=>setGuidanceTarget(null)}/>}
-      <AppHeader rescueAlerts={liveAlerts} onRescueOpen={id=>{const record=gis.records.find(record=>record.id===id),deviceId=record&&submissionOf(record)?.deviceId;if(deviceId)selectDevice(deviceId);else showGisOnResponse(id);}}
+      <AppHeader rescueAlerts={liveAlerts} onRescueOpen={showGisOnResponse}
         locked={activeDialog === 'geodata'}
         collapsed={headerCollapsed}
         onCollapse={() => {setHeaderCollapsed(true);requestAnimationFrame(() => workspaceRef.current?.querySelector<HTMLButtonElement>('.map-header-restore')?.focus());}}
@@ -1217,7 +1239,7 @@ export function ResponseWorkspace({
             onShowAll={()=>{const teams=deviceFeed?.getSnapshot().filter(device=>device.role==='rescue')??[];if(teams.length)focusMapOn([...teams.map(team=>team.point),...bases.map(base=>base.projected)]);}}/>}
         />
 
-        <ResponseDetails
+        <ResponseDetails onDispatchReport={historical?undefined:dispatchReport}
           renderObject={(objectId,close)=>objectId.startsWith('device:')?<ResidentDeviceDetail onReviewProposal={record=>{const proposal=routeProposalOf(record.feature.properties.dearRouteProposal),device=deviceFeed?.getSnapshot().find(d=>d.id===selectedDeviceId);if(!proposal||!device||!localNetwork.network)return;
             const roadIds=localNetwork.network.roads.filter(road=>proposal.roadIds.some(id=>id===road.id||id.startsWith(road.id+':part:'))).map(road=>road.id);
             setGuidanceProposal({destination:{id:'proposal:'+record.id,name:proposal.name,projected:proposal.end},roadIds});setGuidanceTarget({id:device.id,name:device.name,point:device.point});}}
@@ -1313,7 +1335,7 @@ export function ResponseWorkspace({
                 households={layers.households!==false?householdViews:[]} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold} rescueCoverage={rescueCoverage} rescueCoverageOnMap={layers.rescueCoverage===true}
                 analysisImagery={analysisDisplay}
                 gisEnabled={true}
-                gisRecords={displayedGis}
+                gisRecords={responseMapRecords}
                 gisSelectedId={gisCardId}
                 gisRequest={gisResponseView}
                 onGisSelect={inspectGisRecord}
@@ -1321,6 +1343,7 @@ export function ResponseWorkspace({
                 onGisGroup={(ids) => {
                   navigation.dispatch({type:'view',view:navigation.view,list:true});
                   setPanelCollapsed(false);
+                  setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(null);resetTools();setMobileView('map');
                   setGisGroupIds(ids);
                   setGisCardId(null);
                 }}
@@ -1410,7 +1433,7 @@ export function ResponseWorkspace({
                     onTerrainOverlayStatus={(kind, message) => kind === 'sar' ? terrainOverlays.setError(message) : terrainOverlays.setStatus(message)}
                     models={models}
                     onOrbitChange={setOrbiting}
-                    gisRecords={displayedGis}
+                    gisRecords={responseMapRecords}
                     gisSelectedId={gisCardId}
                     onGisSelect={inspectGisRecord}
                     geographicPlacements={geographicPlacements}
@@ -1662,7 +1685,7 @@ export function ResponseWorkspace({
             !journey.open &&
             layers.gis &&
             !gisCard &&
-            gisGroup.length > 1 &&
+            gisGroup.length > 1 && !localRoad && !localArea && !household && !selectedObjectId &&
             !locationOpen &&
             !measurementOpen &&
             !drawOpen && (

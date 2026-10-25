@@ -20,12 +20,12 @@ def run(url, chrome=None, captures=None):
             expect(overview).to_be_visible(timeout=30000)
             expect(overview.locator('.overview-toggle')).to_have_attribute('aria-expanded', 'true')
             expect(overview.locator('canvas.coverage-fog')).to_be_visible(timeout=30000)
-            expect(overview.locator('.overview-meaning')).to_contain_text('rescue is recorded separately')
+            expect(overview.locator('.overview-meaning')).to_contain_text('Team coverage')
             expect(overview.locator('.overview-extent')).to_be_attached()
             before_view=overview.locator('.overview-extent').get_attribute('d')
             page.get_by_role('button',name='Zoom in',exact=True).click()
             expect(overview.locator('.overview-extent')).not_to_have_attribute('d',before_view)
-            overview.get_by_role('button',name='Rescue layers',exact=True).click()
+            page.get_by_role('button',name='Layers',exact=True).click()
             panel=page.locator('.layers-panel');group=panel.locator('[data-layer-stack="rescue"]')
             expect(group.get_by_role('checkbox')).to_have_count(6)
             group.get_by_role('checkbox',name='Coverage on main map',exact=True).check()
@@ -36,20 +36,33 @@ def run(url, chrome=None, captures=None):
             def signature():
                 return overview.locator('canvas').evaluate('n=>{const a=n.getContext("2d").getImageData(0,0,n.width,n.height).data;let s=0;for(let i=3;i<a.length;i+=4)s+=a[i];return s;}')
             before = signature()
-            overview.get_by_role('button',name='Rescue layers',exact=True).click()
+            page.get_by_role('button',name='Layers',exact=True).click()
             page.locator('.layers-panel').get_by_role('checkbox',name='Not reached',exact=True).uncheck()
             page.keyboard.press('Escape')
             page.wait_for_timeout(100)
             assert signature() < before, 'Unreached mask did not switch off'
-            overview.get_by_role('button',name='Rescue layers',exact=True).click()
+            page.get_by_role('button',name='Layers',exact=True).click()
             page.locator('.layers-panel').get_by_role('checkbox',name='Not reached',exact=True).check()
             page.keyboard.press('Escape')
             overview.locator('.map-overview-surface').click(position={'x': 100, 'y': 80})
             expect(page.get_by_role('button', name='Switch to 3D', exact=True)).to_have_attribute('aria-pressed', 'true')
+            overview_left=overview.bounding_box()['x']
             page.locator('.incident-household-row').first.click()
             expect(page.locator('.household-card')).to_be_visible()
             expect(page.locator('.household-card').get_by_role('button',name='Dispatch team',exact=True)).to_be_visible()
             expect(overview.locator('.overview-selected')).to_be_visible()
+            assert abs(overview.bounding_box()['x']-overview_left)<2, 'Overview moved after opening a case'
+            case=page.locator('.household-card');a,b=overview.bounding_box(),case.bounding_box()
+            assert a['x']+a['width']<=b['x'] or b['x']+b['width']<=a['x'] or a['y']+a['height']<=b['y'] or b['y']+b['height']<=a['y'], 'Overview overlaps the selected case'
+            def drag(handle,dx,dy):
+                r=handle.bounding_box();x,y=r['x']+12,r['y']+12
+                page.mouse.move(x,y);page.mouse.down();page.mouse.move(x+dx,y+dy,steps=8);page.mouse.up()
+            before_case=case.bounding_box();drag(case.locator('header'),-60,30)
+            assert abs(case.bounding_box()['x']-before_case['x'])>30, 'Case did not move'
+            drag(overview.locator('.overview-title'),100,-30)
+            assert abs(overview.bounding_box()['x']-overview_left)>50, 'Overview did not move'
+            overview.locator('.overview-head').dblclick(position={'x':12,'y':12})
+
             expect(page.get_by_role('button', name='Switch to 3D', exact=True)).to_have_attribute('aria-pressed', 'true')
             page.keyboard.press('Escape')
             expect(page.locator('.household-card')).to_have_count(0)

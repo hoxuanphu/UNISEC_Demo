@@ -1,4 +1,5 @@
-import { useEffect, useSyncExternalStore } from 'react';
+import { useFloatingPanel } from '../../shared/hooks/useFloatingPanel';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import type { Locale } from '../../types/dear';
 import type { LocationFeed } from '../tracking/deviceFeed';
 import { deviceStatusText } from '../tracking/trackingOverlay';
@@ -36,6 +37,7 @@ export function HouseholdCard({ item, areaName, locale, onClose, workStatus, onW
   helipad?: { name: [vi: string, en: string]; distanceKm: number };
   team?: { feed: LocationFeed; id: string; onShow: (point: { x: number; y: number }) => void };
 }) {
+  const panel=useRef<HTMLElement>(null),floating=useFloatingPanel(panel,'household-case',true,'fit');
   const vi = locale !== 'en', t = (a: string, b: string) => vi ? a : b, { cluster } = item;
   useEffect(() => {
     const escape = (event: KeyboardEvent) => {
@@ -49,8 +51,8 @@ export function HouseholdCard({ item, areaName, locale, onClose, workStatus, onW
     : entry.kind === 'road' ? t(`${entry.name[0]} bị chặn`, `${entry.name[1]} blocked`)
     : t(`Sạt lở dân báo lúc ${householdClock(entry.reportedAt, locale)}`, `Slide reported by residents at ${householdClock(entry.reportedAt, locale)}`);
   const cuts = [...new Set(item.cutBy.map(cut))];
-  return <aside className="household-card" aria-label={cluster.name[vi ? 0 : 1]}>
-    <header><div><small data-status={item.status}>{t(...householdStatusText[item.status])}</small><h2>{cluster.name[vi ? 0 : 1]}</h2></div>
+  return <aside ref={panel} className="household-card" aria-label={cluster.name[vi ? 0 : 1]}>
+    <header className="floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={t('Vị trí hồ sơ','Case position')}><div><small data-status={item.status}>{t(...householdStatusText[item.status])}</small><h2>{cluster.name[vi ? 0 : 1]}</h2></div>
       <button type="button" className="icon-button" aria-label={t('Đóng', 'Close')} onClick={onClose}><UiIcon name="close"/></button></header>
     <p className="household-card-people"><strong>{cluster.people}</strong><span>{t(`người, ${cluster.households} hộ`, `people, ${cluster.households} households`)}</span></p>
     <dl>

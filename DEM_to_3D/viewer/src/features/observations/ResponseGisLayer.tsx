@@ -125,7 +125,7 @@ export function ResponseGisLayer({
         const note = record.feature.properties.shape === 'note';
         layer.bindTooltip(label, {
           direction: 'top',
-          permanent: note || record.id === selectedId,
+          permanent: note,
           className: note ? 'field-map-tooltip map-note-label' : 'field-map-tooltip'
         });
         if (interactive)

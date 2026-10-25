@@ -1,3 +1,4 @@
+import { latestOperationalReports } from '../observations/operationalReports';
 import {useSyncExternalStore} from 'react';
 import type {Locale,RoadSegment} from '../../types/dear';
 import {UiIcon} from '../../shared/ui/UiIcon';
@@ -57,6 +58,16 @@ export function ResidentDeviceDetail({feed,id,roads,locale,onClose,onShow,onRoad
   const reports=records.filter(record=>submissionMatchesDevice(submissionOf(record),id)&&observationOf(record))
     .sort((a,b)=>submissionOf(b)!.submittedAt.localeCompare(submissionOf(a)!.submittedAt));
   const needsResponse=!!device&&(stranded(device)||reports.some(record=>observationOf(record)?.kind==='help'&&submissionOf(record)?.review.status==='pending'));
+  const activeIds=new Set(latestOperationalReports(reports).map(record=>record.id));
+  const currentReports=[...reports.filter(record=>activeIds.has(record.id)),...reports.filter(record=>!activeIds.has(record.id)&&observationOf(record)?.kind!=='help'&&!record.feature.properties.dearRouteProposal)].slice(0,3);
+  const currentIds=new Set(currentReports.map(record=>record.id)),olderReports=reports.filter(record=>!currentIds.has(record.id));
+  const renderReport=(record:GeometryRecord)=>{const observation=observationOf(record)!;return <article key={record.id} data-kind={observation.kind}>
+            <button className="object-row" onClick={()=>onReport?.(record.id)}><span><strong>{record.feature.properties.dearRouteProposal?t('Đề xuất tuyến','Route proposal'):observationLabel(observation.kind,locale)}</strong><small>{time(submissionOf(record)!.submittedAt)}</small></span><UiIcon name="next" size={16}/></button>
+            {observation.note&&!['Rescue needed at this location.','Cần cứu hộ tại vị trí này.'].includes(observation.note)&&<p>{observation.note}</p>}
+            {record.feature.properties.dearRouteProposal&&onReviewProposal?<button className="text-button" onClick={()=>onReviewProposal(record)}>{t('Xem tuyến đề xuất','Review proposed route')}</button>:null}
+            {observation.voice&&<VoicePlayback voice={observation.voice} locale={locale}/>}
+            {observation.photos.length>0&&<PhotoGallery photos={observation.photos} locale={locale} reported={reportPhotoContext(record)}/>}
+          </article>;};
   return <>
     <div className="sidebar-top object-detail-heading resident-device-heading" data-tracked-device={id}>
       <div className="detail-title"><div className="detail-name"><p>{t('Vị trí người dân','Resident location')}</p><h1>{device?.name[locale==='vi'?0:1]??t('Thiết bị','Device')}</h1></div>
@@ -71,13 +82,8 @@ export function ResidentDeviceDetail({feed,id,roads,locale,onClose,onShow,onRoad
           {needsResponse&&onApproach&&<button className="button" onClick={onApproach}>{t('Điểm tiếp cận','Approach point')}</button>}
         </div>
         {reports.length>0&&<section className="workflow-section resident-device-reports"><h3>{t('Trình báo','Reports')}<small>{reports.length}</small></h3>
-          {reports.map(record=>{const observation=observationOf(record)!;return <article key={record.id} data-kind={observation.kind}>
-            <button className="object-row" onClick={()=>onReport?.(record.id)}><span><strong>{record.feature.properties.dearRouteProposal?t('Đề xuất tuyến','Route proposal'):observationLabel(observation.kind,locale)}</strong><small>{time(submissionOf(record)!.submittedAt)}</small></span><UiIcon name="next" size={16}/></button>
-            {observation.note&&<p>{observation.note}</p>}
-            {record.feature.properties.dearRouteProposal&&onReviewProposal?<button className="text-button" onClick={()=>onReviewProposal(record)}>{t('Xem tuyến đề xuất','Review proposed route')}</button>:null}
-            {observation.voice&&<VoicePlayback voice={observation.voice} locale={locale}/>}
-            {observation.photos.length>0&&<PhotoGallery photos={observation.photos} locale={locale} reported={reportPhotoContext(record)}/>}
-          </article>;})}
+          {currentReports.map(renderReport)}
+          {olderReports.length>0&&<details className="resident-report-history"><summary>{t('Lịch sử','History')} · {olderReports.length}</summary>{olderReports.map(renderReport)}</details>}
         </section>}
         {contact&&<section className="workflow-section resident-device-facts"><h3>{t('Liên lạc','Contact')}</h3>
           <dl><div><dt>{t('Số điện thoại','Phone')}</dt><dd><a href={`tel:${contact.phone.replace(/[^+\d]/g,'')}`}>{contact.phone}</a></dd></div>

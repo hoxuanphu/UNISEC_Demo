@@ -38,9 +38,6 @@ function ResponseEntry({
     session.signOut();
   };
   const signIn: typeof session.signIn = (role, name, communityId) => {
-    // Fullscreen needs the sign-in click; a restored session still fills the viewport.
-    if (role === 'manager' && document.fullscreenEnabled && !document.fullscreenElement)
-      void document.documentElement.requestFullscreen().catch(() => undefined);
     session.signIn(role, name, communityId);
   };
   const runtime = useTerrainWorkspace({

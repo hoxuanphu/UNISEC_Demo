@@ -13,7 +13,7 @@ export function anchoredPanel(position: Position, width: number, height: number,
 }
 
 /** Move a tool window, preserving geographic features and keeping navigation accessible. */
-export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enabled = true) {
+export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enabled = true, sizing: 'anchor'|'fit' = 'anchor') {
   const position = useRef<Position | null>(null);
   const drag = useRef<{ origin: Position; client: Position; pointerId: number } | null>(null);
   const apply = () => {
@@ -22,11 +22,13 @@ export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enab
     if (window.innerWidth <= 900 || !position.current) {
       node.style.removeProperty('left'); node.style.removeProperty('top');
       node.style.removeProperty('--floating-panel-height');
+      delete node.dataset.floating;
     } else {
       const bounds = area.getBoundingClientRect(), rect = node.getBoundingClientRect();
       const controls = [...area.querySelectorAll<HTMLElement>('.map-tools,.map-advanced-tools:not([hidden])')];
       const minimumTop = controls.length ? Math.max(...controls.map(control => control.getBoundingClientRect().bottom)) - bounds.top + 16 : 64;
-      const anchor = anchoredPanel(position.current, bounds.width, bounds.height, rect.width, minimumTop);
+      const anchor = sizing==='fit' ? {...constrainPanel(position.current,bounds.width,bounds.height,rect.width,rect.height,minimumTop),maxHeight:bounds.height-minimumTop-32} : anchoredPanel(position.current, bounds.width, bounds.height, rect.width, minimumTop);
+      node.dataset.floating='true';
       node.style.left = `${anchor.x}px`; node.style.top = `${anchor.y}px`;
       node.style.setProperty('--floating-panel-height', `${anchor.maxHeight}px`);
     }
@@ -53,7 +55,7 @@ export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enab
     }
     window.addEventListener('resize', apply);
     return () => { resize.disconnect(); window.removeEventListener('resize', apply); drag.current = null; };
-  }, [enabled, key]);
+  }, [enabled, key, sizing]);
   const blocked = (target: EventTarget | null) => (target as HTMLElement | null)?.closest('button,input,select,a,summary');
   return {
     onPointerDown: (event: PointerEvent<HTMLElement>) => {

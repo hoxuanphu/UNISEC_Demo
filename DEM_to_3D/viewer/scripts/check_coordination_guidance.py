@@ -21,7 +21,8 @@ def run(url,chrome=None,captures=None):
    panel=admin.locator('.layers-panel');expect(panel).to_be_visible()
    symbols=panel.locator('.device-layer-sample .tracked-device-symbol')
    expect(symbols).to_have_count(2);a,b=symbols.nth(0).bounding_box(),symbols.nth(1).bounding_box();assert abs(a['y']-b['y'])<3
-   panel.locator('[data-layer-stack="rescue"] > summary').click()
+   assert panel.locator('[data-layer-stack="rescue"]').get_attribute('open') is not None
+   assert panel.locator('.layers-content > :first-child').get_attribute('data-layer-stack')=='rescue'
    panel.get_by_role('checkbox',name='Not reached',exact=True).uncheck(timeout=5000)
    expect(panel.get_by_role('checkbox',name='Not reached',exact=True)).not_to_be_checked()
    panel.get_by_role('checkbox',name='Not reached',exact=True).check(timeout=5000)
@@ -30,6 +31,8 @@ def run(url,chrome=None,captures=None):
    mobile.set_viewport_size({'width':390,'height':844});mobile.goto(url+'/?offline=1&map=2d&lang=en')
    mobile.get_by_label('Your name',exact=True).fill('A Phủ');mobile.get_by_role('button',name='Enter app',exact=True).click()
    expect(mobile.locator('.tracked-device[data-device-id="GPS-AP01"]')).to_have_attribute('data-motion','waiting',timeout=30000)
+   expect(mobile.locator('.citizen-official-guidance')).to_be_visible()
+   expect(mobile.locator('.map-road-route-line').first).to_be_attached()
    mobile.get_by_role('button',name='Ask for rescue',exact=True).click();expect(mobile.locator('.citizen-help-sent')).to_be_visible()
    admin.bring_to_front();admin.get_by_role('button',name='Incident notifications',exact=True).click()
    alert=admin.locator('.notification-rescue-row').filter(has_text='Rescue request');expect(alert).to_contain_text('A Phủ');alert.click()

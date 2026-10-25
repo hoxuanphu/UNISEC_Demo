@@ -192,7 +192,7 @@ export function CitizenWorkspace({
   const localJourney = useRoadJourney(local.network?.roads ?? [], 250, 'conditions');
   const journey = roadMode === 'local' ? localJourney : incidentJourney;
   const gps = useDeviceLocation();
-  const guidance=useResidentGuidance(local.network,residentDeviceId);
+  const guidance=useResidentGuidance(local.network,residentDeviceId,bases);
   const residentLocation=useResidentLocation(local.network,bases,guidance);
   const [proposalSession,setProposalSession]=useState<{active:boolean;guidanceId:string|null}>({active:false,guidanceId:null});
   const proposing=proposalSession.active&&proposalSession.guidanceId===(guidance.entry?.id??null);
@@ -237,7 +237,7 @@ export function CitizenWorkspace({
       gis.add([annotateRecord({...draft,id,name:`${observationLabel('help',locale)} ${observationCode(id)}`,
         feature:{...draft.feature,geometry:validateGeometry({type:'Point',coordinates:[p.longitude,p.latitude]}),
           properties:{...draft.feature.properties,[submissionKey]:newSubmission(identity,'device',residentLocation?residentDeviceId:undefined)}}},
-        {schema:'field-observation/v1',kind:'help',note:t('Cần cứu hộ tại vị trí này.','Rescue needed at this location.'),observer:identity.name,
+        {schema:'field-observation/v1',kind:'help',note:'',observer:identity.name,
           observedAt:now,accuracyM:p.accuracy??null,status:'unreviewed',updatedAt:now,photos:[]})]);
     }catch{setMessage(m.couldNotSaveTheReportCheckCoordinates);}
     }finally{helpInFlight.current=false;}
