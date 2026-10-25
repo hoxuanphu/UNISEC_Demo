@@ -30,7 +30,7 @@ export const WorkspaceNav: React.FC<Props> = ({ view, locale, onChangeView, resc
           aria-current={view === item.id ? 'page' : 'false'}
           onClick={() => onChangeView(item.id)}
         >
-          {item.id === 'impact' ? <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"><path d="m8 3-4 18M16 3l4 18M12 3v3m0 4v4m0 4v3"/></svg> : item.id === 'rescue' ? <RescueCross size={15}/> : <UiIcon name={item.id === 'incident' ? 'bell' : 'people'} size={16}/>}
+          {item.id === 'impact' ? <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"><path d="m8 3-4 18M16 3l4 18M12 3v3m0 4v4m0 4v3"/></svg> : item.id === 'rescue' ? <RescueCross size={16}/> : <UiIcon name={item.id === 'incident' ? 'bell' : 'people'} size={16}/>}
           <span>{t(item.vi, item.en)}</span>
         </button>
       ))}

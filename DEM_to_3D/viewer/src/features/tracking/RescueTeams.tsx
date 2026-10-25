@@ -99,7 +99,7 @@ export function RescueTeamList({ feed, locale, onSelect, baseId, title, selected
       {teams.map(team => {
         const status = teamStatus(team, locale);
         return <button className="incident-landslide-row rescue-team-row" key={team.id} aria-current={selectedId === `team:${team.id}` || undefined} onClick={() => onSelect(team.id)}>
-          <span className="rescue-team-symbol" aria-hidden="true"><RescueCross size={15}/></span>
+          <span className="rescue-team-symbol" aria-hidden="true"><RescueCross size={16}/></span>
           <span className="incident-landslide-copy"><strong>{team.name[locale === 'vi' ? 0 : 1]}</strong><small title={teamTask(team, locale)}>{teamTask(team, locale)}</small></span>
           <small className="incident-status" data-tone={status.tone === 'active' ? undefined : status.tone}>{status.text}</small>
         </button>;

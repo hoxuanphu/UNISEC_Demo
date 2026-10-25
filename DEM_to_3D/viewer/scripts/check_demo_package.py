@@ -51,7 +51,7 @@ def check_english_startup(base, chrome, captures=None):
         page.get_by_role('button', name='Enter app', exact=True).click()
         expect(page.locator('.incident-overview-heading')).to_be_visible(timeout=30000)
         expect(page.locator('canvas.terrain-canvas')).to_be_visible(timeout=30000)
-        page.locator('.incident-landslide-row').first.click()
+        page.locator('.incident-landslides .incident-landslide-row').first.click()
         expect(page.locator('#response-details .field-photo-strip-grid img')).to_have_count(4, timeout=30000)
         if captures:
             captures.mkdir(parents=True, exist_ok=True)

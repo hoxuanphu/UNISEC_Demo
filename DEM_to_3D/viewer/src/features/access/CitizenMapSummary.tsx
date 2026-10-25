@@ -39,8 +39,8 @@ export function CitizenMapSummary({locale, route, endpoints, place, road, onClos
       <header><strong>{place.name}</strong><button className="icon-button" aria-label={t('Đóng địa điểm', 'Close place')} onClick={place.onClose}><UiIcon name="close" size={18}/></button></header>
       <button className="button citizen-primary" onClick={place.onDirections}><UiIcon name="route" size={18}/>{t('Tìm đường đến đây', 'Directions here')}</button>
     </> : road ? <header><div><strong>{t(...road.name)}</strong><p data-road-state={status}>{message}</p></div><button className="icon-button" aria-label={t('Đóng đoạn đường', 'Close road section')} onClick={onCloseRoad}><UiIcon name="close" size={18}/></button></header> : <>
-      {nearestTeam && <button className="citizen-team" onClick={nearestTeam.onShow}>
-        <span className="citizen-team-icon" aria-hidden="true"><RescueCross size={14}/></span>
+      {nearestTeam && !route && !endpoints && <button className="citizen-team" onClick={nearestTeam.onShow}>
+        <span className="citizen-team-icon" aria-hidden="true"><RescueCross size={16}/></span>
         <span className="citizen-team-copy"><strong>{nearestTeam.name}</strong><small>{nearestTeam.detail}</small></span>
         <UiIcon name="next" size={16}/>
       </button>}

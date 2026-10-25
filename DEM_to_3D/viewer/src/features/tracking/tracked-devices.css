@@ -22,7 +22,6 @@
 .tracked-device-card .device-signal { color:var(--ws-muted); font-size:12px; }
 .tracked-device-card .text-button { display:flex; width:100%; margin-top:12px; min-height:32px; padding:8px 0 0; border-top:1px solid var(--ws-line); border-radius:0; justify-content:flex-start; }
 .tracked-device-symbol { display:inline-block; flex:none; width:11px; height:11px; box-sizing:border-box; border:1.5px solid white; border-radius:50%; background:var(--location-resident); box-shadow:0 1px 2px #0005; }
-.tracked-device-symbol.is-rescue { width:13px; height:13px; background-color:var(--location-rescue); }
 .flyover-active .tracked-devices { visibility:hidden; }
 
 .device-layer-sample { display:flex; align-items:center; gap:5px; }
