@@ -4648,8 +4648,8 @@
       "observedAt": "2026-09-12T10:43:27.846499+07:00",
       "receivedAt": "2026-09-12T11:36:00+07:00",
       "source": [
-        "Kịch bản demo, vị trí từ KML",
-        "Demo scenario, position from KML"
+        "Vị trí từ KML",
+        "Position from KML"
       ],
       "finding": [
         "Cần kiểm tra phạm vi sạt và tình trạng đường tại điểm này.",
@@ -4667,8 +4667,8 @@
       "observedAt": "2026-09-12T10:43:27.846499+07:00",
       "receivedAt": "2026-09-12T11:36:00+07:00",
       "source": [
-        "Kịch bản demo, vị trí từ KML",
-        "Demo scenario, position from KML"
+        "Vị trí từ KML",
+        "Position from KML"
       ],
       "finding": [
         "Cần kiểm tra phạm vi sạt và tình trạng đường tại điểm này.",
@@ -4686,8 +4686,8 @@
       "observedAt": "2026-09-12T10:43:27.846499+07:00",
       "receivedAt": "2026-09-12T11:36:00+07:00",
       "source": [
-        "Kịch bản demo, vị trí từ KML",
-        "Demo scenario, position from KML"
+        "Vị trí từ KML",
+        "Position from KML"
       ],
       "finding": [
         "Cần kiểm tra phạm vi sạt và tình trạng đường tại điểm này.",
@@ -4711,8 +4711,8 @@
       "kind": "landslide",
       "observation": "reported",
       "src": [
-        "Báo cáo mô phỏng tại Vết sạt 02",
-        "Simulated report at landslide scar 2"
+        "Báo cáo tại Vết sạt 02",
+        "Report at landslide scar 2"
       ],
       "detected": "14:11 12/09/2026",
       "projected": {
@@ -4727,8 +4727,8 @@
       "observedAt": "2026-09-12T14:11:00+07:00",
       "receivedAt": "2026-09-12T14:16:00+07:00",
       "source": [
-        "Báo cáo mô phỏng, tổ kiểm tra tuyến",
-        "Simulated report, road inspection team"
+        "Tổ kiểm tra tuyến",
+        "Road inspection team"
       ],
       "finding": [
         "Đất đá vùi lấp khoảng 80 m mặt đường. Xe cơ giới không thể qua.",
@@ -4770,8 +4770,8 @@
     ],
     "observedAt": "2026-09-12T14:02:00+07:00",
     "source": [
-      "Khu vực phân tích của bộ dữ liệu mô phỏng",
-      "Analysis area of the simulated dataset"
+      "Khu vực phân tích",
+      "Analysis area"
     ]
   },
   "routingAssumptions": {

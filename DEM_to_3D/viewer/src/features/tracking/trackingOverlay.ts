@@ -5,7 +5,7 @@ type Pixel={x:number;y:number;visible:boolean};
 /** What a device is doing, in words; shared by the map card and the household card. */
 export function deviceStatusText(device:Pick<DevicePosition,'state'|'role'|'missionId'>,locale:Locale):string {
   const t=(a:string,b:string)=>locale==='vi'?a:b;
-  return device.state==='waiting'?t('Đang chờ cứu hộ','Waiting for rescue')
+  return device.state==='waiting'?device.role==='rescue'?t('Chờ phương án tiếp cận','Awaiting access'):t('Đang chờ cứu hộ','Waiting for rescue')
     :device.state==='dispatching'?t('Chờ điều động','Awaiting dispatch')
     :device.state==='responding'?t('Đang tới hỗ trợ','Responding')
     :device.state==='crossing'?t('Đang đi bộ vượt vùng sạt','Crossing the slide on foot')

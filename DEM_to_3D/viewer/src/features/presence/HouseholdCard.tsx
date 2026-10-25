@@ -22,9 +22,8 @@ function TeamRow({ feed, id, locale, onShow }: { feed: DeviceFeed; id: string; l
     <strong>{device.name[vi ? 0 : 1]}</strong>{deviceStatusText(device, locale).replace(/^./, c => c.toLocaleLowerCase())}</button></dd></div>;
 }
 
-export function HouseholdCard({ item, source, areaName, locale, onClose, workStatus, onWork, onDirections, helipad, team }: {
+export function HouseholdCard({ item, areaName, locale, onClose, workStatus, onWork, onDirections, helipad, team }: {
   item: HouseholdAccess;
-  source: [vi: string, en: string];
   areaName: (id: string) => string;
   locale: Locale;
   onClose: () => void;
@@ -37,7 +36,6 @@ export function HouseholdCard({ item, source, areaName, locale, onClose, workSta
   team?: { feed: DeviceFeed; id: string; onShow: (point: { x: number; y: number }) => void };
 }) {
   const vi = locale !== 'en', t = (a: string, b: string) => vi ? a : b, { cluster } = item;
-  const metres = item.access ? Math.round(item.access.distanceM / 10) * 10 : null;
   const cut = (entry: HouseholdCut) => entry.kind === 'area' ? areaName(entry.id)
     : entry.kind === 'road' ? t(`${entry.name[0]} bị chặn`, `${entry.name[1]} blocked`)
     : t(`Sạt lở dân báo lúc ${householdClock(entry.reportedAt, locale)}`, `Slide reported by residents at ${householdClock(entry.reportedAt, locale)}`);
@@ -48,15 +46,14 @@ export function HouseholdCard({ item, source, areaName, locale, onClose, workSta
     <dl>
       <div><dt>{t('Tín hiệu app', 'App signal')}</dt><dd>{t(`${cluster.devices} máy, lần cuối ${householdClock(cluster.lastSeenAt, locale)}`, `${cluster.devices} phones, last at ${householdClock(cluster.lastSeenAt, locale)}`)}</dd></div>
       <div><dt>{t('Đường ra bị cắt', 'Way out cut by')}</dt><dd><ul>{item.cutBy.map((entry, index) => <li key={index}>{cut(entry)}</li>)}</ul></dd></div>
-      {metres !== null && <div><dt>{t('Ra tới đường', 'To the road')}</dt><dd>{t(`${metres} m đi bộ`, `${metres} m on foot`)}</dd></div>}
+      <div><dt>{t('Tiếp cận', 'Access')}</dt><dd>{t('Chưa xác định lối vào', 'Access path unknown')}</dd></div>
       <div><dt>{t('Nhu cầu', 'Needs')}</dt><dd>{cluster.need ? cluster.need[vi ? 0 : 1] : t('Chưa rõ', 'Unknown')}</dd></div>
       {team && <TeamRow feed={team.feed} id={team.id} locale={locale} onShow={team.onShow}/>}
       {helipad && <div><dt>{t('Bãi đáp gần nhất', 'Nearest landing')}</dt><dd>{t(`${helipad.name[0]}, ${helipad.distanceKm.toLocaleString('vi-VN', { maximumFractionDigits: 1 })} km đường chim bay`, `${helipad.name[1]}, ${helipad.distanceKm.toLocaleString('en-GB', { maximumFractionDigits: 1 })} km straight line`)}</dd></div>}
     </dl>
     {(onWork || onDirections) && <div className="household-card-actions">
       {onWork && <button type="button" className="button primary" onClick={onWork}><UiIcon name="priority" size={16}/>{workStatus && workStatus !== 'pending' ? t(...workStatusText[workStatus]) : t('Giao việc cứu trợ', 'Assign relief')}</button>}
-      {onDirections && <button type="button" className="button" onClick={onDirections}><UiIcon name="route" size={16}/>{t('Chỉ đường tới', 'Directions')}</button>}
+      {onDirections && <button type="button" className="button" onClick={onDirections}><UiIcon name="route" size={16}/>{t('Đường tiếp cận', 'Road approach')}</button>}
     </div>}
-    <footer>{source[vi ? 0 : 1]}. {t('Chưa xác minh tại hiện trường.', 'Not verified in the field.')}</footer>
   </aside>;
 }

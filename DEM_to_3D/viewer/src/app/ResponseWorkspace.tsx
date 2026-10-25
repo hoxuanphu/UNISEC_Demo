@@ -1358,12 +1358,14 @@ export function ResponseWorkspace({
             )}
           </div>
 
-          {household&&presence&&!localArea&&!localRoad&&<HouseholdCard key={household.cluster.id} item={household} source={presence.source} areaName={householdAreaName} locale={locale} onClose={()=>setHouseholdId(null)}
+          {household&&presence&&!localArea&&!localRoad&&<HouseholdCard key={household.cluster.id} item={household} areaName={householdAreaName} locale={locale} onClose={()=>setHouseholdId(null)}
             workStatus={(()=>{const task=workTasks.find(item=>item.id===`household:${household.cluster.id}`);return task?workState(task,work.entries).status:undefined;})()}
             onWork={historical?undefined:()=>{setWorkTaskId(`household:${household.cluster.id}`);setActiveDialog('responseWork');}}
             onDirections={()=>{
-              // The huts as the destination; the responder picks where they set out from.
-              journey.setPoint('end',household.projected,`household:${household.cluster.id}`,household.cluster.name[locale==='vi'?0:1],localJourneyRoadIds);
+              // Directions end on the mapped approach, never at an inferred off-road connector.
+              const approach=householdTeams.find(team=>team.householdId===household.cluster.id)?.plan.path.points.at(-1)??household.access?.point;
+              if(!approach)return;
+              journey.setPoint('end',approach,`household:${household.cluster.id}`,locale==='vi'?'Điểm tiếp cận':'Approach point',localJourneyRoadIds);
               setHouseholdId(null);resetTools();journey.setOpen(true);
             }}
             helipad={(()=>{const pad=localNetwork.network?.places.filter(place=>place.kind==='hlz').map(place=>({place,d:Math.hypot(place.projected.x-household.projected.x,place.projected.y-household.projected.y)})).sort((a,b)=>a.d-b.d)[0];

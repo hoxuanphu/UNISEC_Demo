@@ -51,9 +51,6 @@ export function DataDialog({ incident, locale, updated, manifest, terrainMetadat
           <span>{t('Phiên bản dữ liệu', 'Dataset version')}</span>
           <strong>{manifest.datasetVersion}</strong>
         </div>}
-        {manifest?.dataKind === 'synthetic' && <p className="data-context data-review-status">
-          {t('Dữ liệu trình diễn.', 'Demonstration data.')}
-        </p>}
         <h3 className="data-section-title">{t('Dữ liệu và báo cáo', 'Data and reports')}</h3>
         <div className="data-source-list">
           {incident.sources.filter(source => source.id !== 'route').map(sourceRow)}

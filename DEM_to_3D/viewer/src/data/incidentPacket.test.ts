@@ -20,7 +20,7 @@ describe('incident data boundary', () => {
       expect(hazard.area).toBeUndefined();
       expect(hazard.src[0]).toContain('KML');
       const evidence=data.evidence.find(item=>item.hazardId===hazard.id)!;
-      expect(evidence.source[0]).toContain('demo');
+      expect(evidence.source[0]).toContain('KML');
       expect(evidence.finding[0]).not.toMatch(/Thấy lần đầu|ha/);
     }
   });

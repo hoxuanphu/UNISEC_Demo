@@ -26,7 +26,7 @@ const ZONE_M = 140;
  * People the resident app still places at isolated field huts: a small red disc with
  * a people glyph and a slow ring, the head count beside it. Zoomed out until discs
  * would touch, they merge into one total. The selected cluster also shows its
- * ground, the walk to its road and the slides the residents reported.
+ * ground and the slides the residents reported.
  */
 export function IsolatedHouseholds2D({ mapRef, metadata, households, selectedId, locale, onSelect, attended = '' }: {
   mapRef: MutableRefObject<L.Map | null>;
@@ -51,9 +51,7 @@ export function IsolatedHouseholds2D({ mapRef, metadata, households, selectedId,
     for (const { item, point } of isolated) {
       const selected = item.cluster.id === selectedId;
       if (selected) L.circle(point, { radius: ZONE_M, pane: mapPane('selection'), color: '#c62828', weight: 1.5, dashArray: '4 4', fill: false, interactive: false, className: 'household-zone' }).addTo(group);
-      if (selected && item.access) {
-        const road = at(item.access.point);
-        if (road) L.polyline([point, road], { pane: mapPane('selection'), color: '#c62828', weight: 2, dashArray: '4 5', opacity: .9, interactive: false }).addTo(group);
+      if (selected) {
         for (const cut of item.cutBy) {
           const place = cut.kind === 'report' ? at(cut.point) : null;
           if (place) L.marker(place, { pane: mapPane('selection'), interactive: false, keyboard: false, icon: L.divIcon({

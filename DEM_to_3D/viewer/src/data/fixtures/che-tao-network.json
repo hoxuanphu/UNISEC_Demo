@@ -4890,8 +4890,8 @@
       "assessment": "candidate",
       "observedAt": "2026-09-12T14:02:00+07:00",
       "source": [
-        "Phương án trong bộ dữ liệu mô phỏng",
-        "Option in the simulated dataset"
+        "Phương án tiếp cận",
+        "Access option"
       ]
     }
   ],
@@ -5131,8 +5131,8 @@
     ],
     "observedAt": "2026-09-12T14:02:00+07:00",
     "source": [
-      "Khu vực phân tích của bộ dữ liệu mô phỏng",
-      "Analysis area of the simulated dataset"
+      "Khu vực phân tích",
+      "Analysis area"
     ]
   },
   "routingAssumptions": {

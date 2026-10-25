@@ -8,6 +8,7 @@ import { assessHouseholdAccess } from './householdIsolation';
 import { validateResidentPresence } from './residentPresence';
 import { householdWork } from './householdWork';
 import { householdRescues } from './householdRescue';
+import { nearestRoadAnchor } from '../routes/selectedRoadJourney';
 import { createDeviceFeed, deviceTimeLapse } from '../tracking/deviceFeed';
 
 const network = withLocalRoadConditions(validateLocalNetwork(data));
@@ -60,16 +61,21 @@ describe('relief work for isolated households', () => {
 
 describe('rescue teams to isolated huts', () => {
   const rescues = householdRescues(network, assessHouseholdAccess(network, presence.clusters));
-  it('sends the two teams to the huts with a stated need, by road never blocked, then on foot', () => {
+  it('approaches priority households on mapped roads and waits before the cut', () => {
     expect(rescues.map(rescue => rescue.householdId)).toEqual(['HH-03', 'HH-01']);
-    for (const { plan, rideM, footM } of rescues) {
+    for (const { plan, rideM } of rescues) {
       expect(plan.role).toBe('rescue');
       expect(plan.road.status).not.toBe('blocked');
       expect(network.roads.some(road => road.id === plan.road.id)).toBe(true);
       expect(rideM).toBeGreaterThan(500);
-      expect(footM).toBeGreaterThan(200);
-      expect(plan.path.points.at(-1)).toEqual(assessHouseholdAccess(network, presence.clusters).find(item => `household:${item.cluster.id}` === plan.targetId)!.projected);
-      expect(plan.script!.legs.map(leg => leg.state)).toEqual(['dispatching', 'responding', 'crossing', 'on-site', 'escorting', 'evacuated', 'moving']);
+      const hut=assessHouseholdAccess(network,presence.clusters).find(item=>`household:${item.cluster.id}`===plan.targetId)!.projected;
+      expect(Math.hypot(plan.path.points.at(-1)!.x-hut.x,plan.path.points.at(-1)!.y-hut.y)).toBeGreaterThan(15);
+      const mapped=network.roads.filter(road=>road.status!=='blocked'&&!road.landslideAreaId);
+      for(let i=1;i<plan.path.points.length;i+=Math.max(1,Math.floor(plan.path.points.length/16))){
+        const a=plan.path.points[i-1],b=plan.path.points[i];
+        for(const point of [a,b,{x:(a.x+b.x)/2,y:(a.y+b.y)/2}])expect(nearestRoadAnchor(mapped,point,5),plan.id).not.toBeNull();
+      }
+      expect(plan.script!.legs.map(leg => leg.state)).toEqual(['dispatching', 'responding', 'waiting', 'moving']);
       expect(plan.script!.legs.every((leg, i, legs) => !i || leg.until > legs[i - 1].until)).toBe(true);
     }
   });
@@ -82,6 +88,6 @@ describe('rescue teams to isolated huts', () => {
       expect(Math.abs(now.stationM-previous)).toBeLessThanOrEqual(7*deviceTimeLapse*.25+.0001);previous=now.stationM;
       if (states.at(-1) !== state) states.push(state);
     }
-    expect(states.slice(0, 9)).toEqual(['dispatching', 'responding', 'crossing', 'on-site', 'escorting', 'evacuated', 'moving', 'arrived', 'dispatching']);
+    expect(states.slice(0, 6)).toEqual(['dispatching', 'responding', 'waiting', 'moving', 'arrived', 'dispatching']);
   });
 });

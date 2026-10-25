@@ -14,7 +14,7 @@ export type HouseholdAccess = {
   projected: Point;
   /** Every mapped road out of the huts crosses a landslide or a blocked section. */
   isolated: boolean;
-  /** Nearest mapped road, reached on foot from the huts. */
+  /** Nearest mapped road by distance; no access trail is established. */
   access: { roadId: string; point: Point; distanceM: number } | null;
   /** Nearest first; empty unless isolated. */
   cutBy: HouseholdCut[];
