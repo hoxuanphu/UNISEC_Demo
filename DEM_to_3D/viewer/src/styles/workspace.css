@@ -154,7 +154,7 @@ h3 {
 
 @media(hover:hover) {
   /* Filled buttons keep their colour on hover; they darken instead (below). */
-  .button:not(.primary, .soft):hover:not(:disabled), .icon-button:hover:not(:disabled) { background:var(--ws-bg); }
+  .button:not(.primary, .soft, .citizen-primary):hover:not(:disabled), .icon-button:hover:not(:disabled) { background:var(--ws-bg); }
   .button.soft:hover:not(:disabled) { filter: brightness(.96); }
 }
 

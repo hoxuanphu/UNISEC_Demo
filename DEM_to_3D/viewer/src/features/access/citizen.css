@@ -1083,3 +1083,7 @@
 
 /* The layer picker owns the map until it closes; route actions remain available afterward. */
 .citizen-map:has(.citizen-map-layers[open]) :is(.citizen-map-summary,.citizen-proposal-bar) { visibility:hidden;pointer-events:none; }
+
+@media(hover:hover) {
+ .citizen-workspace .button.citizen-primary:hover:not(:disabled) { background:var(--primary); color:var(--on-primary); filter:brightness(.94); }
+}

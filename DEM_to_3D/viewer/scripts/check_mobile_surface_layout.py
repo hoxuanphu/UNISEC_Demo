@@ -11,6 +11,11 @@ def run(url,chrome=None,captures=None):
   try:
    page.goto(url+'/?offline=1&map=2d&lang=en');page.get_by_role('button',name='Enter app',exact=True).click()
    card=page.locator('.citizen-official-guidance');expect(card).to_be_visible(timeout=30000)
+   start=card.get_by_role('button',name='Start',exact=True)
+   before=start.evaluate('n=>[getComputedStyle(n).backgroundColor,getComputedStyle(n).color]');start.hover();page.wait_for_timeout(160)
+   assert start.evaluate('n=>[getComputedStyle(n).backgroundColor,getComputedStyle(n).color]')==before,'Primary button loses contrast on hover'
+   page.mouse.move(1,1)
+
    for width,height in [(390,844),(320,700)]:
     page.set_viewport_size({'width':width,'height':height});page.get_by_label('Map display',exact=True).click()
     expect(card).to_be_hidden();expect(page.locator('.citizen-map-layers fieldset')).to_be_visible()

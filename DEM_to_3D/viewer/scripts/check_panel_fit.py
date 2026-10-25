@@ -74,6 +74,10 @@ def run(url,chrome=None,captures=None,map_mode='2d'):
             case.locator('header .icon-button').click()
             if overview.get_by_role('button',name='Show overview map',exact=True).is_visible():
                 overview.get_by_role('button',name='Show overview map',exact=True).click()
+            if case.count():case.get_by_role('button',name='Close',exact=True).click()
+            expect(case).to_have_count(0)
+            if overview.locator('.overview-toggle').get_attribute('aria-expanded')!='true':overview.get_by_role('button',name='Show overview map',exact=True).click()
+            expect(overview.locator('.map-overview-surface')).to_be_visible()
             heading=overview.locator('.overview-title');at=heading.bounding_box()
             page.mouse.move(at['x']+12,at['y']+12);page.mouse.down();page.mouse.move(at['x']-108,at['y']-68,steps=8);page.mouse.up()
             fixed=overview.locator('.overview-head').bounding_box()
