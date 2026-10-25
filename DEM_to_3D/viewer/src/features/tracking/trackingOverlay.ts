@@ -59,7 +59,7 @@ export function createTrackingOverlay(host:HTMLElement,feed:DeviceFeed,locale:Lo
     const width=card.offsetWidth,height=card.offsetHeight;
     const positions=[{x:at.x+24,y:at.y+12},{x:at.x-width-24,y:at.y+12},{x:at.x-width/2,y:at.y-height-24},{x:12,y:12}];
     const parent=host.getBoundingClientRect();
-    const obstacles=Array.from(host.closest('.map-area')?.querySelectorAll<HTMLElement>('.road-journey-panel,.local-area-card,#response-details,.citizen-map-summary,.layers-panel,.map-bottom-bar,.map-toolbar,.profile-panel')??[]).filter(node=>node.getClientRects().length).map(node=>node.getBoundingClientRect());
+    const obstacles=Array.from(host.closest('.map-area')?.querySelectorAll<HTMLElement>('.road-journey-panel,.household-card,.local-road-card,.local-area-card,#response-details,.citizen-map-summary,.layers-panel,.map-bottom-bar,.map-toolbar,.map-tools,.map-advanced-tools,.profile-panel')??[]).filter(node=>node.getClientRects().length).map(node=>node.getBoundingClientRect());
     const choice=positions.find(p=>p.x>=8&&p.y>=8&&p.x+width<=host.clientWidth-8&&p.y+height<=host.clientHeight-8&&!obstacles.some(box=>p.x+parent.left<box.right&&p.x+parent.left+width>box.left&&p.y+parent.top<box.bottom&&p.y+parent.top+height>box.top))??{x:12,y:Math.max(8,host.clientHeight-height-12)};
     const left=`${Math.round(choice.x)}px`,top=`${Math.round(choice.y)}px`;
     if(card.style.left!==left)card.style.left=left;if(card.style.top!==top)card.style.top=top;

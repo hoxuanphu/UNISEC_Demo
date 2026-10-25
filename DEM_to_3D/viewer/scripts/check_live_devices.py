@@ -70,6 +70,7 @@ def run(url,chrome=None,captures=None):
         assert devices.locator('.tracked-device-dot').evaluate_all('nodes=>nodes.every(n=>n.getBoundingClientRect().width<=14)')
         assert devices.locator('.tracked-device-dot').evaluate_all('nodes=>nodes.every(n=>getComputedStyle(n).backgroundImage==="none")'), 'Role colours must remain solid even in mixed groups'
         def anchored_symbols():
+            expect(page.locator('.tracked-devices')).not_to_have_class(re.compile(r'\bis-zooming\b'),timeout=10000)
             assert page.locator('.tracked-devices svg,.tracked-device-leaders').count()==0
             assert devices.evaluate_all('''nodes=>nodes.filter(n=>!n.hidden).every(n=>{
                 const b=n.getBoundingClientRect(),host=n.parentElement.getBoundingClientRect();

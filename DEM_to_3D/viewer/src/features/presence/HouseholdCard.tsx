@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import type { Locale } from '../../types/dear';
 import type { DeviceFeed } from '../tracking/deviceFeed';
 import { deviceStatusText } from '../tracking/trackingOverlay';
@@ -19,7 +19,7 @@ function TeamRow({ feed, id, locale, onShow }: { feed: DeviceFeed; id: string; l
   if (!device) return null;
   const vi = locale !== 'en';
   return <div><dt>{vi ? 'Đội cứu hộ' : 'Rescue team'}</dt><dd><button type="button" className="text-button household-team" onClick={() => { const current=feed.getSnapshot().find(item=>item.id===id);if(current)onShow(current.point); }}>
-    <strong>{device.name[vi ? 0 : 1]}</strong>{deviceStatusText(device, locale).replace(/^./, c => c.toLocaleLowerCase())}</button></dd></div>;
+    <strong title={device.name[vi ? 0 : 1]}>{device.id}</strong><span>{deviceStatusText(device, locale)}</span></button></dd></div>;
 }
 
 export function HouseholdCard({ item, areaName, locale, onClose, workStatus, onWork, onDirections, helipad, team }: {
@@ -36,19 +36,28 @@ export function HouseholdCard({ item, areaName, locale, onClose, workStatus, onW
   team?: { feed: DeviceFeed; id: string; onShow: (point: { x: number; y: number }) => void };
 }) {
   const vi = locale !== 'en', t = (a: string, b: string) => vi ? a : b, { cluster } = item;
+  useEffect(() => {
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented || document.querySelector('[role="dialog"],.leaflet-popup,.tracked-device-card:not([hidden])')) return;
+      event.preventDefault(); event.stopPropagation(); onClose();
+    };
+    document.addEventListener('keydown', escape);
+    return () => document.removeEventListener('keydown', escape);
+  }, [onClose]);
   const cut = (entry: HouseholdCut) => entry.kind === 'area' ? areaName(entry.id)
     : entry.kind === 'road' ? t(`${entry.name[0]} bị chặn`, `${entry.name[1]} blocked`)
     : t(`Sạt lở dân báo lúc ${householdClock(entry.reportedAt, locale)}`, `Slide reported by residents at ${householdClock(entry.reportedAt, locale)}`);
+  const cuts = [...new Set(item.cutBy.map(cut))];
   return <aside className="household-card" aria-label={t('Hộ bị cô lập', 'Isolated households')}>
-    <header><div><small>{t('Còn người, bị cô lập', 'People present, cut off')}</small><h2>{cluster.name[vi ? 0 : 1]}</h2></div>
+    <header><div><small>{t('Hộ bị cô lập', 'Isolated households')}</small><h2>{cluster.name[vi ? 0 : 1]}</h2></div>
       <button type="button" className="icon-button" aria-label={t('Đóng', 'Close')} onClick={onClose}><UiIcon name="close"/></button></header>
     <p className="household-card-people"><strong>{cluster.people}</strong><span>{t(`người, ${cluster.households} hộ`, `people, ${cluster.households} households`)}</span></p>
     <dl>
       <div><dt>{t('Tín hiệu app', 'App signal')}</dt><dd>{t(`${cluster.devices} máy, lần cuối ${householdClock(cluster.lastSeenAt, locale)}`, `${cluster.devices} phones, last at ${householdClock(cluster.lastSeenAt, locale)}`)}</dd></div>
-      <div><dt>{t('Đường ra bị cắt', 'Way out cut by')}</dt><dd><ul>{item.cutBy.map((entry, index) => <li key={index}>{cut(entry)}</li>)}</ul></dd></div>
+      <div><dt>{t('Đường ra bị cắt', 'Way out cut by')}</dt><dd><ul>{cuts.length ? cuts.map(label => <li key={label}>{label}</li>) : <li>{t('Chưa rõ', 'Unknown')}</li>}</ul></dd></div>
       <div><dt>{t('Tiếp cận', 'Access')}</dt><dd>{t('Chưa xác định lối vào', 'Access path unknown')}</dd></div>
       <div><dt>{t('Nhu cầu', 'Needs')}</dt><dd>{cluster.need ? cluster.need[vi ? 0 : 1] : t('Chưa rõ', 'Unknown')}</dd></div>
-      {team && <TeamRow feed={team.feed} id={team.id} locale={locale} onShow={team.onShow}/>}
+      {team && <TeamRow feed={team.feed} id={team.id} locale={locale} onShow={point => { onClose(); team.onShow(point); }}/>}
       {helipad && <div><dt>{t('Bãi đáp gần nhất', 'Nearest landing')}</dt><dd>{t(`${helipad.name[0]}, ${helipad.distanceKm.toLocaleString('vi-VN', { maximumFractionDigits: 1 })} km đường chim bay`, `${helipad.name[1]}, ${helipad.distanceKm.toLocaleString('en-GB', { maximumFractionDigits: 1 })} km straight line`)}</dd></div>}
     </dl>
     {(onWork || onDirections) && <div className="household-card-actions">
