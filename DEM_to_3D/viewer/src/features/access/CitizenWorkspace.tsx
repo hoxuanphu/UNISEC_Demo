@@ -8,6 +8,7 @@ import { useNearestTeam } from '../tracking/nearestTeam';
 import { teamStatus } from '../tracking/RescueTeams';
 import { MapCompass } from '../map/MapCompass';
 import { useDeviceHeading } from '../../shared/hooks/useDeviceHeading';
+import { useMovementHeading } from '../tracking/useMovementHeading';
 import {useResidentLocation} from '../tracking/useResidentLocation';
 import { CitizenMovementControl } from './CitizenMovementControl';
 import { useRouteSimulation } from '../routes/useRouteSimulation';
@@ -189,6 +190,9 @@ export function CitizenWorkspace({
   const rescueTeams=useMemo(()=>teamFeed?rescueOnly(teamFeed):null,[teamFeed]);
   const mapFeed=useMemo(()=>mergeLocationFeeds(rescueTeams,residentLocation),[rescueTeams,residentLocation]);
   const heading=useDeviceHeading();
+  // The compass when the phone has one, otherwise the direction of travel.
+  const movement=useMovementHeading(residentLocation,residentLocation?residentDeviceId:null);
+  const selfHeading=heading.heading??movement;
   const selfPoint=()=>residentLocation?.getSnapshot()[0]?.point??(gps.location?roadProjected(gps.location.latitude,gps.location.longitude):null);
   const nearestTeam=useNearestTeam(rescueTeams,selfPoint,residentLocation);
   const currentResidentPosition=()=>{
@@ -812,7 +816,7 @@ export function CitizenWorkspace({
         <section className="map-area citizen-map" aria-label={m.communityMap}>
           {routeSimulation ? <CitizenMovementControl simulation={routeSimulation} locale={locale}/> : <div className="citizen-map-context"><UiIcon name="map" size={16}/><span>{picking || journey.picking ? t('Chọn vị trí', 'Choose a location') : roadMode === 'local' ? t('Đường trong xã', 'Local roads') : roadMode === 'village' ? t('Đường về bản', 'Village access') : t('Tìm đường', 'Directions')}</span></div>}
           <div className="map-canvas">
-            <Map2D selectedDeviceId={residentLocation?residentDeviceId:null} selfDeviceId={residentLocation?residentDeviceId:null} selfHeading={heading.heading} deviceFeed={mapFeed} routeSimulation={routeSimulation}
+            <Map2D selectedDeviceId={residentLocation?residentDeviceId:null} selfDeviceId={residentLocation?residentDeviceId:null} selfHeading={selfHeading} deviceFeed={mapFeed} routeSimulation={routeSimulation}
               contextGeometry={localAreas} contextMinZoom={12} selectedContextAreaId={localAreaId ?? inspectedRoad?.landslideAreaId}
               contextAlwaysVisibleAreaIds={linkedAreaIds} roadAreaLinks={roadAreaLinks} showRoadAreaLinks={layerOptions.landslide}
               onSelectContextArea={(id) => { setMapSelection({kind: 'localArea', id: id}); }}

@@ -29,6 +29,6 @@ export function TrackedDevices2D({map,feed,locale,interactive,onRoad,onDevice,se
     return()=>{map.off('zoomanim',animate);map.off('zoomend',finish);map.off('move zoom resize viewreset',overlay.update);overlay.dispose();runtime.current=null;};
   },[map,feed,locale,selfId]);
   useEffect(()=>{runtime.current?.update();},[interactive,selectedId]);
-  useEffect(()=>{runtime.current?.setHeading(heading);},[heading,feed,selfId]);
+  useEffect(()=>{runtime.current?.setHeading(heading);},[heading,feed,selfId,locale,map]);
   return null;
 }
