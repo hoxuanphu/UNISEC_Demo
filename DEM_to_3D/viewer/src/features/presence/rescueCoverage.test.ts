@@ -17,6 +17,13 @@ describe('rescue coverage', () => {
     // A team arriving beside the stranded resident and the request covers both.
     expect(unreachedNeeds(coverageSpots({ households: [], devices: [device('CH-01', 'rescue', 3000), device('ND-05', 'resident', 3000, { closureRoadId: 'r', state: 'waiting' })], trail: [], bases: [], requests: [{ x: 3010, y: 0 }] }))).toBe(0);
   });
+  it('keeps cut-off and unverified huts distinct from a nearby road patrol',()=>{
+    const spots=coverageSpots({households:[hut('cut',0,'cut-off'),hut('assigned',50,'team'),hut('unknown',100,'unverified'),hut('done',200,'rescued')],devices:[device('team','rescue',0)],trail:[{x:0,y:0}],bases:[],requests:[]});
+    expect(unreachedNeeds(spots)).toBe(2);
+    expect(spots.filter(spot=>spot.accessPending).map(spot=>spot.point.x)).toEqual([0,50,100]);
+    const completed=coverageSpots({households:[hut('cut',0,'rescued')],devices:[],trail:[],bases:[],requests:[]});
+    expect(completed.some(spot=>spot.accessPending)).toBe(false);expect(unreachedNeeds(completed)).toBe(0);
+  });
   it('retains the covered ground when a dispatch or guidance change replaces the feed',()=>{
     const a=createRescueTrail({getSnapshot:()=>[device('a','rescue',0)],subscribe:()=>()=>undefined});a.dispose();
     const b=createRescueTrail({getSnapshot:()=>[device('a','rescue',1000)],subscribe:()=>()=>undefined},a.points());

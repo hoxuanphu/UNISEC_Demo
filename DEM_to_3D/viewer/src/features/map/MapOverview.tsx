@@ -94,7 +94,12 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
   },[enabled,expanded,large,raster]);
 
   const t = (vi: string, en: string) => locale === 'vi' ? vi : en;
-  const waiting = useSyncExternalStore(coverage?.subscribe ?? noSubscription, () => coverage ? unreachedNeeds(coverage.spots()) : 0);
+  const accessCounts=useSyncExternalStore(coverage?.subscribe??noSubscription,()=>{
+    const spots=coverage?.spots()??[];
+    return JSON.stringify([unreachedNeeds(spots),spots.filter(spot=>spot.kind==='unverified').length]);
+  });
+  const [waiting,unverified]=JSON.parse(accessCounts) as [number,number];
+  const accessSummary=[waiting?t(`${waiting} điểm chờ tiếp cận`,`${waiting} awaiting access`):'',unverified?t(`${unverified} điểm chưa xác minh`,`${unverified} unverified`):''].filter(Boolean).join(', ');
   useEffect(() => { fogRef.current?.draw(); }, [shownLayers]);
   useEffect(() => {
     const main = mapRef?.current, surface = host.current, container = root.current;
@@ -208,7 +213,7 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
     </div>}
     {expanded && coverage && <div className="overview-coverage">
       <p className="overview-meaning"><i aria-hidden="true"/>{t('Đội đã tiếp cận', 'Team coverage')}</p>
-      <p className={waiting ? 'is-alert' : undefined}>{waiting ? t(`${waiting} điểm chờ tiếp cận`, `${waiting} awaiting access`) : t('0 điểm ngoài vùng tiếp cận', '0 outside team coverage')}</p>
+      <p className={waiting ? 'is-alert' : undefined}>{accessSummary||t('Không còn điểm chờ xác minh tiếp cận','No pending access checks')}</p>
       {coverage.onOpenLayers ? <div className="overview-key" aria-label={t('Chú giải cứu hộ', 'Rescue legend')}>
         {chips.filter(([key]) => shownLayers[key]).map(([key,label]) => <span data-layer={key} key={key}><i aria-hidden="true"/>{label}</span>)}
       </div> :       <fieldset aria-label={t('Lớp vùng cứu hộ', 'Coverage layers')}>

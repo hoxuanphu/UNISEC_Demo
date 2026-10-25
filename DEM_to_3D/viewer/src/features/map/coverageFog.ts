@@ -35,6 +35,15 @@ export function createCoverageCanvas(host: HTMLElement, at: (point: Point) => Po
         context.fillStyle = gradient; context.beginPath(); context.arc(p.x, p.y, r, 0, Math.PI * 2); context.fill();
       }
       context.globalCompositeOperation = 'source-over';
+      // A road patrol nearby does not establish access across a cut to the huts.
+      // Keep those last-approach areas shaded until access/rescue is recorded.
+      for(const spot of all){
+        if(!spot.accessPending)continue;
+        const p=at(spot.point),r=radius(spot.point,spot.radiusM);if(!p||!r)continue;
+        const gradient=context.createRadialGradient(p.x,p.y,r*.25,p.x,p.y,r);
+        gradient.addColorStop(0,`rgba(10,16,14,${opacity})`);gradient.addColorStop(1,'rgba(10,16,14,0)');
+        context.fillStyle=gradient;context.beginPath();context.arc(p.x,p.y,r,0,Math.PI*2);context.fill();
+      }
     }
     if (!signals) return;
     if (shown.rescued) for (const point of rescued()) {
@@ -57,7 +66,7 @@ export function createCoverageCanvas(host: HTMLElement, at: (point: Point) => Po
     }
     if (shown.team) for (const spot of all) { if (spot.kind !== 'team') continue; const p = at(spot.point); if (p) dot(context, p.x, p.y, 3.5, colour.team); }
   };
-  return {draw,dispose:()=>canvas.remove()};
+  return {element:canvas,draw,dispose:()=>canvas.remove()};
 }
 
 export function addCoverageFog(map: L.Map, toLatLng: (point:Point)=>L.LatLng|null,
@@ -66,7 +75,16 @@ export function addCoverageFog(map: L.Map, toLatLng: (point:Point)=>L.LatLng|nul
     if(typeof map.getZoom()!=='number')return null;
     const at=toLatLng(point);return at?map.latLngToContainerPoint(at):null;
   },spots,layers,rescued,signals,signals?.6:.32);
-  const draw=()=>{if(typeof map.getZoom()==='number')painter.draw();};
+  if(!signals){
+    // Shade imagery, leaving road conditions and all point symbols above it.
+    const pane=map.getPane('dear-rescue-coverage')??map.createPane('dear-rescue-coverage');
+    pane.style.zIndex='250';pane.append(painter.element);
+  }
+  const draw=()=>{
+    if(typeof map.getZoom()!=='number')return;
+    if(!signals){const offset=map.containerPointToLayerPoint([0,0]);painter.element.style.transform=`translate(${offset.x}px,${offset.y}px)`;}
+    painter.draw();
+  };
   map.on('load move zoom resize viewreset',draw);draw();
   return {draw,dispose:()=>{map.off('load move zoom resize viewreset',draw);painter.dispose();}};
 }

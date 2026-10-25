@@ -108,6 +108,7 @@ jobs:
           python scripts/check_live_devices.py --url http://127.0.0.1:5213
           python scripts/check_resident_locations.py --url http://127.0.0.1:5213
           python scripts/check_households.py --url http://127.0.0.1:5213
+          python scripts/check_coverage_cases.py --url http://127.0.0.1:5213
           python scripts/check_role_presentation.py --url http://127.0.0.1:5213
           python scripts/check_map_symbol_consistency.py --url http://127.0.0.1:5213
           python scripts/check_dataset_selection.py --url http://127.0.0.1:5213

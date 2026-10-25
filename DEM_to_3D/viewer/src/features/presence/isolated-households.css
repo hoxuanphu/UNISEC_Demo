@@ -72,5 +72,5 @@
 
 /* The same symbols placed in screen space over the 3D view. */
 .household-overlay { position: absolute; inset: 0; z-index: auto; overflow: hidden; pointer-events: none; }
-.household-overlay .household-alert { position: absolute; left: 0; top: 0; width: 22px; height: 22px; padding: 0; pointer-events: auto; }
+.household-overlay .household-alert { z-index: 2; position: absolute; left: 0; top: 0; width: 22px; height: 22px; padding: 0; pointer-events: auto; }
 .flyover-active .household-overlay { visibility: hidden; }

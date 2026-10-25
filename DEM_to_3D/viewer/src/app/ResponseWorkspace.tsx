@@ -160,7 +160,7 @@ const defaultLayers = {
   localRoads:true,
   devices:true,
   households:true,
-  rescueCoverage:false,
+  rescueCoverage:true,
   status: true,
   crossings: true,
   communities: true,
