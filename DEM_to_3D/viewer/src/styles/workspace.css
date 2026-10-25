@@ -153,7 +153,9 @@ h3 {
 }
 
 @media(hover:hover) {
-  .button:hover:not(:disabled), .icon-button:hover:not(:disabled) { background:var(--ws-bg); }
+  /* Filled buttons keep their colour on hover; they darken instead (below). */
+  .button:not(.primary, .soft):hover:not(:disabled), .icon-button:hover:not(:disabled) { background:var(--ws-bg); }
+  .button.soft:hover:not(:disabled) { filter: brightness(.96); }
 }
 
 .button.primary {
@@ -162,7 +164,7 @@ h3 {
   border-color: var(--primary);
 }
 
-.button.primary:hover {
+.button.primary:hover:not(:disabled) {
   filter: brightness(0.92);
 }
 

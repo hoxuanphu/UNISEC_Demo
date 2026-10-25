@@ -258,7 +258,7 @@ export function ObservationEditor({
               );
           }}
         >
-          <VoiceRecorder voice={voice} onChange={setVoice} onBusyChange={setVoiceBusy} locale={locale} active={editing} disabled={busy||disabled}/>
+          {/* Same order as the report form: photos, what was seen, a recording, where. */}
           <fieldset disabled={busy || disabled}>
             <FileDropZone
               icon="image"
@@ -285,6 +285,17 @@ export function ObservationEditor({
                 setPhotos((value) => value.filter((p) => p.id !== id))
               }
             />
+            <label className="geodata-field">
+              {t('Ghi chú hiện trường', 'Field note')}
+              <textarea
+                aria-label={t('Ghi chú hiện trường', 'Field note')}
+                maxLength={2000}
+                rows={3}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
+            </label>
+            <VoiceRecorder voice={voice} onChange={setVoice} onBusyChange={setVoiceBusy} locale={locale} active={editing} disabled={busy||disabled}/>
             {locationControl}
             <details className="field-extra">
               <summary>{t('Thông tin bổ sung', 'More information')}</summary>
@@ -301,16 +312,6 @@ export function ObservationEditor({
                     </option>
                   ))}
                 </select>
-              </label>
-              <label className="geodata-field">
-                {t('Ghi chú hiện trường', 'Field note')}
-                <textarea
-                  aria-label={t('Ghi chú hiện trường', 'Field note')}
-                  maxLength={2000}
-                  rows={3}
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                />
               </label>
               <label className="geodata-field">
                 {t('Thời gian ghi nhận', 'Observation time')}

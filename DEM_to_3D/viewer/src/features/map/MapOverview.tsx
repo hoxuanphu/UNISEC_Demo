@@ -1,3 +1,4 @@
+import { useMapSurfaceClearance } from './useMapSurfaceClearance';
 import { useFloatingPanel } from '../../shared/hooks/useFloatingPanel';
 import { localMapSource } from './localMapSource';
 import { useEffect, useRef, useState, useSyncExternalStore, type MutableRefObject } from 'react';
@@ -21,6 +22,7 @@ type Props = {
   viewControlRef?: MutableRefObject<ViewControls | null>;
   viewVersion?: number;
   enabled: boolean;
+  onActivate?:()=>void;
   locale: Locale;
   area?: Array<[number, number]>;
   /** Rescue coverage: the overview then frames the commune and shows the fog of war. */
@@ -33,8 +35,14 @@ const latLng = (point: { x: number; y: number }) => { const g = roadGeographic(p
 
 /** Local overview: reuses the raster and tracks the actual 2D map bounds. With rescue coverage it
  * also shows where teams have been and who still waits, each as a layer that can be switched. */
-export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl, onNavigate, viewControlRef, viewVersion, enabled, locale, area = emptyArea, coverage }: Props): JSX.Element | null {
+export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl, onNavigate, viewControlRef, viewVersion, enabled, onActivate, locale, area = emptyArea, coverage }: Props): JSX.Element | null {
   const [expanded, setExpanded] = useState(() => Boolean(coverage) && window.matchMedia('(min-width: 1100px) and (min-height: 650px)').matches);
+  const expansionChosen=useRef(false),hadCoverage=useRef(!!coverage);
+  useEffect(()=>{
+    if(coverage&&!hadCoverage.current&&!expansionChosen.current&&window.matchMedia('(min-width: 1100px) and (min-height: 650px)').matches)setExpanded(true);
+    hadCoverage.current=!!coverage;
+  },[coverage]);
+
   const [generatedRaster, setGeneratedRaster] = useState<Raster2D | null>(null);
   const [rasterError, setRasterError] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -58,7 +66,8 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
   const layersRef = useRef(shownLayers); layersRef.current = shownLayers;
   const fogRef = useRef<{ draw: () => void } | null>(null);
   const root = useRef<HTMLElement>(null), host = useRef<HTMLDivElement>(null);
-  const floating=useFloatingPanel(root,'overview-map',enabled,'fit');
+  const floating=useFloatingPanel(root,'overview-map',enabled&&!!(raster||terrain),'fit');
+  const autoCompact=useMapSurfaceClearance(root,enabled,expanded,large,!!raster);
   useEffect(()=>{
     const node=root.current,area=node?.closest('.map-area');if(!node||!area||!enabled)return;
     const legend=area.querySelector<HTMLElement>('.map-bottom-bar');
@@ -167,10 +176,10 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
   return <section ref={root} className="map-overview" data-expanded={expanded} data-coverage={!!coverage || undefined} data-large={large || undefined} aria-label={t('Bản đồ tổng quan', 'Overview map')}>
     <div className="overview-head floating-panel-handle" {...floating} onDoubleClickCapture={floating.onDoubleClick} tabIndex={0} role="group" aria-label={t('Vị trí bản đồ tổng quan','Overview position')}>
       <span className="overview-title"><UiIcon name="area" size={15}/>{t('Tổng quan','Overview')}</span>
-      <button className="overview-toggle" aria-expanded={expanded} aria-controls="overview-map-surface"
-        aria-label={expanded ? t('Thu gọn bản đồ tổng quan', 'Hide overview map') : t('Mở bản đồ tổng quan', 'Show overview map')}
-        onClick={() => setExpanded(value => !value)}>
-        <UiIcon name={expanded ? 'collapse' : 'expand'} size={14}/>
+      <button className="overview-toggle" aria-expanded={expanded&&!autoCompact} aria-controls="overview-map-surface"
+        aria-label={expanded&&!autoCompact ? t('Thu gọn bản đồ tổng quan', 'Hide overview map') : t('Mở bản đồ tổng quan', 'Show overview map')}
+        onClick={() => {expansionChosen.current=true;if(autoCompact){onActivate?.();setExpanded(true);}else setExpanded(value=>!value);}}>
+        <UiIcon name={expanded&&!autoCompact ? 'collapse' : 'expand'} size={14}/>
       </button>
       {expanded && coverage && <button className="icon-button overview-size" aria-pressed={large} aria-label={large ? t('Thu nhỏ', 'Smaller') : t('Phóng to', 'Larger')} title={large ? t('Thu nhỏ', 'Smaller') : t('Phóng to', 'Larger')}
         onClick={() => setLarge(value => !value)}><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d={large ? "M3 8h5V3M17 12h-5v5M8 8 2 2m10 10 6 6" : "M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6"}/></svg></button>}
@@ -184,7 +193,7 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
     </div>}
     {expanded && coverage && <div className="overview-coverage">
       <p className="overview-meaning"><i aria-hidden="true"/>{t('Đội đã tiếp cận', 'Team coverage')}</p>
-      <p className={waiting ? 'is-alert' : undefined}>{waiting ? t(`${waiting} điểm chờ tiếp cận`, `${waiting} awaiting access`) : t('Đã tiếp cận các điểm cầu cứu', 'All requests reached')}</p>
+      <p className={waiting ? 'is-alert' : undefined}>{waiting ? t(`${waiting} điểm chờ tiếp cận`, `${waiting} awaiting access`) : t('0 điểm ngoài vùng tiếp cận', '0 outside team coverage')}</p>
       {coverage.onOpenLayers ? <div className="overview-key" aria-label={t('Chú giải cứu hộ', 'Rescue legend')}>
         {chips.filter(([key]) => shownLayers[key]).map(([key,label]) => <span data-layer={key} key={key}><i aria-hidden="true"/>{label}</span>)}
       </div> :       <fieldset aria-label={t('Lớp vùng cứu hộ', 'Coverage layers')}>

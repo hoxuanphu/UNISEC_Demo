@@ -1,10 +1,15 @@
 import { useLayoutEffect, useRef, type RefObject, type PointerEvent, type KeyboardEvent, type MouseEvent } from 'react';
 
 type Position = { x: number; y: number };
+/** Keep a panel inside the map. Near the top it stays clear of the map buttons on the right;
+ * lower down it may go right to the edge, as a docked overview does. */
 export function constrainPanel(position: Position, width: number, height: number, panelWidth: number, panelHeight: number, minimumTop = 64): Position {
-  return { x: Math.max(8, Math.min(position.x, Math.max(8, width - panelWidth - 64))),
-    y: Math.max(minimumTop, Math.min(position.y, Math.max(minimumTop, height - panelHeight - 32))) };
+  const y = Math.max(minimumTop, Math.min(position.y, Math.max(minimumTop, height - panelHeight - 32)));
+  const right = y >= minimumTop + RIGHT_TOOLS_PX ? 8 : 64;
+  return { x: Math.max(8, Math.min(position.x, Math.max(8, width - panelWidth - right))), y };
 }
+/** Height of the compass and buttons down the map's right edge, below the toolbar. */
+const RIGHT_TOOLS_PX = 96;
 
 /** Preserve the heading position as content grows; use the space below it for scrolling. */
 export function anchoredPanel(position: Position, width: number, height: number, panelWidth: number, minimumTop = 64) {
@@ -69,12 +74,13 @@ export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enab
     onPointerMove: (event: PointerEvent<HTMLElement>) => {
       if (!drag.current || drag.current.pointerId !== event.pointerId) return;
       const node = root.current!, bounds = node.closest('.map-area')!.getBoundingClientRect();
-      position.current = constrainPanel({ x: drag.current.origin.x + event.clientX - drag.current.client.x, y: drag.current.origin.y + event.clientY - drag.current.client.y }, bounds.width, bounds.height, node.offsetWidth, 240);
+      // The panel's real height: a collapsed one can go down to the bottom edge.
+      position.current = constrainPanel({ x: drag.current.origin.x + event.clientX - drag.current.client.x, y: drag.current.origin.y + event.clientY - drag.current.client.y }, bounds.width, bounds.height, node.offsetWidth, Math.min(node.offsetHeight, 240));
       apply();
     },
     onPointerUp: (event: PointerEvent<HTMLElement>) => {
       if (!drag.current || drag.current.pointerId !== event.pointerId) return;
-      drag.current = null; if (root.current) root.current.dataset.dragging = 'false'; save();
+      drag.current = null; if (root.current) {root.current.dataset.dragging = 'false';root.current.closest('.map-area')?.dispatchEvent(new Event('dear:map-layout'));} save();
       if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     },
     onPointerCancel: () => { drag.current = null; if (root.current) root.current.dataset.dragging = 'false'; save(); },

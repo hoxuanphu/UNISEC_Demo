@@ -60,10 +60,6 @@
 .overview-head .overview-size:hover { background:var(--hover); }
 .overview-coverage { gap:5px; }
 .overview-coverage .overview-meaning { align-items:center; }
-@media(max-width:1200px) {
- .workspace[data-response-detail=true] .map-overview,
- .map-area:has(.household-card,.local-area-card,.local-road-card) .map-overview { display:none; }
-}
 
 .map-overview[data-floating=true] { right:auto; bottom:auto; }
 .map-overview[data-large=true][data-expanded=true] { width:min(600px,calc(100% - 32px)); }
@@ -77,3 +73,7 @@
 .map-overview { max-height:var(--floating-panel-height,var(--overview-space,calc(100% - 128px))); overflow:auto; }
 .map-overview[data-large] .map-overview-surface { height:min(420px,max(100px,calc(var(--overview-space,500px) - 140px))); }
 .overview-head { position:sticky; top:0; z-index:500; background:var(--ws-raised); }
+
+.map-overview[data-auto-compact=true][data-expanded] { width:min(248px,calc(100% - 24px)); }
+.map-overview[data-auto-compact=true] :is(.map-overview-surface,.overview-coverage,.overview-size) { display:none; }
+.map-overview[data-occluded=true] { visibility:hidden; pointer-events:none; }

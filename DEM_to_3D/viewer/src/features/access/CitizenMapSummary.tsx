@@ -47,7 +47,7 @@ function SafetyOptions({locale, here, safe, nearestTeam, waiting}: Pick<Props, '
   const t = (vi: string, en: string) => locale === 'vi' ? vi : en;
   const walk = safe && <button className="citizen-option" data-tone={safe.reachable ? 'safe' : 'blocked'} disabled={!safe.reachable} onClick={safe.onGo}>
     <span className="citizen-option-icon is-assembly" aria-hidden="true"><MapSymbol name="staging" size={16}/></span>
-    <span className="citizen-option-copy"><strong>{safe.reachable ? t(`Đề xuất đến ${safe.name}`, `Propose ${safe.name}`) : t('Chưa tìm được tuyến', 'No mapped route')}</strong><small>{safe.detail}</small></span>
+    <span className="citizen-option-copy"><strong>{safe.reachable ? t(`Đề xuất đến ${safe.name}`, `Propose ${safe.name}`) : t('Chưa tìm được đường đến điểm tập kết', 'No mapped route to an assembly point')}</strong><small>{safe.detail}</small></span>
     {safe.reachable && <UiIcon name="next" size={16}/>}
   </button>;
   const wait = waiting && nearestTeam && <button className="citizen-option" onClick={waiting.onStart}>
@@ -85,7 +85,7 @@ export function CitizenMapSummary({guidance,locale, route, endpoints, place, roa
       <li>{t('Ở yên chỗ an toàn, tránh xa taluy và suối.', 'Stay somewhere safe, away from slopes and streams.')}</li>
       <li>{t('Giữ máy bật để cập nhật vị trí.', 'Keep your phone on to update your location.')}</li>
     </ul>
-    {waiting.helpSentAt && <p className="citizen-help-sent" role="status"><UiIcon name="check" size={16}/>{t(`Đã gửi yêu cầu cứu lúc ${clock(waiting.helpSentAt, locale)}`, `Rescue request sent at ${clock(waiting.helpSentAt, locale)}`)}{!nearestTeam.assigned?t(' · chờ giao đội',' · awaiting assignment'):''}</p>}
+    {waiting.helpSentAt && <p className="citizen-help-sent" role="status"><UiIcon name="check" size={16}/>{t(`Đã gửi yêu cầu cứu lúc ${clock(waiting.helpSentAt, locale)}`, `Rescue request sent at ${clock(waiting.helpSentAt, locale)}`)}{!nearestTeam.assigned?t(', chờ giao đội',', awaiting assignment'):''}</p>}
     <div className="citizen-map-actions">
       {!waiting.helpSentAt && <button className="button citizen-primary citizen-help" onClick={waiting.onHelp}><UiIcon name="send" size={18}/>{t('Gửi yêu cầu cứu', 'Ask for rescue')}</button>}
       <button className={`button${waiting.helpSentAt ? ' citizen-primary' : ''}`} onClick={waiting.onReport}><UiIcon name="camera" size={18}/>{t('Báo tình trạng', 'Report your situation')}</button>
@@ -95,9 +95,9 @@ export function CitizenMapSummary({guidance,locale, route, endpoints, place, roa
     <header aria-live="polite"><div><small>{t('Điều phối','Coordination')}</small><strong>{guidance.awaitingTeam?t('Chờ đội được giao','Await the assigned team'):guidance.blocked?t('Tuyến cần cập nhật','Route update needed'):guidance.mode==='hold'?t('Chờ hỗ trợ tại vị trí an toàn','Wait at a safe location'):t(`Đi đến ${guidance.destination}`,`Go to ${guidance.destination}`)}</strong></div></header>
     {route&&!guidance.blocked&&<p>{route.lengthKm.toLocaleString(locale==='vi'?'vi-VN':'en-GB',{maximumFractionDigits:1})} km</p>}
     {nearestTeam?.assigned&&<button className="citizen-team" onClick={nearestTeam.onShow}><strong>{nearestTeam.name}</strong><small>{nearestTeam.summary}</small></button>}
-    <div className="citizen-map-actions">{route&&!guidance.blocked&&!guidance.awaitingTeam&&onNavigate&&<button className="button citizen-primary" onClick={onNavigate}>{t('Bắt đầu','Start')}</button>}
-      {waiting&&!waiting.helpSentAt&&<button className="button citizen-help" onClick={waiting.onHelp}>{t('Gửi yêu cầu cứu','Ask for rescue')}</button>}
-      <button className="button" onClick={guidance.onReport}>{t('Báo tình hình','Report situation')}</button></div>
+    <div className="citizen-map-actions">{route&&!guidance.blocked&&!guidance.awaitingTeam&&onNavigate&&<button className="button citizen-primary citizen-start" onClick={onNavigate}><UiIcon name="myLocation" size={18}/>{t('Bắt đầu','Start')}</button>}
+      {waiting&&!waiting.helpSentAt&&<button className="button citizen-help" onClick={waiting.onHelp}><UiIcon name="send" size={18}/>{t('Gửi yêu cầu cứu','Ask for rescue')}</button>}
+      <button className="button" onClick={guidance.onReport}><UiIcon name="camera" size={18}/>{t('Báo tình hình','Report situation')}</button></div>
     <button className="text-button" onClick={guidance.onProposal}>{t('Đề xuất tuyến khác','Suggest another route')}</button>
   </section>;
   return <section className={`citizen-map-summary${route && !place && !road ? ' has-route' : ''}`} aria-label={t('Thông tin đường đi', 'Route information')}>
@@ -116,9 +116,13 @@ export function CitizenMapSummary({guidance,locale, route, endpoints, place, roa
         {blocked && <span><RoadConditionSymbol condition="blocked"/>{t('Bị chặn', 'Blocked')}</span>}
         {risk && <span><RoadConditionSymbol condition="risk"/>{t('Có nguy cơ', 'At risk')}</span>}
       </div>}
-      {route ? <button className="citizen-route-overview" onClick={onDetails} aria-label={t('Chi tiết đường đi', 'Route details')}>
+      {route&&status==='blocked'?<div className="citizen-route-unavailable" role="status">
+        <strong>{t('Chưa có đường đi qua được','No passable route found')}</strong><span>{t(...route.name)}</span>
+        <span className="citizen-route-status" data-road-state="blocked">{message}</span>
+        <button className="text-button" onClick={onDetails}>{t('Xem đoạn bị chặn','View blocked sections')}<UiIcon name="next" size={16}/></button>
+      </div>:route ? <button className="citizen-route-overview" onClick={onDetails} aria-label={t('Chi tiết đường đi', 'Route details')}>
         <div className="citizen-route-overview-copy">
-          <strong className="citizen-route-label">{status === 'blocked' ? t('Chưa có đường nên đi', 'No passable route found') : advised ? t('Đường nên đi', 'Suggested route') : t('Đường bạn chọn', 'Your chosen route')}</strong>
+          <strong className="citizen-route-label">{advised ? t('Đường nên đi', 'Suggested route') : t('Đường bạn chọn', 'Your chosen route')}</strong>
           {endpoints ? <dl className="citizen-route-stops"><div><dt>{t('Từ', 'From')}</dt><dd>{endpoints.from}</dd></div><div><dt>{t('Đến', 'To')}</dt><dd>{endpoints.to}</dd></div></dl> : <span className="citizen-route-name">{t(...route.name)}</span>}
           <span className="citizen-route-status" data-road-state={status}>{routeCondition(route) === 'risk' ? t('Hỏi lại trước khi đi', 'Check before travel') : message}</span>
         </div>

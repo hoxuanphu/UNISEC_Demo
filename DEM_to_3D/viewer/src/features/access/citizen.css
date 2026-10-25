@@ -1062,3 +1062,21 @@
 .guidance-dialog { width:min(460px,calc(100vw - 24px)); }
 .guidance-dialog .modal-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 20px; border-top:1px solid var(--ws-line); }
 .notification-popover { max-height:min(560px,calc(100dvh - 88px)); overflow-y:auto; }
+
+/* The way back to the coordinator's guidance gets its own row under the header, never squeezing it. */
+.citizen-workspace .citizen-header:has(.citizen-return-guidance) { flex-wrap: wrap; row-gap: 6px; }
+.citizen-return-guidance { order: 10; display:flex; align-items:center; justify-content:center; gap:8px; flex:1 0 100%; min-height:40px; padding:8px 12px; border:1px solid color-mix(in srgb, var(--ws-brand) 35%, var(--ws-line)); border-radius:10px; background:color-mix(in srgb, var(--ws-brand) 8%, var(--card)); color:var(--ws-brand); font:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+@media (hover: hover) { .citizen-return-guidance:hover { background:color-mix(in srgb, var(--ws-brand) 14%, var(--card)); } }
+/* The language switch matches the round icon buttons beside it. */
+.citizen-workspace .citizen-header .language-switch { width: 44px; min-width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: transparent; font-size: 13px; font-weight: 600; }
+@media (hover: hover) { .citizen-workspace .citizen-header .language-switch:hover { background: var(--hover); } }
+.citizen-route-unavailable { display:grid; gap:5px; min-width:0; color:var(--ws-text); font-size:13px; }
+.citizen-route-unavailable > strong { color:var(--critical-ink); font-size:15px; }
+.citizen-route-unavailable > .text-button { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:4px; min-height:32px; text-align:left; }
+/* Coordination card: Start on its own row; the rescue request and the report share the row below. */
+.citizen-official-guidance .citizen-map-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.citizen-official-guidance .citizen-map-actions > .citizen-start,
+.citizen-official-guidance .citizen-map-actions > :only-child,
+.citizen-official-guidance .citizen-map-actions > .citizen-start + .button:last-child { grid-column: 1 / -1; }
+.citizen-official-guidance .citizen-map-actions .button { white-space: nowrap; }
+.citizen-official-guidance > .text-button { justify-self: center; min-height: 36px; font-size: 13px; }

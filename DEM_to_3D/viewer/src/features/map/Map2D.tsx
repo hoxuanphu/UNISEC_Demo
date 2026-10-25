@@ -53,6 +53,7 @@ import { createAnalysisOverlay2d } from '../imagery/analysisOverlay2d';
 
 type Props = MapDisplayProps & {
   showOverview?: boolean;
+  onOpenOverview?:()=>void;
   routeGuidance?: boolean;
   userLocation?: DeviceLocation | null;
   userLocationRequest?: number;
@@ -512,7 +513,7 @@ export function Map2D(props: Props): JSX.Element {
     {mapReady && !!props.households?.length && <IsolatedHouseholds2D mapRef={mapRef} metadata={props.terrain?.metadata} households={props.households} selectedId={props.selectedHouseholdId} locale={props.locale ?? 'vi'} onSelect={props.onSelectHousehold}/>}
     {mapReady && (props.routeGuidance || !!props.journeyEndpoints?.length && props.journeyEndpoints.every(point=>point.source?.startsWith('local:'))) && <ResidentRouteGuidance mapRef={mapRef} route={props.scenarioProps?.selectedRoute ?? null} metadata={props.terrain?.metadata} endpoints={Boolean(props.journeyEndpoints?.length)}/>}
     {mapReady && props.gisRecords && props.onGisSelect && <ResponseGisLayer compact={props.routeGuidance} pointMode={props.routeGuidance ? 'individual' : undefined} mapRef={mapRef} records={props.gisRecords} roads={props.scenarioProps?.roads} networkVersion={props.scenarioProps?.datasetVersion} selectedId={props.gisSelectedId ?? null} request={props.gisRequest ?? {version:0,id:null}} enabled={props.gisEnabled !== false} interactive={!props.pointPickActive && !props.measurementOpen && !props.locationOpen && !props.drawOpen} locale={props.locale ?? 'vi'} groupIds={props.gisGroupIds} onSelect={props.onGisSelect} onGroup={props.onGisGroup}/>}
-    {props.showOverview !== false && <MapOverview mapRef={mapRef} raster={overviewRaster} area={overviewArea} locale={props.locale ?? 'vi'} coverage={props.rescueCoverage}
+    {props.showOverview !== false && <MapOverview onActivate={props.onOpenOverview} mapRef={mapRef} raster={overviewRaster} area={overviewArea} locale={props.locale ?? 'vi'} coverage={props.rescueCoverage}
       enabled={mapReady && !props.measurementOpen && !props.drawOpen && !props.locationOpen && !props.profileOpen}/>}
     {mapReady && <MapMeasurement mapRef={mapRef} enabled={props.measurementOpen} locale={props.locale ?? 'vi'} onClose={props.onCloseMeasurement}
       session={props.measureSession} dispatch={props.dispatchMeasureSession} sources={geometry.sources} selected={geometry.selected}/>}

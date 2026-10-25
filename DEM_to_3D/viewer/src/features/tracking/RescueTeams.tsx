@@ -135,7 +135,7 @@ export function RescueTeamDetail({ feed, id, bases, locale, onClose, onShow, onS
             : <p className="detail-empty">{t('Chưa rõ', 'Unknown')}</p>}
         </section>
         <section className="workflow-section"><h3>{t('Đang ở', 'Now on')}</h3><button className="object-row" aria-label={t('Xem đoạn đường','Inspect road section')} onClick={()=>onRoad(team.roadId)}><span><strong>{team.roadName[locale === 'vi' ? 0 : 1]}</strong></span><UiIcon name="next" size={16}/></button></section>
-        {!!team.approachGapM&&team.approachGapM>30&&<section className="workflow-section"><h3>{t('Đoạn còn lại','Last approach')}</h3><p>{t(`${Math.round(team.approachGapM)} m đường chim bay · chưa rõ lối đi`,`${Math.round(team.approachGapM)} m straight-line · path unverified`)}</p></section>}
+        {!!team.approachGapM&&team.approachGapM>30&&<section className="workflow-section"><h3>{t('Đoạn còn lại','Last approach')}</h3><p>{t(`${Math.round(team.approachGapM)} m đường chim bay, chưa rõ lối đi`,`${Math.round(team.approachGapM)} m straight-line, path unverified`)}</p></section>}
         <div className="area-action">{onRecall&&<button type="button" className="button" onClick={onRecall}>{t('Gọi đội về','Recall team')}</button>}<button className="button" onClick={() => { const current=feed?.getSnapshot().find(item=>item.id===id);if(current)onShow(current.point); }}><UiIcon name="fit" size={16}/>{t('Xem trên bản đồ', 'Show on map')}</button></div>
       </>}
     </div>

@@ -79,3 +79,7 @@
 .legend-household[data-status='rescued'] { background:#6b7280; }
 .legend-household[data-status='team'] { position:relative; }
 .legend-household[data-status='team']::after { content:""; position:absolute; right:-4px; top:-4px; width:7px; height:7px; border:1.5px solid #fff; border-radius:50%; background:var(--location-rescue); }
+
+.map-bottom-bar[data-auto-compact=true] { width:max-content; padding:4px 10px; }
+.map-bottom-bar[data-auto-compact=true] :is(.map-legend,.legend-minimize) { display:none; }
+.map-bottom-bar[data-occluded=true] { visibility:hidden;pointer-events:none; }

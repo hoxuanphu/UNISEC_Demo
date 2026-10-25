@@ -512,6 +512,12 @@ export function CitizenWorkspace({
       setMapOnMobile(false);
     }
   };
+  const returnToGuidance=()=>{
+    gps.cancel();setPicking(false);incidentJourney.setPicking(null);localJourney.setPicking(null);
+    setProposing(false);setMapSelection(null);setOwnSelected(null);setNavigating(false);
+    setRoadMode('local');setFitWholeNetwork(false);setTab('roads');setMapOnMobile(true);
+    requestAnimationFrame(()=>controls.current?.frameProjected?.(guidance.route?.points??(guidance.entry?[guidance.entry.origin]:[]),{bottom:260}));
+  };
   return (
     <div
       ref={root}
@@ -528,6 +534,7 @@ export function CitizenWorkspace({
           <UiIcon name="help" />
         </button>
         <HeaderAccount locale={locale} identityName={identity.name} role="resident" onSwitchRole={onSignOut}/>
+        {guidance.entry&&(proposing||!!mapSelection||tab!=='roads'||!mapOnMobile||roadMode!=='local')&&<button className="citizen-return-guidance" onClick={returnToGuidance}><UiIcon name="route" size={16}/>{guidance.entry.mode==='route'?t('Về tuyến được hướng dẫn','Back to assigned route'):t('Về hướng dẫn từ điều phối','Back to instructions')}</button>}
       </header>
       <main className="citizen-body">
         <aside className="citizen-panel">
@@ -1077,7 +1084,7 @@ export function CitizenWorkspace({
                 `${nearestTeam.team.name[1].replace(/^Rescue team /, 'Team ')} ${km(nearestTeam.distanceM)} km away, ${teamStatus(nearestTeam.team, locale).text.toLocaleLowerCase('en')}`),
               onShow: () => { showTeam(); setMapOnMobile(true); }} : undefined}
             here={roadMode === 'local' ? here : undefined}
-            safe={roadMode === 'local' && safe ? {name: t(...safe.base.name).replace(/^Điểm tập kết /, 'điểm tập kết '), detail: safeDetail(safe), reachable: !!safe.route, onGo: () => goSafe()} : undefined}
+            safe={roadMode === 'local' && safe ? {name: t(...safe.base.name).replace(/^Điểm tập kết /, 'điểm tập kết '), detail: safe.route ? safeDetail(safe) : t(`Gần nhất: ${t(...safe.base.name)}, ${km(safe.straightM)} km đường chim bay`, `Nearest: ${t(...safe.base.name)}, ${km(safe.straightM)} km straight-line`), reachable: !!safe.route, onGo: () => goSafe()} : undefined}
             waiting={roadMode === 'local' && nearestTeam ? {active: waiting,
               onStart: () => { setWaiting(true); showTeam(); },
               onClose: () => setWaiting(false),

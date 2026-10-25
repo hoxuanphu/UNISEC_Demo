@@ -1,3 +1,4 @@
+import { useMapSurfaceClearance } from '../../features/map/useMapSurfaceClearance';
 import { DeviceLegendSymbol } from '../../features/tracking/deviceSymbols';
 import { householdLegendText, householdStatusOrder, type HouseholdStatus } from '../../features/presence/householdStatus';
 import type { GeometryRecord } from '../../geo/vector/types';
@@ -18,6 +19,7 @@ import '../../features/map/map-legend.css';
 const swatchColors: Record<string, string> = { 'local-network': roadColors.reference, selected: roadColors.selected, blocked: roadColors.blocked, uncertain: roadColors.uncertain };
 
 type Props = {
+  onActivateMapContext?:()=>void;
   panelCollapsed: boolean; onTogglePanel: () => void;
   locating: boolean; onLocation: () => void;
   locale: Locale; mapMode: '3d' | '2d';
@@ -39,12 +41,14 @@ type Props = {
   children?: ReactNode; onMeasure: () => void; measuring: boolean; onDraw: () => void; drawing: boolean;
 };
 
-export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [], locale, mapMode, onChangeMapMode, onZoomIn, onZoomOut, onResetView, gisObservations=[], onOpenGis, onCompareImagery, onOpenLayers, layersOpen, layers, hasSelectedRoute, hazards, hasHLZData, hasLocalRoads, hasLocationDevices, householdStatuses = [], affectedOnly, timelineExpanded, onToggleTimeline, headerCollapsed, onShowHeader, journeyControl, flyoverControl, children, onMeasure, measuring, onDraw, drawing, panelCollapsed, onTogglePanel, locating, onLocation }: Props): JSX.Element {
+export function MapControls({ onActivateMapContext, orbiting = false, onToggleOrbit, mappedAreas = [], locale, mapMode, onChangeMapMode, onZoomIn, onZoomOut, onResetView, gisObservations=[], onOpenGis, onCompareImagery, onOpenLayers, layersOpen, layers, hasSelectedRoute, hazards, hasHLZData, hasLocalRoads, hasLocationDevices, householdStatuses = [], affectedOnly, timelineExpanded, onToggleTimeline, headerCollapsed, onShowHeader, journeyControl, flyoverControl, children, onMeasure, measuring, onDraw, drawing, panelCollapsed, onTogglePanel, locating, onLocation }: Props): JSX.Element {
   const [toolsExpanded, setToolsExpanded] = useState(false);
   const toolbar=useRef<HTMLDivElement>(null);
   useMapControlsLayout(toolbar);
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [legendMinimized, setLegendMinimized] = useState(true);
+  const legendRef=useRef<HTMLDivElement>(null);
+  const compactLegend=useMapSurfaceClearance(legendRef,!layersOpen&&!measuring&&!drawing&&!locating,!legendMinimized,false,true,false);
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const routeVisible = hasSelectedRoute && layers.route;
   const legend: Array<{ kind: string; label: string; symbol?: MapSymbolName; uiSymbol?: 'layers'; fieldSymbol?: boolean; area?: ReturnType<typeof landslideAreaStyle> }> = [];
@@ -118,9 +122,9 @@ export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [],
         {(['2d', '3d'] as const).map(mode => <button key={mode} className="icon-button map-mode" aria-pressed={mapMode === mode} onClick={() => onChangeMapMode(mode)} aria-label={t('Chuyển sang ', 'Switch to ') + mode.toUpperCase()} title={mode === '3d' ? t('Ctrl + kéo để nghiêng và xoay', 'Ctrl + drag to tilt and rotate') : t('Bản đồ 2D', '2D map')}>{mode.toUpperCase()}</button>)}
       </div>
     </div>
-    <div className="map-bottom-bar" hidden={layersOpen || measuring || drawing || locating || !legend.length} data-expanded={legendExpanded} data-minimized={legendMinimized}>
+    <div ref={legendRef} className="map-bottom-bar" hidden={layersOpen || measuring || drawing || locating || !legend.length} data-expanded={legendExpanded} data-minimized={legendMinimized}>
       <div className="map-legend-heading">
-        {legend.length > 0 && <button className="text-button legend-toggle" aria-expanded={!legendMinimized && legendExpanded} aria-controls="map-legend-items" onClick={() => { setLegendMinimized(false); setLegendExpanded(expanded => legendMinimized || !expanded); }}>{t('Chú giải', 'Legend')}<UiIcon name={!legendMinimized && legendExpanded ? 'collapse' : 'expand'} size={14}/></button>}
+        {legend.length > 0 && <button className="text-button legend-toggle" aria-expanded={!legendMinimized && !compactLegend} aria-controls="map-legend-items" onClick={() => { if(compactLegend)onActivateMapContext?.();setLegendMinimized(false); setLegendExpanded(expanded => compactLegend || legendMinimized || !expanded); }}>{t('Chú giải', 'Legend')}<UiIcon name={!legendMinimized && legendExpanded ? 'collapse' : 'expand'} size={14}/></button>}
         {!legendMinimized && <button className="icon-button legend-minimize" aria-label={t('Thu gọn chú giải', 'Minimize legend')} title={t('Thu gọn chú giải', 'Minimize legend')} onClick={() => setLegendMinimized(true)}><UiIcon name="minus" size={14}/></button>}
       </div>
       {!layersOpen && !measuring && !drawing && !legendMinimized && visibleLegend.length > 0 && <div className="map-legend" id="map-legend-items" aria-label={t('Chú giải', 'Legend')}>

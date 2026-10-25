@@ -213,6 +213,7 @@ export function ResponseWorkspace({
     (record) => record.visible && gisGroupIds.includes(record.id)
   );
   const inspectGisRecord = (id: string, keepGroup = false) => {
+    journey.setOpen(false);
     const record=gis.records.find(item=>item.id===id),submission=record&&submissionOf(record);
     if(record&&(observationOf(record)?.kind==='help'||record.feature.properties.dearRouteProposal)&&submission?.locationSource==='device'&&submission.deviceId&&deviceFeed?.getSnapshot().some(device=>device.id===submission.deviceId)){selectDevice(submission.deviceId);return;}
     setLocalAreaId(null);setHouseholdId(null);
@@ -226,6 +227,7 @@ export function ResponseWorkspace({
     resetTools();
   };
   const showGisOnResponse = (id: string) => {
+    journey.setOpen(false);
     const record=gis.records.find(item=>item.id===id),submission=record&&submissionOf(record);
     if(record&&(observationOf(record)?.kind==='help'||record.feature.properties.dearRouteProposal)&&submission?.locationSource==='device'&&submission.deviceId&&deviceFeed?.getSnapshot().some(device=>device.id===submission.deviceId)){selectDevice(submission.deviceId);return;}
     setLocalAreaId(null);setHouseholdId(null);setLocalRoadId(null);
@@ -556,12 +558,14 @@ export function ResponseWorkspace({
   // Whatever is chosen on the map comes into view; on phones its card covers the lower half, so keep it above.
   const focusMapOn=(points:Array<{x:number;y:number}>)=>requestAnimationFrame(()=>viewControlRef.current?.frameProjected?.(points,matchMedia('(max-width: 600px)').matches?{bottom:400}:undefined));
   const inspectLocalArea=(id:string)=>{
+    journey.setOpen(false);
     navigation.dispatch({type:'view',view:navigation.view,list:true});
     setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(id);setHouseholdId(null);resetTools();setMobileView('map');
     const area=localNetwork.context?.areas.find(item=>item.id===id);
     if(area)focusMapOn([{x:area.center.x-area.radius,y:area.center.y-area.radius},{x:area.center.x+area.radius,y:area.center.y+area.radius}]);
   };
   const inspectHousehold=(id:string)=>{
+    journey.setOpen(false);
     const item=householdViews.find(entry=>entry.cluster.id===id&&entry.status!=='clear');if(!item)return;
     navigation.dispatch({type:'view',view:navigation.view,list:true});
     setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(id);resetTools();setMobileView('map');
@@ -739,6 +743,7 @@ export function ResponseWorkspace({
     });
   };
   const rememberDetailTrigger = () => {
+    journey.setOpen(false);
     setLocalAreaId(null);setHouseholdId(null);
     const active = document.activeElement;
     if (
@@ -823,6 +828,7 @@ export function ResponseWorkspace({
   }, [mapMode]);
   const handleOverlayHit = (hit: OverlayHit) => {
     if (hit.type==='road' && localNetwork.network?.roads.some(road=>road.id===hit.id)) {
+      journey.setOpen(false);
       navigation.dispatch({type:'view',view:navigation.view,list:true});
       setLocalAreaId(null);setHouseholdId(null);setGisCardId(null);setGisGroupIds([]);setLocalRoadId(hit.id);resetTools();setMobileView('map');
       const road=localNetwork.network.roads.find(item=>item.id===hit.id);if(road)focusMapOn(road.points);
@@ -1041,6 +1047,11 @@ export function ResponseWorkspace({
     setActiveDialog('exportDecision');
   };
 
+  const mapCaseAvailable=!otherMapTool&&!journey.open&&!activeDialog&&!guidanceTarget;
+  const activateOverview=()=>{
+    setLocalAreaId(null);setLocalRoadId(null);setHouseholdId(null);setGisCardId(null);setGisGroupIds([]);
+    navigation.dispatch({type:'view',view:navigation.view,list:true});journey.setOpen(false);resetTools();
+  };
   const responseDetailSelected =
     snapshotReady &&
     Boolean(
@@ -1056,7 +1067,7 @@ export function ResponseWorkspace({
     !locationOpen &&
     !journey.open &&
     (Boolean(gisCard) || gisGroup.length < 2) &&
-    activeDialog !== 'layers';
+    !activeDialog && !guidanceTarget;
   useEffect(() => {
     if(showProfile || journey.open)return; // The active route tool owns framing.
     const selection = view === 'priority' ? selectedObjectId ?? (selectedCommunityId && `community:${selectedCommunityId}`) : selectedObjectId;
@@ -1331,7 +1342,7 @@ export function ResponseWorkspace({
           )}
           <div className="map-canvas">
             {mapMode === '2d' ? (
-              <Map2D showOverview={activeDialog!=='layers'} selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} deviceFeed={layers.devices!==false?deviceFeed:null} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
+              <Map2D onOpenOverview={activateOverview} showOverview={activeDialog!=='layers'} selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} deviceFeed={layers.devices!==false?deviceFeed:null} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
                 households={layers.households!==false?householdViews:[]} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold} rescueCoverage={rescueCoverage} rescueCoverageOnMap={layers.rescueCoverage===true}
                 analysisImagery={analysisDisplay}
                 gisEnabled={true}
@@ -1483,13 +1494,13 @@ export function ResponseWorkspace({
             )}
           </div>
 
-          {mapMode === '3d' && defaultTerrainData && rescueCoverage && <MapOverview
+          {mapMode === '3d' && defaultTerrainData && rescueCoverage && <MapOverview onActivate={activateOverview}
             terrain={defaultTerrainData} imageUrl={scenarioManifest?.terrain.image?.url}
             coverage={rescueCoverage} locale={locale} viewControlRef={viewControlRef} viewVersion={viewReadyVersion}
             enabled={activeDialog!=='layers' && !otherMapTool && !showProfile && !['playing','loading','paused','exporting'].includes(flyoverState.status)}
             onNavigate={point => { const host = workspaceRef.current?.querySelector<HTMLElement>('.map-area'); viewControlRef.current?.focusProjected(point, host ? detailInset(host) : undefined); }}/>}
 
-          {household&&presence&&!localArea&&!localRoad&&<HouseholdCard key={household.cluster.id} item={household} areaName={householdAreaName} locale={locale} onClose={()=>setHouseholdId(null)}
+          {mapCaseAvailable&&household&&presence&&!localArea&&!localRoad&&<HouseholdCard key={household.cluster.id} item={household} areaName={householdAreaName} locale={locale} onClose={()=>setHouseholdId(null)}
             workStatus={(()=>{const task=workTasks.find(item=>item.id===`household:${household.cluster.id}`);return task?workState(task,work.entries).status:undefined;})()}
             onDispatch={historical?undefined:()=>dispatchTo({id:`household:${household.cluster.id}`,name:household.cluster.name,point:household.projected})}
             onWork={historical?undefined:()=>{setWorkTaskId(`household:${household.cluster.id}`);setActiveDialog('responseWork');}}
@@ -1497,8 +1508,8 @@ export function ResponseWorkspace({
             helipad={(()=>{const pad=localNetwork.network?.places.filter(place=>place.kind==='hlz').map(place=>({place,d:Math.hypot(place.projected.x-household.projected.x,place.projected.y-household.projected.y)})).sort((a,b)=>a.d-b.d)[0];
               return pad?{name:[pad.place.name.replace(/^Helipad$/,'Bãi đáp'),pad.place.name] as [string,string],distanceKm:pad.d/1000}:undefined;})()}
             team={(()=>{const sent=householdTeams.find(entry=>entry.householdId===household.cluster.id);return sent&&deviceFeed?{feed:deviceFeed,id:sent.plan.id,onShow:point=>focusMapOn([point])}:undefined;})()}/>}
-          {localArea&&<LocalAreaCard key={localArea.id} area={localArea} photos={fieldPhotos} locale={locale} onClose={()=>setLocalAreaId(null)} linkToJourney/>}
-          {localRoad&&layers.roads&&layers.localRoads!==false&&<LocalRoadCard road={localRoad} locale={locale} onClose={()=>setLocalRoadId(null)} onDirections={()=>{setLocalRoadId(null);resetTools();journey.setOpen(true);}}/>}
+          {mapCaseAvailable&&localArea&&<LocalAreaCard key={localArea.id} area={localArea} photos={fieldPhotos} locale={locale} onClose={()=>setLocalAreaId(null)} linkToJourney/>}
+          {mapCaseAvailable&&localRoad&&layers.roads&&layers.localRoads!==false&&<LocalRoadCard road={localRoad} locale={locale} onClose={()=>setLocalRoadId(null)} onDirections={()=>{setLocalRoadId(null);resetTools();journey.setOpen(true);}}/>}
           {mapMode === '3d' && terrain3DBusy
             ? terrainLoading(progress3D)
             : !mapTerrain &&
@@ -1529,7 +1540,7 @@ export function ResponseWorkspace({
             </p>
           )}
 
-          <MapControls hasLocationDevices={Boolean(deviceFeed?.getSnapshot().length)}
+          <MapControls onActivateMapContext={activateOverview} hasLocationDevices={Boolean(deviceFeed?.getSnapshot().length)}
             hasLocalRoads={!!localNetwork.network}
             householdStatuses={layers.households!==false?householdViews.map(item=>item.status):[]}
             timelineExpanded={timelineExpanded}
@@ -1663,7 +1674,7 @@ export function ResponseWorkspace({
                 : undefined
             }
           />
-          {journey.open && !localArea && !localRoad && !gisCard && (
+          {journey.open && !activeDialog && !guidanceTarget && !localArea && !localRoad && !gisCard && (
             <RoadJourneyPanel
               locale={locale}
               journey={journey}
@@ -1685,7 +1696,7 @@ export function ResponseWorkspace({
             !journey.open &&
             layers.gis &&
             !gisCard &&
-            gisGroup.length > 1 && !localRoad && !localArea && !household && !selectedObjectId &&
+            mapCaseAvailable && gisGroup.length > 1 && !localRoad && !localArea && !household && !selectedObjectId &&
             !locationOpen &&
             !measurementOpen &&
             !drawOpen && (

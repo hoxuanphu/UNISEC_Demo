@@ -56,8 +56,8 @@ export function HouseholdCard({ item, areaName, locale, onClose, workStatus, onW
       <button type="button" className="icon-button" aria-label={t('Đóng', 'Close')} onClick={onClose}><UiIcon name="close"/></button></header>
     <p className="household-card-people"><strong>{cluster.people}</strong><span>{t(`người, ${cluster.households} hộ`, `people, ${cluster.households} households`)}</span></p>
     <dl>
-      {cluster.contact && <div><dt>{t('Liên lạc', 'Contact')}</dt><dd><a href={`tel:${cluster.contact.phone.replace(/[^+\d]/g,'')}`}>{cluster.contact.name} · {cluster.contact.phone}</a></dd></div>}
-      {!cluster.contact && onWork && !cluster.rescued && <div><dt>{t('Liên lạc','Contact')}</dt><dd><button className="text-button" onClick={onWork}>{t('Chưa có số · xác minh','No number · check contact')}</button></dd></div>}
+      {cluster.contact && <div><dt>{t('Liên lạc', 'Contact')}</dt><dd><a href={`tel:${cluster.contact.phone.replace(/[^+\d]/g,'')}`}>{cluster.contact.name}, {cluster.contact.phone}</a></dd></div>}
+      {!cluster.contact && onWork && !cluster.rescued && <div><dt>{t('Liên lạc','Contact')}</dt><dd><button className="text-button" onClick={onWork}>{t('Chưa có số, cần xác minh','No number, check contact')}</button></dd></div>}
       <div><dt>{t('Tín hiệu app', 'App signal')}</dt><dd>{t(`${cluster.devices} máy, lần cuối ${householdClock(cluster.lastSeenAt, locale)}`, `${cluster.devices} phones, last at ${householdClock(cluster.lastSeenAt, locale)}`)}</dd></div>
       {cluster.rescued ? <div><dt>{t('Đã cứu', 'Rescued')}</dt><dd>{t(`Đưa về ${cluster.rescued.to[0]} lúc ${householdClock(cluster.rescued.at, locale)}`, `Brought to ${cluster.rescued.to[1]} at ${householdClock(cluster.rescued.at, locale)}`)}</dd></div>
       : item.isolated ? <>
