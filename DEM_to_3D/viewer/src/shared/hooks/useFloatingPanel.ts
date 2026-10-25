@@ -37,7 +37,10 @@ export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enab
       const minimumTop = controls.length ? Math.max(...controls.map(control => control.getBoundingClientRect().bottom)) - bounds.top + 16 : 64;
       const anchor = sizing==='fit' ? {...constrainPanel(position.current,bounds.width,bounds.height,rect.width,rect.height,minimumTop),maxHeight:bounds.height-minimumTop-32} : anchoredPanel(position.current, bounds.width, bounds.height, rect.width, minimumTop);
       node.dataset.floating='true';
-      node.style.left = `${anchor.x}px`; node.style.top = `${anchor.y}px`;
+      // Positions are measured in the map area; the panel is placed in its own containing block,
+      // which may start below the map toolbar.
+      const parent = (node.offsetParent as HTMLElement | null)?.getBoundingClientRect() ?? bounds;
+      node.style.left = `${anchor.x - (parent.left - bounds.left)}px`; node.style.top = `${anchor.y - (parent.top - bounds.top)}px`;
       node.style.setProperty('--floating-panel-height', `${anchor.maxHeight}px`);
     }
     area.dispatchEvent(new Event('dear:map-layout'));

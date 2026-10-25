@@ -30,6 +30,11 @@ def run(url,chrome=None,captures=None):
     page.get_by_role('button',name='Layers',exact=True).click();expect(page.locator('.layers-panel')).to_be_visible();expect(case).to_have_count(0)
     page.keyboard.press('Escape');expect(case).to_be_visible();page.keyboard.press('Escape');expect(case).to_have_count(0)
     expect(overview.locator('.map-overview-surface')).to_be_visible()
+    # The 2D canvas begins below the toolbar. Drag coordinates must still match the cursor.
+    area=page.locator('.map-area').bounding_box();header=overview.locator('.overview-title').bounding_box()
+    page.mouse.move(header['x']+12,header['y']+12);page.mouse.down()
+    page.mouse.move(area['x']+36,area['y']+92,steps=8);page.mouse.up()
+    actual=overview.bounding_box();assert abs(actual['x']-(area['x']+24))<3 and abs(actual['y']-(area['y']+80))<3,(mode,actual,area)
    mobile=context.new_page()
    mobile.set_viewport_size({'width':390,'height':844});mobile.on('pageerror',lambda e:errors.append(e.stack));mobile.goto(url+'/?offline=1&map=2d&lang=en')
    mobile.get_by_role('button',name='Enter app',exact=True).click()

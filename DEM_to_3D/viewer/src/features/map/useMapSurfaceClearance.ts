@@ -19,7 +19,12 @@ export function useMapSurfaceClearance(root:RefObject<HTMLElement>,enabled:boole
    const bounds={left:a.left+12,top,width:Math.max(0,a.width-24),height:Math.max(0,a.top+a.height-top-12)};
    if(!compactRef.current&&expanded)sizes.current.set(large,{width:actual.width,height:actual.height});
    const size=expanded?(sizes.current.get(large)??{width:Math.min(large?600:248,bounds.width),height:large?500:330}):{width:actual.width,height:actual.height};
-   const requested={left:actual.left-offset.current.x,top:(node.dataset.floating==='true'?actual.top:actual.top+actual.height-size.height)-offset.current.y,...size};
+   // A dragged panel opens downward from its heading, or upward when it sits too low to open down.
+   const legend=respectLegend?area.querySelector<HTMLElement>('.map-bottom-bar'):null,legendBox=legend&&visible(legend)?rectOf(legend):null;
+   const sharedColumn=legendBox&&actual.left-offset.current.x<legendBox.left+legendBox.width&&actual.left-offset.current.x+size.width>legendBox.left;
+   const lowerEdge=sharedColumn?Math.min(bounds.top+bounds.height,legendBox!.top-10):bounds.top+bounds.height;
+   const floatingTop=Math.min(actual.top-offset.current.y,lowerEdge-size.height);
+   const requested={left:actual.left-offset.current.x,top:node.dataset.floating==='true'?floatingTop:actual.top+actual.height-size.height-offset.current.y,...size};
    const elements=[...(workspace??area).querySelectorAll<HTMLElement>(blockers),...(respectLegend?area.querySelectorAll<HTMLElement>('.map-bottom-bar'):[])].filter(element=>element!==node&&visible(element));
    for(const element of observed)if(!elements.includes(element)){resize.unobserve(element);observed.delete(element);}
    for(const element of elements)if(!observed.has(element)){resize.observe(element);observed.add(element);}
