@@ -18,6 +18,12 @@ describe('household status', () => {
       ['A', 'cut-off', undefined], ['B', 'team', undefined], ['C', 'cut-off', undefined],
       ['D', 'unverified', 'no-imagery'], ['E', 'unverified', 'no-road'], ['F', 'clear', undefined]]);
   });
+  it('keeps an assigned team or completed check separate from a confirmed rescue', () => {
+    const pending = hut('pending', 10, true), rescued = hut('rescued', 20, true);
+    rescued.cluster.rescued = { at: '2026-09-12T14:00:00+07:00', to: ['Điểm tập kết', 'Assembly point'] };
+    const views = householdStatuses([pending, rescued], coverage, new Set(['pending']), new Set(['pending']));
+    expect(views.map(item => item.status)).toEqual(['team', 'rescued']);
+  });
   it('lists those needing a responder, most urgent first, then by head count', () => {
     const views = householdStatuses([hut('T', 10, true), hut('U', 200, false, true, 9), hut('A', 20, true, true, 3), hut('B', 30, true, true, 8), hut('F', 50, false)], coverage, new Set(['T']), new Set());
     expect(householdsOfConcern(views).map(view => view.cluster.id)).toEqual(['B', 'A', 'T', 'U']);

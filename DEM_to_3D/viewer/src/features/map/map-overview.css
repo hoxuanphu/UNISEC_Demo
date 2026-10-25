@@ -7,7 +7,7 @@
 .map-overview-surface { width: 100%; height: 112px; border-top: 1px solid var(--ws-line); cursor: pointer !important; }
 .map-overview-surface:focus-visible { outline: 2px solid var(--select); outline-offset: -2px; }
 .map-area:has(.layers-panel) .map-overview { display: none; }
-@media (max-width: 900px), (max-height: 540px) { .map-overview { display: none; } }
+@media (max-width: 900px), (max-height: 540px) { .map-overview:not([data-coverage]) { display: none; } }
 
 /* Rescue coverage: a fog of war over the commune, with its layers and one headline. */
 .overview-head { display: flex; align-items: center; }
@@ -15,7 +15,7 @@
 .overview-size { flex: none; width: 30px; height: 30px; min-height: 30px; padding: 0; border: 0; background: none; }
 .map-overview[data-coverage][data-expanded=true] { width: 248px; }
 .map-overview[data-coverage] .map-overview-surface { height: 200px; }
-.map-overview[data-large][data-expanded=true] { width: min(460px, calc(100vw - 460px)); }
+.map-overview[data-large][data-expanded=true] { width: min(460px, calc(100% - 32px)); }
 .map-overview[data-large] .map-overview-surface { height: min(400px, calc(100vh - 340px)); }
 .map-overview-surface { position: relative; }
 .coverage-fog { position: absolute; inset: 0; z-index: 450; pointer-events: none; }
@@ -34,3 +34,15 @@
 /* The enlarged overview takes the legend's space; keep only one sheet there. */
 .map-area:has(.map-overview[data-large=true][data-expanded=true]) .map-bottom-bar { display: none; }
 .overview-coverage [data-layer=unverified] i { background: #f29900; }
+
+.map-overview { max-width: calc(100% - 32px); }
+.overview-coverage .overview-meaning { display: flex; align-items: flex-start; gap: 6px; font-size: 11px; }
+.overview-meaning > i { flex: none; width: 14px; height: 14px; margin-top: 1px; border-radius: 2px; background: radial-gradient(#c3d4c3, #172a20); }
+.overview-loading { display: grid; place-items: center; height: 100%; margin: 0; color: var(--ws-muted); font-size: 12px; }
+@media (max-width: 900px), (max-height: 540px) {
+  .map-overview[data-coverage] { right: 12px; bottom: 48px; }
+  .map-overview[data-coverage] .map-overview-surface { height: min(160px, 30vh); }
+  .map-overview[data-large] .map-overview-surface { height: min(280px, 40vh); }
+}
+
+.overview-coverage [data-layer=rescued] i::after { content: "✓"; display: block; color: #fff; font: 700 8px/8px sans-serif; text-align: center; }

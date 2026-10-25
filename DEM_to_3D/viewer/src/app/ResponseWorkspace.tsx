@@ -1,3 +1,4 @@
+import { MapOverview } from '../features/map/MapOverview';
 import {useResidentLocation} from '../features/tracking/useResidentLocation';
 import {mergeLocationFeeds} from '../features/tracking/residentLocation';
 import {ResidentDeviceList,ResidentDeviceDetail} from '../features/tracking/ResidentDevices';
@@ -496,7 +497,7 @@ export function ResponseWorkspace({
   const inspectHousehold=(id:string)=>{
     const item=householdViews.find(entry=>entry.cluster.id===id&&entry.status!=='clear');if(!item)return;
     navigation.dispatch({type:'view',view:navigation.view,list:true});
-    setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(id);resetTools();setMobileView('map');setMapMode('2d');
+    setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(id);resetTools();setMobileView('map');
     focusMapOn([item.projected,...(item.access?[item.access.point]:[])]);
   };
   // A team opens in the detail panel and comes to the middle of the map.
@@ -1408,6 +1409,12 @@ export function ResponseWorkspace({
               </Map3DBoundary>
             )}
           </div>
+
+          {mapMode === '3d' && defaultTerrainData && rescueCoverage && <MapOverview
+            terrain={defaultTerrainData} imageUrl={scenarioManifest?.terrain.image?.url}
+            coverage={rescueCoverage} locale={locale}
+            enabled={!otherMapTool && !showProfile && !['playing','loading','paused','exporting'].includes(flyoverState.status)}
+            onNavigate={point => { const host = workspaceRef.current?.querySelector<HTMLElement>('.map-area'); viewControlRef.current?.focusProjected(point, host ? detailInset(host) : undefined); }}/>}
 
           {household&&presence&&!localArea&&!localRoad&&<HouseholdCard key={household.cluster.id} item={household} areaName={householdAreaName} locale={locale} onClose={()=>setHouseholdId(null)}
             workStatus={(()=>{const task=workTasks.find(item=>item.id===`household:${household.cluster.id}`);return task?workState(task,work.entries).status:undefined;})()}

@@ -2,30 +2,52 @@ import { useEffect, useRef, useState, useSyncExternalStore, type MutableRefObjec
 import * as L from 'leaflet';
 import type { Locale } from '../../types/dear';
 import { UiIcon } from '../../shared/ui/UiIcon';
-import type { Raster2D } from './raster2d';
+import { createRaster2d, type Raster2D } from './raster2d';
+import type { TerrainData } from '../../types/terrain';
 import type { RescueCoverage } from './mapContracts';
 import { addCoverageFog } from './coverageFog';
 import { defaultCoverageLayers, unreachedNeeds, type CoverageLayers } from '../presence/rescueCoverage';
-import { roadGeographic } from '../routes/selectedRoadJourney';
+import { roadProjected, roadGeographic } from '../routes/selectedRoadJourney';
 import './map-overview.css';
 
 type Props = {
-  mapRef: MutableRefObject<L.Map | null>;
-  raster: Raster2D | null;
+  mapRef?: MutableRefObject<L.Map | null>;
+  raster?: Raster2D | null;
+  terrain?: TerrainData;
+  imageUrl?: string;
+  onNavigate?: (point: { x: number; y: number }) => void;
   enabled: boolean;
   locale: Locale;
-  area: Array<[number, number]>;
+  area?: Array<[number, number]>;
   /** Rescue coverage: the overview then frames the commune and shows the fog of war. */
   coverage?: RescueCoverage;
 };
 
+const emptyArea: Array<[number, number]> = [];
 const noSubscription = () => () => undefined;
 const latLng = (point: { x: number; y: number }) => { const g = roadGeographic(point); return L.latLng(g.latitude, g.longitude); };
 
 /** Local overview: reuses the raster and tracks the actual 2D map bounds. With rescue coverage it
  * also shows where teams have been and who still waits, each as a layer that can be switched. */
-export function MapOverview({ mapRef, raster, enabled, locale, area, coverage }: Props): JSX.Element | null {
-  const [expanded, setExpanded] = useState(false);
+export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl, onNavigate, enabled, locale, area = emptyArea, coverage }: Props): JSX.Element | null {
+  const [expanded, setExpanded] = useState(() => Boolean(coverage) && window.matchMedia('(min-width: 1100px) and (min-height: 650px)').matches);
+  const [generatedRaster, setGeneratedRaster] = useState<Raster2D | null>(null);
+  const [rasterError, setRasterError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const generatedSource = useRef<{ terrain: TerrainData; imageUrl?: string } | null>(null);
+  const raster = providedRaster ?? generatedRaster;
+  const navigateRef = useRef(onNavigate); navigateRef.current = onNavigate;
+  // The 3D workspace loads the same local overview raster only on opening.
+  useEffect(() => {
+    if (providedRaster || !terrain || !enabled || !expanded || (generatedSource.current?.terrain === terrain && generatedSource.current.imageUrl === imageUrl)) return;
+    setGeneratedRaster(null);
+    const controller = new AbortController();
+    setRasterError(false);
+    void createRaster2d(terrain, imageUrl, true, false, controller.signal).then(value => {
+      if (!controller.signal.aborted) { generatedSource.current = { terrain, imageUrl }; setGeneratedRaster(value); }
+    }).catch(() => { if (!controller.signal.aborted) setRasterError(true); });
+    return () => controller.abort();
+  }, [providedRaster, terrain, imageUrl, enabled, expanded, attempt]);
   const [large, setLarge] = useState(false);
   const [layers, setLayers] = useState<CoverageLayers>(defaultCoverageLayers);
   const layersRef = useRef(layers); layersRef.current = layers;
@@ -35,8 +57,8 @@ export function MapOverview({ mapRef, raster, enabled, locale, area, coverage }:
   const waiting = useSyncExternalStore(coverage?.subscribe ?? noSubscription, () => coverage ? unreachedNeeds(coverage.spots()) : 0);
   useEffect(() => { fogRef.current?.draw(); }, [layers]);
   useEffect(() => {
-    const main = mapRef.current, surface = host.current, container = root.current;
-    if (!enabled || !expanded || !raster || !main || !surface || !container) return;
+    const main = mapRef?.current, surface = host.current, container = root.current;
+    if (!enabled || !expanded || !raster || (!main && !navigateRef.current) || !surface || !container) return;
     const overview = L.map(surface, {
       zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false,
       doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false,
@@ -46,10 +68,10 @@ export function MapOverview({ mapRef, raster, enabled, locale, area, coverage }:
     L.DomEvent.disableScrollPropagation(container);
     L.imageOverlay(raster.url, raster.bounds, { interactive: false }).addTo(overview);
     if (area.length) L.polygon(area, { fill: false, color: '#e7f0f8', weight: 1, dashArray: '3 3', interactive: false }).addTo(overview);
-    const extent = L.rectangle(main.getBounds(), {
+    const extent = main ? L.rectangle(main.getBounds(), {
       className: 'overview-extent', color: '#ffffff', weight: 1.5,
       fillColor: '#197663', fillOpacity: .16, interactive: false
-    }).addTo(overview);
+    }).addTo(overview) : null;
     const context = coverage?.focus.length ? L.latLngBounds(coverage.focus.map(latLng)).pad(.12) : L.latLngBounds(raster.bounds).extend(area);
     const fog = coverage ? addCoverageFog(overview, latLng, coverage.spots, () => layersRef.current, coverage.rescued) : null;
     fogRef.current = fog;
@@ -61,34 +83,36 @@ export function MapOverview({ mapRef, raster, enabled, locale, area, coverage }:
       overview.fitBounds(context, { padding: [8, 8], animate: false });
     };
     let frame = 0;
-    const update = () => { frame = 0; extent.setBounds(main.getBounds()); };
+    const update = () => { frame = 0; if (main) extent?.setBounds(main.getBounds()); };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
-    const navigate = (event: L.LeafletMouseEvent) => main.panTo(event.latlng, { animate: false });
+    let center = context.getCenter();
+    const pan = (at: L.LatLng) => { center = at; if (main) main.panTo(at, { animate: false }); else navigateRef.current?.(roadProjected(at.lat, at.lng)); };
+    const navigate = (event: L.LeafletMouseEvent) => pan(event.latlng);
     const keyboard = (event: KeyboardEvent) => {
       const delta = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[event.key];
       if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault(); main.panTo(context.getCenter(), { animate: false });
+        event.preventDefault(); pan(context.getCenter());
       } else if (delta) {
         event.preventDefault();
-        const center = main.getCenter(), view = main.getBounds();
-        main.panTo([center.lat + delta[1] * (view.getNorth() - view.getSouth()) * .2,
-          center.lng + delta[0] * (view.getEast() - view.getWest()) * .2], { animate: false });
+        const at = main?.getCenter() ?? center, view = main?.getBounds() ?? context;
+        pan(L.latLng(at.lat + delta[1] * (view.getNorth() - view.getSouth()) * .2,
+          at.lng + delta[0] * (view.getEast() - view.getWest()) * .2));
       }
     };
     surface.addEventListener('keydown', keyboard);
-    main.on('move zoom resize', schedule);
+    main?.on('move zoom resize', schedule);
     overview.on('click', navigate);
     const resize = new ResizeObserver(fit); resize.observe(surface);
     fit(); update();
     return () => {
       cancelAnimationFrame(frame); cancelAnimationFrame(fogFrame); unsubscribe(); fog?.dispose(); fogRef.current = null; resize.disconnect();
       surface.removeEventListener('keydown', keyboard);
-      main.off('move zoom resize', schedule); overview.off('click', navigate);
+      main?.off('move zoom resize', schedule); overview.off('click', navigate);
       L.DomEvent.off(container);
       overview.remove();
     };
   }, [enabled, expanded, mapRef, raster, area, coverage]);
-  if (!enabled || !raster) return null;
+  if (!enabled || (!raster && !terrain)) return null;
   const chips: Array<[keyof CoverageLayers, string]> = [
     ['fog', t('Đội chưa tới', 'Not reached')], ['need', t('Cần cứu', 'Needs rescue')], ['unverified', t('Chưa rõ', 'Unverified')], ['team', t('Đội cứu hộ', 'Rescue teams')], ['rescued', t('Đã cứu', 'Rescued')]];
   return <section ref={root} className="map-overview" data-expanded={expanded} data-coverage={!!coverage || undefined} data-large={large || undefined} aria-label={t('Bản đồ tổng quan', 'Overview map')}>
@@ -104,8 +128,11 @@ export function MapOverview({ mapRef, raster, enabled, locale, area, coverage }:
     {expanded && <div ref={host} id="overview-map-surface" className="map-overview-surface" tabIndex={0} role="group"
       aria-label={t('Định hướng bản đồ chính', 'Navigate the main map')}
       aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Enter"
-      title={t('Chọn vị trí trên bản đồ', 'Choose a map location')}/>}
+      title={t('Chọn vị trí trên bản đồ', 'Choose a map location')}>
+      {!raster && <p className="overview-loading" role="status">{rasterError ? <button className="text-button" onClick={() => setAttempt(value => value + 1)}>{t('Thử lại', 'Retry')}</button> : t('Đang tải bản đồ…', 'Loading map…')}</p>}
+    </div>}
     {expanded && coverage && <div className="overview-coverage">
+      <p className="overview-meaning"><i aria-hidden="true"/>{t('Sáng: đội đã đi qua, chưa có nghĩa đã cứu.', 'Light: teams passed through; rescue is recorded separately.')}</p>
       <p className={waiting ? 'is-alert' : undefined}>{waiting ? t(`${waiting} điểm cần cứu ngoài vùng đã tới`, `${waiting} rescue ${waiting === 1 ? 'location' : 'locations'} outside team coverage`) : t('Không có điểm cần cứu ngoài vùng đã tới', 'No rescue locations outside team coverage')}</p>
       <fieldset aria-label={t('Lớp vùng cứu hộ', 'Coverage layers')}>
         {chips.map(([key, label]) => <label key={key} data-layer={key}><input type="checkbox" checked={layers[key]} onChange={() => setLayers(value => ({ ...value, [key]: !value[key] }))}/><i aria-hidden="true"/>{label}</label>)}
