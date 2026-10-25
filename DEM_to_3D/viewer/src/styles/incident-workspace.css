@@ -593,3 +593,13 @@
 @container(max-width:420px) {
   .workspace-nav:has(button:nth-child(4)) button > svg { display:none; }
 }
+
+.notification-rescue-row { display:grid; grid-template-columns:minmax(0,1fr) auto 16px; gap:3px 10px; width:100%; padding:12px 16px; border:0; border-bottom:1px solid var(--ws-line); background:transparent; color:var(--ws-text); text-align:left; }
+.notification-rescue-row > span { grid-column:1; font-size:12px; }
+.notification-rescue-row > strong { grid-column:1; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.notification-rescue-row > time { grid-column:2; grid-row:1/3; align-self:center; color:var(--ws-muted); font-size:12px; }
+.notification-rescue-row > svg { grid-column:3; grid-row:1/3; align-self:center; }
+.notification-rescue-row:hover { background:var(--hover); }
+.notification-count { position:absolute; right:0; top:0; min-width:15px; padding:1px 3px; border-radius:8px; background:#c62828; color:white; font:600 10px/13px var(--font-sans); }
+
+.notification-preview > p { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }

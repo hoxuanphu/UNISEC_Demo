@@ -90,7 +90,7 @@ export function CitizenDirections({
           {journey.route ? (
             <>
               <p className="citizen-direction-verdict">
-                {journey.route.status === 'blocked' ? t('Chưa có đường nên đi', 'No passable route found') : journey.advised ? t('Đường nên đi', 'Suggested route') : t('Đường bạn chọn', 'Your chosen route')}
+                {journey.route.status === 'blocked' ? t('Chưa có đường nên đi', 'No passable route found') : t('Tuyến đề xuất', 'Proposed route')}
               </p>
               <p className="citizen-direction-length"><strong>{km(journey.route.lengthKm)}</strong> km {t("theo đường", "by road")}</p>
               <p className="citizen-direction-note">{roadConditionMessage(journey.route, locale, local)}</p>

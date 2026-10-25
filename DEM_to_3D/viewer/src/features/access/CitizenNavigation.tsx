@@ -20,7 +20,8 @@ function TurnArrow({ turn, arrived, off }: { turn: Turn; arrived: boolean; off: 
  * Walking directions on the resident's phone: the next turn at the top, time and distance
  * left at the bottom, the map following the resident. Off the route it offers a new one.
  */
-export function CitizenNavigation({ route, destination, locale, feed, me, onFollow, onReroute, onExit }: {
+export function CitizenNavigation({ route, destination, locale, feed, me, onFollow, onReroute, onExit, controlled=false }: {
+  controlled?:boolean;
   route: ScenarioRoute; destination: string; locale: Locale;
   /** The resident's position feed, read on a change of about 5 m. */
   feed: LocationFeed | null; me: () => Point | null;
@@ -50,7 +51,7 @@ export function CitizenNavigation({ route, destination, locale, feed, me, onFoll
           : <><strong>{distance(state.remainingM)}</strong><span>{t(`Đi tiếp đến ${destination}`, `Continue to ${destination}`)}</span></>}
         {state && !off && !arrived && <small>{t('Đang đi', 'On')} {road(state.current.name)}</small>}
       </div>
-      {off && <button type="button" className="button" onClick={onReroute}>{t('Tìm lại đường', 'Reroute')}</button>}
+      {off && <button type="button" className="button" onClick={onReroute}>{controlled?t('Báo lệch tuyến','Report off-route'):t('Tìm lại đường','Reroute')}</button>}
     </div>
     <div className="citizen-nav-bar">
       <div>{arrived ? <strong>{destination}</strong> : <><strong>{t(`${minutes} phút`, `${minutes} min`)}</strong>

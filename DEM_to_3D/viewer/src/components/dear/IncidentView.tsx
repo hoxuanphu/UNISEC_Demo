@@ -105,7 +105,7 @@ export function IncidentView({
         <div className="incident-landslide-list">
           {concern.map(item => <button className="incident-landslide-row incident-household-row" key={item.cluster.id} onClick={() => onSelectHousehold?.(item.cluster.id)}>
             <span className="incident-household-icon" data-status={item.status}><UiIcon name="people" size={20}/></span>
-            <span className="incident-landslide-copy"><strong>{t(...item.cluster.name)}</strong><small>{t(`${item.cluster.people} người, ${item.cluster.households} hộ`, `${item.cluster.people} people, ${item.cluster.households} households`)}</small></span>
+            <span className="incident-landslide-copy"><strong title={t(...item.cluster.name)}>{t(...item.cluster.name)}</strong><small>{t(`${item.cluster.people} người, ${item.cluster.households} hộ`, `${item.cluster.people} people, ${item.cluster.households} households`)}</small></span>
             <small className="incident-status" data-tone={householdStatusTone[item.status]}>{t(...householdStatusText[item.status])}</small>
           </button>)}
         </div>

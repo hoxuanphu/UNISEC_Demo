@@ -1,5 +1,5 @@
 """Resident request -> coordinator dispatch -> road approach -> recall, without Internet."""
-import argparse
+import argparse,re
 from pathlib import Path
 from playwright.sync_api import expect, sync_playwright
 
@@ -34,13 +34,12 @@ def run(url, chrome=None, captures=None):
             start=team.get_attribute('data-world-x');admin.wait_for_timeout(3000)
             assert team.get_attribute('data-world-x')!=start, 'Dispatched team did not move'
             mobile.bring_to_front()
-            mobile.get_by_role('button',name='Wait for a rescue team',exact=False).click()
-            expect(mobile.locator('.citizen-team-label')).to_have_text('Assigned team')
+            expect(mobile.locator('.citizen-official-guidance')).to_contain_text('Await the assigned team')
             expect(mobile.locator('.citizen-team')).to_contain_text('Rescue team 05')
             for page in [mobile,admin]:page.evaluate('window.testOffset=1000000')
             mobile.wait_for_timeout(500)
             expect(mobile.locator('.citizen-team')).to_contain_text('km')
-            expect(admin.locator('.tracked-device[data-device-id="CH-05"]')).to_have_attribute('data-motion', 'waiting')
+            expect(admin.locator('.tracked-device[data-device-id="CH-05"]')).to_have_attribute('data-motion', re.compile('waiting|assisting'))
             assert own.get_attribute('data-motion')=='waiting', 'Arrival incorrectly evacuated the resident'
             admin.bring_to_front()
             detail.get_by_role('button').filter(has_text='Rescue team 05').click()

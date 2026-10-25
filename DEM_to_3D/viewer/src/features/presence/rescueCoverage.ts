@@ -24,8 +24,9 @@ const TRAIL_CELL_M = 100;
 const stranded = (device: DevicePosition) => device.role === 'resident' && !!device.closureRoadId && (device.state === 'waiting' || device.state === 'approaching');
 
 /** Every point a rescue team has passed this session, kept per 100 m cell: the ground explored. */
-export function createRescueTrail(feed: LocationFeed | null) {
+export function createRescueTrail(feed: LocationFeed | null, previous:readonly Point[]=[]) {
   const cells = new Map<string, Point>();
+  for(const point of previous)cells.set(`${Math.round(point.x/TRAIL_CELL_M)},${Math.round(point.y/TRAIL_CELL_M)}`,point);
   const record = () => {
     for (const device of feed?.getSnapshot() ?? []) if (device.role === 'rescue') {
       const key = `${Math.round(device.point.x / TRAIL_CELL_M)},${Math.round(device.point.y / TRAIL_CELL_M)}`;

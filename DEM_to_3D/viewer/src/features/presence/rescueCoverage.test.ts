@@ -17,6 +17,11 @@ describe('rescue coverage', () => {
     // A team arriving beside the stranded resident and the request covers both.
     expect(unreachedNeeds(coverageSpots({ households: [], devices: [device('CH-01', 'rescue', 3000), device('ND-05', 'resident', 3000, { closureRoadId: 'r', state: 'waiting' })], trail: [], bases: [], requests: [{ x: 3010, y: 0 }] }))).toBe(0);
   });
+  it('retains the covered ground when a dispatch or guidance change replaces the feed',()=>{
+    const a=createRescueTrail({getSnapshot:()=>[device('a','rescue',0)],subscribe:()=>()=>undefined});a.dispose();
+    const b=createRescueTrail({getSnapshot:()=>[device('a','rescue',1000)],subscribe:()=>()=>undefined},a.points());
+    expect(b.points().map(point=>point.x)).toEqual([0,1000]);b.dispose();
+  });
   it('remembers every cell a team has passed', () => {
     let snapshot = [device('CH-01', 'rescue', 0)], listener = () => undefined as void;
     const feed = { getSnapshot: () => snapshot, subscribe: (fn: () => void) => { listener = fn; return () => undefined; } } as unknown as LocationFeed;

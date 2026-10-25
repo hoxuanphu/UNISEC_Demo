@@ -2,7 +2,7 @@
 .map-area .layers-panel { width:344px; height:auto; max-height:min(680px,calc(100% - 96px),var(--floating-panel-height,100%)); }
 .layers-panel .layers-content { padding:12px 16px 4px; }
 .layers-panel .layers-content fieldset { margin:0; }
-.layers-panel .layers-content legend { font-size:11px; letter-spacing:.025em; margin-bottom:8px; color:var(--ws-muted); }
+.layers-panel .layers-content legend { font-size:11px; letter-spacing:normal; margin-bottom:8px; color:var(--ws-muted); }
 .layer-analysis > summary small { max-width:58%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .layers-panel .layer-basemap .basemap-choices { border-top:0; padding-top:0; }
 .layer-basemap .basemap-opacity { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 12px; margin:0 0 12px; font-size:12px; }
@@ -10,7 +10,7 @@
 .basemap-opacity output { font-variant-numeric:tabular-nums; color:var(--ws-muted); }
 .layers-panel .layer-tier { padding-bottom:6px; }
 .layers-panel .layer-tier + .layer-tier { padding-top:6px; }
-.layers-panel .layer-tier > legend { padding:0; margin-bottom:2px; font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ws-muted); }
+.layers-panel .layer-tier > legend { padding:0; margin-bottom:2px; font-size:11px; font-weight:600; letter-spacing:normal; text-transform:none; color:var(--ws-muted); }
 /* The fill setting belongs to the row above it. */
 .layers-panel .layer-tier > .landslide-fill-control { margin:0 0 6px 46px; }
 .layers-panel .layer-row { display:flex; align-items:center; min-height:38px; gap:4px; border-radius:3px; }
@@ -46,3 +46,14 @@
 @media(max-width:900px) {
   .map-area .layers-panel { width:320px; max-width:calc(100% - 24px); max-height:min(680px,calc(100% - 108px)); }
 }
+
+.layers-panel .layer-tier > legend { font-size: 12px; color: var(--ws-text); margin: 6px 0 4px; }
+.layers-panel .layer-row > label { align-items: center; gap: 10px; font-size: 13px; }
+.layers-panel .layer-key-sample { display: inline-flex; justify-content: center; align-items: center; width: 40px; }
+.layers-panel .device-layer-sample { flex-direction: row; gap: 4px; }
+.layers-panel .device-layer-sample .tracked-device-symbol { width: 16px; height: 16px; flex: none; }
+.rescue-layer-caption { margin: 4px 0; color: var(--ws-muted); font-size: 12px; }
+.rescue-layer-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 8px; }
+.layers-panel .rescue-layer-grid .layer-row > label { gap: 6px; font-size: 12px; }
+.coverage-key { flex: none; width: 10px; height: 10px; border: 1px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #0003; }
+.coverage-key.is-fog { background: #34443c; border-radius: 2px; }.coverage-key.is-need { background:#e53935; }.coverage-key.is-unverified { background:#f29900; }.coverage-key.is-team { background:#26a65b; }.coverage-key.is-rescued { background:#9aa3ad; }

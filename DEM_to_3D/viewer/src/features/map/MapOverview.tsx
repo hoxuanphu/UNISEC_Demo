@@ -95,7 +95,7 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
     let frame = 0;
     const update = () => {
       frame = 0;
-      if (disposed || !overview.getPane('overlayPane')) return;
+      if (disposed || typeof overview.getZoom() !== 'number' || !overview.getPane('overlayPane')) return;
       if (main) extent?.setBounds(main.getBounds());
       const visible=viewApi?.getVisibleArea?.();
       if (footprint && visible!==lastFootprint) {

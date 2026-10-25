@@ -21,7 +21,7 @@ export function useRescueDispatch(network:LocalNetwork|null,bases:readonly Rescu
     const update=()=>{const point=dispatchPosition(order,network.roads,Date.now());snapshot=point?[point]:[];listeners.forEach(fn=>fn());};update();
     return {getSnapshot:()=>snapshot,subscribe:(fn:()=>void)=>{listeners.add(fn);return()=>{listeners.delete(fn);};},update};
   },[network,order]);
-  useEffect(()=>{if(!feed)return;const timer=window.setInterval(()=>{if(!document.hidden)feed.update();},250);return()=>clearInterval(timer);},[feed]);
+  useEffect(()=>{if(!feed)return;const timer=window.setInterval(()=>{if(!document.hidden)feed.update();},33);return()=>clearInterval(timer);},[feed]);
   const dispatch=(target:DispatchTarget):'ok'|'busy'|'no-route'|'storage-error'=>{
     if(!network||!key)return 'no-route';
     let latest=order;

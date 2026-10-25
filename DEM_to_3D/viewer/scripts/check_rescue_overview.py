@@ -28,9 +28,9 @@ def run(url, chrome=None, captures=None):
             overview.get_by_role('button',name='Rescue layers',exact=True).click()
             panel=page.locator('.layers-panel');group=panel.locator('[data-layer-stack="rescue"]')
             expect(group.get_by_role('checkbox')).to_have_count(6)
-            group.get_by_role('checkbox',name='Show coverage on the main map',exact=True).check()
+            group.get_by_role('checkbox',name='Coverage on main map',exact=True).check()
             expect(page.locator('.rescue-coverage-mask')).to_be_attached()
-            group.get_by_role('checkbox',name='Show coverage on the main map',exact=True).uncheck()
+            group.get_by_role('checkbox',name='Coverage on main map',exact=True).uncheck()
             page.keyboard.press('Escape')
             expect(page.locator('.rescue-coverage-mask')).to_have_count(0)
             def signature():

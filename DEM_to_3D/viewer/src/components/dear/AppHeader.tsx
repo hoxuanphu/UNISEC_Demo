@@ -7,13 +7,14 @@ import type {
   RoadSegment
 } from '../../types/dear';
 import type { IncidentPacket } from '../../data/incidentPacket';
-import { NotificationPopover } from './NotificationPopover';
+import { NotificationPopover, type RescueAlert } from './NotificationPopover';
 import { FontSelector } from './FontSelector';
 import { IncidentContext } from './IncidentContext';
 import { HeaderAccount } from './HeaderAccount';
 import { useDismissiblePopover } from '../../shared/hooks/useDismissiblePopover';
 
 type Props = {
+  rescueAlerts?:RescueAlert[];onRescueOpen?:(id:string)=>void;
   /** While GIS is open its draft owns the session; header actions would replace it unguarded. */
   locked?: boolean;
   collapsed?: boolean;
@@ -48,6 +49,7 @@ type Props = {
 };
 
 export const AppHeader: React.FC<Props> = ({
+  rescueAlerts=[],onRescueOpen,
   identityName,
   onSignOut,
   onOpenReports,
@@ -81,6 +83,11 @@ export const AppHeader: React.FC<Props> = ({
   const headerRef = useRef<HTMLElement>(null);
   useEffect(() => { if (headerRef.current) headerRef.current.inert = locked; }, [locked]);
   const [prefOpen, setPrefOpen] = useState(false);
+  const notificationReadKey='dear.notification-read.v1:'+incident.triggeredAt;
+  const readNotifications=()=>{try{const raw=localStorage.getItem(notificationReadKey)??'[]';if(raw.length>200000)return[];const data:unknown=JSON.parse(raw);return Array.isArray(data)?data.filter((id):id is string=>typeof id==='string'&&id.length<200).slice(-1000):[];}catch{return[];}};
+  const [seenRescues,setSeenRescues]=useState<string[]>(readNotifications);
+  useEffect(()=>{setSeenRescues(readNotifications());const sync=(event:StorageEvent)=>{if(event.key===notificationReadKey)setSeenRescues(readNotifications());};window.addEventListener('storage',sync);return()=>window.removeEventListener('storage',sync);},[notificationReadKey]);
+  const rescueUnread=rescueAlerts.filter(alert=>!seenRescues.includes(alert.id)).length;
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const notificationsRef = useRef<HTMLDivElement>(null);
   useDismissiblePopover(notificationsRef, notificationsOpen, () =>
@@ -131,6 +138,7 @@ export const AppHeader: React.FC<Props> = ({
             onClick={() => {
               setPrefOpen(false);
               setNotificationsOpen((open) => !open);
+              const seen=[...new Set([...seenRescues,...rescueAlerts.slice(0,4).map(alert=>alert.id)])].slice(-1000);setSeenRescues(seen);try{localStorage.setItem(notificationReadKey,JSON.stringify(seen));}catch{/* The current window still tracks read notifications. */}
             }}
             aria-expanded={notificationsOpen}
             aria-controls="incident-notifications"
@@ -139,10 +147,10 @@ export const AppHeader: React.FC<Props> = ({
             aria-label={t('Thông báo sự kiện', 'Incident notifications')}
           >
             <UiIcon name="bell" />
-            {!alertRead && <span className="unread-indicator" />}
+            {rescueUnread>0?<span className="notification-count" aria-label={t(`${rescueUnread} thông báo mới`,`${rescueUnread} new notifications`)}>{rescueUnread}</span>:!alertRead&&<span className="unread-indicator"/>}
           </button>
           {notificationsOpen && (
-            <NotificationPopover
+            <NotificationPopover rescueAlerts={rescueAlerts} onOpenReports={()=>{setNotificationsOpen(false);onOpenReports();}} onRescueOpen={id=>{setNotificationsOpen(false);onRescueOpen?.(id);}}
               locale={locale}
               incident={incident}
               report={report}

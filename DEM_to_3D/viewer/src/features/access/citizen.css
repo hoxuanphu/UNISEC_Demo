@@ -1053,3 +1053,12 @@
 .citizen-map:has(.citizen-nav-banner) .citizen-map-layers { display: none; }
 
 .citizen-team-label { margin:0; color:var(--ws-muted); font-size:12px; }
+
+.citizen-official-guidance header small { display:block; margin-bottom:4px; color:var(--ws-muted); font-size:12px; }
+.citizen-official-guidance > p { margin:0; font-size:14px; }
+.citizen-proposal-bar { position:absolute; z-index:27; bottom:18px; left:12px; right:12px; display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--ws-line); background:var(--ws-surface); border-radius:var(--radius-control); }
+.citizen-proposal-bar > span { flex:1; font-size:13px; }
+.citizen-map:has(.citizen-proposal-bar) .citizen-map-summary { bottom:84px; }
+.guidance-dialog { width:min(460px,calc(100vw - 24px)); }
+.guidance-dialog .modal-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 20px; border-top:1px solid var(--ws-line); }
+.notification-popover { max-height:min(560px,calc(100dvh - 88px)); overflow-y:auto; }

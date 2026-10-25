@@ -460,3 +460,11 @@ body .geodata-aoi-start .button { display: inline-flex; align-items: center; gap
 /* A community row may carry a second note (route state and time): it takes its own line. */
 .workspace-shell :is(#response-panel, .response-detail-dock) .impact-row small { min-width: 0; flex-wrap: wrap; }
 .workspace-shell :is(#response-panel, .response-detail-dock) .impact-row small + small { grid-column: 1 / -1; grid-row: 3; }
+
+/* A household's name uses the full row; counts and state share the second line. */
+.workspace-shell #response-panel .incident-household-row { grid-template-rows: auto auto; row-gap: 3px; }
+.workspace-shell #response-panel .incident-household-row > .incident-landslide-copy { display: contents; }
+.workspace-shell #response-panel .incident-household-row > :first-child { grid-row: 1 / 3; }
+.workspace-shell #response-panel .incident-household-row .incident-landslide-copy strong { grid-column: 2 / -1; grid-row: 1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.workspace-shell #response-panel .incident-household-row .incident-landslide-copy small { grid-column: 2; grid-row: 2; min-width:0; }
+.workspace-shell #response-panel .incident-household-row > .incident-status { grid-column: 3; grid-row: 2; font-size:12px; }

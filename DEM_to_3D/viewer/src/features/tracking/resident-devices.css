@@ -22,3 +22,6 @@
 .resident-device-reports .object-row small { color:var(--ws-muted); font-size:12px; }
 .resident-device-reports article > p { margin:6px 0 0; font-size:14px; line-height:1.5; }
 .resident-device-row .resident-device-asked { color:var(--critical-ink); font-weight:600; }
+
+.resident-device-actions { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; }
+.resident-device-actions .button { flex:0 1 auto; min-height:34px; font-size:12px; }
