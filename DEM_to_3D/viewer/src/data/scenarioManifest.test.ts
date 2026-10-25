@@ -23,6 +23,13 @@ describe('Chế Tạo prepared dataset', () => {
     expect(manifest.reviewStatus).toBe('draft');
   });
 
+  it('keeps resident locations explicitly bound to the selected scenario manifest',()=>{
+    expect(manifest.residentPresence?.url).toBe('/scenarios/che-tao/resident-presence.json');
+    const other={...manifestJson};delete (other as {residentPresence?:unknown}).residentPresence;
+    expect(validateScenarioManifest(other).residentPresence).toBeUndefined();
+    expect(()=>validateScenarioManifest({...manifestJson,residentPresence:{...manifest.residentPresence,url:'/../resident-presence.json'}})).toThrow('residentPresence.url');
+  });
+
   it('links terrain files to metadata', () => {
     expect(manifest.terrain.grid.url.endsWith(terrainMetadata.grid.file)).toBe(true);
     expect(manifest.terrain.glb.url.endsWith(terrainMetadata.mesh.file)).toBe(true);

@@ -14,7 +14,8 @@ def run(url, chrome=None, captures=None):
         context=browser.new_context(viewport={'width':1440,'height':1000})
         context.add_init_script('Object.defineProperty(navigator,"onLine",{configurable:true,get:()=>false})')
         context.route('**/*',lambda route:route.continue_() if route.request.url.startswith(url+'/') else route.abort())
-        page=context.new_page(); errors=[]; requests=[]
+        page=context.new_page(); errors=[]; requests=[]; warnings=[]
+        page.on('console',lambda message:warnings.append(message.text) if message.type in ['error','warning'] else None)
         page.on('pageerror',lambda error:errors.append(str(error)))
         page.on('request',lambda request:requests.append(request.url))
         page.goto(url+'/?map=2d&demoRole=manager&offline=1&lang=vi')
@@ -86,7 +87,13 @@ def run(url, chrome=None, captures=None):
         page.wait_for_function('document.querySelectorAll("canvas.terrain-canvas").length>0')
         page.wait_for_function("performance.getEntriesByType('resource').some(entry=>entry.name.includes('strix007-oct20-vv.utm.webp'))",timeout=60000)
         assert any('strix007-oct20-vv.utm.webp' in request for request in requests),requests[-20:]
-        expect(page.locator('.analysis-load-status')).to_have_count(0,timeout=30000)
+        try:
+            expect(page.locator('.analysis-load-status')).to_have_count(0,timeout=30000)
+        except Exception:
+            print('STRIX 3D status: '+str(page.locator('.analysis-load-status').all_text_contents()),flush=True)
+            print('Browser warnings: '+str(warnings[-12:]),flush=True)
+            if captures:page.screenshot(path=str(captures/'strix-3d-failure.png'))
+            raise
         page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
         expect(panel.get_by_role('radio',name=re.compile('^STRIX-007'))).to_be_checked()
         if captures: page.screenshot(path=str(captures/'strix-map-3d.png'),animations='disabled')

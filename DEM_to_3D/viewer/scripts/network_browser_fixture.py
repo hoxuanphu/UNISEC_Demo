@@ -15,7 +15,7 @@ def install_network_fixture(context,url,cluster_hazards=False):
         for index,hazard in enumerate(packet['hazards']):
             hazard['projected']={'x':anchor['x']+index*2,'y':anchor['y']+index*2}
     manifest=json.loads((ROOT/'public/scenarios/che-tao/v0.3/manifest.json').read_text(encoding='utf-8'))
-    for key in ['fieldData','referenceData','fieldPhotos','analysisImagery','terrainContext']:
+    for key in ['fieldData','referenceData','fieldPhotos','analysisImagery','terrainContext','residentPresence']:
         manifest.pop(key,None)
     payload=json.dumps(packet,ensure_ascii=False).encode('utf-8')
     manifest.update(datasetVersion=packet['datasetVersion'],incidentId=packet['incident']['id'],snapshotAt=packet['incident']['asOf'],

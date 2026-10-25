@@ -26,7 +26,7 @@ export function RouteFilmWorkspace({locale,onChangeLocale,theme='light'}:{locale
   const local=useLocalNetwork(true,runtime.fieldDataset?.records);
   const journey=useRoadJourney(local.network?.roads??noRoads,250);
   const photos=usePreparedPhotos(runtime.manifest?.fieldPhotos);
-  const presence=useResidentPresence(true);
+  const presence=useResidentPresence(runtime.manifest?.residentPresence);
   const [selectedArea,setSelectedArea]=useState<string|null>(()=>new URLSearchParams(location.search).get('area'));
   const [film,setFilm]=useState<FlyoverState>({status:'idle',time:0,duration:0});
   const [mapState,setMapState]=useState<BasemapState|null>(null);

@@ -119,6 +119,9 @@ def main(prepare: bool = False, manifest_path: Path | None = None) -> None:
     if manifest.get('referenceData') is not None:
         additional_asset(manifest['referenceData'], 'referenceData', r'/scenarios/[A-Za-z0-9._/-]+\.geojson')
 
+    if manifest.get('residentPresence') is not None:
+        additional_asset(manifest['residentPresence'], 'residentPresence', r'/scenarios/[A-Za-z0-9._/-]+/resident-presence\.json')
+
     if manifest.get('fieldPhotos') is not None:
         catalog_path = additional_asset(manifest['fieldPhotos'], 'fieldPhotos', r'/scenarios/[A-Za-z0-9._/-]+/photos\.json')
         catalog = json.loads(catalog_path.read_text(encoding='utf-8'))

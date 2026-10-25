@@ -21,6 +21,7 @@ export type ScenarioManifest = {
   referenceData?: ScenarioAsset;
   analysisImagery?: ScenarioAsset;
   fieldPhotos?: ScenarioAsset;
+  residentPresence?: ScenarioAsset;
   terrainContext?: Array<{glb: ScenarioAsset; grid: ScenarioAsset; metadata: ScenarioAsset}>;
 };
 
@@ -37,10 +38,10 @@ function requireCount(value: unknown, field: string): number {
   return value as number;
 }
 
-function requireAsset(value: unknown, field: string, kind: 'terrain' | 'workspace' | 'field' | 'reference' | 'imagery' | 'photos' = 'terrain'): ScenarioAsset {
+function requireAsset(value: unknown, field: string, kind: 'terrain' | 'workspace' | 'field' | 'reference' | 'imagery' | 'photos' | 'presence' = 'terrain'): ScenarioAsset {
   if (!isRecord(value)) throw new Error(`Invalid manifest: ${field}`);
   const url = requireString(value.url, `${field}.url`);
-  const validUrl = kind === 'photos' ? /^\/scenarios\/[a-zA-Z0-9._/-]+\/photos\.json$/.test(url) : kind === 'imagery' ? /^\/scenarios\/[a-zA-Z0-9._/-]+\/imagery\.json$/.test(url) : kind === 'reference' ? /^\/scenarios\/[a-zA-Z0-9._/-]+\.geojson$/.test(url) : kind === 'field' ? /^\/scenarios\/[a-zA-Z0-9._/-]+\.kml$/.test(url) : kind === 'workspace' ? /^\/scenarios\/[a-zA-Z0-9._/-]+\/incident\.json$/.test(url) : /^\/terrain\/[a-zA-Z0-9._-]+$/.test(url);
+  const validUrl = kind === 'presence' ? /^\/scenarios\/[a-zA-Z0-9._/-]+\/resident-presence\.json$/.test(url) : kind === 'photos' ? /^\/scenarios\/[a-zA-Z0-9._/-]+\/photos\.json$/.test(url) : kind === 'imagery' ? /^\/scenarios\/[a-zA-Z0-9._/-]+\/imagery\.json$/.test(url) : kind === 'reference' ? /^\/scenarios\/[a-zA-Z0-9._/-]+\.geojson$/.test(url) : kind === 'field' ? /^\/scenarios\/[a-zA-Z0-9._/-]+\.kml$/.test(url) : kind === 'workspace' ? /^\/scenarios\/[a-zA-Z0-9._/-]+\/incident\.json$/.test(url) : /^\/terrain\/[a-zA-Z0-9._-]+$/.test(url);
   if (!validUrl || url.includes('..')) {
     throw new Error(`Invalid manifest: ${field}.url`);
   }
@@ -94,6 +95,7 @@ export function validateScenarioManifest(value: unknown): ScenarioManifest {
     ...(value.workspace ? { workspace: requireAsset(value.workspace, 'workspace', 'workspace') } : {}),
     ...(value.fieldData ? { fieldData: requireAsset(value.fieldData, 'fieldData', 'field') } : {}),
     ...(value.referenceData ? {referenceData:requireAsset(value.referenceData,'referenceData','reference')} : {}),
+    ...(value.residentPresence ? { residentPresence: requireAsset(value.residentPresence,'residentPresence','presence') } : {}),
     ...(value.fieldPhotos ? { fieldPhotos: requireAsset(value.fieldPhotos, 'fieldPhotos', 'photos') } : {}),
     ...(value.analysisImagery ? { analysisImagery: requireAsset(value.analysisImagery, 'analysisImagery', 'imagery') } : {}),
     ...(terrainContext?.length ? {terrainContext} : {})

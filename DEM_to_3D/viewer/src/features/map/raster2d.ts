@@ -63,7 +63,7 @@ export async function createRaster2d(data: TerrainData, imageUrl: string | undef
   const inverse = proj4('EPSG:3857', crs.proj4 || `${crs.authority}:${crs.code}`);
   for (let row = 0; row < output.height; row++) {
     if (row % 32 === 0) {
-      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
       if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
     }
     for (let col = 0; col < output.width; col++) {

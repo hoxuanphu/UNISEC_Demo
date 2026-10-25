@@ -110,7 +110,7 @@ diffuseColor.a = analysisSample.a * analysisOpacity;`);
         uniforms.map.value = texture;
         overlays.forEach(group => { group.visible = true; });
         onStatus('ready'); invalidate();
-      }, () => { if (!next.signal.aborted) {current = ''; onStatus('error');} });
+      }, error => { if (!next.signal.aborted) {current = ''; console.warn('Prepared terrain imagery unavailable',error); onStatus('error');} });
     },
     /** Shows a prepared image (e.g. a masked corridor) whose outer edges are these EPSG:32648 bounds. */
     setCanvas(canvas: HTMLCanvasElement, [left, bottom, right, top]: readonly [number, number, number, number], relief = 0, opacity=1) {

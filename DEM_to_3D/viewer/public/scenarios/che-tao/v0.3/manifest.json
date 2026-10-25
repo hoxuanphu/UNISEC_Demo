@@ -71,5 +71,10 @@
     "url": "/scenarios/che-tao/field-photos/photos.json",
     "byteLength": 14228,
     "sha256": "a4605f02899a59c1c2149a0a48047ac081f8484c616c32ad2eb697df3575ccd8"
+  },
+  "residentPresence": {
+    "url": "/scenarios/che-tao/resident-presence.json",
+    "byteLength": 1831,
+    "sha256": "2df73ce406fef331eb790acf44d728001b6bc6d75952ed7250751444a43d113c"
   }
 }

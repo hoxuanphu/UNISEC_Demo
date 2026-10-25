@@ -7,6 +7,7 @@ Requires Playwright for Python and a Chromium browser. Run against a built app.
 from gis_browser_actions import map_tool
 import argparse
 import json
+import re
 from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
@@ -202,7 +203,9 @@ def run(url, chrome, captures, prepared=False):
         pick(.55, .4)
         expect(panel.get_by_role('button', name='Kết thúc')).to_be_disabled()
         pick(.7, .4)
-        expect(panel.locator('.map-measure-result')).to_contain_text('km')
+        expect(panel.locator('.map-measure-result dd')).to_have_text(re.compile(r'\d[\d.,]*\s*(?:km|m)'))
+        distance=panel.locator('.map-measure-result dd').inner_text()
+        assert float(re.sub(r'[^0-9,]', '', distance).replace(',', '.')) > 0, distance
         panel.get_by_role('button', name='Kết thúc').click()
         expect(panel.get_by_role('button', name='Đo mới', exact=True)).to_be_visible()
         panel.get_by_role('button', name='Chỉnh sửa', exact=True).click()

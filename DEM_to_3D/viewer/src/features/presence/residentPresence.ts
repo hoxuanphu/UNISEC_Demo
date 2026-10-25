@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { readResponse } from '../../shared/http/readResponse';
+import { verifiedAssetBytes } from '../../data/ScenarioRepository';
+import type { ScenarioAsset } from '../../data/scenarioManifest';
 
 /** People the resident app last located at one group of field huts. Simulated for the Chế Tạo demo. */
 export type PresenceCluster = {
@@ -41,15 +42,16 @@ export function validateResidentPresence(value: unknown): ResidentPresence {
 }
 
 /** Optional: without it the workspace simply shows no household alerts. */
-export function useResidentPresence(enabled: boolean): ResidentPresence | null {
+export function useResidentPresence(asset?: ScenarioAsset): ResidentPresence | null {
   const [presence, setPresence] = useState<ResidentPresence | null>(null);
   useEffect(() => {
-    if (!enabled) { setPresence(null); return; }
+    setPresence(null);
+    if (!asset) return;
     const controller = new AbortController();
-    void readResponse('/scenarios/che-tao/resident-presence.json', controller.signal)
-      .then(response => response.json()).then(value => { if(!controller.signal.aborted)setPresence(validateResidentPresence(value)); })
+    void verifiedAssetBytes(asset,controller.signal)
+      .then(bytes => JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes))).then(value => { if(!controller.signal.aborted)setPresence(validateResidentPresence(value)); })
       .catch(() => { if (!controller.signal.aborted) setPresence(null); });
     return () => controller.abort();
-  }, [enabled]);
+  }, [asset?.url,asset?.sha256,asset?.byteLength]);
   return presence;
 }

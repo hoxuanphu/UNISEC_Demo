@@ -432,8 +432,8 @@ export function ResponseWorkspace({
   const localNetwork=useLocalNetwork(packet.datasetVersion.startsWith('che-tao'),gis.records);
   const [localAreaId,setLocalAreaId]=useState<string|null>(null);
   // People the resident app still places at field huts, and whether any road out remains.
-  const presence=useResidentPresence(packet.datasetVersion.startsWith('che-tao'));
-  const households=useMemo(()=>localNetwork.network&&presence?assessHouseholdAccess(localNetwork.network,presence.clusters):[],[localNetwork.network,presence]);
+  const presence=useResidentPresence(scenarioManifest?.residentPresence);
+  const households=useMemo(()=>!historical&&localNetwork.network&&presence?assessHouseholdAccess(localNetwork.network,presence.clusters):[],[historical,localNetwork.network,presence]);
   const [householdId,setHouseholdId]=useState<string|null>(null);
   // People cut off at field huts are relief work alongside the evidence checks.
   const workTasks=useMemo(()=>[...householdWork(historical?[]:households),...evidenceWork].sort((a,b)=>a.priority-b.priority||a.id.localeCompare(b.id)),[households,evidenceWork,historical]);
