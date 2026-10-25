@@ -1,5 +1,6 @@
 import { hasRoutePlaceSymbol } from '../features/map/routePlaceSymbol';
 import { createTrackingOverlay } from '../features/tracking/trackingOverlay';
+import { keepSymbolsDecluttered } from '../features/map/symbolDeclutter';
 import '../features/tracking/tracked-devices.css';
 import { createRouteEndpoints, type RouteEndpoint } from '../terrain/routeEndpoints';
 import { applyDrawingOrder } from '../features/map/mapLayerOrder';
@@ -928,6 +929,8 @@ export function TerrainViewer({
     if (workspace) mapUiObserver.observe(workspace, { childList: true, subtree: true });
     resize();
 
+    // The 2D map's single draw order: on contact the lower rank yields, after every marker layout.
+    const declutter = keepSymbolsDecluttered(mapArea instanceof HTMLElement ? mapArea : host, { on: () => undefined, off: () => undefined });
     let previousFrame = performance.now();
     const loop = renderOnDemand(time => {
       const delta = Math.min(.05, Math.max(0, (time - previousFrame) / 1000)); previousFrame = time;
@@ -961,6 +964,7 @@ export function TerrainViewer({
         mappedLabel?.update(camera);
         optionalOverlays.updateLabels(camera);
         markerLayoutDirty = false;
+        declutter.schedule();
       }
       return Boolean(cameraTransition || moved || controls.autoRotate);
     });
@@ -974,7 +978,7 @@ export function TerrainViewer({
 
     return () => {
       flyoverRef.current = null;
-      flyoverController.dispose();contextLayer?.dispose();endpointLayer?.dispose();devices?.dispose();
+      flyoverController.dispose();contextLayer?.dispose();endpointLayer?.dispose();devices?.dispose();declutter();
       runtimeRef.current = null;
       overlaysRef.current = null;
       optionalOverlays.dispose();

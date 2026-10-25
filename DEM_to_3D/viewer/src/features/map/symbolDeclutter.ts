@@ -64,8 +64,9 @@ export function declutterSymbols(host: HTMLElement): void {
   }
 }
 
-/** Re-run after every view change and whenever a layer adds or removes symbols. */
-export function keepSymbolsDecluttered(host: HTMLElement, map: { on: (types: string, fn: () => void) => unknown; off: (types: string, fn: () => void) => unknown }): () => void {
+/** Re-run after every view change and whenever a layer adds or removes symbols. The 3D view,
+ * which has no map events, calls `schedule` after each marker layout instead. */
+export function keepSymbolsDecluttered(host: HTMLElement, map: { on: (types: string, fn: () => void) => unknown; off: (types: string, fn: () => void) => unknown }): (() => void) & { schedule: () => void } {
   let frame = 0;
   const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => declutterSymbols(host)); };
   map.on('zoomend moveend resize', schedule);
@@ -74,5 +75,5 @@ export function keepSymbolsDecluttered(host: HTMLElement, map: { on: (types: str
   // Tracked devices move between view changes.
   const timer = window.setInterval(schedule, 1000);
   schedule();
-  return () => { cancelAnimationFrame(frame); map.off('zoomend moveend resize', schedule); observer.disconnect(); window.clearInterval(timer); };
+  return Object.assign(() => { cancelAnimationFrame(frame); map.off('zoomend moveend resize', schedule); observer.disconnect(); window.clearInterval(timer); }, { schedule });
 }
