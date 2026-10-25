@@ -28,7 +28,11 @@
 .map-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 14px; padding-top: 6px; color: var(--ws-muted); font-size: 11px; line-height: 1.4; }
 .map-bottom-bar[data-expanded="false"] .map-legend { grid-template-columns: minmax(0, max-content) minmax(0, 1fr); }
 .legend-item { display: inline-flex; align-items: center; gap: 7px; min-width: 0; overflow-wrap: anywhere; }
-.legend-item > .line { width: 20px; height: 0; flex: none; border-top: 2px solid; }
+/* One symbol column: every sample sits centred in the same width, so the labels line up. */
+.legend-sample { display: grid; flex: 0 0 28px; place-items: center; }
+.line.local-network { filter: drop-shadow(0 1px 0 #243f45) drop-shadow(0 -1px 0 #243f45); }
+.tracked-device-symbol.is-stranded { background-color: #d32f2f; }
+.legend-sample > .line { display: block; width: 22px; height: 0; border-top: 2px solid; }
 .line.network { filter: drop-shadow(0 1px 0 #243f45) drop-shadow(0 -1px 0 #243f45); }
 .line.uncertain { border-top-style: dashed; }
 .map-legend .line.aoi { border-color: #85aa9d; border-top-style: dashed; }

@@ -59,6 +59,7 @@
 .map-marker-layer[data-basemap="terrain"] .map-pin .map-pin-label {color:#24363b;text-shadow:0 0 2px #fff,0 0 4px #fff;}
 [data-theme="dark"] .map-marker-layer[data-basemap="terrain"] .map-pin .map-pin-label {color:#edf2ed;text-shadow:0 1px 2px #111b16,0 0 3px #111b16;}
 .map-pin.is-label-hidden .map-pin-label {display:none;}
+.map-pin.is-label-yielded .map-pin-label {visibility:hidden;}
 .map-pin.is-label-hidden:is(:hover,:focus-visible,.is-preview) .map-pin-label {display:block;left:var(--hover-label-left,31px)!important;top:var(--hover-label-top,4px)!important;}
 
 .landslide-map-label { display:block; width:max-content; box-sizing:border-box; font:500 12px/1.4 var(--font-map); max-width:min(260px,calc(100vw - 48px)); white-space:normal; overflow-wrap:break-word; word-break:normal; }

@@ -1,6 +1,7 @@
 import { hasRoutePlaceSymbol } from '../features/map/routePlaceSymbol';
 import { createTrackingOverlay } from '../features/tracking/trackingOverlay';
-import { keepSymbolsDecluttered } from '../features/map/symbolDeclutter';
+import { declutterSymbols } from '../features/map/symbolDeclutter';
+import { createHouseholdOverlay } from '../features/presence/householdOverlay';
 import '../features/tracking/tracked-devices.css';
 import { createRouteEndpoints, type RouteEndpoint } from '../terrain/routeEndpoints';
 import { applyDrawingOrder } from '../features/map/mapLayerOrder';
@@ -120,6 +121,7 @@ export function TerrainViewer({
   scenarioProps,
   onSelectOverlayHit,
   pointPickActive, onPointPick, deviceFeed, onSelectDevice, selectedDeviceId,
+  households, selectedHouseholdId, onSelectHousehold,
   viewControlRef,
   onViewReady, onOrbitChange,
   gisRecords, gisSelectedId, onGisSelect, flyover, onFlyoverState, routeEndpoints, contextGeometry, selectedContextAreaId, onSelectContextArea
@@ -127,6 +129,7 @@ export function TerrainViewer({
   const selectedDeviceRef=useRef(selectedDeviceId);selectedDeviceRef.current=selectedDeviceId;
   const onSelectDeviceRef=useRef(onSelectDevice);onSelectDeviceRef.current=onSelectDevice;
   const deviceFeedRef=useRef(deviceFeed);deviceFeedRef.current=deviceFeed;
+  const householdsRef=useRef({households,selectedHouseholdId,onSelectHousehold});householdsRef.current={households,selectedHouseholdId,onSelectHousehold};
   const endpointsRef=useRef(routeEndpoints);endpointsRef.current=routeEndpoints;
   const contextRef = useRef({geometry:contextGeometry,selectedId:selectedContextAreaId,onSelect:onSelectContextArea});
   contextRef.current={geometry:contextGeometry,selectedId:selectedContextAreaId,onSelect:onSelectContextArea};
@@ -160,7 +163,7 @@ export function TerrainViewer({
   const onViewReadyRef = useRef(onViewReady);
   const mappedAreasRef = useRef({records:gisRecords,selectedId:gisSelectedId,onSelect:onGisSelect});
   const propsUnavailableRef = useRef(onUnavailable);
-  const runtimeRef = useRef<{ updateScenario: () => void; setMode: (mode: '2d' | '3d') => void; updateSurface: () => void; updateDevices: () => void; invalidate: () => void } | null>(null);
+  const runtimeRef = useRef<{ updateScenario: () => void; setMode: (mode: '2d' | '3d') => void; updateSurface: () => void; updateDevices: () => void; updateHouseholds: () => void; invalidate: () => void } | null>(null);
 
   measureModeRef.current = measureMode;
   onPickRef.current = onPick;
@@ -377,6 +380,13 @@ export function TerrainViewer({
       },()=>!measureModeRef.current&&!pointPickRef.current.active&&!flyoverActive,id=>onSelectOverlayHitRef.current?.({type:'road',id}),
       point=>viewControlRef?.current?.focusProjected(point,detailInset(host)),onSelectDeviceRef.current?id=>onSelectDeviceRef.current?.(id):undefined,()=>selectedDeviceRef.current??null);
     };
+    // Hut clusters with people, as on the 2D map.
+    const householdLayer=createHouseholdOverlay(host,point=>{
+      const world=projectedWorld(point);if(!world)return null;
+      deviceProjection.copy(world).project(camera);
+      return{x:(deviceProjection.x+1)*host.clientWidth/2,y:(1-deviceProjection.y)*host.clientHeight/2,visible:deviceProjection.z>=-1&&deviceProjection.z<=1};
+    },id=>householdsRef.current.onSelectHousehold?.(id));
+    const updateHouseholds=()=>{const current=householdsRef.current;householdLayer.set(current.households??[],current.selectedHouseholdId??null,localeRef.current);};
     let endpointLayer:ReturnType<typeof createRouteEndpoints>|null=null;
     let contextLayer:ReturnType<typeof createContextAreaOverlay>|null=null;
     let mappedAreaGroup: THREE.Group | null = null;
@@ -581,8 +591,8 @@ export function TerrainViewer({
       markerLayoutDirty = true;
     };
     refreshReferenceRelief = () => {rebuildScenarioOverlays();invalidate();onViewReady?.();};
-    runtimeRef.current = { updateScenario: rebuildScenarioOverlays, setMode: mode => setInitialCamera(mode, true), updateSurface, updateDevices, invalidate: () => invalidate() };
-    updateDevices();
+    runtimeRef.current = { updateScenario: rebuildScenarioOverlays, setMode: mode => setInitialCamera(mode, true), updateSurface, updateDevices, updateHouseholds, invalidate: () => invalidate() };
+    updateDevices();updateHouseholds();
 
     const moveCamera = (position: THREE.Vector3, target: THREE.Vector3, duration = 480) => {
       interruptCameraTransition();
@@ -929,8 +939,10 @@ export function TerrainViewer({
     if (workspace) mapUiObserver.observe(workspace, { childList: true, subtree: true });
     resize();
 
-    // The 2D map's single draw order: on contact the lower rank yields, after every marker layout.
-    const declutter = keepSymbolsDecluttered(mapArea instanceof HTMLElement ? mapArea : host, { on: () => undefined, off: () => undefined });
+    // The 2D map's single draw order: on contact the lower rank yields. Run in the frame that laid
+    // the markers out, and every second for moving devices, which update between camera changes.
+    const declutterHost = mapArea instanceof HTMLElement ? mapArea : host;
+    const declutterTimer = window.setInterval(() => declutterSymbols(declutterHost), 1000);
     let previousFrame = performance.now();
     const loop = renderOnDemand(time => {
       const delta = Math.min(.05, Math.max(0, (time - previousFrame) / 1000)); previousFrame = time;
@@ -959,12 +971,12 @@ export function TerrainViewer({
       updateFocusMarker();
       if (markerLayoutDirty) {
         mapReference.update(camera, controls.target, controls.getAzimuthalAngle(), mapModeRef.current, localeRef.current, entries[0]?.model.metadata, entries[0]?.group.matrixWorld);
-        referencePoints?.update(camera);contextLayer?.update(camera);endpointLayer?.update(camera);devices?.update();
+        referencePoints?.update(camera);contextLayer?.update(camera);endpointLayer?.update(camera);devices?.update();householdLayer.update();
         scenarioMarkers?.update(camera);
         mappedLabel?.update(camera);
         optionalOverlays.updateLabels(camera);
         markerLayoutDirty = false;
-        declutter.schedule();
+        declutterSymbols(declutterHost);
       }
       return Boolean(cameraTransition || moved || controls.autoRotate);
     });
@@ -978,7 +990,7 @@ export function TerrainViewer({
 
     return () => {
       flyoverRef.current = null;
-      flyoverController.dispose();contextLayer?.dispose();endpointLayer?.dispose();devices?.dispose();declutter();
+      flyoverController.dispose();contextLayer?.dispose();endpointLayer?.dispose();devices?.dispose();householdLayer.dispose();window.clearInterval(declutterTimer);
       runtimeRef.current = null;
       overlaysRef.current = null;
       optionalOverlays.dispose();
@@ -1040,6 +1052,7 @@ export function TerrainViewer({
   }, [geographicPlacements, models]);
 
   useEffect(() => { runtimeRef.current?.updateDevices(); }, [deviceFeed,locale,selectedDeviceId]);
+  useEffect(() => { runtimeRef.current?.updateHouseholds(); runtimeRef.current?.invalidate(); }, [households,selectedHouseholdId,locale]);
   useEffect(() => { if (terrainOverlays) overlaysRef.current?.setOptions(terrainOverlays); }, [terrainOverlays]);
   useEffect(() => { runtimeRef.current?.updateSurface(); if (!flyoverRef.current?.active && !flyoverRef.current?.exporting) void analysisRef.current?.set(analysisImagery?.rasters ?? [], analysisImagery?.opacity ?? 1); }, [analysisImagery]);
   useEffect(() => { flyoverRef.current?.setInput(flyover ?? null); }, [flyover]);

@@ -214,11 +214,12 @@
   background:#fafbf8;
   color:var(--sym-report,#946b29);
   border-color:var(--sym-report,#946b29);
-  color: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   font: 700 11px/1 var(--font-sans);
   font-style: normal;
 }
+/* A rescue request: the alarm red, as its pin on the map. */
+.field-legend-symbol.is-help { background:#c62828; color:#fff; border-color:#fff; }
 .field-legend-symbol.is-survey {
   background:#fafbf8;
   color:var(--sym-survey,#426784);

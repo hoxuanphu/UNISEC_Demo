@@ -8,3 +8,25 @@
 .map-overview-surface:focus-visible { outline: 2px solid var(--select); outline-offset: -2px; }
 .map-area:has(.layers-panel) .map-overview { display: none; }
 @media (max-width: 900px), (max-height: 540px) { .map-overview { display: none; } }
+
+/* Rescue coverage: a fog of war over the commune, with its layers and one headline. */
+.overview-head { display: flex; align-items: center; }
+.overview-head .overview-toggle { flex: 1; }
+.overview-size { flex: none; width: 30px; height: 30px; min-height: 30px; padding: 0; border: 0; background: none; }
+.map-overview[data-coverage][data-expanded=true] { width: 248px; }
+.map-overview[data-coverage] .map-overview-surface { height: 200px; }
+.map-overview[data-large][data-expanded=true] { width: min(460px, calc(100vw - 460px)); }
+.map-overview[data-large] .map-overview-surface { height: min(400px, calc(100vh - 340px)); }
+.map-overview-surface { position: relative; }
+.coverage-fog { position: absolute; inset: 0; z-index: 450; pointer-events: none; }
+.overview-coverage { display: grid; gap: 6px; padding: 8px 10px 10px; border-top: 1px solid var(--ws-line); }
+.overview-coverage p { margin: 0; color: var(--ws-muted); font-size: 12px; line-height: 1.4; }
+.overview-coverage p.is-alert { color: var(--critical-ink); font-weight: 600; }
+.overview-coverage fieldset { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; border: 0; }
+.overview-coverage label { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer; }
+.overview-coverage input { margin: 0; }
+.overview-coverage i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #fff; box-shadow: 0 0 0 1px #0003; }
+.overview-coverage [data-layer=fog] i { border-radius: 2px; background: rgba(10, 16, 14, .6); }
+.overview-coverage [data-layer=need] i { background: #e53935; }
+.overview-coverage [data-layer=team] i { background: #26a65b; }
+.overview-coverage [data-layer=rescued] i { background: #9aa3ad; }

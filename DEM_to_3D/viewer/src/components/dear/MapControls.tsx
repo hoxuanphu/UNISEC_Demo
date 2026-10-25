@@ -48,23 +48,13 @@ export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [],
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const routeVisible = hasSelectedRoute && layers.route;
   const legend: Array<{ kind: string; label: string; symbol?: MapSymbolName; uiSymbol?: 'layers'; fieldSymbol?: boolean; area?: ReturnType<typeof landslideAreaStyle> }> = [];
-  if (mapMode === '2d') for (const status of householdStatusOrder.filter(value => householdStatuses.includes(value))) legend.push({ kind: `households-${status}`, label: t(...householdLegendText[status]) });
-  if (layers.roads && !affectedOnly) legend.push({ kind: 'network', label: layers.status ? t(...roadStatusLabels.open) : t('Mạng đường', 'Road network') });
-  if (hasLocalRoads && layers.roads && layers.localRoads!==false && !affectedOnly) legend.push({kind:'local-network',label:t('Đường trong xã Chế Tạo','Chế Tạo local roads')});
-  if (layers.aoi) legend.push({ kind: 'aoi', label: t('Vùng đánh giá', 'Assessment area') });
-  if ((layers.roads || routeVisible) && layers.status) legend.push({ kind: 'blocked', label: t('Đường bị chặn', 'Blocked road') }, { kind: 'risk', label: t('Nguy cơ sạt lở trên đường', 'Landslide risk on road') }, { kind: 'uncertain', label: t('Đường cần xác minh', 'Road to verify') });
-  if (routeVisible) legend.push({ kind: 'selected', label: t('Tuyến đang xem', 'Selected route') });
-  if (layers.communities) legend.push({ kind: 'community', symbol: 'community', label: t('Địa bàn dân cư', 'Community') }, { kind: 'priority', symbol: 'community', label: t('Ưu tiên cứu hộ', 'Rescue priority') });
+  // The legend reads in the map's own order: who needs help, who helps, what cuts the roads, the roads, then places.
+  for (const status of householdStatusOrder.filter(value => householdStatuses.includes(value))) legend.push({ kind: `households-${status}`, label: t(...householdLegendText[status]) });
+  if (layers.devices && hasLocationDevices) legend.push({kind:'stranded-device',label:t('Người kẹt trên đường','Stranded on a road')});
+  if (gisObservations.includes('help')) legend.push({kind:'field-help',fieldSymbol:true,label:t('Yêu cầu cứu','Rescue request')});
+  if (layers.devices && hasLocationDevices) legend.push({kind:'resident-device',label:t('Người dân','Residents')},{kind:'rescue-device',label:t('Đội cứu hộ','Rescue teams')});
   if (layers.landslide && hazards.some(h => h.kind === 'landslide' && h.observation === 'reported')) legend.push({ kind: 'landslide', symbol: 'landslide', label: t('Điểm sạt lở', 'Reported landslide') });
   if (layers.landslide && hazards.some(h => h.kind === 'landslide' && h.observation === 'suspected')) legend.push({ kind: 'suspected', symbol: 'landslide', label: t('Nghi sạt lở', 'Suspected landslide') });
-  if ((layers.crossings ?? layers.status) && hazards.some(h => h.kind === 'bridge')) legend.push({ kind: 'bridge', symbol: 'bridge', label: t('Cầu cần xác minh', 'Bridge to verify') });
-  if ((layers.crossings ?? layers.status) && hazards.some(h => h.kind === 'crossing')) legend.push({ kind: 'crossing', symbol: 'crossing', label: t('Điểm vượt khe', 'Gully crossing') });
-  if (layers.flood && hazards.some(h => h.kind === 'flood')) legend.push({ kind: 'flood', symbol: 'flood', label: t('Điểm nghi ngập', 'Possible flood site') });
-  if (layers.staging) legend.push({ kind: 'staging', symbol: 'staging', label: t('Điểm tập kết', 'Staging point') });
-  if (layers.hlz && hasHLZData) legend.push({ kind: 'hlz', symbol: 'hlz', label: t('Vị trí hạ cánh đề xuất', 'Proposed landing site') });
-  if (layers.communities || layers.landslide || layers.status) legend.push({ kind: 'overlap', uiSymbol: 'layers', label: t('Nhóm đối tượng', 'Overlapping points') });
-  if (gisObservations.some(kind=>kind!=='survey')) legend.push({kind:'field-warning',fieldSymbol:true,label:t('Ghi nhận chưa xác minh','Unreviewed observations')});
-  if (gisObservations.includes('survey')) legend.push({kind:'field-survey',fieldSymbol:true,label:t('Điểm khảo sát','Survey points')});
   if (layers.landslide) {
     const areas = mappedAreas.flatMap(record => { const area = record.visible && landslideAreaOf(record); return area ? [area] : []; });
     const potential = areas.find(area => area.state === 'potential');
@@ -74,8 +64,21 @@ export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [],
     if (observed) legend.push({kind:'observed-area', label:t('Vết sạt lở đã rà soát','Reviewed landslide extent'), area:landslideAreaStyle(observed)});
     if (unreviewed) legend.push({kind:'unreviewed-area', label:t('Vết sạt lở chưa rà soát','Unreviewed landslide extent'), area:landslideAreaStyle(unreviewed)});
   }
-  if (layers.devices && hasLocationDevices) legend.push({kind:'resident-device',label:t('Người dân','Residents')},{kind:'rescue-device',label:t('Đội cứu hộ','Rescue teams')});
-  const visibleLegend = legendExpanded ? legend : legend.filter(item => ['resident-device','rescue-device','network', 'local-network', 'blocked', 'risk', 'uncertain', 'selected', 'potential-area', 'observed-area', 'unreviewed-area', 'field-warning', 'field-survey'].includes(item.kind));
+  if ((layers.roads || routeVisible) && layers.status) legend.push({ kind: 'blocked', label: t('Đường bị chặn', 'Blocked road') }, { kind: 'risk', label: t('Nguy cơ sạt lở', 'Landslide risk on road') }, { kind: 'uncertain', label: t('Đường cần xác minh', 'Road to verify') });
+  if (layers.roads && !affectedOnly) legend.push({ kind: 'network', label: layers.status ? t(...roadStatusLabels.open) : t('Mạng đường', 'Road network') });
+  if (hasLocalRoads && layers.roads && layers.localRoads!==false && !affectedOnly) legend.push({kind:'local-network',label:t('Đường trong xã Chế Tạo','Chế Tạo local roads')});
+  if (routeVisible) legend.push({ kind: 'selected', label: t('Tuyến đang xem', 'Selected route') });
+  if (layers.aoi) legend.push({ kind: 'aoi', label: t('Vùng đánh giá', 'Assessment area') });
+  if (layers.communities) legend.push({ kind: 'community', symbol: 'community', label: t('Địa bàn dân cư', 'Community') }, { kind: 'priority', symbol: 'community', label: t('Ưu tiên cứu hộ', 'Rescue priority') });
+  if (layers.staging) legend.push({ kind: 'staging', symbol: 'staging', label: t('Điểm tập kết', 'Staging point') });
+  if (layers.hlz && hasHLZData) legend.push({ kind: 'hlz', symbol: 'hlz', label: t('Vị trí hạ cánh đề xuất', 'Proposed landing site') });
+  if ((layers.crossings ?? layers.status) && hazards.some(h => h.kind === 'bridge')) legend.push({ kind: 'bridge', symbol: 'bridge', label: t('Cầu cần xác minh', 'Bridge to verify') });
+  if ((layers.crossings ?? layers.status) && hazards.some(h => h.kind === 'crossing')) legend.push({ kind: 'crossing', symbol: 'crossing', label: t('Điểm vượt khe', 'Gully crossing') });
+  if (layers.flood && hazards.some(h => h.kind === 'flood')) legend.push({ kind: 'flood', symbol: 'flood', label: t('Điểm nghi ngập', 'Possible flood site') });
+  if (gisObservations.some(kind=>kind!=='survey'&&kind!=='help')) legend.push({kind:'field-warning',fieldSymbol:true,label:t('Ghi nhận chưa xác minh','Unreviewed observations')});
+  if (gisObservations.includes('survey')) legend.push({kind:'field-survey',fieldSymbol:true,label:t('Điểm khảo sát','Survey points')});
+  if (layers.communities || layers.landslide || layers.status) legend.push({ kind: 'overlap', uiSymbol: 'layers', label: t('Nhiều điểm gộp', 'Grouped points') });
+  const visibleLegend = legendExpanded ? legend : legend.filter(item => item.kind.startsWith('households-') || ['stranded-device','field-help','resident-device','rescue-device','network', 'local-network', 'blocked', 'risk', 'uncertain', 'selected', 'potential-area', 'observed-area', 'unreviewed-area', 'field-warning', 'field-survey'].includes(item.kind));
 
   return <>
     <div className="map-toolbar" ref={toolbar} role="group" aria-label={t('Công cụ bản đồ', 'Map tools')}>
@@ -122,7 +125,7 @@ export function MapControls({ orbiting = false, onToggleOrbit, mappedAreas = [],
       </div>
       {!layersOpen && !measuring && !drawing && !legendMinimized && visibleLegend.length > 0 && <div className="map-legend" id="map-legend-items" aria-label={t('Chú giải', 'Legend')}>
         {visibleLegend.map(({ kind, label, symbol, uiSymbol, fieldSymbol, area }) => <span className="legend-item" key={kind}>
-          {kind==='resident-device'||kind==='rescue-device'?<DeviceLegendSymbol role={kind==='resident-device'?'resident':'rescue'}/>:area ? <i className="legend-area" aria-hidden="true"><svg viewBox="0 0 28 22"><rect x="2" y="3" width="24" height="16" rx="1" fill={area.color} fillOpacity={area.fillOpacity} stroke={area.color} strokeWidth={area.weight} strokeDasharray={area.dashArray}/></svg></i> : kind.startsWith('households-') ? <i className="legend-household" data-status={kind.slice(11)} aria-hidden="true"><UiIcon name="people" size={16}/></i> : kind === 'blocked' || kind === 'risk' ? <RoadConditionSymbol condition={kind}/> : fieldSymbol ? <i className={'field-legend-symbol'+(kind==='field-survey'?' is-survey':'')} aria-hidden="true">{kind==='field-survey'?'i':'!'}</i> : symbol ? <MapPoiSample symbol={symbol} kind={kind}/> : uiSymbol ? <UiIcon name={uiSymbol} size={18}/> : <i className={'line ' + kind} style={{ borderColor: kind === 'local-network' ? (layers.imagery ? roadColors.reference : roadColors.networkTerrain) : kind === 'network' ? (layers.imagery ? roadColors.networkImagery : roadColors.networkTerrain) : swatchColors[kind] }} aria-hidden="true"/>}{label}
+          <span className="legend-sample">{kind==='stranded-device'?<i className="tracked-device-symbol is-resident is-stranded" aria-hidden="true"/>:kind==='resident-device'||kind==='rescue-device'?<DeviceLegendSymbol role={kind==='resident-device'?'resident':'rescue'}/>:area ? <i className="legend-area" aria-hidden="true"><svg viewBox="0 0 28 22"><rect x="2" y="3" width="24" height="16" rx="1" fill={area.color} fillOpacity={area.fillOpacity} stroke={area.color} strokeWidth={area.weight} strokeDasharray={area.dashArray}/></svg></i> : kind.startsWith('households-') ? <i className="legend-household" data-status={kind.slice(11)} aria-hidden="true"><UiIcon name="people" size={16}/></i> : kind === 'blocked' || kind === 'risk' ? <RoadConditionSymbol condition={kind}/> : fieldSymbol ? <i className={'field-legend-symbol'+(kind==='field-survey'?' is-survey':kind==='field-help'?' is-help':'')} aria-hidden="true">{kind==='field-survey'?'i':'!'}</i> : symbol ? <MapPoiSample symbol={symbol} kind={kind}/> : uiSymbol ? <UiIcon name={uiSymbol} size={18}/> : <i className={'line ' + kind} style={{ borderColor: kind === 'local-network' ? (layers.imagery ? roadColors.reference : roadColors.networkTerrain) : kind === 'network' ? (layers.imagery ? roadColors.networkImagery : roadColors.networkTerrain) : swatchColors[kind] }} aria-hidden="true"/>}</span>{label}
         </span>)}
       </div>}
     </div>

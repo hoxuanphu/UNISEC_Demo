@@ -1032,3 +1032,22 @@
 .citizen-safe-places button > .citizen-option-icon { flex: none; }
 .citizen-help-sent { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--ws-brand); font-size: 13px; font-weight: 600; }
 .citizen-workspace .citizen-map-summary .button.citizen-help { color: #fff; background: #c62828; border-color: #c62828; }
+
+/* Walking directions: the next turn in a bold strip on top, time and distance left in a card below. */
+.citizen-nav-banner { position: absolute; z-index: 26; left: 12px; right: 12px; top: 12px; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #1d5c3f; color: #fff; box-shadow: var(--shadow-overlay); }
+.citizen-nav-banner[data-state="off"] { background: #8a5300; }
+.citizen-nav-arrow { display: grid; place-items: center; width: 44px; height: 44px; }
+.citizen-nav-copy { display: grid; gap: 2px; min-width: 0; }
+.citizen-nav-copy strong { font-size: 22px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.citizen-nav-copy span { font-size: 15px; font-weight: 600; line-height: 1.35; }
+.citizen-nav-copy small { color: #ffffffc0; font-size: 12px; }
+.citizen-nav-banner .button { min-height: 40px; border: 0; border-radius: 8px; background: #fff; color: #5c3800; font-weight: 600; }
+.citizen-nav-bar { position: absolute; z-index: 26; left: 12px; right: 12px; bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--card-line); border-radius: 12px; background: var(--ws-surface); box-shadow: var(--shadow-overlay); }
+.citizen-nav-bar > div { display: grid; gap: 2px; min-width: 0; }
+.citizen-nav-bar strong { font-size: 18px; color: #1d5c3f; }
+.citizen-nav-bar small { overflow: hidden; color: var(--ws-muted); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.citizen-workspace .citizen-nav-exit { flex: none; min-height: 44px; padding: 8px 18px; border-radius: 22px; color: #b3261e; font-weight: 600; }
+/* While navigating the map tools sit below the banner. */
+.citizen-map:has(.citizen-nav-banner) .citizen-map-tools { top: 112px; }
+.citizen-map:has(.citizen-nav-banner) .citizen-map-compass { top: 214px; }
+.citizen-map:has(.citizen-nav-banner) .citizen-map-layers { display: none; }

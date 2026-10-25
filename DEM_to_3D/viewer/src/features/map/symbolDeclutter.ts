@@ -1,22 +1,30 @@
 /**
- * One draw order for every point symbol on the 2D map, whichever layer draws it.
+ * One draw order for every point symbol on the 2D and 3D maps, whichever layer draws it.
  * When two visible symbols touch, the lower rank yields and is hidden until the map
- * moves apart. Road lines keep their condition colour, so a yielding sign loses no
- * information. Selected objects never yield.
+ * moves apart. The order answers a coordinator's questions in turn: who needs help, who
+ * is helping, then why (landslides, closures), then places. Context loses nothing by
+ * yielding: road lines keep their condition colour and landslide areas stay drawn.
+ * Selected objects and your own position never yield.
  */
 const ranks: ReadonlyArray<readonly [selector: string, rank: number]> = [
-  ['.household-alert:is(.is-cut-off,.is-team)', 90], // people cut off: the alarm
-  ['.tracked-device.is-stranded', 88],  // a resident held at a closure stands beside its sign
+  ['.tracked-device.is-self', 100],     // you, on the resident's phone
+  // Who needs help.
+  ['.household-alert:is(.is-cut-off,.is-team)', 90],
+  ['.tracked-device.is-stranded', 88],  // a resident held at a closure
   ['.field-map-marker.is-help', 86],    // a rescue request; the stranded dot it came from already says it
-  ['.map-pin.community.is-priority', 85],
+  ['.household-alert.is-unverified', 85],
+  // Who is helping.
+  ['.tracked-device.is-rescue', 84],
+  // Why: what cuts the roads.
   ['.map-pin.hazard', 82],              // incident landslides outrank the closures they cause
   ['.road-closure-sign', 80],
-  ['.household-alert.is-unverified', 78],
+  // Places and everything else.
+  ['.map-pin.community.is-priority', 78],
   ['.map-pin.community', 76],
-  ['.tracked-device', 70],
-  ['.field-map-marker', 62],           // residents' reports
-  ['.map-pin', 60],                    // staging, landing sites, other places
-  ['.household-alert', 55],            // already rescued: a record, yields to everything live
+  ['.tracked-device', 70],              // residents moving freely
+  ['.field-map-marker', 62],            // residents' other reports
+  ['.map-pin', 60],                     // staging, landing sites, other places
+  ['.household-alert', 55],             // already rescued: a record, yields to everything live
   ['.road-risk-sign', 50],
 ];
 const selected = '.is-selected';
@@ -56,17 +64,23 @@ export function declutterSymbols(host: HTMLElement): void {
     return [{ element, box, rank, order }];
   }).sort((a, b) => b.rank - a.rank || a.order - b.order);
   // Place pins resolve among themselves (groups with a count); here they only meet other layers.
-  const placed: Array<{ box: Box; pin: boolean }> = [];
+  const placed: Array<{ box: Box; pin: boolean; element: HTMLElement }> = [];
   for (const item of items) {
     const pin = item.element.matches('.map-pin');
     if (item.rank < 100 && placed.some(other => !(pin && other.pin) && touches(other.box, item.box))) item.element.classList.add('is-decluttered');
-    else placed.push({ box: item.box, pin });
+    else placed.push({ box: item.box, pin, element: item.element });
+  }
+  // Labels yield before any symbol, as on web maps: a place name over another symbol is hidden.
+  for (const entry of placed) {
+    const label = entry.pin ? entry.element.querySelector('.map-pin-label') : null;
+    entry.element.classList.remove('is-label-yielded');
+    const box = label && getComputedStyle(label).display !== 'none' ? boxOf(label) : null;
+    if (box && placed.some(other => other !== entry && touches(other.box, box))) entry.element.classList.add('is-label-yielded');
   }
 }
 
-/** Re-run after every view change and whenever a layer adds or removes symbols. The 3D view,
- * which has no map events, calls `schedule` after each marker layout instead. */
-export function keepSymbolsDecluttered(host: HTMLElement, map: { on: (types: string, fn: () => void) => unknown; off: (types: string, fn: () => void) => unknown }): (() => void) & { schedule: () => void } {
+/** Re-run after every view change and whenever a layer adds or removes symbols. */
+export function keepSymbolsDecluttered(host: HTMLElement, map: { on: (types: string, fn: () => void) => unknown; off: (types: string, fn: () => void) => unknown }): () => void {
   let frame = 0;
   const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => declutterSymbols(host)); };
   map.on('zoomend moveend resize', schedule);
@@ -75,5 +89,5 @@ export function keepSymbolsDecluttered(host: HTMLElement, map: { on: (types: str
   // Tracked devices move between view changes.
   const timer = window.setInterval(schedule, 1000);
   schedule();
-  return Object.assign(() => { cancelAnimationFrame(frame); map.off('zoomend moveend resize', schedule); observer.disconnect(); window.clearInterval(timer); }, { schedule });
+  return () => { cancelAnimationFrame(frame); map.off('zoomend moveend resize', schedule); observer.disconnect(); window.clearInterval(timer); };
 }

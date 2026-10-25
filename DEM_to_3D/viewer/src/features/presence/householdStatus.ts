@@ -22,7 +22,7 @@ export const householdStatusText: Record<HouseholdStatus, [vi: string, en: strin
 };
 /** Map legend: what each disc colour stands for. */
 export const householdLegendText: Record<HouseholdStatus, [vi: string, en: string]> = {
-  'cut-off': ['Bị cô lập, cần cứu', 'Cut off, needs rescue'], unverified: ['Có tín hiệu, chưa rõ thông tin', 'Signal only, no information'], team: ['Đã liên lạc, chờ đội', 'In contact, awaiting team'], rescued: ['Đã cứu', 'Rescued'], clear: ['Chưa ghi nhận chặn', 'No blockage recorded'],
+  'cut-off': ['Bị cô lập, cần cứu', 'Cut off, needs rescue'], unverified: ['Chưa rõ thông tin', 'No information yet'], team: ['Đã liên lạc, chờ đội', 'In contact, awaiting team'], rescued: ['Đã cứu', 'Rescued'], clear: ['Chưa ghi nhận chặn', 'No blockage recorded'],
 };
 export const householdStatusTone = { 'cut-off': 'critical', unverified: 'warning', team: 'active', rescued: 'neutral', clear: 'neutral' } as const;
 export const unverifiedText: Record<NonNullable<HouseholdView['unverified']>, [vi: string, en: string]> = {

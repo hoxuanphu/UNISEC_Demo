@@ -20,6 +20,7 @@ import { useLocalNetwork } from '../route-film/networkContext';
 import { northernComparisonRoute } from '../route-film/localRoadConditions';
 import { HeaderAccount } from '../../components/dear/HeaderAccount';
 import { CitizenMapSummary } from './CitizenMapSummary';
+import { CitizenNavigation } from './CitizenNavigation';
 import { difficultRoadLabel } from '../routes/localRoadLabels';
 import { roadCondition, routeCondition } from '../routes/roadConditions';
 import { RoadConditionSymbol } from '../map/RoadConditionSymbol';
@@ -211,6 +212,11 @@ export function CitizenWorkspace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [hereKey,residentLocation,locale]);
   const [waiting,setWaiting]=useState(false);
+  // Walking directions along the shown commune route, following the resident.
+  const [navigating,setNavigating]=useState(false);
+  useEffect(()=>{if(navigating&&(tab!=='roads'||roadMode!=='local'||!localJourney.route))setNavigating(false);},[navigating,tab,roadMode,localJourney.route]);
+  const placeName=(source?:string,label?:string)=>[...localCommunities,...snapshot.communities].find(place=>`community:${place.id}`===source)?.name
+    ??localSites.find(site=>`site:${site.id}`===source)?.name[locale==='vi'?0:1]??label;
   // One tap asks for rescue where the resident is; the request joins their reports for the coordinators.
   const sendHelp=async()=>{
     const p=await navigationGps.request();if(!p)return;
@@ -367,7 +373,7 @@ export function CitizenWorkspace({
   };
   // Fit after the previously hidden map has a measurable viewport.
   useEffect(() => {
-    if ((!mapOnMobile && window.matchMedia('(max-width: 760px)').matches) || !defaultTerrain || !roadView || picking || journey.picking) return;
+    if ((!mapOnMobile && window.matchMedia('(max-width: 760px)').matches) || !defaultTerrain || !roadView || picking || journey.picking || navigating) return;
     const frame = requestAnimationFrame(() => {
       if (mapPlace) controls.current?.focusProjected(mapPlace.projected);
       else if (shownRoadId) {
@@ -384,7 +390,7 @@ export function CitizenWorkspace({
       }
     });
     return () => cancelAnimationFrame(frame);
-  }, [mapOnMobile, defaultTerrain, roadMode, displayedRoute, routeFramePoints, local.network, roadView, shownRoadId, picking, journey.picking, journey.fitSequence, mapPlaceId, fitWholeNetwork, residentLocation]);
+  }, [mapOnMobile, defaultTerrain, roadMode, displayedRoute, routeFramePoints, local.network, roadView, shownRoadId, picking, journey.picking, journey.fitSequence, mapPlaceId, fitWholeNetwork, residentLocation, navigating]);
   const gpsError = gps.error ? (
     <p className="field-error" role="alert">
       {gps.error === "denied"
@@ -881,7 +887,7 @@ export function CitizenWorkspace({
           </div>
         </aside>
         <section className="map-area citizen-map" aria-label={m.communityMap}>
-          {routeSimulation ? <CitizenMovementControl simulation={routeSimulation} locale={locale}/> : <div className="citizen-map-context"><UiIcon name="map" size={16}/><span>{picking || journey.picking ? t('Chọn vị trí', 'Choose a location') : roadMode === 'local' ? t('Đường trong xã', 'Local roads') : roadMode === 'village' ? t('Đường về bản', 'Village access') : t('Tìm đường', 'Directions')}</span></div>}
+          {navigating ? null : routeSimulation ? <CitizenMovementControl simulation={routeSimulation} locale={locale}/> : <div className="citizen-map-context"><UiIcon name="map" size={16}/><span>{picking || journey.picking ? t('Chọn vị trí', 'Choose a location') : roadMode === 'local' ? t('Đường trong xã', 'Local roads') : roadMode === 'village' ? t('Đường về bản', 'Village access') : t('Tìm đường', 'Directions')}</span></div>}
           <div className="map-canvas">
             <Map2D selectedDeviceId={residentLocation?residentDeviceId:null} selfDeviceId={residentLocation?residentDeviceId:null} selfHeading={selfHeading} deviceFeed={mapFeed} routeSimulation={routeSimulation}
               contextGeometry={localAreas} contextMinZoom={12} selectedContextAreaId={localAreaId ?? inspectedRoad?.landslideAreaId}
@@ -926,7 +932,7 @@ export function CitizenWorkspace({
                   setMapOnMobile(false);
                 } else position(latitude, longitude, "map");
               }}
-              journeyEndpoints={roadView ? journeyMarkers(journey) : []}
+              journeyEndpoints={roadView ? journeyMarkers(journey).filter(marker => !navigating || marker.label === 'B') : []}
               journeyFitRequest={journey.fitSequence}
               onSelectOverlayHit={onHit}
               scenarioProps={{
@@ -1020,7 +1026,12 @@ export function CitizenWorkspace({
               </div>
             </fieldset>
           </details>
-          {!picking && !journey.picking && !placeHazard && !placeArea && !localArea && <CitizenMapSummary
+          {navigating && displayedRoute && roadMode === 'local' && <CitizenNavigation route={displayedRoute} locale={locale} feed={residentLocation} me={selfPoint}
+            destination={placeName(localJourney.end?.source, localJourney.end?.label) ?? t('điểm đã chọn', 'the chosen point')}
+            onFollow={point => controls.current?.focusProjected(point)}
+            onReroute={() => { const me = selfPoint(); if (me) localJourney.setPoint('start', me, 'device', t('Vị trí của bạn', 'Your location')); }}
+            onExit={() => { setNavigating(false); controls.current?.frameProjected?.(routeFramePoints); }}/>}
+          {!navigating && !picking && !journey.picking && !placeHazard && !placeArea && !localArea && <CitizenMapSummary
             locale={locale} route={displayedRoute} local={roadMode === 'local'} advised={roadMode === 'village' || journey.advised}
             comparison={!!comparisonRoute || alternativeRoutes.length > 0} blocked={roadAlerts.some(road => roadCondition(road) === 'blocked')} risk={roadAlerts.some(road => roadCondition(road) === 'risk')}
             endpoints={roadMode !== 'village' && journey.start && journey.end ? {
@@ -1048,6 +1059,10 @@ export function CitizenWorkspace({
                 setWaiting(false); setMapSelection(null); setTab('report'); setMessage('');
                 const p = await navigationGps.request(); if (p) { position(p.latitude, p.longitude, 'device'); setAccuracy(p.accuracy); }
               }} : undefined}
+            onNavigate={roadMode === 'local' && selfPoint() ? () => {
+              // Directions always start from where the resident stands now.
+              const me = selfPoint(); if (me) localJourney.setPoint('start', me, 'device', t('Vị trí của bạn', 'Your location'));
+              setWaiting(false); setMapSelection(null); setNavigating(true); setMapOnMobile(true); } : undefined}
             onFind={() => { showRoadMode(roadMode === 'local' ? 'local' : 'journey'); switchTab('roads'); }}
             onPlaces={() => { showRoadMode(hasLocalNetwork ? 'local' : 'village'); switchTab('roads'); }} loadError={roadMode === 'local' && local.error} onRetry={local.retry}/>}
           {localArea && !placeHazard && !placeArea && !picking && !journey.picking && <CitizenPlaceCard

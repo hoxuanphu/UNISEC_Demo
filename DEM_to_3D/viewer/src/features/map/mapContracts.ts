@@ -66,6 +66,15 @@ export type ViewControls = {
   flyover?: import('../../terrain/flyover/flyoverController').FlyoverControls;
 };
 
+/** The rescue picture for the overview's fog of war, read on demand and redrawn on `subscribe`. */
+export type RescueCoverage = {
+  spots: () => readonly import('../presence/rescueCoverage').CoverageSpot[];
+  rescued: () => ReadonlyArray<{x:number;y:number}>;
+  subscribe: (listener: () => void) => () => void;
+  /** Projected points the coverage view frames: the commune. */
+  focus: ReadonlyArray<{x:number;y:number}>;
+};
+
 export type MapDisplayProps = {
   locale?: Locale;
   /** Location rendering is read-only; scenario signals never change GPS evidence or road assessments. */
@@ -92,6 +101,7 @@ export type MapDisplayProps = {
   /** Blocked corridor for comparison only; never offered as a route choice. */
   comparisonRoute?: ScenarioRoute | null;
   onInspectRoad?: (id: string) => void;
+  rescueCoverage?: RescueCoverage;
   /** Field huts with people from the resident app, with where each stands; those needing a responder are drawn. */
   households?: import('../presence/householdStatus').HouseholdView[];
   selectedHouseholdId?: string | null;

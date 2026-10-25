@@ -3,21 +3,12 @@ import * as L from 'leaflet';
 import type { Locale } from '../../types/dear';
 import type { TerrainMetadata } from '../../types/terrain';
 import { projectedToWgs84 } from '../../terrain/coordinate';
-import { carbonIcons } from '../../shared/ui/carbonIconData';
 import { mapPane } from '../map/mapLayerOrder';
 import { householdGroups } from './householdGroups';
 import { householdStatusOrder, householdStatusText, type HouseholdView } from './householdStatus';
+import { HOUSEHOLD_SYMBOL_PX as SIZE, householdSymbolHtml as html } from './householdSymbol';
 import './isolated-households.css';
 
-const people = (() => {
-  const icon = carbonIcons.people[16];
-  return `<svg width="12" height="12" viewBox="${icon.viewBox}" fill="currentColor" aria-hidden="true">${icon.content.map(node =>
-    `<${node.elem} ${Object.entries(node.attrs).map(([name, value]) => `${name}="${value}"`).join(' ')}/>`).join('')}</svg>`;
-})();
-/** A small disc with a people glyph, coloured by where the people stand; only the cut-off ones pulse. */
-const SIZE = 22;
-const html = (count: string) => `<span class="household-alert-ring"></span><span class="household-alert-disc">${people}</span><span class="household-alert-count">${escape(count)}</span>`;
-const escape = (value: string) => value.replace(/[&<>"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[char]!);
 /**
  * People the resident app places at field huts who need a responder, the head count beside
  * each disc: red with a slow ring when cut off, amber when nothing shows whether they can
@@ -67,7 +58,7 @@ export function IsolatedHouseholds2D({ mapRef, metadata, households, selectedId,
         const count = vi ? `${people} người` : `${people} ${people === 1 ? 'person' : 'people'}`;
         const label = multiple ? `${members.length} ${vi ? 'cụm hộ' : 'household groups'}, ${count}` : `${name}, ${count}, ${householdStatusText[status][vi ? 0 : 1].toLocaleLowerCase(vi ? 'vi' : 'en')}`;
         const marker = L.marker(point, { pane: mapPane('selection'), keyboard: true, title: label, bubblingMouseEvents: false, zIndexOffset: selected ? 2000 : 1000,
-          icon: L.divIcon({ className: `household-alert is-${status}${multiple ? ' household-aggregate' : ''}${selected ? ' is-selected' : ''}`, iconSize: [SIZE, SIZE], iconAnchor: [SIZE / 2, SIZE / 2], html: html(count) }) })
+          icon: L.divIcon({ className: `household-alert is-${status}${multiple ? ' household-aggregate' : ''}${selected ? ' is-selected' : ''}`, iconSize: [SIZE, SIZE], iconAnchor: [SIZE / 2, SIZE / 2], html: html(count, members.length) }) })
           .on('click', () => {
             if (!multiple) { onSelect?.(item.cluster.id); return; }
             if (map.getZoom() < Math.min(map.getMaxZoom(), 18)) {

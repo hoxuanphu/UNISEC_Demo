@@ -10,6 +10,7 @@ import { HouseholdCard } from '../features/presence/HouseholdCard';
 import { householdWork } from '../features/presence/householdWork';
 import { householdRescues } from '../features/presence/householdRescue';
 import { householdStatuses, postEventCoverage } from '../features/presence/householdStatus';
+import { coverageSpots, createRescueTrail } from '../features/presence/rescueCoverage';
 import { rescueBases } from '../features/tracking/rescueBase';
 import { communeVillages } from '../features/presence/communeSites';
 import { CommuneVillages } from '../features/presence/CommuneVillages';
@@ -470,6 +471,17 @@ export function ResponseWorkspace({
   const operationalDeviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks,householdMissions,bases);
   const residentLocation=useResidentLocation(historical?null:localNetwork.network);
   const deviceFeed=useMemo(()=>mergeLocationFeeds(operationalDeviceFeed,residentLocation),[operationalDeviceFeed,residentLocation]);
+  // The ground rescue teams have covered this session, for the overview's fog of war.
+  const [rescueTrail,setRescueTrail]=useState<ReturnType<typeof createRescueTrail>|null>(null);
+  useEffect(()=>{const trail=createRescueTrail(deviceFeed);setRescueTrail(trail);return trail.dispose;},[deviceFeed]);
+  const rescueRequests=useMemo(()=>gis.records.flatMap(record=>{const geometry=record.feature.geometry;
+    return observationOf(record)?.kind==='help'&&geometry.type==='Point'?[roadProjected(geometry.coordinates[1],geometry.coordinates[0])]:[];}),[gis.records]);
+  const rescueCoverage=useMemo(()=>localNetwork.network&&!historical?{
+    spots:()=>coverageSpots({households:householdViews,devices:deviceFeed?.getSnapshot()??[],trail:rescueTrail?.points()??[],bases:bases.map(base=>base.projected),requests:rescueRequests}),
+    rescued:()=>householdViews.filter(item=>item.status==='rescued').map(item=>item.projected),
+    subscribe:deviceFeed?.subscribe??(()=>()=>undefined),
+    focus:localNetwork.network.roads.flatMap(road=>[road.points[0],road.points[road.points.length-1]]),
+  }:undefined,[localNetwork.network,historical,householdViews,deviceFeed,rescueTrail,bases,rescueRequests]);
   const localJourneyRoadIds=useMemo(()=>localNetwork.network?.roads.map(road=>road.id)??[],[localNetwork.network]);
   const localContext=useMemo(()=>localNetwork.context?{areas:localNetwork.context.areas.filter(area=>area.kind==='landslide' && layers.landslide!==false),closures:[]}:undefined,[localNetwork.context,layers.landslide]);
   const localArea=localContext?.areas.find(area=>area.id===localAreaId);
@@ -1247,7 +1259,7 @@ export function ResponseWorkspace({
           <div className="map-canvas">
             {mapMode === '2d' ? (
               <Map2D selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} deviceFeed={layers.devices!==false?deviceFeed:null} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
-                households={householdViews} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold}
+                households={householdViews} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold} rescueCoverage={rescueCoverage}
                 analysisImagery={analysisDisplay}
                 gisEnabled={true}
                 gisRecords={displayedGis}
@@ -1336,6 +1348,7 @@ export function ResponseWorkspace({
                   fallback={terrain3DBusy ? null : terrainLoading(null)}
                 >
                   <TerrainViewer selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} deviceFeed={layers.devices!==false?deviceFeed:null}
+                    households={householdViews} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold}
                     pointPickActive={journey.open && !!journey.picking}
                     onPointPick={journey.pick}
                     routeEndpoints={journeyTerrainEndpoints}
