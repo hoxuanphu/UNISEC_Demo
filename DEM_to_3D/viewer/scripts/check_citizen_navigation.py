@@ -181,7 +181,7 @@ def run(url, chrome, captures):
         expect(page.locator('.citizen-map-summary')).to_contain_text('Đường bạn chọn')
         # Road selection and polygon selection replace each other. Closing the
         # polygon must return to the route, without resurrecting a stale road card.
-        sign = page.locator('.road-closure-sign.is-landslide').first
+        sign = page.locator('.road-closure-sign.is-landslide:visible').first
         area_id = sign.get_attribute('data-landslide-area')
         sign.click()
         expect(page.locator('.citizen-map-summary')).to_contain_text('Bị chặn do sạt lở')
