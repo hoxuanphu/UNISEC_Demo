@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Community, Hazard, IncidentModel, Locale, RoadSegment } from '../../types/dear';
 import { UiIcon } from '../../shared/ui/UiIcon';
 import type { ResponseAssessment } from '../../features/incident/responseAssessment';
@@ -40,13 +41,15 @@ type Props = {
   households?: HouseholdAccess[];
   onSelectHousehold?: (id: string) => void;
   onShowHouseholds?: () => void;
+  /** The rescue teams and what each is doing, under the people waiting for them. */
+  rescueTeams?: ReactNode;
 };
 
 /** A compact field summary; counts are independent facts, not a causal diagram. */
 export function IncidentView({
   incident, locale, areaName, tasks, entries, communities, onSelectCommunity, onOpenWork, onOpenArea,
   hazards, roads, fieldPhotos, onInspectObject, reportPending, pendingReport,
-  onOpenReport, historical, onOpenRoads, onOpenCommunities, households = [], onSelectHousehold, onShowHouseholds
+  onOpenReport, historical, onOpenRoads, onOpenCommunities, households = [], onSelectHousehold, onShowHouseholds, rescueTeams
 }: Props): JSX.Element {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   // English counts agree with their noun; Vietnamese has no plural form.
@@ -107,6 +110,8 @@ export function IncidentView({
           </button>)}
         </div>
       </section>}
+
+      {!historical && rescueTeams}
 
       <section className="incident-landslides">
         <h2 className="incident-section-title">{t('Điểm sạt lở', 'Landslides')}</h2>

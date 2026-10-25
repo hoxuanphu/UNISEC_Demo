@@ -6,6 +6,7 @@ import { projectedPathLength } from '../../terrain/pathGeometry';
 import { measure, routeSegments, scheduleSorties, type DevicePlan } from '../tracking/deviceFeed';
 import { simulationPoint } from '../routes/routeSimulation';
 import type { HouseholdAccess } from './householdIsolation';
+import type { RescueBase } from '../tracking/rescueBase';
 
 type Point = { x: number; y: number };
 /** Teams available for the huts; the clusters with a stated need are reached first. */
@@ -21,15 +22,16 @@ export type HouseholdRescue = { plan: DevicePlan; householdId: string; rideM: nu
 /** Approach on mapped roads only, from the nearest assembly point. Stop before the first cut and
  * await an access plan; a nearest-road projection does not establish a trail to the households.
  * Timing comes from the shared timetable (`scheduleSorties`), with every other team. */
-export function householdRescues(network: LocalNetwork, households: HouseholdAccess[], bases: ReadonlyArray<{ id: string; projected: Point }>): HouseholdRescue[] {
+export function householdRescues(network: LocalNetwork, households: HouseholdAccess[], bases: readonly RescueBase[]): HouseholdRescue[] {
   const order = households.filter(item => item.isolated).sort((a, b) => Number(Boolean(b.cluster.need)) - Number(Boolean(a.cluster.need)) || b.cluster.people - a.cluster.people);
   const rescues: HouseholdRescue[] = [];
   for (const item of order) {
     if (rescues.length === TEAMS) break;
     const hut = { origin: item.projected, source: `household:${item.cluster.id}` };
-    const route = bases.map(base => analyseRoadJourney(network.roads, { origin: base.projected, source: base.id }, hut, true, 600, 'rescue-foot').route)
-      .filter(candidate => candidate?.segs.length && candidate.points.length >= 2).sort((a, b) => a!.lengthKm - b!.lengthKm)[0];
-    if (!route) continue;
+    const best = bases.map(base => ({ base, route: analyseRoadJourney(network.roads, { origin: base.projected, source: base.id }, hut, true, 600, 'rescue-foot').route }))
+      .filter(entry => entry.route?.segs.length && entry.route.points.length >= 2).sort((a, b) => a.route!.lengthKm - b.route!.lengthKm)[0];
+    if (!best) continue;
+    const route = best.route!;
     const mappedPath = measure({ points: route.points });
     if (!mappedPath) continue;
     // Where the vehicle must stop: the start of the first cut section, or a reported slide.
@@ -55,7 +57,7 @@ export function householdRescues(network: LocalNetwork, households: HouseholdAcc
     rescues.push({ householdId: item.cluster.id, rideM: path.total, plan: {
       id, role: 'rescue', name: [`Đội cứu hộ ${String(number).padStart(2, '0')}`, `Rescue team ${String(number).padStart(2, '0')}`],
       road, path, from: 0, to: 1, duration: 1, missionId: `household:${item.cluster.id}`, targetId: `household:${item.cluster.id}`, targetName: item.cluster.name,
-      segments: routeSegments(route.segs, network.roads).filter(part => part.fromM < path.total),
+      segments: routeSegments(route.segs, network.roads).filter(part => part.fromM < path.total), baseId: best.base.id,
       sortie: { homeM: 0, endM: path.total, workS: ACCESS_WAIT, workState: 'waiting', earliest: 0 },
     } });
   }

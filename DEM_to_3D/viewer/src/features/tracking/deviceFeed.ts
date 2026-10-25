@@ -4,6 +4,7 @@ import { projectedPathLength } from '../../terrain/pathGeometry';
 import { nearestRoadAnchor } from '../routes/selectedRoadJourney';
 import { simulationPoint } from '../routes/routeSimulation';
 import { analyseRoadJourney } from '../routes/journeyAnalysis';
+import type { RescueBase } from './rescueBase';
 export type DeviceRole = 'resident' | 'rescue';
 export type DeviceState = 'moving' | 'approaching' | 'waiting' | 'stopped' | 'dispatching' | 'responding' | 'assisting' | 'escorting' | 'arrived'
   | 'crossing' | 'on-site' | 'evacuated';
@@ -13,6 +14,8 @@ export type DevicePosition = {
   id:string;role:DeviceRole;name:[string,string];roadId:string;roadName:[string,string];
   roadStatus:RoadSegment['status'];point:Point;stationM:number;state:DeviceState;updatedAt:number;
   missionId?:string;closureRoadId?:string;targetId?:string;targetName?:[string,string];
+  /** The assembly point a team left from. */
+  baseId?:string;
 };
 /** A team's job, in path metres: leave `homeM`, ride to `endM`, work there, come back.
  * An escorted resident walks up to `endM` from `startM` and is brought back to `safeM`. */
@@ -20,6 +23,7 @@ export type Sortie = {homeM:number;endM:number;workS:number;workState:DeviceStat
   escort?:{residentId:string;startM:number;safeM:number}};
 export type DevicePlan = {id:string;role:DeviceRole;name:[string,string];road:RoadSegment;path:Path;from:number;to:number;duration:number;
   missionId?:string;closureRoadId?:string;targetId?:string;targetName?:[string,string];
+  baseId?:string;
   sortie?:Sortie;
   /** The roads a path from the base runs over, by path metres, so a position names the road it is on. */
   segments?:Array<{fromM:number;toM:number;road:RoadSegment}>;
@@ -110,7 +114,7 @@ export function scheduleSorties(plans:DevicePlan[]):DevicePlan[] {
 /** Closed edges remain closed. A rendezvous is on the connected, unblocked side of the closure.
  * With assembly points (`bases`), a team sets out from the nearest on open roads; without, from
  * half a kilometre back. */
-export function buildDevicePlans(roads:RoadSegment[],links:readonly LocalRoadAreaLink[]=[],bases:readonly Point[]=[]):DevicePlan[] {
+export function buildDevicePlans(roads:RoadSegment[],links:readonly LocalRoadAreaLink[]=[],bases:readonly RescueBase[]=[]):DevicePlan[] {
   const candidates=[...new Map(roads.map(road=>[road.id,road])).values()].filter(road=>!road.id.includes(':part:')&&measure(road))
     .sort((a,b)=>projectedPathLength(b.points)-projectedPathLength(a.points)||a.id.localeCompare(b.id));
   const available=candidates.filter(road=>road.status!=='blocked');
@@ -143,9 +147,9 @@ export function buildDevicePlans(roads:RoadSegment[],links:readonly LocalRoadAre
       // route on the one the closure belongs to, or the base snaps to a road that leads nowhere.
       const network=roads.filter(candidate=>candidate.id.startsWith('local-')===road.id.startsWith('local-'));
       return bases.flatMap(base=>{
-        const route=analyseRoadJourney(network,{origin:base,source:'rescue-base'},{origin:meeting,source:'meeting'},true,600).route;
+        const route=analyseRoadJourney(network,{origin:base.projected,source:base.id},{origin:meeting,source:'meeting'},true,600).route;
         const path=route?measure({points:route.points}):null;
-        return route&&path&&gap(path.points.at(-1)!,meeting)<20?[{path,segments:routeSegments(route.segs,roads)}]:[];
+        return route&&path&&gap(path.points.at(-1)!,meeting)<20?[{path,segments:routeSegments(route.segs,roads),baseId:base.id}]:[];
       }).sort((a,b)=>a.path.total-b.path.total)[0]??null;
     };
     const reachable=choices.map(c=>({...c,base:fromBase(c.path,c.road)}));
@@ -162,7 +166,7 @@ export function buildDevicePlans(roads:RoadSegment[],links:readonly LocalRoadAre
     // The call goes out 45 s after the resident stops at the closure.
     const earliest=(endM-startM)/deviceSpeeds.walk+45;
     plans.push({...shared,id:residentId,role:'resident',name:residentName,from:startM/path.total,to:endM/path.total,duration:1,targetId:rescueId,targetName:rescueName},
-      {...shared,id:rescueId,role:'rescue',name:rescueName,from:homeM/path.total,to:endM/path.total,duration:1,targetId:residentId,targetName:residentName,
+      {...shared,id:rescueId,role:'rescue',name:rescueName,from:homeM/path.total,to:endM/path.total,duration:1,targetId:residentId,targetName:residentName,baseId:choice.base?.baseId,
         sortie:{homeM,endM,workS:ASSIST,workState:'assisting',earliest,escort:{residentId,startM,safeM}}});
     rendezvous.push(approach.points.at(-1)!);missions++;
   }
@@ -201,10 +205,10 @@ function locate(plan:DevicePlan,clock:number,updatedAt:number):DevicePosition {
   const point=simulationPoint(plan.path,stationM),road=roadAt(plan,stationM,point);
   return {id:plan.id,role:plan.role,name:plan.name,roadId:road.id,roadName:road.name,roadStatus:road.status,
     point,stationM,state,updatedAt,
-    missionId:plan.missionId,closureRoadId:plan.closureRoadId,targetId:plan.targetId,targetName:plan.targetName};
+    missionId:plan.missionId,closureRoadId:plan.closureRoadId,targetId:plan.targetId,targetName:plan.targetName,baseId:plan.baseId};
 }
 /** A single scenario clock, independent of rendering and isolated from real GPS or report submission. */
-export function createDeviceFeed(roads:RoadSegment[],links:readonly LocalRoadAreaLink[]=[],epoch=Date.now(),missions:readonly DevicePlan[]=[],bases:readonly Point[]=[]) {
+export function createDeviceFeed(roads:RoadSegment[],links:readonly LocalRoadAreaLink[]=[],epoch=Date.now(),missions:readonly DevicePlan[]=[],bases:readonly RescueBase[]=[]) {
   // Field clock for movement; the signal time shown is the real one. All teams share one timetable.
   const plans=scheduleSorties([...buildDevicePlans(roads,links,bases),...missions]);let elapsed=0,real=0;
   const at=()=>epoch+Math.floor(real)*1000;

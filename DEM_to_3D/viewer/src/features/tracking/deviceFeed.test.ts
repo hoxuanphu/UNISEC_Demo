@@ -123,14 +123,18 @@ describe('resident and rescue device feed',()=>{
   it('sends every team from an assembly point, one after another, and never head-on into another team',()=>{
     // As the workspace loads it: commune roads cut where mapped slides meet them.
     const commune=withLocalRoadConditions(network),all=[...packet.roads,...commune.roads];
-    const staging=packet.responseSites.find(site=>site.kind==='staging')!.projected,bases=rescueBases(network.places,staging,commune.roads);
-    expect(bases.map(base=>base.name)).toEqual(['Helipad','Village B','Village C']);
+    // The assembly points are scenario data; the main staging point, far from the commune roads, is not one.
+    const bases=rescueBases(packet.responseSites,commune.roads);
+    expect(bases.map(base=>base.id)).toEqual(['AP-HELIPAD','AP-VILLAGE-B','AP-VILLAGE-C']);
     const huts=householdRescues(commune,assessHouseholdAccess(commune,validateResidentPresence(presenceData).clusters),bases).map(rescue=>rescue.plan);
-    const feed=createDeviceFeed(all,[],0,huts,bases.map(base=>base.projected));
+    const feed=createDeviceFeed(all,[],0,huts,bases);
     const teams=()=>feed.getSnapshot().filter(device=>device.role==='rescue');
     expect(teams()).toHaveLength(4);
     // Every team waits exactly at an assembly point before it leaves.
-    for(const team of teams())expect(Math.min(...bases.map(base=>Math.hypot(team.point.x-base.projected.x,team.point.y-base.projected.y)))).toBeLessThan(1);
+    for(const team of teams()){
+      const base=bases.find(item=>item.id===team.baseId)!;
+      expect(Math.hypot(team.point.x-base.projected.x,team.point.y-base.projected.y),team.id).toBeLessThan(1);
+    }
     const cycle=huts[0].script!.cycle;
     let previous=teams();
     for(let i=0;i<Math.ceil(cycle/deviceTimeLapse/.25);i++){
@@ -149,7 +153,7 @@ describe('resident and rescue device feed',()=>{
   });
   it('does not invent a rescue starting point when the assembly point has no connected approach',()=>{
     const approach=line('local-approach'),closed={...line('closed','blocked'),points:[{x:1000,y:0},{x:1300,y:0}]};
-    const plans=buildDevicePlans([approach,closed],[],[{x:10000,y:10000}]);
+    const plans=buildDevicePlans([approach,closed],[],[{id:'far',name:['far','far'],projected:{x:10000,y:10000}}]);
     expect(plans.filter(plan=>plan.role==='rescue')).toEqual([]);
     expect(plans.some(plan=>plan.role==='resident'&&plan.closureRoadId===closed.id)).toBe(true);
   });

@@ -92,7 +92,7 @@ def run(url, captures, chrome=None):
         page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
         fill(70);areas(.7)
         page.screenshot(path=str(captures/'response-fill.png'))
-        page.get_by_role('button',name='Khôi phục hiển thị mặc định',exact=True).click()
+        page.get_by_role('button',name='Khôi phục mặc định',exact=True).click()
         areas(.22)
         page.get_by_role('button',name='Đóng lớp bản đồ',exact=True).click()
         page.get_by_role('button',name='Chuyển sang 3D',exact=True).click()

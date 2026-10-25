@@ -63,7 +63,7 @@ describe('relief work for isolated households', () => {
 });
 
 describe('rescue teams to isolated huts', () => {
-  const bases = rescueBases(network.places, validateIncidentPacket(incident).responseSites.find(site => site.kind === 'staging')!.projected, network.roads);
+  const bases = rescueBases(validateIncidentPacket(incident).responseSites, network.roads);
   const rescues = householdRescues(network, assessHouseholdAccess(network, presence.clusters), bases);
   it('approaches priority households on mapped roads and waits before the cut', () => {
     expect(rescues.map(rescue => rescue.householdId)).toEqual(['HH-03', 'HH-01']);

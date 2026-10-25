@@ -7,6 +7,7 @@ import { HouseholdCard } from '../features/presence/HouseholdCard';
 import { householdWork } from '../features/presence/householdWork';
 import { householdRescues } from '../features/presence/householdRescue';
 import { rescueBases } from '../features/tracking/rescueBase';
+import { RescueTeamDetail, RescueTeamList } from '../features/tracking/RescueTeams';
 import { surveyConditionAreas } from '../features/routes/surveyRoadConditions';
 import { LocalRoadCard } from '../features/route-film/LocalRoadCard';
 import { supportsBasemapTone } from '../features/imagery/basemapTone';
@@ -450,14 +451,12 @@ export function ResponseWorkspace({
   // Condition signs sit where a mapped extent touches the road, on the main road and the commune roads alike.
   const roadAreaLinks=useMemo(()=>[...incidentSnapshot.surveyLinks,...(localNetwork.network?.conditions?.areaLinks??[])],[incidentSnapshot.surveyLinks,localNetwork.network]);
   const journeyRoads=useMemo(()=>[...roads,...(localNetwork.network?.roads??[])],[roads,localNetwork.network]);
-  // Teams set out from a few assembly points: where teams from staging enter the commune, and the outlying villages.
-  const stagingPoint=responseSites.find(site=>site.kind==='staging')?.projected;
-  const bases=useMemo(()=>localNetwork.network?rescueBases(localNetwork.network.places,stagingPoint,localNetwork.network.roads):[],[localNetwork.network,stagingPoint]);
-  const basePoints=useMemo(()=>bases.map(base=>base.projected),[bases]);
+  // Teams muster at the scenario's assembly points on the commune roads.
+  const bases=useMemo(()=>localNetwork.network?rescueBases(responseSites,localNetwork.network.roads):[],[localNetwork.network,responseSites]);
   // Teams sent to the isolated huts move in the same feed as the other rescue and resident dots.
   const householdTeams=useMemo(()=>localNetwork.network?householdRescues(localNetwork.network,households,bases):[],[localNetwork.network,households,bases]);
   const householdMissions=useMemo(()=>householdTeams.map(team=>team.plan),[householdTeams]);
-  const deviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks,householdMissions,basePoints);
+  const deviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks,householdMissions,bases);
   // Huts a team has reached; a string so the workspace re-renders on arrival, not on every move.
   const attendedHouseholds=useSyncExternalStore(deviceFeed?.subscribe??noSubscription,()=>deviceFeed?householdTeams.filter(team=>['on-site','escorting','evacuated'].includes(deviceFeed.getSnapshot().find(device=>device.id===team.plan.id)?.state??'')).map(team=>team.householdId).join(','):'');
   const localJourneyRoadIds=useMemo(()=>localNetwork.network?.roads.map(road=>road.id)??[],[localNetwork.network]);
@@ -476,6 +475,12 @@ export function ResponseWorkspace({
     navigation.dispatch({type:'view',view:navigation.view,list:true});
     setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(id);resetTools();setMobileView('map');setMapMode('2d');
     focusMapOn([item.projected,...(item.access?[item.access.point]:[])]);
+  };
+  // A team opens in the detail panel and comes to the middle of the map.
+  const selectTeam=(id:string)=>{
+    inspectObject('team:'+id);
+    const device=deviceFeed?.getSnapshot().find(item=>item.id===id);
+    if(device)focusMapOn([device.point]);
   };
   const showHouseholds=()=>{
     const isolated=households.filter(entry=>entry.isolated);if(!isolated.length)return;
@@ -1129,9 +1134,17 @@ export function ResponseWorkspace({
           households={households}
           onSelectHousehold={inspectHousehold}
           onShowHouseholds={showHouseholds}
+          rescueTeams={deviceFeed && <RescueTeamList feed={deviceFeed} locale={locale} onSelect={selectTeam}/>}
         />
 
         <ResponseDetails
+          renderObject={(objectId,close)=>objectId.startsWith('team:')?<RescueTeamDetail key={objectId} feed={deviceFeed} id={objectId.slice(5)} bases={bases} locale={locale} onClose={close}
+            onShow={point=>focusMapOn([point])} onSelectBase={id=>inspectObject('poi:'+id)}
+            onSelectTarget={team=>{
+              if(team.missionId?.startsWith('household:'))inspectHousehold(team.missionId.slice(10));
+              else{const target=deviceFeed?.getSnapshot().find(device=>device.id===team.targetId);if(target)focusMapOn([target.point]);}
+            }}/>:null}
+          siteContent={id=>bases.some(base=>base.id===id)&&<RescueTeamList feed={deviceFeed} locale={locale} onSelect={selectTeam} baseId={id} title={locale==='vi'?'Đội tại điểm này':'Teams based here'}/>}
           onCompareImagery={()=>setActiveDialog('comparison')}
           gisRecord={gisCard}
           gisRecords={gis.records}

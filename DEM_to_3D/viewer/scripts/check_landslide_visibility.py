@@ -65,7 +65,7 @@ def run(url, chrome, captures):
             assert panel.locator('.layers-content').evaluate('n=>n.scrollWidth<=n.clientWidth'), width
             panel.locator('.layer-appearance > summary').click()
             expect(panel.get_by_label('Nhãn địa danh', exact=True)).to_be_visible()
-            panel.get_by_role('button', name='Khôi phục hiển thị mặc định', exact=True).click()
+            panel.get_by_role('button', name='Khôi phục mặc định', exact=True).click()
             expect(panel.get_by_label('Sạt lở', exact=True)).to_be_checked()
             if captures:
                 page.screenshot(path=str(captures / f'layers-{width}.png'))

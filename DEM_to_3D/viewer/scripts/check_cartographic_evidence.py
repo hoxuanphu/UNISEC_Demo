@@ -127,7 +127,7 @@ def run(url, chrome, captures=None):
         expect(panel.locator(".layer-analysis")).to_have_attribute("open", "")
         panel.get_by_role("radio", name="Tắt ảnh phủ", exact=True).check()
         expect(page.locator('img[alt="Ảnh phân tích"]')).to_have_count(0)
-        panel.get_by_role("button", name="Khôi phục hiển thị mặc định", exact=True).click()
+        panel.get_by_role("button", name="Khôi phục mặc định", exact=True).click()
         expect(panel.locator('.analysis-imagery input[type="radio"]:checked')).not_to_have_count(0)
         expect(page.locator('img[alt="Ảnh phân tích"]')).to_be_visible(timeout=30000)
         # A new browser context has no in-memory imagery cache: exercise real failed requests.

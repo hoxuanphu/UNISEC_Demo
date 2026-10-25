@@ -4632,6 +4632,60 @@
         "Dữ liệu tình huống Chế Tạo",
         "Chế Tạo prepared dataset"
       ]
+    },
+    {
+      "id": "AP-HELIPAD",
+      "kind": "staging",
+      "name": [
+        "Điểm tập kết Bãi đáp",
+        "Helipad assembly point"
+      ],
+      "projected": {
+        "x": 399877.8,
+        "y": 2403125.7
+      },
+      "assessment": "candidate",
+      "observedAt": "2026-09-12T14:02:00+07:00",
+      "source": [
+        "Dữ liệu tình huống Chế Tạo",
+        "Chế Tạo prepared dataset"
+      ]
+    },
+    {
+      "id": "AP-VILLAGE-B",
+      "kind": "staging",
+      "name": [
+        "Điểm tập kết Bản B",
+        "Village B assembly point"
+      ],
+      "projected": {
+        "x": 399728.9,
+        "y": 2401610.9
+      },
+      "assessment": "candidate",
+      "observedAt": "2026-09-12T14:02:00+07:00",
+      "source": [
+        "Dữ liệu tình huống Chế Tạo",
+        "Chế Tạo prepared dataset"
+      ]
+    },
+    {
+      "id": "AP-VILLAGE-C",
+      "kind": "staging",
+      "name": [
+        "Điểm tập kết Bản C",
+        "Village C assembly point"
+      ],
+      "projected": {
+        "x": 402055.0,
+        "y": 2401823.6
+      },
+      "assessment": "candidate",
+      "observedAt": "2026-09-12T14:02:00+07:00",
+      "source": [
+        "Dữ liệu tình huống Chế Tạo",
+        "Chế Tạo prepared dataset"
+      ]
     }
   ],
   "signals": {

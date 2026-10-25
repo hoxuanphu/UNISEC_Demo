@@ -1,0 +1,7 @@
+/* Team rows read like the other incident rows: symbol, name and task, one status word. */
+.rescue-teams .incident-section-title { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+.rescue-teams .incident-section-title small { color:var(--ws-muted); font-size:12px; font-weight:500; font-variant-numeric:tabular-nums; }
+.rescue-team-symbol { display:grid; place-items:center; width:40px; height:40px; justify-self:center; }
+.rescue-team-symbol .tracked-device-symbol { transform:scale(1.25); }
+.rescue-team-row .status-text { white-space:nowrap; font-size:12px; }
+.rescue-team-detail .object-row strong { font-weight:600; }

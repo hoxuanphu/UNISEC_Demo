@@ -35,8 +35,8 @@
   },
   "workspace": {
     "url": "/scenarios/che-tao/v0.3/incident.json",
-    "byteLength": 89020,
-    "sha256": "8349370b867d7577af156342c1f07e7ace970bc9db8eef71a1d7db11738b4953"
+    "byteLength": 90330,
+    "sha256": "73ec8e1f0e7896688d012b606611b934697e6a71ccca93e3e41bda109a6d922b"
   },
   "fieldData": {
     "url": "/scenarios/che-tao/field/CheTao-Landslide-Scars.kml",

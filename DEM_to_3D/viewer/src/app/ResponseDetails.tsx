@@ -42,7 +42,10 @@ type Props = Pick<
   | 'onOpenWork'
 > & { onCompareImagery?:()=>void; gisRecords?: GeometryRecord[]; gisRecord?: GeometryRecord; gisRoads: ComponentProps<typeof ResponseObservationCard>['roads']; onCloseGis: () => void; onEditGis: () => void; onBackToGisGroup?: () => void; visible: boolean; onReturnFocus: () => void; onEditScenario?: (target:ScenarioTarget)=>void; mappedAreas?: GeometryRecord[]; onOpenMappedArea?: (id: string) => void;
   onSetRoadStatus?: ComponentProps<typeof ObjectDetailView>['onSetRoadStatus']; onRevertEdit?: (editId: string) => boolean;
-  signals?: Record<string, CommunitySignal>; fieldPhotos?: Map<string, PreparedPhotoPoint> };
+  signals?: Record<string, CommunitySignal>; fieldPhotos?: Map<string, PreparedPhotoPoint>;
+  /** Objects the workspace details itself, such as a rescue team; null for the others. */
+  renderObject?: (objectId: string, close: () => void) => JSX.Element | null;
+  siteContent?: ComponentProps<typeof ObjectDetailView>['siteContent'] };
 
 /** One detail surface: map dock on wide screens, the information pane on compact screens. */
 export function ResponseDetails({
@@ -78,8 +81,8 @@ export function ResponseDetails({
   onOpenWork,
   onEditScenario,
   visible,
-  onReturnFocus
-  , mappedAreas, onOpenMappedArea
+  onReturnFocus,
+  mappedAreas, onOpenMappedArea, renderObject, siteContent
 }: Props): JSX.Element | null {
   const { view, selectedRouteType, detailTab } = navigation;
   const {
@@ -125,6 +128,11 @@ export function ResponseDetails({
     onReturnFocus();
   };
 
+  const customContent = view !== 'priority' && objectId ? renderObject?.(objectId, () => {
+    onNavigate({ type: 'close-object' });
+    onResetTools();
+    onReturnFocus();
+  }) : null;
   let content: JSX.Element;
   if (!ready) return null;
   if (gisRecord) {
@@ -164,9 +172,12 @@ export function ResponseDetails({
         signal={signals?.[community.id]}
       />
     );
+  } else if (customContent) {
+    content = customContent;
   } else if (view !== 'priority' && objectId) {
     content = (
       <ObjectDetailView
+        siteContent={siteContent}
         objectId={objectId}
         fieldPhotos={fieldPhotos}
         mappedAreas={mappedAreas}

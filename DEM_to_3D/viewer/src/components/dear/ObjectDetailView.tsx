@@ -63,6 +63,8 @@ type Props = {
   onOpenMappedArea?: (id: string) => void;
   /** Prepared survey photos by hazard ID. */
   fieldPhotos?: Map<string, PreparedPhotoPoint>;
+  /** What else a secondary staging site holds, such as the rescue teams based there. */
+  siteContent?: (siteId: string) => React.ReactNode;
 };
 
 /** An open field task: its name, then state and owner on one quiet line; the dot carries the state. */
@@ -79,7 +81,7 @@ function WorkRow({ label, verification, locale, onOpen }: { label: string; verif
 const distanceText =(meters: number) => meters < 1000 ? `${Math.max(10, Math.round(meters / 10) * 10)} m` : `${(meters / 1000).toFixed(1)} km`;
 
 export const ObjectDetailView: React.FC<Props> = ({
-  fieldPhotos,
+  fieldPhotos, siteContent,
   onSetRoadStatus,
   onRevertEdit,
   verification,
@@ -342,7 +344,7 @@ export const ObjectDetailView: React.FC<Props> = ({
                 note={`${t(...roadStatusLabels[route.status])}${route.eta ? `, ${route.eta.minMinutes}–${route.eta.maxMinutes} ${t('phút', 'min')}` : ''}`}
                 onSelect={() => onSelectCommunity(community.id, route.type)}/>)}
             </section>}
-            {!primary && <p className="detail-empty">{t('Tuyến tiếp cận đang tính từ điểm tập kết chính.', 'Access routes are calculated from the primary staging point.')}</p>}
+            {!primary && (siteContent?.(site.id) || <p className="detail-empty">{t('Tuyến tiếp cận đang tính từ điểm tập kết chính.', 'Access routes are calculated from the primary staging point.')}</p>)}
           </section>;
         })()}
 

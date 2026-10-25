@@ -36,6 +36,7 @@ type Props = Pick<
   /** @deprecated The overview no longer lists reference datasets; GIS owns them. */
   survey?: {areas:number;points:number}; onShowSurvey?:()=>void; onShowCorridor?:()=>void;
   households?: HouseholdAccess[]; onSelectHousehold?: (id: string) => void; onShowHouseholds?: () => void;
+  rescueTeams?: import('react').ReactNode;
 };
 
 /** Lists retain their context and scroll while a selected item opens in the detail surface. */
@@ -58,7 +59,7 @@ export function ResponsePanel({
   onSelectCommunity,
   onInspectObject,
   onRevealPanel,
-  onOpenDialog, fieldPhotos, households, onSelectHousehold, onShowHouseholds
+  onOpenDialog, fieldPhotos, households, onSelectHousehold, onShowHouseholds, rescueTeams
 }: Props): JSX.Element {
   const {
     view,
@@ -135,6 +136,7 @@ export function ResponsePanel({
         households={households}
         onSelectHousehold={onSelectHousehold}
         onShowHouseholds={onShowHouseholds}
+        rescueTeams={rescueTeams}
         onOpenRoads={(filter) => {
           onNavigate({ type: 'road-list', filter });
           onRevealPanel();
