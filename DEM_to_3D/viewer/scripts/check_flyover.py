@@ -36,10 +36,11 @@ def run(url, chrome, output=None, lang="vi"):
         previous=None
         for _ in range(240):
             if downloads:break
-            message=page.locator('.flyover-message')
-            assert not message.count() or t('Không','could not') not in message.inner_text(),message.inner_text()
-            progress=page.locator('.flyover-export-percent')
-            current=progress.inner_text() if progress.count() else 'Preparing 3D'
+            # Completion removes the progress overlay. Read one DOM snapshot so
+            # finishing between count() and inner_text() cannot stall the check.
+            state=page.evaluate('''()=>({message:document.querySelector('.flyover-message')?.textContent??'',progress:document.querySelector('.flyover-export-percent')?.textContent??'Preparing 3D'})''')
+            assert t('Không','could not') not in state['message'],state['message']
+            current=state['progress']
             if current!=previous:print('Export:',current,flush=True);previous=current
             page.wait_for_timeout(1000)
         expect(page.get_by_role('dialog',name=t('Xem tuyến 3D','3D route view'),exact=True)).to_be_visible()
