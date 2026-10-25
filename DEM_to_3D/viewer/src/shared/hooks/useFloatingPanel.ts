@@ -4,12 +4,15 @@ type Position = { x: number; y: number };
 /** Keep a panel inside the map. Near the top it stays clear of the map buttons on the right;
  * lower down it may go right to the edge, as a docked overview does. */
 export function constrainPanel(position: Position, width: number, height: number, panelWidth: number, panelHeight: number, minimumTop = 64): Position {
-  const y = Math.max(minimumTop, Math.min(position.y, Math.max(minimumTop, height - panelHeight - 32)));
+  // The scale bar and the source button sit along the bottom edge.
+  const y = Math.max(minimumTop, Math.min(position.y, Math.max(minimumTop, height - panelHeight - BOTTOM_PX)));
   const right = y >= minimumTop + RIGHT_TOOLS_PX ? 8 : 64;
   return { x: Math.max(8, Math.min(position.x, Math.max(8, width - panelWidth - right))), y };
 }
 /** Height of the compass and buttons down the map's right edge, below the toolbar. */
 const RIGHT_TOOLS_PX = 96;
+/** Room kept along the bottom edge for the scale bar and the source button. */
+const BOTTOM_PX = 56;
 
 /** Preserve the heading position as content grows; use the space below it for scrolling. */
 export function anchoredPanel(position: Position, width: number, height: number, panelWidth: number, minimumTop = 64) {
