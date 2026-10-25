@@ -12,7 +12,7 @@ import type {
 } from '../types/dear';
 import type { TerrainMetadata } from '../types/terrain';
 import { projectedToScene } from './coordinate';
-import { roadColors, roadStroke, roadSurfaceOffsetM } from './roadStyle';
+import { guidedRouteStyle, roadColors, roadStroke, roadSurfaceOffsetM } from './roadStyle';
 import { terrainDrapePoints, terrainSurfaceElevation } from './terrainSurface';
 import { routeRoadDisplay } from './routeRoadDisplay';
 import { setDrawingLayer, mapLayerOrder } from '../features/map/mapLayerOrder';
@@ -138,7 +138,7 @@ export function buildScenarioOverlays(options: ScenarioOverlayOptions): THREE.Gr
       // Route selection must preserve the warning on blocked or uncertain segments.
       if (hasWarning) lineColor = condition === 'blocked' ? roadColors.blocked : roadColors.uncertain;
       const guided = routeVisible && road.status!=='blocked';
-      if (guided) lineColor=roadColors.selected;
+      if (guided) lineColor=guidedRouteStyle(hasWarning).line;
       const lineWidth = guided ? 5 : routeVisible || isRoadSelected ? roadStroke.emphasis : roadStroke.normal;
       const context = contextIds.has(sourceId) && !routeVisible ? contextRoadStyle(road,14,!!layers.imagery,!!layers.status,isRoadSelected,appearance.networkOpacity) : null;
       const addLine = (color: THREE.ColorRepresentation, width: number, casing: boolean): void => {
@@ -159,8 +159,8 @@ export function buildScenarioOverlays(options: ScenarioOverlayOptions): THREE.Gr
         }
       };
       // A route-colored casing under warning dashes looks like two overlapping routes.
-      addLine(guided ? hasWarning ? roadColors.uncertain : roadColors.selectedCasing : hasWarning && condition === 'blocked' ? roadColors.neutralCasing : isRoadSelected ? roadColors.inspectedCasing : routeVisible && !hasWarning ? roadColors.selectedCasing : roadColors.neutralCasing,
-        guided ? hasWarning ? 9 : 7.5 : lineWidth + (isRoadSelected ? roadStroke.inspectedCasing : roadStroke.casing), true);
+      addLine(guided ? guidedRouteStyle(hasWarning).rim : hasWarning && condition === 'blocked' ? roadColors.neutralCasing : isRoadSelected ? roadColors.inspectedCasing : routeVisible && !hasWarning ? roadColors.selectedCasing : roadColors.neutralCasing,
+        guided ? guidedRouteStyle(hasWarning).rimWidth : lineWidth + (isRoadSelected ? roadStroke.inspectedCasing : roadStroke.casing), true);
       addLine(lineColor, lineWidth, false);
     });
 

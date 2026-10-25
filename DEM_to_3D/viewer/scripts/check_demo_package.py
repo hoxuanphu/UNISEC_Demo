@@ -155,6 +155,8 @@ def run(archive, chrome=None, captures=None, video=None):
     from check_citizen_navigation import run as resident_navigation
     from check_citizen_photos import run as resident_photos
     from check_main_local_roads import run as main_local_roads
+    from check_map_inspector_layout import run as inspector_layout
+    from check_map_performance import run as map_performance
     from check_map_layer_order import run as map_layer_order
     from check_route_person import run as route_person
     from check_live_devices import run as live_devices
@@ -162,6 +164,7 @@ def run(archive, chrome=None, captures=None, video=None):
     from check_flyover import run as film
     from check_local_route_film import run as local_film
     from check_prepared_comparison import run as comparison
+    from check_strix_imagery import run as strix
 
     with tempfile.TemporaryDirectory(prefix='DEAR offline kiểm thử ') as temporary:
         root = Path(temporary).resolve()
@@ -233,12 +236,15 @@ def run(archive, chrome=None, captures=None, video=None):
                              ('local map in all workspaces', lambda: check_local_map(base, chrome, captures)),
                              ('local A–B road network and film', lambda: local_film(base, chrome, captures=captures)),
                              ('Planet/SAR comparison', lambda: comparison(base, chrome, captures=captures)),
+                             ('STRIX VV and grouped imagery', lambda: strix(base, chrome, captures=captures)),
                              ('profile and film camera', lambda: profile(base, chrome, captures)),
                              ('GIS edit/publish', lambda: gis(base, chrome, captures)),
                              ('resident photo/audio/report', lambda: resident(base, chrome, captures)),
                              ('resident route advice and warnings', lambda: resident_navigation(base, chrome, captures)),
                              ('resident capture metadata and approved photos', lambda: resident_photos(base, chrome, captures)),
                              ('main map local roads and directions', lambda: main_local_roads(base, chrome, captures)),
+                             ('toolbar clearance and commune overview access', lambda: inspector_layout(base, chrome, captures)),
+                             ('idle map rendering with live locations', lambda: map_performance(base, chrome)),
                              ('map drawing order and named 3D directions', lambda: map_layer_order(base, chrome, captures)),
                              ('route person and profile/inspector layout', lambda: route_person(base, chrome, captures)),
                              ('resident and rescue device locations', lambda: live_devices(base, chrome, captures)),

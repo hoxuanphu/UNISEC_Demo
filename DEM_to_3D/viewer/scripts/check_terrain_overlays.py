@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import struct
 import tempfile
+import re
 
 from playwright.sync_api import expect, sync_playwright
 
@@ -111,6 +112,39 @@ def run(url, chrome):
         layers.get_by_label('Kênh SAR',exact=True).select_option('1')
         layers.get_by_label('Độ rõ lớp SAR',exact=True).fill('40')
         expect(layers.locator('[role=alert]')).to_have_count(0)
+        checkpoint('switch between prepared imagery and the private raster')
+        layers.get_by_role('radio',name=re.compile('^STRIX-007')).check()
+        raw=layers.get_by_role('checkbox',name='sar.tif',exact=True)
+        expect(raw).not_to_be_checked()
+        raw.check()
+        expect(layers.get_by_role('radio',name='Tắt ảnh phủ',exact=True)).not_to_be_checked()
+        expect(raw).to_be_checked()
+        layers.get_by_role('radio',name='Tắt ảnh phủ',exact=True).check()
+        expect(raw).not_to_be_checked()
+        raw.check()
+        # A prepared scene chosen during an asynchronous import wins over late file completion.
+        for next_source in [re.compile('^STRIX-007'), 'Tắt ảnh phủ']:
+            page.evaluate('''()=>{
+              window.sarFileReadStarted=false;
+              const read=FileReader.prototype.readAsArrayBuffer;
+              FileReader.prototype.readAsArrayBuffer=function(blob){
+                FileReader.prototype.readAsArrayBuffer=read;
+                window.sarFileReadStarted=true;
+                window.releaseSarFileRead=()=>read.call(this,blob);
+              };
+            }''')
+            layers.get_by_label('Nhập lớp SAR GeoTIFF',exact=True).set_input_files({'name':'sar-late.tif','mimeType':'image/tiff','buffer':(root/'sar.tif').read_bytes()})
+            page.wait_for_function('window.sarFileReadStarted===true')
+            expect(layers.get_by_role('radio',name='Tắt ảnh phủ',exact=True)).not_to_be_checked()
+            layers.get_by_role('radio',name=next_source).check()
+            expect(layers.get_by_label('Nhập lớp SAR GeoTIFF',exact=True)).to_be_enabled()
+            page.evaluate('window.releaseSarFileRead()')
+            page.wait_for_timeout(400)
+            expect(layers.get_by_role('radio',name=next_source)).to_be_checked()
+            expect(layers.get_by_role('checkbox',name='sar-late.tif',exact=True)).to_have_count(0)
+        # Continue the original remove/restore checks with the imported raster active.
+        layers.get_by_label('Nhập lớp SAR GeoTIFF',exact=True).set_input_files(str(root/'sar.tif'))
+        expect(layers.get_by_label('Kênh SAR',exact=True)).to_be_visible(timeout=15000)
         checkpoint('retain terrain renderer after SAR update')
         assert page.evaluate('window.originalTerrainCanvas===document.querySelector(".terrain-canvas")'), 'Overlay controls reset the renderer'
         layers.get_by_role('button',name='Gỡ lớp SAR',exact=True).click()

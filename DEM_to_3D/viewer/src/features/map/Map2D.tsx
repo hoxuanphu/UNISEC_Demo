@@ -7,6 +7,9 @@ import { ContextAreas2D } from './ContextAreas2D';
 import {addInternetDetail} from './internetDetail';
 import { ResidentRouteGuidance } from './ResidentRouteGuidance';
 import { ResidentRouteExtras } from './ResidentRouteExtras';
+import { hazardLayerVisible } from './visibleMapRecords';
+import { keepSymbolsDecluttered } from './symbolDeclutter';
+import { IsolatedHouseholds2D } from '../presence/IsolatedHouseholds2D';
 import { addResidentRoutePins } from './residentRoutePins';
 import { roadProjected } from '../routes/selectedRoadJourney';
 import { BasemapToneFilters } from '../imagery/BasemapToneFilters';
@@ -68,6 +71,11 @@ type Props = MapDisplayProps & {
 export function Map2D(props: Props): JSX.Element {
   const { order: drawingOrder } = useMapLayerOrder();
   const interacting = (props.measurementOpen && (!props.measureSession.finished || props.measureSession.editing)) || Boolean(props.drawOpen);
+  // Landslide pins on the map: road signs at them merge into the pin (see roadConditionSigns).
+  const hazardPoints = useMemo(() => {
+    const scene = props.scenarioProps;
+    return scene ? scene.hazards.filter(hazard => hazardLayerVisible(hazard, scene.layers)).map(hazard => hazard.projected) : [];
+  }, [props.scenarioProps?.hazards, props.scenarioProps?.layers]);
   const geometry = useMemo(() => measurementGeometry(props.scenarioProps, props.locale ?? 'vi'), [props.scenarioProps, props.locale]);
   const [mapReady, setMapReady] = useState(false);
   const [overviewRaster, setOverviewRaster] = useState<Raster2D | null>(null);
@@ -98,6 +106,8 @@ export function Map2D(props: Props): JSX.Element {
     analysisRef.current = overlay;
     return () => { overlay.dispose(); analysisRef.current = null; };
   }, [mapReady]);
+  // Every layer's point symbols share one draw order; the lower rank yields on contact.
+  useEffect(() => { const host = hostRef.current, map = mapRef.current; return mapReady && host && map ? keepSymbolsDecluttered(host, map) : undefined; }, [mapReady]);
   useEffect(() => { analysisRef.current?.set(props.analysisImagery?.rasters ?? [], props.analysisImagery?.opacity ?? 1); }, [mapReady, props.analysisImagery]);
   useEffect(() => {
     const host = hostRef.current;
@@ -280,7 +290,7 @@ export function Map2D(props: Props): JSX.Element {
         map.stop();
         const right = Math.min(inset?.right ?? 0, Math.max(0, host.clientWidth - 240));
         const summary = host.closest('.citizen-map')?.querySelector('.citizen-map-summary')?.getBoundingClientRect();
-        const bottom = summary ? Math.max(100, host.getBoundingClientRect().bottom - summary.top + 16) : 100;
+        const bottom = summary ? Math.max(100, host.getBoundingClientRect().bottom - summary.top + 16) : Math.max(100, Math.min(inset?.bottom ?? 0, host.clientHeight - 160));
         map.fitBounds(L.latLngBounds(positions), {paddingTopLeft:summary?[45,70]:[65,90],paddingBottomRight:[right + 65,bottom],maxZoom:17,animate:!window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration:.5});
       },
       retryBasemap: () => { tileKey = ''; refresh(); }
@@ -487,7 +497,8 @@ export function Map2D(props: Props): JSX.Element {
         ? [...props.scenarioProps.roads, ...(props.scenarioProps.layers.localRoads === false ? [] : props.scenarioProps.contextRoads ?? [])] : []}
       comparison={props.comparisonRoute} selected={props.scenarioProps?.selectedRoute} locale={props.locale ?? 'vi'} onChoose={props.onChooseRoute}
       onInspectRoad={props.onInspectRoad ?? (id => props.onSelectOverlayHit?.({type:'road',id}))}
-      areaLinks={props.roadAreaLinks ?? props.scenarioProps?.roadAreaLinks} showAreaLinks={props.showRoadAreaLinks ?? Boolean(props.scenarioProps?.layers.landslide && props.scenarioProps?.layers.status)}/>}
+      areaLinks={props.roadAreaLinks ?? props.scenarioProps?.roadAreaLinks} hazardPoints={hazardPoints} showAreaLinks={props.showRoadAreaLinks ?? Boolean(props.scenarioProps?.layers.landslide && props.scenarioProps?.layers.status)}/>}
+    {mapReady && !!props.households?.length && <IsolatedHouseholds2D mapRef={mapRef} metadata={props.terrain?.metadata} households={props.households} selectedId={props.selectedHouseholdId} locale={props.locale ?? 'vi'} onSelect={props.onSelectHousehold} attended={props.attendedHouseholds}/>}
     {mapReady && (props.routeGuidance || !!props.journeyEndpoints?.length && props.journeyEndpoints.every(point=>point.source?.startsWith('local:'))) && <ResidentRouteGuidance mapRef={mapRef} route={props.scenarioProps?.selectedRoute ?? null} metadata={props.terrain?.metadata} endpoints={Boolean(props.journeyEndpoints?.length)}/>}
     {mapReady && props.gisRecords && props.onGisSelect && <ResponseGisLayer compact={props.routeGuidance} pointMode={props.routeGuidance ? 'individual' : undefined} mapRef={mapRef} records={props.gisRecords} roads={props.scenarioProps?.roads} networkVersion={props.scenarioProps?.datasetVersion} selectedId={props.gisSelectedId ?? null} request={props.gisRequest ?? {version:0,id:null}} enabled={props.gisEnabled !== false} interactive={!props.pointPickActive && !props.measurementOpen && !props.locationOpen && !props.drawOpen} locale={props.locale ?? 'vi'} groupIds={props.gisGroupIds} onSelect={props.onGisSelect} onGroup={props.onGisGroup}/>}
     {props.showOverview !== false && <MapOverview mapRef={mapRef} raster={overviewRaster} area={overviewArea} locale={props.locale ?? 'vi'}

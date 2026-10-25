@@ -4,7 +4,7 @@ import { drawMapSymbol, type MapSymbolName } from './mapSymbols';
 export const POI_FRAME_PATH='M14 3a11 11 0 1 1 0 22 11 11 0 0 1 0-22Z';
 /** The selected place: a larger teardrop in the same colour, its tip on the coordinate. */
 export const SELECTED_PIN = { width: 34, height: 46, tipY: 44 } as const;
-const SELECTED_PIN_PATH='M17 44S4 30.4 4 17a13 13 0 1 1 26 0C30 30.4 17 44 17 44Z';
+export const SELECTED_PIN_PATH='M17 44S4 30.4 4 17a13 13 0 1 1 26 0C30 30.4 17 44 17 44Z';
 export function poiFrameSvg(selected=false):string {
   return selected
     ? `<svg width="${SELECTED_PIN.width}" height="${SELECTED_PIN.height}" viewBox="0 0 ${SELECTED_PIN.width} ${SELECTED_PIN.height}" aria-hidden="true"><path d="${SELECTED_PIN_PATH}"/></svg>`

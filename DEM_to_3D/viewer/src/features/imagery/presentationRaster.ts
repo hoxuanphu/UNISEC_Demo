@@ -1,5 +1,5 @@
 import {rasterUrl,type ImageryRaster} from './analysisImagery';
-import {softenCoverageEdge} from './coverageFeather';
+import {softenCoverageEdgeAsync} from './coverageFeather';
 
 const previews=new Map<string,Promise<string>>();
 /** One derived preview per source; the original checksummed image is retained. */
@@ -16,7 +16,7 @@ export function presentationRasterUrl(raster:ImageryRaster,signal:AbortSignal):P
         if(!context)throw new Error('Canvas unavailable');
         context.drawImage(bitmap,0,0);
         const [[south,west],[north,east]]=raster.web.latLngBounds;
-        softenCoverageEdge(canvas,(east-west)*111320*Math.cos((north+south)/2*Math.PI/180)/canvas.width);
+        await softenCoverageEdgeAsync(canvas,(east-west)*111320*Math.cos((north+south)/2*Math.PI/180)/canvas.width);
         const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error('Preview unavailable')),'image/png'));
         return URL.createObjectURL(blob);
       }finally{bitmap.close();}

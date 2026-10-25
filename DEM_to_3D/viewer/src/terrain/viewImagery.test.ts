@@ -15,6 +15,9 @@ const metadata=validateMetadata(first),other=validateMetadata(second);
 it('covers the full visible window with bounded requests and a tile buffer',()=>{
  const point=pixelToProjected(metadata,100,100),points=[point,{x:point.x+3500,y:point.y+2000}];
  const tiles=viewImageryTiles(metadata,points,19);
+ const xs=tiles.map(t=>t.x),ys=tiles.map(t=>t.y),cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2;
+ const distances=tiles.map(t=>Math.hypot(t.x-cx,t.y-cy));
+ expect(distances).toEqual([...distances].sort((a,b)=>a-b));
  expect(tiles.length).toBeGreaterThan(0);expect(tiles.length).toBeLessThanOrEqual(256);
  for(const p of points){
   const [lon,lat]=proj4(metadata.crs.proj4!,'EPSG:4326',[p.x,p.y]);

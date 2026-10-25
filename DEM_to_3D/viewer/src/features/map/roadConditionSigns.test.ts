@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { roadConditionSigns } from './roadConditionSigns';
+import { absorbedCondition, HAZARD_SIGN_MERGE_M, roadConditionSigns } from './roadConditionSigns';
 import type { RoadSegment } from '../../types/dear';
 const road: RoadSegment = {id:'local-road',name:['Đường','Road'],cls:'track',len:.2,status:'blocked',points:[{x:0,y:0},{x:10,y:0},{x:10,y:190}]};
 describe('shared road warning locations',()=>{
@@ -25,5 +25,13 @@ describe('shared road warning locations',()=>{
     const signs=roadConditionSigns([before,affected,after]);
     expect(signs).toHaveLength(1);
     expect(signs[0].road.id).toBe(affected.id);
+  });
+  it('lets a shown landslide pin stand in for the sign at the same slide, and only there',()=>{
+    const sign=roadConditionSigns([road])[0];
+    const atSlide={x:sign.point.x+HAZARD_SIGN_MERGE_M-1,y:sign.point.y},elsewhere={x:sign.point.x+HAZARD_SIGN_MERGE_M+1,y:sign.point.y};
+    expect(roadConditionSigns([road],[],[atSlide])).toEqual([]);
+    expect(roadConditionSigns([road],[],[elsewhere])).toHaveLength(1);
+    expect(absorbedCondition([sign],atSlide)).toBe('blocked');
+    expect(absorbedCondition([sign],elsewhere)).toBeUndefined();
   });
 });

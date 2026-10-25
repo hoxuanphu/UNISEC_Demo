@@ -1,5 +1,5 @@
-import {describe,expect,it} from 'vitest';
-import {featherCoverageAlpha} from './coverageFeather';
+import {describe,expect,it,vi} from 'vitest';
+import {featherCoverageAlpha,featherCoverageAlphaAsync} from './coverageFeather';
 
 describe('display coverage edge',()=>{
   it('softens the coverage boundary while preserving RGB, cloud pixels and the opaque interior',()=>{
@@ -20,5 +20,25 @@ describe('display coverage edge',()=>{
     expect(image.data[(4*9+4)*4+3]).toBe(0);
     expect(image.data[(4*9+3)*4+3]).toBeLessThan(255);
     expect(image.data[(2*9+2)*4+3]).toBe(255);
+  });
+  it.each([0,1,3,32])('produces identical pixels across async batches (radius %s)',async radius=>{
+    const original={width:37,height:99,data:Uint8ClampedArray.from({length:37*99*4},(_,i)=>(i*71)%256)};
+    const sliced={...original,data:original.data.slice()};
+    featherCoverageAlpha(original,radius);
+    await featherCoverageAlphaAsync(sliced,radius);
+    expect(sliced.data).toEqual(original.data);
+  });
+  it('yields to input and stops an obsolete image between batches',async()=>{
+    let clock=0;
+    const now=vi.spyOn(performance,'now').mockImplementation(()=>clock+=10);
+    const image={width:37,height:99,data:new Uint8ClampedArray(37*99*4).fill(255)};
+    const run=new AbortController();
+    try{
+      let inputHandled=false;
+      setTimeout(()=>{inputHandled=true;run.abort();},0);
+      await expect(featherCoverageAlphaAsync(image,3,run.signal)).rejects.toMatchObject({name:'AbortError'});
+      expect(inputHandled).toBe(true);
+      await expect(featherCoverageAlphaAsync(image,3,run.signal)).rejects.toMatchObject({name:'AbortError'});
+    }finally{now.mockRestore();}
   });
 });

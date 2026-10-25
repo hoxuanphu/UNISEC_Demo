@@ -1,4 +1,4 @@
-import { softenCoverageEdge } from '../../features/imagery/coverageFeather';
+import { softenCoverageEdgeAsync } from '../../features/imagery/coverageFeather';
 import { rasterUrl, type ImageryRaster } from '../../features/imagery/analysisImagery';
 
 type Point = { x: number; y: number };
@@ -28,6 +28,6 @@ export async function corridorImagery(rasters: ImageryRaster[], route: Point[], 
     try { ctx.drawImage(image, px(l), py(t), (r - l) / mpp, (t - b) / mpp); } finally { image.close(); }
   }
   signal?.throwIfAborted();
-  softenCoverageEdge(canvas,mpp);
+  await softenCoverageEdgeAsync(canvas,mpp,signal);
   return { canvas, bounds };
 }

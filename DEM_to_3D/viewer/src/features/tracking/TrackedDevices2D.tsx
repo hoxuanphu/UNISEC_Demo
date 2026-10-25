@@ -15,7 +15,10 @@ export function TrackedDevices2D({map,feed,locale,interactive,onRoad}:{map:L.Map
       const geo=roadGeographic(point);
       if(zoomView){const at=map.project([geo.latitude,geo.longitude],zoomView.zoom).subtract(map.project(zoomView.center,zoomView.zoom)),size=map.getSize();return{x:at.x+size.x/2,y:at.y+size.y/2,visible:true};}
       const at=map.latLngToContainerPoint([geo.latitude,geo.longitude]);return{x:at.x,y:at.y,visible:true};
-    },()=>live.current.interactive,id=>live.current.onRoad?.(id));
+    },()=>live.current.interactive,id=>live.current.onRoad?.(id),point=>{
+      const geo=roadGeographic(point);
+      map.setView([geo.latitude,geo.longitude],Math.max(map.getZoom(),15),{animate:!matchMedia('(prefers-reduced-motion: reduce)').matches});
+    });
     runtime.current=overlay;
     const animate=(event:L.ZoomAnimEvent)=>{zoomView=event;overlay.setZooming(true);overlay.update();};
     const finish=()=>{zoomView=null;overlay.setZooming(false);overlay.update();};

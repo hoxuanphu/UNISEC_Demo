@@ -2,9 +2,15 @@ import { useDeviceFeed } from '../features/tracking/useDeviceFeed';
 import { useLocalNetwork } from '../features/route-film/networkContext';
 import { useRouteSimulation } from '../features/routes/useRouteSimulation';
 import { LocalAreaCard } from '../features/route-film/LocalAreaCard';
+import { useResidentPresence } from '../features/presence/residentPresence';
+import { assessHouseholdAccess } from '../features/presence/householdIsolation';
+import { HouseholdCard } from '../features/presence/HouseholdCard';
+import { householdWork } from '../features/presence/householdWork';
+import { householdRescues } from '../features/presence/householdRescue';
+import { surveyConditionAreas } from '../features/routes/surveyRoadConditions';
 import { LocalRoadCard } from '../features/route-film/LocalRoadCard';
 import { supportsBasemapTone } from '../features/imagery/basemapTone';
-import { analysisSourceInfo } from '../features/imagery/analysisImagery';
+import { analysisSourceInfo, type AnalysisSelection } from '../features/imagery/analysisImagery';
 import proj4 from 'proj4';
 import { mapSelectionFrame } from './mapSelectionFrame';
 import { geometryPositions } from '../geo/vector/types';
@@ -35,7 +41,8 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState
+  useState,
+  useSyncExternalStore
 } from 'react';
 import '../styles.css';
 import '../styles/tokens.css';
@@ -103,7 +110,7 @@ import { useIncidentWorkspace } from '../features/incident/useIncidentWorkspace'
 import { effectiveRevision } from '../features/incident/workspaceRevision';
 import { RevisionNotice } from '../features/incident/RevisionNotice';
 import { useResponseWork } from '../features/incident/useResponseWork';
-import { responseWork } from '../features/incident/responseWork';
+import { responseWork, workState } from '../features/incident/responseWork';
 import type { ComparisonPair } from '../features/comparison/comparison';
 import { defaultLayerAppearance } from '../features/map/layerAppearance';
 import { MapSearch } from '../features/search/MapSearch';
@@ -157,6 +164,9 @@ type Props = {
   runtime: ReturnType<typeof useTerrainWorkspace> & { packet: IncidentPacket };
 };
 
+/** Stands in for the device feed before it exists. */
+const noSubscription = () => () => {};
+
 export function ResponseWorkspace({
   revision,
   onReportRevision,
@@ -189,7 +199,7 @@ export function ResponseWorkspace({
     (record) => record.visible && gisGroupIds.includes(record.id)
   );
   const inspectGisRecord = (id: string, keepGroup = false) => {
-    setLocalAreaId(null);
+    setLocalAreaId(null);setHouseholdId(null);
     setLocalRoadId(null);
     navigation.dispatch({type:'view',view:navigation.view,list:true});
     gis.select(id);
@@ -242,7 +252,8 @@ export function ResponseWorkspace({
   const work = useResponseWork(runtime.packet.datasetVersion);
   const [historical, setHistorical] = useState(false);
   const updated = effectiveRevision({ applied: reportApplied, historical });
-  const incidentSnapshot = useIncidentWorkspace(runtime.packet, updated, historical ? undefined : scenarioEdits?.edits, appliedAt);
+  const surveyAreas = useMemo(() => surveyConditionAreas(gis.records), [gis.records]);
+  const incidentSnapshot = useIncidentWorkspace(runtime.packet, updated, historical ? undefined : scenarioEdits?.edits, appliedAt, surveyAreas);
   const [alertRead, setAlertRead] = useState<boolean>(false);
   const {
     showProfile,
@@ -379,7 +390,7 @@ export function ResponseWorkspace({
     const edit = edits.edits.find(item => item.id === id);
     if (edit?.change.kind !== 'status') return false;
     const current = incidentSnapshot.roads.find(road => road.id === edit.target.id)?.status;
-    const previous = deriveIncidentWorkspace(packet, updated, edits.edits.filter(item => item.id !== id), appliedAt)
+    const previous = deriveIncidentWorkspace(packet, updated, edits.edits.filter(item => item.id !== id), appliedAt, surveyAreas)
       .roads.find(road => road.id === edit.target.id)?.status;
     if (!current || !previous || current === previous) return false;
     return edits.record({ target: edit.target, change: { kind: 'status', from: current, to: previous },
@@ -391,7 +402,7 @@ export function ResponseWorkspace({
     return area && area.networkVersion === packet.datasetVersion
       ? area.roadLinks.map(link => ({ areaId: record.id, areaName: record.name, roadId: link.roadId, relation: link.relation })) : [];
   }), [gis.records, packet.datasetVersion]);
-  const workTasks = useMemo(
+  const evidenceWork = useMemo(
     () => responseWork(packet, incidentSnapshot, reportApplied, areaLinks),
     [packet, incidentSnapshot, reportApplied, areaLinks]
   );
@@ -413,27 +424,61 @@ export function ResponseWorkspace({
     if (offlineMode) setLayers((previous) => ({ ...previous, context: runtime.localMap }));
   }, [offlineMode,runtime.localMap]);
   const analysisImagery = useAnalysisImagery(scenarioManifest?.analysisImagery);
+  const imageryControls = {...analysisImagery,setSelection:(selection:AnalysisSelection)=>{
+    terrainOverlays.suspendSar();
+    analysisImagery.setSelection(selection);
+  }};
   const fieldPhotos = usePreparedPhotos(scenarioManifest?.fieldPhotos);
   const localNetwork=useLocalNetwork(packet.datasetVersion.startsWith('che-tao'),gis.records);
   const [localAreaId,setLocalAreaId]=useState<string|null>(null);
+  // People the resident app still places at field huts, and whether any road out remains.
+  const presence=useResidentPresence(packet.datasetVersion.startsWith('che-tao'));
+  const households=useMemo(()=>localNetwork.network&&presence?assessHouseholdAccess(localNetwork.network,presence.clusters):[],[localNetwork.network,presence]);
+  const [householdId,setHouseholdId]=useState<string|null>(null);
+  // People cut off at field huts are relief work alongside the evidence checks.
+  const workTasks=useMemo(()=>[...householdWork(historical?[]:households),...evidenceWork].sort((a,b)=>a.priority-b.priority||a.id.localeCompare(b.id)),[households,evidenceWork,historical]);
+  const household=households.find(item=>item.cluster.id===householdId&&item.isolated);
   const [localRoadId,setLocalRoadId]=useState<string|null>(null);
   const localRoad=localNetwork.network?.roads.find(road=>road.id===localRoadId);
   const showLocalRoads=()=>{
     navigation.dispatch({type:'view',view:navigation.view,list:true});
     setGisCardId(null);setGisGroupIds([]);
     setLayers(previous=>({...previous,roads:true,localRoads:true}));
-    setLocalRoadId(null);setLocalAreaId(null);resetTools();setMobileView('map');
+    setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(null);resetTools();setMobileView('map');
     requestAnimationFrame(()=>viewControlRef.current?.frameProjected?.(localNetwork.network?.roads.flatMap(road=>road.points)??[]));
   };
+  // Condition signs sit where a mapped extent touches the road, on the main road and the commune roads alike.
+  const roadAreaLinks=useMemo(()=>[...incidentSnapshot.surveyLinks,...(localNetwork.network?.conditions?.areaLinks??[])],[incidentSnapshot.surveyLinks,localNetwork.network]);
   const journeyRoads=useMemo(()=>[...roads,...(localNetwork.network?.roads??[])],[roads,localNetwork.network]);
-  const deviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks);
+  // Teams sent to the isolated huts move in the same feed as the other rescue and resident dots.
+  const householdTeams=useMemo(()=>localNetwork.network?householdRescues(localNetwork.network,households):[],[localNetwork.network,households]);
+  const householdMissions=useMemo(()=>householdTeams.map(team=>team.plan),[householdTeams]);
+  const deviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks,householdMissions);
+  // Huts a team has reached; a string so the workspace re-renders on arrival, not on every move.
+  const attendedHouseholds=useSyncExternalStore(deviceFeed?.subscribe??noSubscription,()=>deviceFeed?householdTeams.filter(team=>['on-site','escorting','evacuated'].includes(deviceFeed.getSnapshot().find(device=>device.id===team.plan.id)?.state??'')).map(team=>team.householdId).join(','):'');
   const localJourneyRoadIds=useMemo(()=>localNetwork.network?.roads.map(road=>road.id)??[],[localNetwork.network]);
   const localContext=useMemo(()=>localNetwork.context?{areas:localNetwork.context.areas.filter(area=>area.kind==='landslide' && layers.landslide!==false),closures:[]}:undefined,[localNetwork.context,layers.landslide]);
   const localArea=localContext?.areas.find(area=>area.id===localAreaId);
+  // Whatever is chosen on the map comes into view; on phones its card covers the lower half, so keep it above.
+  const focusMapOn=(points:Array<{x:number;y:number}>)=>requestAnimationFrame(()=>viewControlRef.current?.frameProjected?.(points,matchMedia('(max-width: 600px)').matches?{bottom:400}:undefined));
   const inspectLocalArea=(id:string)=>{
     navigation.dispatch({type:'view',view:navigation.view,list:true});
-    setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(id);resetTools();setMobileView('map');
+    setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(id);setHouseholdId(null);resetTools();setMobileView('map');
+    const area=localNetwork.context?.areas.find(item=>item.id===id);
+    if(area)focusMapOn([{x:area.center.x-area.radius,y:area.center.y-area.radius},{x:area.center.x+area.radius,y:area.center.y+area.radius}]);
   };
+  const inspectHousehold=(id:string)=>{
+    const item=households.find(entry=>entry.cluster.id===id);if(!item)return;
+    navigation.dispatch({type:'view',view:navigation.view,list:true});
+    setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(id);resetTools();setMobileView('map');setMapMode('2d');
+    focusMapOn([item.projected,...(item.access?[item.access.point]:[])]);
+  };
+  const showHouseholds=()=>{
+    const isolated=households.filter(entry=>entry.isolated);if(!isolated.length)return;
+    setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(null);resetTools();setMobileView('map');setMapMode('2d');
+    requestAnimationFrame(()=>viewControlRef.current?.frameProjected?.(isolated.flatMap(entry=>[entry.projected,...(entry.access?[entry.access.point]:[])])));
+  };
+  const householdAreaName=(id:string)=>localNetwork.context?.areas.find(area=>area.id===id)?.name[locale==='vi'?0:1]??gis.records.find(record=>record.id===id)?.name??id;
   const analysisDisplay = useMemo(() => ({ rasters: analysisImagery.rasters, opacity: analysisImagery.selection.opacity, balanceBasemap:analysisImagery.balanceBasemap && supportsBasemapTone(analysisImagery.layers) && analysisImagery.layers.some(layer=>layer.id===analysisImagery.selection.layer && layer.kind==='optical') }),
     [analysisImagery.rasters, analysisImagery.selection.opacity,analysisImagery.balanceBasemap,analysisImagery.layers,analysisImagery.selection.layer]);
   const [flyoverState, setFlyoverState] = useState<FlyoverState>({ status: 'idle', time: 0, duration: 0 });
@@ -589,7 +634,7 @@ export function ResponseWorkspace({
     });
   };
   const rememberDetailTrigger = () => {
-    setLocalAreaId(null);
+    setLocalAreaId(null);setHouseholdId(null);
     const active = document.activeElement;
     if (
       active instanceof HTMLElement &&
@@ -609,7 +654,7 @@ export function ResponseWorkspace({
     routeType?: 'candidate' | 'direct',
     sectionId?: string
   ) => {
-    setLocalRoadId(null);setLocalAreaId(null);
+    setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(null);
     rememberDetailTrigger();
     setCameraIntent(previous=>({kind:'selection',version:previous.version+1}));
     setLayers(previous => ({...previous, communities:true}));
@@ -624,7 +669,8 @@ export function ResponseWorkspace({
     revealPanel();
   };
   const inspectObject = (id: string) => {
-    setLocalRoadId(null);setLocalAreaId(null);
+    if (id.startsWith('household:')) { setActiveDialog(null); inspectHousehold(id.slice(10)); return; }
+    setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(null);
     if (id.startsWith('community:')) {
       selectCommunity(id.slice(10));
       return;
@@ -673,9 +719,11 @@ export function ResponseWorkspace({
   const handleOverlayHit = (hit: OverlayHit) => {
     if (hit.type==='road' && localNetwork.network?.roads.some(road=>road.id===hit.id)) {
       navigation.dispatch({type:'view',view:navigation.view,list:true});
-      setLocalAreaId(null);setGisCardId(null);setGisGroupIds([]);setLocalRoadId(hit.id);resetTools();setMobileView('map');return;
+      setLocalAreaId(null);setHouseholdId(null);setGisCardId(null);setGisGroupIds([]);setLocalRoadId(hit.id);resetTools();setMobileView('map');
+      const road=localNetwork.network.roads.find(item=>item.id===hit.id);if(road)focusMapOn(road.points);
+      return;
     }
-    setLocalRoadId(null);setLocalAreaId(null);
+    setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(null);
     if (hit.type === 'community') selectCommunity(hit.id);
     else if (
       hit.type === 'road' &&
@@ -1033,6 +1081,7 @@ export function ResponseWorkspace({
           setLayerAppearance(defaultLayerAppearance);
           setLayers({ ...defaultLayers, context: !offlineMode || runtime.localMap });
           analysisImagery.resetSelection();
+          terrainOverlays.suspendSar();
           setComparisonPair(null);
           map2DViewport.current = null;
           if (!defaultTerrainData) reloadTerrain();
@@ -1074,6 +1123,9 @@ export function ResponseWorkspace({
           onInspectObject={inspectObject}
           onRevealPanel={revealPanel}
           onOpenDialog={setActiveDialog}
+          households={households}
+          onSelectHousehold={inspectHousehold}
+          onShowHouseholds={showHouseholds}
         />
 
         <ResponseDetails
@@ -1157,6 +1209,7 @@ export function ResponseWorkspace({
           <div className="map-canvas">
             {mapMode === '2d' ? (
               <Map2D deviceFeed={layers.devices!==false?deviceFeed:null} routeSimulation={routeSimulation} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
+                households={historical?[]:households} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold} attendedHouseholds={attendedHouseholds}
                 analysisImagery={analysisDisplay}
                 gisEnabled={true}
                 gisRecords={displayedGis}
@@ -1224,7 +1277,7 @@ export function ResponseWorkspace({
                         hazards: mapHazards,
                         roads,
                         contextRoads:localNetwork.network?.roads,
-                        roadAreaLinks:localNetwork.network?.conditions?.areaLinks,
+                        roadAreaLinks,
                         selectedRoute: journey.open
                           ? journey.route
                           : activeRoute,
@@ -1284,7 +1337,7 @@ export function ResponseWorkspace({
                             hazards: mapHazards,
                             roads: roads,
                             contextRoads:localNetwork.network?.roads,
-                            roadAreaLinks:localNetwork.network?.conditions?.areaLinks,
+                            roadAreaLinks,
                             selectedRoute: journey.open ? journey.route : activeRoute,
                             selectedCommunityId: gisCard || view !== 'priority' ? null : selectedCommunityId,
                             selectedObjectId: localRoad ? `road:${localRoad.id}` : gisCard ? null : selectedObjectId,
@@ -1305,6 +1358,17 @@ export function ResponseWorkspace({
             )}
           </div>
 
+          {household&&presence&&!localArea&&!localRoad&&<HouseholdCard key={household.cluster.id} item={household} source={presence.source} areaName={householdAreaName} locale={locale} onClose={()=>setHouseholdId(null)}
+            workStatus={(()=>{const task=workTasks.find(item=>item.id===`household:${household.cluster.id}`);return task?workState(task,work.entries).status:undefined;})()}
+            onWork={historical?undefined:()=>{setWorkTaskId(`household:${household.cluster.id}`);setActiveDialog('responseWork');}}
+            onDirections={()=>{
+              // The huts as the destination; the responder picks where they set out from.
+              journey.setPoint('end',household.projected,`household:${household.cluster.id}`,household.cluster.name[locale==='vi'?0:1],localJourneyRoadIds);
+              setHouseholdId(null);resetTools();journey.setOpen(true);
+            }}
+            helipad={(()=>{const pad=localNetwork.network?.places.filter(place=>place.kind==='hlz').map(place=>({place,d:Math.hypot(place.projected.x-household.projected.x,place.projected.y-household.projected.y)})).sort((a,b)=>a.d-b.d)[0];
+              return pad?{name:[pad.place.name.replace(/^Helipad$/,'Bãi đáp'),pad.place.name] as [string,string],distanceKm:pad.d/1000}:undefined;})()}
+            team={(()=>{const sent=householdTeams.find(entry=>entry.householdId===household.cluster.id);return sent&&deviceFeed?{feed:deviceFeed,id:sent.plan.id,onShow:point=>focusMapOn([point])}:undefined;})()}/>}
           {localArea&&<LocalAreaCard key={localArea.id} area={localArea} photos={fieldPhotos} locale={locale} onClose={()=>setLocalAreaId(null)} linkToJourney/>}
           {localRoad&&layers.roads&&layers.localRoads!==false&&<LocalRoadCard road={localRoad} locale={locale} onClose={()=>setLocalRoadId(null)} onDirections={()=>{setLocalRoadId(null);resetTools();journey.setOpen(true);}}/>}
           {mapMode === '3d' && terrain3DBusy
@@ -1339,6 +1403,7 @@ export function ResponseWorkspace({
 
           <MapControls hasLocationDevices={Boolean(deviceFeed?.getSnapshot().length)}
             hasLocalRoads={!!localNetwork.network}
+            hasIsolatedHouseholds={!historical&&households.some(item=>item.isolated)}
             timelineExpanded={timelineExpanded}
             onToggleTimeline={() => setTimelineExpanded(open => !open)}
             headerCollapsed={headerCollapsed}
@@ -1358,15 +1423,16 @@ export function ResponseWorkspace({
               aria-pressed={journey.open}
               onClick={() => {
                 resetTools();
-                setLocalAreaId(null);setLocalRoadId(null);setGisCardId(null);setGisGroupIds([]);
+                setLocalAreaId(null);setHouseholdId(null);setLocalRoadId(null);setGisCardId(null);setGisGroupIds([]);
                 journey.setOpen(!journey.open);
               }}
             >
               <UiIcon name="route" /><span>{locale === 'vi' ? 'Tìm đường' : 'Directions'}</span>
             </button>}
-            flyoverControl={snapshotReady && flyoverInput && !historical && <FlyoverBar locale={locale} state={flyoverState} mapMode={mapMode}
-            title={locale === 'vi' ? `Từ ${flyoverInput.start[0]} đến ${flyoverInput.end[0]}` : `${flyoverInput.start[1]} to ${flyoverInput.end[1]}`}
-            fileName={`hanh-trinh-${[flyoverInput.start[1], flyoverInput.end[1]].join('-').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.mp4`}
+            flyoverControl={snapshotReady && (flyoverInput || localNetwork.network) && !historical && <FlyoverBar locale={locale} state={flyoverState} mapMode={mapMode} disabled={!flyoverInput} networkJourney={!!localNetwork.network}
+            onOpen={()=>{resetTools();journey.setOpen(false);setActiveDialog(null);setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(null);setGisCardId(null);setGisGroupIds([]);}}
+            title={flyoverInput ? locale === 'vi' ? `Từ ${flyoverInput.start[0]} đến ${flyoverInput.end[0]}` : `${flyoverInput.start[1]} to ${flyoverInput.end[1]}` : undefined}
+            fileName={flyoverInput ? `hanh-trinh-${[flyoverInput.start[1], flyoverInput.end[1]].join('-').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.mp4` : 'DEAR-route.mp4'}
             onRequest3D={() => setMapMode('3d')} controlRef={viewControlRef}/>}
             mappedAreas={displayedGis}
             panelCollapsed={panelCollapsed}
@@ -1480,7 +1546,10 @@ export function ResponseWorkspace({
               roads={journeyRoads}
               places={[...(localNetwork.network?.places??[]).map(place=>({key:`local:${place.id}`,label:locale==='vi'?place.name.replace(/^Village /,'Bản ').replace(/^Helipad$/,'Bãi đáp'):place.name,
                 group:locale==='vi'?'Trong xã Chế Tạo':'Within Chế Tạo',latitude:place.latitude,longitude:place.longitude,
-                roadIds:localJourneyRoadIds})),...(layers.gis ? gisJourneyPlaces(gis.records) : [])]}
+                roadIds:localJourneyRoadIds})),
+                ...households.filter(item=>item.isolated).map(item=>({key:`household:${item.cluster.id}`,label:item.cluster.name[locale==='vi'?0:1],
+                  group:locale==='vi'?'Hộ bị cô lập':'Isolated households',latitude:item.cluster.latitude,longitude:item.cluster.longitude,roadIds:localJourneyRoadIds})),
+                ...(layers.gis ? gisJourneyPlaces(gis.records) : [])]}
               onProfile={() =>
                 interaction.dispatch({ type: 'toggle-tool', tool: 'profile' })
               }
@@ -1514,8 +1583,16 @@ export function ResponseWorkspace({
           {activeDialog === 'layers' && (
             <LayersDialog
               hasLocalRoads={!!localNetwork.network} onShowLocalRoads={showLocalRoads}
+              onShowAnalysisImagery={()=>{
+                const points=analysisImagery.rasters.flatMap(raster=>{
+                  const [left,bottom,right,top]=raster.terrain.bounds;
+                  return [{x:left,y:bottom},{x:right,y:top}];
+                });
+                setActiveDialog(null);
+                requestAnimationFrame(()=>viewControlRef.current?.frameProjected?.(points));
+              }}
               terrainOverlays={terrainOverlays}
-              analysisImagery={analysisImagery}
+              analysisImagery={imageryControls}
               hasTerrainGrid={models.some(model => Boolean(model.grid && model.metadata?.analysis_supported))}
               locale={locale}
               imageryPreview={
@@ -1536,6 +1613,7 @@ export function ResponseWorkspace({
               onReset={() => {
                 setLayers({...defaultLayers, context:!offlineMode || runtime.localMap});
                 analysisImagery.resetSelection();
+                terrainOverlays.suspendSar();
                 setLayerAppearance(defaultLayerAppearance);
               }}
               onToggleLayer={(layerId) =>
@@ -1629,7 +1707,7 @@ export function ResponseWorkspace({
         terrain={defaultTerrainData}
         terrainMetadata={mapTerrain?.metadata}
         manifest={scenarioManifest}
-        analysisImagery={analysisImagery}
+        analysisImagery={imageryControls}
         upload={{
           mode: uploadMode,
           geographicMerge,

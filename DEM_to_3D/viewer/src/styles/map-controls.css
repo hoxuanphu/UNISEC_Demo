@@ -139,7 +139,8 @@
 .map-area .map-canvas { top:var(--map-toolbar-height); }
 @container (max-width:600px) {
  .map-area .map-advanced-tools { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:4px; padding:4px 8px; }
- .map-area .map-advanced-tools .icon-button { display:flex; flex-direction:column; gap:3px; padding:3px 0; height:46px; min-width:0; font-size:11px; }
+ .map-area .map-advanced-tools .icon-button { display:flex; flex-direction:column; gap:2px; padding:3px 0; height:48px; min-height:48px; min-width:0; font-size:11px; line-height:12px; text-align:center; }
+ .map-area .map-advanced-tools .icon-button svg { width:16px; height:16px; }
 }
 @media(max-width:900px) {
  .map-area { --map-toolbar-base:84px; --map-advanced-height:56px; }
@@ -167,3 +168,10 @@
   .workspace .map-area:has(.map-advanced-tools:not([hidden])) :is(.layers-panel,.map-location-panel,.map-tool-panel,.road-journey-panel) { max-height:min(calc(100% - var(--size-workspace-toolbar) - 140px),var(--floating-panel-height,100%)); }
  }
 }
+
+/* The measured toolbar edge is shared by the canvas and every map inspector. */
+.workspace .map-area[data-controls-layout] > .map-canvas { top:var(--map-controls-bottom); }
+.workspace .map-area[data-controls-layout] :is(.layers-panel,.map-location-panel,.map-tool-panel,.road-journey-panel,.local-area-card,.field-map-card,.basemap-status,.revision-notice) { top:calc(var(--map-controls-bottom) + 12px); }
+.workspace .map-area[data-controls-layout] :is(.layers-panel,.map-location-panel,.map-tool-panel,.road-journey-panel,.local-area-card,.field-map-card) { max-height:min(calc(100% - var(--map-controls-bottom) - 32px),var(--floating-panel-height,100%)); }
+.workspace .map-area[data-controls-layout] .household-card { max-height:calc(var(--map-controls-space) - 12px); }
+.workspace .map-area[data-controls-layout][data-profile="true"] :is(.road-journey-panel,.local-area-card) { max-height:calc(100% - var(--map-controls-bottom) - var(--map-profile-height,320px) - 24px); }

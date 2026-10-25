@@ -4,6 +4,8 @@ import type { HoverInfo, TerrainMetadata } from '../types/terrain';
 export type ProjectedPoint = { x: number; y: number };
 export type ScenePoint = { x: number; y: number; z: number };
 
+const geographicProjections = new WeakMap<TerrainMetadata, {source: string; projection: proj4.Converter}>();
+
 export function pixelToProjected(metadata: TerrainMetadata, column: number, row: number): ProjectedPoint {
   const t = metadata.grid_transform;
   const col = column + 0.5;
@@ -37,7 +39,12 @@ export function projectedToWgs84(metadata: TerrainMetadata, point: ProjectedPoin
   if (metadata.crs.code === 4326) return { longitude: point.x, latitude: point.y };
   const source = metadata.crs.proj4 || `${metadata.crs.authority}:${metadata.crs.code}`;
   try {
-    const [longitude, latitude] = proj4(source, 'EPSG:4326', [point.x, point.y]);
+    let saved = geographicProjections.get(metadata);
+    if (saved?.source !== source) {
+      saved = {source, projection: proj4(source, 'EPSG:4326')};
+      geographicProjections.set(metadata, saved);
+    }
+    const [longitude, latitude] = saved.projection.forward([point.x, point.y]);
     return { longitude, latitude };
   } catch {
     return {};

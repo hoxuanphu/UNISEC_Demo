@@ -1,6 +1,9 @@
 import { routeStopSvg } from '../routes/routeStopSymbol';
+import { mapLayoutMutation } from './mapLayoutMutation';
 import type * as L from 'leaflet';
 import { overlaps, type ScreenRect } from '../../terrain/markerLayout';
+
+const stopObstacles = '.map-toolbar,.road-journey-panel,.citizen-map-tools,.citizen-map-layers,.citizen-map-summary,.citizen-map-context,.map-reference,.map-attribution,.map-pin:not([hidden]),.map-pin:not([hidden]):not(.is-label-hidden) .map-pin-label,.road-condition-sign svg';
 
 /** Resident stops sit above contextual place symbols, at their original coordinates. */
 export function addResidentRoutePins(map: L.Map, points: Array<{latitude: number; longitude: number; label: string; name?: string; onSelect?: () => void}>) {
@@ -23,7 +26,7 @@ export function addResidentRoutePins(map: L.Map, points: Array<{latitude: number
   const update = () => {
     const hostRect = map.getContainer().getBoundingClientRect();
     const rect = (node: Element): ScreenRect => {const box = node.getBoundingClientRect();return {x: box.x-hostRect.x,y: box.y-hostRect.y,width:box.width,height:box.height};};
-    const obstacles = Array.from(host?.closest('.map-area')?.querySelectorAll<HTMLElement>('.map-toolbar,.road-journey-panel,.citizen-map-tools,.citizen-map-layers,.citizen-map-summary,.citizen-map-context,.map-reference,.map-attribution,.map-pin:not([hidden]),.map-pin:not([hidden]):not(.is-label-hidden) .map-pin-label,.road-condition-sign svg') ?? [])
+    const obstacles = Array.from(host?.closest('.map-area')?.querySelectorAll<HTMLElement>(stopObstacles) ?? [])
       .filter(node => node.getBoundingClientRect().height > 0).map(rect);
     for (const {point, pin} of pins) {
       const at = map.latLngToContainerPoint([point.latitude, point.longitude]);
@@ -53,7 +56,8 @@ export function addResidentRoutePins(map: L.Map, points: Array<{latitude: number
   update();map.on('move zoom resize', update);
   let frame = 0;
   const changes = new MutationObserver(records => {
-    if (records.every(record => layer.contains(record.target))) return;
+    if (!host || !records.some(record => !layer.contains(record.target) &&
+      mapLayoutMutation(record,host,stopObstacles+',.map-pin,.map-pin-label,.road-condition-sign'))) return;
     if (!frame) frame = requestAnimationFrame(() => {frame=0;update();});
   });
   if (host) changes.observe(host, {childList:true,subtree:true,attributes:true,attributeFilter:['class','style','hidden']});

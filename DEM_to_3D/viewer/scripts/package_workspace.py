@@ -137,8 +137,9 @@ Export anything you need before resetting the session. PDF uses browser Print.
 On the main map, use Directions to choose local villages, response sites or a point
 on the map. Layers includes a separate local-road toggle and a fit control for Chế Tạo.
 Select a road to inspect its condition and find a local route.
-For a 3D journey, open the direct link below and choose A/B or pick on the map,
-then Play journey or Export MP4 (25 seconds by default, wide oblique 3D view).
+For the wide commune video, open Tools, then 3D route view, then Che Tao overview video.
+It opens Village A to Village C. Choose A/B or pick on the map, then Play journey
+or Export MP4 (25 seconds by default, wide oblique 3D view).
 The timeline stays visible for seeking, pausing and speed changes. The final shot
 shows the whole road network. Yellow polygons match the map; local survey photos
 are illustrative, not evidence for the selected location.

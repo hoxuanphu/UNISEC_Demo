@@ -49,6 +49,17 @@ it('bakes clearance once and gives identical camera positions during playback, s
   expect(track(-1)).toEqual(track(0));expect(track(99)).toEqual(track(25));
 });
 
+it('eases a camera that would start moving at once, without changing where it holds',()=>{
+  // Still for 5 s, then 200 m/s: a hard start, as when a framing window begins to slide.
+  const pose=(t:number)=>({position:new THREE.Vector3(Math.max(0,t-5)*200,500,0),target:new THREE.Vector3(Math.max(0,t-5)*200,0,-500)});
+  const track=createFlyoverCameraTrack(10,pose,30,.5);
+  const speed=(t:number)=>(track(t+1/30).position.x-track(t).position.x)*30;
+  expect(track(0).position.x).toBeCloseTo(0,3);expect(track(3).position.x).toBeCloseTo(0,3);
+  let previous=speed(0);
+  for(let t=1/30;t<9;t+=1/30){const next=speed(t);expect(Math.abs(next-previous)).toBeLessThan(20);previous=next;}
+  expect(speed(8)).toBeCloseTo(200,0);
+});
+
 it('holds the surrounding corridor through a hairpin while the real marker follows the road',()=>{
   const path=createPathSampler([{x:0,y:100,z:0},{x:900,y:120,z:0},{x:900,y:140,z:900}],10,700);
   const corner=path.pointAt(900),anchor=flyoverRouteAnchor(path,900);

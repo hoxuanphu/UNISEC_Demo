@@ -5,6 +5,7 @@ import {localMapSource} from '../map/localMapSource';
 import { useLandslideAppearance } from '../landslides/useLandslideAppearance';
 import type { AnalysisImageryState } from '../imagery/useAnalysisImagery';
 import { createAnalysisOverlay2d } from '../imagery/analysisOverlay2d';
+import { acquisitionLabel, availableSarModes, imageryGroups, type SarMode } from '../imagery/analysisImagery';
 import { areaMapLabel } from '../landslides/areaMapLabel';
 import { removeLeafletMap } from '../map/removeLeafletMap';
 import { panelFitPadding } from '../map/panelFitPadding';
@@ -744,11 +745,13 @@ export function GeometryMap(props: Props): JSX.Element {
           <label>
             {t('Ảnh', 'Scene')}
             <select aria-label={t('Ảnh phân tích', 'Analysis imagery')} value={analysisChoice}
-              onChange={event => { const [layer, sarMode] = event.target.value.split(':'); analysis.setSelection({ ...analysis.selection, layer: layer || null, ...(sarMode ? { sarMode: sarMode as 'vv' } : {}) }); }}>
-              <option value="">{t('Không', 'None')}</option>
-              {analysis.layers.flatMap(layer => layer.kind === 'optical'
-                ? [<option key={layer.id} value={layer.id}>{t(...layer.name)}</option>]
-                : (['vv', 'vh', 'rgb'] as const).map(mode => <option key={layer.id + mode} value={`${layer.id}:${mode}`}>{`SAR ${mode === 'rgb' ? t('tổ hợp', 'composite') : mode.toUpperCase()}`}</option>))}
+              onChange={event => { const [layer, sarMode] = event.target.value.split(':'); analysis.setSelection({ ...analysis.selection, layer: layer || null, ...(sarMode ? { sarMode: sarMode as SarMode } : {}) }); }}>
+              <option value="">{t('Tắt ảnh phủ', 'No image overlay')}</option>
+              {imageryGroups(analysis.layers).filter(group=>group.layers.length).map(group=><optgroup key={group.kind} label={group.kind==='optical'?t('Quang học','Optical'):'SAR'}>
+                {group.layers.flatMap(layer=>layer.kind==='optical'
+                  ? [<option key={layer.id} value={layer.id}>{t(...layer.name)}, {acquisitionLabel(layer)}</option>]
+                  : availableSarModes(layer).map(mode=><option key={layer.id+mode} value={`${layer.id}:${mode}`}>{t(...layer.name)}, {acquisitionLabel(layer)}, {mode==='rgb'?t('tổ hợp','composite'):mode.toUpperCase()}</option>))}
+              </optgroup>)}
             </select>
           </label>
         )}

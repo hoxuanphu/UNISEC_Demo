@@ -1,5 +1,13 @@
-.analysis-imagery > label > span { display: grid; min-width: 0; line-height: 1.25; }
-.analysis-imagery > label > span small { color: var(--ws-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.layers-panel .layers-content .analysis-catalog-group { min-width: 0; margin: 12px 0 0; padding: 0; border: 0; }
+.layers-panel .layer-section .analysis-catalog-group > legend { position: static; width: auto; height: auto; overflow: visible; clip-path: none; padding: 0 0 4px; margin: 0; color: var(--ws-muted); font-size: 12px; font-weight: 600; letter-spacing: normal; }
+.map-area .analysis-catalog-group > label { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 8px; border-inline-start: 3px solid transparent; cursor: pointer; }
+.map-area .analysis-catalog-group > label.is-selected { border-inline-start-color: var(--ws-brand); background: transparent; }
+@media (hover: hover) { .analysis-catalog-group > label:hover { background: var(--hover); } }
+.analysis-catalog-group > label > span { display: grid; min-width: 0; line-height: 1.35; overflow-wrap: anywhere; }
+.analysis-catalog-group > label small { color: var(--ws-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.analysis-active-details { margin-top: 12px; }
+.analysis-fit { width: 100%; min-height: 36px; justify-content: center; margin-bottom: 8px; }
+.analysis-active-details :is(.analysis-note, .analysis-legend, .analysis-sar-modes) { margin-left: 0; }
 .analysis-sar-modes { display: inline-flex; margin: 6px 0 4px 25px; border: 1px solid var(--ws-line); border-radius: var(--radius-control); overflow: hidden; }
 .analysis-sar-modes button { padding: 4px 10px; border: 0; background: transparent; color: var(--ws-text); font: inherit; font-size: 12px; cursor: pointer; }
 .analysis-sar-modes button + button { border-left: 1px solid var(--ws-line); }
@@ -7,6 +15,7 @@
 .analysis-legend { display: flex; align-items: center; gap: 6px; margin: 4px 0 0 25px; font-size: 11px; color: var(--ws-muted); font-variant-numeric: tabular-nums; }
 .analysis-legend i { flex: 0 1 96px; height: 8px; border: 1px solid var(--ws-line); background: linear-gradient(90deg, #000, #fff); }
 .analysis-note { margin: 4px 0 0 25px; font-size: 11px; line-height: 1.35; color: var(--ws-muted); }
+.analysis-order-note { margin: 12px 0 0; }
 .layers-content .analysis-imagery .analysis-opacity { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px; margin-top: 8px; cursor: default; }
 .analysis-opacity input { grid-column: 1 / -1; width: 100%; }
 .analysis-opacity output { font-variant-numeric: tabular-nums; }

@@ -29,5 +29,10 @@ describe('GIS drawing order', () => {
     expect(outline.renderOrder).toBeLessThan(mapLayerOrder.route * 2);
     expect(warning.renderOrder).toBe(mapLayerOrder.roadStatus * 2);
     expect(drawingLayerRank('analysis', reordered)).toBeLessThan(drawingLayerRank('boundary', reordered));
+    expect(drawingLayerRank('imagery', reordered)).toBeLessThan(drawingLayerRank('analysis', reordered));
+    for (const layer of defaultDrawingOrder) {
+      expect(drawingLayerRank(layer,reordered)).toBeGreaterThan(mapLayerOrder.analysis);
+      expect(drawingLayerRank(layer,reordered)).toBeLessThan(mapLayerOrder.route);
+    }
   });
 });

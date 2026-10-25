@@ -8,10 +8,23 @@ import { mapLayerOrder } from '../features/map/mapLayerOrder';
 import metadataJson from '../../public/terrain/che_tao_v2_tex.terrain.json';
 import { validateMetadata } from './validation';
 import { pixelToProjected, sceneToProjected } from './coordinate';
-import { createRegionalBasemap, planRegionalTiles, planBasemapTiles, tileLonLat, tileScenePoint, type BasemapState } from './regionalBasemap';
+import { createRegionalBasemap, planRegionalTiles, planBasemapTiles, tileLonLat, tileScenePoint, tileGeometry, type BasemapState } from './regionalBasemap';
 
 const metadata = validateMetadata(metadataJson);
 describe('Regional basemap placement', () => {
+  it('retains exact terrain placement and texture coordinates with a shared CRS converter',()=>{
+    const tile=planRegionalTiles(metadata,{maxZoom:11})[0];
+    const geometry=tileGeometry(metadata,tile,()=>1250),steps=Math.max(4,Math.min(128,2**(19-tile.z)));
+    const position=geometry.getAttribute('position'),uv=geometry.getAttribute('uv');
+    try{
+      for(const [col,row] of [[0,0],[steps,steps],[steps/2,steps/2],[steps/4,steps*3/4]]){
+        const i=row*(steps+1)+col,p=tileScenePoint(metadata,tile,col/steps,row/steps);
+        expect(position.getX(i)).toBeCloseTo(p.x,2);expect(position.getZ(i)).toBeCloseTo(p.z,2);
+        expect(position.getY(i)).toBeCloseTo((1250-metadata.elevation.base_elevation)*metadata.elevation.exaggeration,2);
+        expect(uv.getX(i)).toBe(col/steps);expect(uv.getY(i)).toBe(1-row/steps);
+      }
+    }finally{geometry.dispose();}
+  });
   it('uses Web Mercator tile coordinates with north at the top', () => {
     expect(tileLonLat(1, 1, 1)).toEqual([0, 0]);
     const [lon, lat] = tileLonLat(0, 0, 0);

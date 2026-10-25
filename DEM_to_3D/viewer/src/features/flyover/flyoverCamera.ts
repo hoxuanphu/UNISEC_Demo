@@ -42,10 +42,22 @@ export function flyoverOverviewPose(points:readonly THREE.Vector3[],heading:{x:n
 
 export type FlyoverCameraPose={position:THREE.Vector3;target:THREE.Vector3};
 /** Sample terrain clearance before playback. Seeking, live playback and export
- * interpolate the same track without hundreds of terrain queries per frame. */
-export function createFlyoverCameraTrack(duration:number,poseAt:(time:number)=>FlyoverCameraPose,fps=30){
+ * interpolate the same track without hundreds of terrain queries per frame.
+ * `smoothing` (seconds) Gaussian-averages the samples, so the camera never changes
+ * speed abruptly where one framing rule hands over to the next. */
+export function createFlyoverCameraTrack(duration:number,poseAt:(time:number)=>FlyoverCameraPose,fps=30,smoothing=0){
   const count=Math.max(1,Math.ceil(duration*fps)),step=duration/count;
-  const poses=Array.from({length:count+1},(_,i)=>poseAt(i*step));
+  const raw=Array.from({length:count+1},(_,i)=>poseAt(i*step));
+  const radius=Math.ceil(3*smoothing/step);
+  const poses=radius<1?raw:raw.map((_,i)=>{
+    const position=new THREE.Vector3(),target=new THREE.Vector3();let total=0;
+    for(let j=i-radius;j<=i+radius;j++){
+      // Hold the first and last frames beyond the ends, so the film still opens and closes on them.
+      const pose=raw[Math.min(count,Math.max(0,j))],w=Math.exp(-(((j-i)*step)**2)/(2*smoothing*smoothing));
+      position.addScaledVector(pose.position,w);target.addScaledVector(pose.target,w);total+=w;
+    }
+    return {position:position.multiplyScalar(1/total),target:target.multiplyScalar(1/total)};
+  });
   return (time:number):FlyoverCameraPose=>{
     const t=THREE.MathUtils.clamp(time,0,duration)/step,i=Math.min(count-1,Math.floor(t)),f=t-i;
     return {position:poses[i].position.clone().lerp(poses[i+1].position,f),target:poses[i].target.clone().lerp(poses[i+1].target,f)};

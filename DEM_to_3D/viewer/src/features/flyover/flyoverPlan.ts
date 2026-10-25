@@ -22,7 +22,7 @@ export type FlyoverSettings = {
 };
 export const defaultFlyoverSettings: FlyoverSettings = {
   duration: 25, introHold: 1, dive: 1.2, maxRamp: .8,
-  dwell: 1.6, arriveHold: .3, outro: 3, finalHold: 1.2
+  dwell: 1.6, arriveHold: .3, outro: 1.8, finalHold: 1.4
 };
 
 type Segment =
@@ -47,10 +47,10 @@ export function planFlyover(length: number, stopDistances: number[], settings: F
   if (!(length > 0)) throw new Error('A flyover needs a route');
   const stops = stopDistances.map(d => Math.min(length, Math.max(0, d)));
   const order = stops.map((d, i) => [d, i] as const).sort((a, b) => a[0] - b[0]);
-  // Narrative time, not vehicle speed. Long routes get up to 25 seconds; short
-  // sequences stay compact. Reserve readable photo visits, then allocate travel
+  // Narrative time, not vehicle speed: every film runs the same length at 1x, and the
+  // playback rate scales it. Reserve readable photo visits, then allocate travel
   // more proportionally so the long opening leg is not squeezed into two seconds.
-  const targetDuration = Math.min(settings.duration, Math.max(20, 22 + length / 5000 + stops.length * .6));
+  const targetDuration = settings.duration;
   const fixed = settings.introHold + settings.dive + settings.arriveHold + settings.outro + settings.finalHold;
   const dwell = order.length ? Math.min(settings.dwell, (targetDuration-fixed)*.65/order.length) : 0;
   const travelBudget = targetDuration - fixed - dwell*order.length;

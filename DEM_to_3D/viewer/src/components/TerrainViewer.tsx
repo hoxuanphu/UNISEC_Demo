@@ -375,7 +375,8 @@ export function TerrainViewer({
         const world=projectedWorld(point);if(!world)return null;
         deviceProjection.copy(world).project(camera);
         return{x:(deviceProjection.x+1)*host.clientWidth/2,y:(1-deviceProjection.y)*host.clientHeight/2,visible:deviceProjection.z>=-1&&deviceProjection.z<=1};
-      },()=>!measureModeRef.current&&!pointPickRef.current.active&&!flyoverActive,id=>onSelectOverlayHitRef.current?.({type:'road',id}));
+      },()=>!measureModeRef.current&&!pointPickRef.current.active&&!flyoverActive,id=>onSelectOverlayHitRef.current?.({type:'road',id}),
+      point=>viewControlRef?.current?.focusProjected(point,detailInset(host)));
     };
     let residentMarker:ReturnType<typeof createSimulatedResident>|null=null;
     const updateSimulation=()=>{

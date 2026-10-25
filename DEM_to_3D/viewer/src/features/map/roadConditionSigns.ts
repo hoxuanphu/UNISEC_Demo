@@ -16,9 +16,14 @@ function midway(points: Point[]): Point {
   return points[0];
 }
 
+/** A sign this close to a shown incident landslide marks the same slide: the landslide pin carries its condition. */
+export const HAZARD_SIGN_MERGE_M = 120;
+const near = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y) <= HAZARD_SIGN_MERGE_M;
+
 /** A closure is a road condition, not a symbol at a polygon's centre. Both map
- * renderers keep it on the affected road, beside its linked extent when known. */
-export function roadConditionSigns(roads: RoadSegment[], areaLinks: LocalRoadAreaLink[] = []): RoadConditionSign[] {
+ * renderers keep it on the affected road, beside its linked extent when known.
+ * Signs at a shown landslide yield to its pin, so one slide reads as one symbol. */
+export function roadConditionSigns(roads: RoadSegment[], areaLinks: LocalRoadAreaLink[] = [], hazards: Point[] = []): RoadConditionSign[] {
   const runs: Array<{ sign: RoadConditionSign; endpoints: Point[] }> = [];
   const source = (road: RoadSegment) => road.sourceRoadId ?? road.id.split(':condition:')[0].split(':part:')[0];
   for (const road of roads) {
@@ -39,7 +44,13 @@ export function roadConditionSigns(roads: RoadSegment[], areaLinks: LocalRoadAre
     }
     runs.push({ sign: { road, point, condition }, endpoints });
   }
-  return runs.map(run=>run.sign);
+  return runs.map(run=>run.sign).filter(sign=>!hazards.some(point=>near(point,sign.point)));
+}
+
+/** The strongest road condition among the signs a landslide pin stands in for. */
+export function absorbedCondition(signs: RoadConditionSign[], hazard: Point): 'blocked' | 'risk' | undefined {
+  const conditions = signs.filter(sign => near(hazard, sign.point)).map(sign => sign.condition);
+  return conditions.includes('blocked') ? 'blocked' : conditions.includes('risk') ? 'risk' : undefined;
 }
 
 export const roadConditionSignLabel = (condition: 'blocked' | 'risk', locale: 'vi' | 'en') =>

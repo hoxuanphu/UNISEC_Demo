@@ -1,6 +1,7 @@
 import L from 'leaflet';
 import { placeMapLabel } from '../../terrain/markerLayout';
-import { areaLabelObstacles } from './areaLabelLayout';
+import { areaLabelObstacles, areaLabelObstacleSelector } from './areaLabelLayout';
+import { mapLayoutMutation } from '../map/mapLayoutMutation';
 
 /** A tooltip offset moves only its label; polygon coordinates and hit targets stay intact. */
 export function avoidAreaLabelCollisions(map: L.Map): () => void {
@@ -30,7 +31,8 @@ export function avoidAreaLabelCollisions(map: L.Map): () => void {
   host.addEventListener('pointerover',schedule);
   host.addEventListener('pointerout',schedule);
   const observer=new MutationObserver(changes=>{
-    if(changes.some(change=>change.target instanceof Element && !change.target.closest('.leaflet-tooltip')))schedule();
+    if(changes.some(change=>change.target instanceof Element && !change.target.closest('.leaflet-tooltip') &&
+      mapLayoutMutation(change,host,areaLabelObstacleSelector)))schedule();
   });
   observer.observe(host.closest('.workspace')??host,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','style','class']});
   schedule();

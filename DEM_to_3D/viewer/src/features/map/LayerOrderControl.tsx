@@ -9,7 +9,7 @@ export function LayerOrderControl({locale}: {locale: Locale}) {
   const {order, setOrder} = useMapLayerOrder();
   const t = (vi: string, en: string) => locale === 'vi' ? vi : en;
   return <details className="layer-section layer-order"><summary>{t('Thứ tự chồng lớp', 'Drawing order')}</summary>
-    <p>{t('Lớp trên cùng được vẽ sau cùng.', 'Top layers draw above those below.')}</p>
+    <p>{t('Đổi thứ tự đường, vùng và dữ liệu tham chiếu. Ảnh phủ và bản đồ nền giữ ở dưới.', 'Reorder roads, extents and reference data. Image overlays and the basemap stay below.')}</p>
     <ol>{order.map((id, index) => {
       const name = names[id][locale === 'vi' ? 0 : 1];
       return <li key={id} data-drawing-layer={id}><span>{name}</span><div>
@@ -21,7 +21,6 @@ export function LayerOrderControl({locale}: {locale: Locale}) {
         </button>)}
       </div></li>;
     })}</ol>
-    <p>{t('Ảnh ở dưới; tình trạng đường, tuyến và nhãn luôn ở trên.', 'Imagery stays below; road warnings, routes and labels stay above.')}</p>
     <button type="button" className="text-button" onClick={() => setOrder(defaultDrawingOrder)}>{t('Đặt lại thứ tự', 'Reset order')}</button>
   </details>;
 }

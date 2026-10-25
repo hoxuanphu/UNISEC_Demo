@@ -25,6 +25,10 @@ export type FlyoverInput = {
   imageryLabel: Localized;
   /** Named places drawn into every frame, so an exported video reads like the map. */
   places?: Array<{ name: Localized; kind: 'community' | 'staging' | 'hlz'; projected: { x: number; y: number } }>;
+  /** People cut off, from the resident app: drawn wherever they come into view. */
+  alerts?: Array<{ id: string; projected: { x: number; y: number }; people: number }>;
+  /** The closing card: what the route is and what is on it. */
+  summary?: { title: Localized; stats: Array<{ value: Localized; label: Localized }> };
 };
 
 const day = (iso: string) => { const [y, m, d] = iso.slice(0, 10).split('-'); return `${Number(d)}/${Number(m)}/${y}`; };

@@ -1,3 +1,4 @@
+import { withSurveyRoadConditions, type SurveyConditionArea } from '../routes/surveyRoadConditions';
 import { applyScenarioEdits, type ScenarioEdit } from '../access/scenarioEdits';
 import type { IncidentPacket } from '../../data/incidentPacket';
 import { assessCommunity } from './responseAssessment';
@@ -9,7 +10,7 @@ import { withinArea } from '../../terrain/areaGeometry';
 /** Deterministic prepared-snapshot calculation, independent of React and map engines.
  * The optional report belongs to the demo packet, not a publication workflow.
  */
-export function deriveIncidentWorkspace(source: IncidentPacket, updated: boolean, edits: ScenarioEdit[] = [], reportAt: string | null = null) {
+export function deriveIncidentWorkspace(source: IncidentPacket, updated: boolean, edits: ScenarioEdit[] = [], reportAt: string | null = null, surveyAreas: SurveyConditionArea[] = []) {
   const applied = effectiveEdits(source, updated, edits, reportAt);
   // Latest manual status per road: a road set back to "uncertain" needs a new check.
   const statusEditIds = new Map(applied.filter(edit => edit.change.kind === 'status').map(edit => [edit.target.id, edit.id]));
@@ -18,7 +19,10 @@ export function deriveIncidentWorkspace(source: IncidentPacket, updated: boolean
     hazards: source.hazards.map(h => updated && h.id === source.report.hazard.id ? source.report.hazard : h),
     evidence: source.evidence.map(e => updated && e.hazardId === source.report.evidence.hazardId ? source.report.evidence : e)
   }, applied);
-  const { roads, hazards, evidence } = packet;
+  const { hazards, evidence } = packet;
+  // Mapped extents touching an open road make it a section to verify, as on the commune roads.
+  const surveyed = withSurveyRoadConditions(packet.roads, surveyAreas, new Set(statusEditIds.keys()));
+  const roads = surveyed.roads;
   const staging = packet.responseSites.find(site => site.kind === 'staging');
   if (!staging) throw new Error('Incident workspace requires a staging site');
   const baseline: Community[] = packet.communities.filter(community => withinArea(community.projected, packet.aoi.points)).map(community => ({ ...community, prio: 2 }));
@@ -31,7 +35,7 @@ export function deriveIncidentWorkspace(source: IncidentPacket, updated: boolean
   ]));
   const communities = baseline.map(community => ({ ...community, prio: assessments.get(community.id)!.priority }));
   const manualUpdatedAt = edits.map(e=>e.at).sort((a,b)=>Date.parse(a)-Date.parse(b)).at(-1);
-  return { roads, hazards, evidence, routes, assessments, communities, incident: packet.incident, responseSites: packet.responseSites, manualUpdatedAt, statusEditIds };
+  return { roads, hazards, evidence, routes, assessments, communities, incident: packet.incident, responseSites: packet.responseSites, manualUpdatedAt, statusEditIds, surveyLinks: surveyed.links };
 }
 
 export type IncidentWorkspaceSnapshot = ReturnType<typeof deriveIncidentWorkspace>;

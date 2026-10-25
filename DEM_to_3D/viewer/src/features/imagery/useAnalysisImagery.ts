@@ -10,7 +10,7 @@ export function useAnalysisImagery(asset: ScenarioAsset | undefined) {
   const [layers, setLayers] = useState<AnalysisLayer[]>([]);
   const [selection, updateSelection] = useState<AnalysisSelection>(defaultAnalysisSelection);
   const chosen = useRef(false);
-  const setSelection = useCallback((value: AnalysisSelection) => {chosen.current = true; updateSelection(value);},[]);
+  const setSelection = useCallback((value: AnalysisSelection) => {chosen.current = true; updateSelection(selectionForCatalog(layers,value,true));},[layers]);
   useEffect(() => {
     setLayers([]);
     if (!asset) {setCatalogState('off');return;}

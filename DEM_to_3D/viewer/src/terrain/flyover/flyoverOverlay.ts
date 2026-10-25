@@ -3,7 +3,10 @@ import type { FlyoverMoment } from '../../features/flyover/flyoverPlan';
 export type ScreenPoint = { x: number; y: number; visible: boolean; occluded: boolean };
 export type OverlayStop = { id?:string; label: string; status: 'reported' | 'suspected'; distance: number; photo?: {image: ImageBitmap; caption: string;illustrative?:boolean}; screen: ScreenPoint };
 export type OverlayFrame = {
-  context?:{areas:Array<{id:string}>;closures:ScreenPoint[]};
+  context?:{areas:Array<{id:string}>;closures:ScreenPoint[];blocked?:string};
+  alerts?: Array<{ people: number; screen: ScreenPoint }>;
+  cutOff?: (people: number) => string;
+  summary?: { title: string; stats: Array<{ value: string; label: string }> };
   width: number; height: number; moment: FlyoverMoment; font: string;
   start: { label: string; screen: ScreenPoint }; end: { label: string; screen: ScreenPoint };
   head: ScreenPoint; stops: OverlayStop[]; attribution: string;
@@ -37,6 +40,24 @@ export function drawFlyoverOverlay(ctx: CanvasRenderingContext2D, frame: Overlay
     ctx.fillStyle='#d9574e';ctx.strokeStyle='#fff';ctx.lineWidth=1.5*scale;
     ctx.beginPath();ctx.arc(point.x,point.y,8*scale,0,2*Math.PI);ctx.fill();ctx.stroke();
     ctx.beginPath();ctx.moveTo(point.x-4*scale,point.y);ctx.lineTo(point.x+4*scale,point.y);ctx.lineWidth=2*scale;ctx.stroke();
+    // Why the route goes the long way: named while travelling, not in the wide shots.
+    if(!overview&&frame.context?.blocked)label(frame.context.blocked,point);
+  }
+  // People cut off: a red disc with one slow ring, as on the map. Nearby clusters read as one.
+  const groups:Array<{x:number;y:number;people:number}>=[];
+  for(const alert of frame.alerts??[]){
+    if(!alert.screen.visible||alert.screen.occluded)continue;
+    const near=groups.find(group=>Math.hypot(group.x-alert.screen.x,group.y-alert.screen.y)<40*scale);
+    if(near)near.people+=alert.people;else groups.push({x:alert.screen.x,y:alert.screen.y,people:alert.people});
+  }
+  const pulse=moment.time%2.4/2.4;
+  for(const group of groups){
+    const r=7*scale;
+    ctx.save();ctx.globalAlpha=.85*(1-pulse);ctx.strokeStyle='#e53935';ctx.lineWidth=2*scale;
+    ctx.beginPath();ctx.arc(group.x,group.y,r*(1+1.3*pulse),0,Math.PI*2);ctx.stroke();ctx.restore();
+    ctx.fillStyle='#d32f2f';ctx.strokeStyle='#fff';ctx.lineWidth=2*scale;
+    ctx.beginPath();ctx.arc(group.x,group.y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+    if(frame.cutOff)label(frame.cutOff(group.people),{x:group.x,y:group.y,visible:true,occluded:false});
   }
   for (const [index,stop] of frame.stops.entries()) {
     if(frame.context?.areas.some(area=>area.id===stop.id)){
@@ -78,6 +99,30 @@ export function drawFlyoverOverlay(ctx: CanvasRenderingContext2D, frame: Overlay
       ctx.fillText(first,x+pad,y+pad+h+15*scale,w);
       if(words.length)ctx.fillText(words.join(' '),x+pad,y+pad+h+31*scale,w);
     }else ctx.fillText(photo.caption,x+pad,y+pad+h+captionH*.56,w);
+    ctx.restore();
+  }
+  // Closing card: the route and three figures, nothing else.
+  const summary=frame.summary,closing=moment.phase==='final'?1:moment.phase==='outro'?moment.overview:0;
+  if(summary&&closing>0){
+    const pad=14*scale,gap=26*scale,valueFont=`700 ${24*scale}px ${font}`,labelFont=`400 ${12*scale}px ${font}`,titleFont=`600 ${14*scale}px ${font}`;
+    const columns=summary.stats.map(stat=>{
+      ctx.font=valueFont;const value=ctx.measureText(stat.value).width;ctx.font=labelFont;
+      return Math.max(value,ctx.measureText(stat.label).width);
+    });
+    ctx.font=titleFont;
+    const w=Math.max(ctx.measureText(summary.title).width,columns.reduce((sum,c)=>sum+c,0)+gap*(columns.length-1))+pad*2,h=88*scale;
+    const x=24*scale,y=24*scale;
+    ctx.save();ctx.globalAlpha=closing;
+    ctx.shadowColor='rgba(0,0,0,.28)';ctx.shadowBlur=18*scale;ctx.shadowOffsetY=5*scale;
+    ctx.fillStyle='#f4f2e9';ctx.beginPath();ctx.roundRect(x,y,w,h,8*scale);ctx.fill();
+    ctx.shadowBlur=0;ctx.shadowOffsetY=0;ctx.textAlign='left';ctx.textBaseline='alphabetic';
+    ctx.fillStyle='#1d2420';ctx.font=titleFont;ctx.fillText(summary.title,x+pad,y+pad+12*scale);
+    let left=x+pad;
+    summary.stats.forEach((stat,i)=>{
+      ctx.fillStyle='#1d2420';ctx.font=valueFont;ctx.fillText(stat.value,left,y+pad+48*scale);
+      ctx.fillStyle='#5b635c';ctx.font=labelFont;ctx.fillText(stat.label,left,y+pad+66*scale);
+      left+=columns[i]+gap;
+    });
     ctx.restore();
   }
   // Source credit stays in the frame, without tables or explanatory paragraphs.

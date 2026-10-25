@@ -3,7 +3,7 @@ import L from 'leaflet';
 import type {GeometryRecord} from '../../geo/vector/types';
 import type {Locale} from '../../types/dear';
 import {UiIcon} from '../../shared/ui/UiIcon';
-import {acquisitionLabel,rasterUrl,selectedRasters,type AnalysisLayer,type SarMode} from './analysisImagery';
+import {acquisitionLabel,availableSarModes,rasterUrl,sarModeForLayer,selectedRasters,type AnalysisLayer,type SarMode} from './analysisImagery';
 import {landslideAreaOf,landslideAreaStyle} from '../landslides/landslideAreas';
 import {removeLeafletMap} from '../map/removeLeafletMap';
 import {basemapTileOptions,imagerySource} from '../map/imagerySource';
@@ -28,7 +28,8 @@ export function PreparedImageryComparison({layers,records,selected,locale,onClos
   const kind=available.includes(requestedKind)?requestedKind:available[0];
   const pair=preparedComparisonPair(layers,kind);
   const before=pair?.before,after=pair?.after;
-  const [sarMode,setSarMode]=useState<SarMode>('vv');
+  const [requestedSarMode,setSarMode]=useState<SarMode>('vv');
+  const sarMode=before?.kind==='sar'?sarModeForLayer(before,requestedSarMode):requestedSarMode;
   const assetKey=JSON.stringify([before,after,sarMode]);
   const host=useRef<HTMLDivElement>(null),mapRef=useRef<L.Map|null>(null);
   const [position,setPosition]=useState(50),[status,setStatus]=useState<'loading'|'ready'|'error'>('loading'),[attempt,setAttempt]=useState(0);
@@ -93,7 +94,7 @@ export function PreparedImageryComparison({layers,records,selected,locale,onClos
         run.signal.throwIfAborted();
         await Promise.all(urls.map((url,index)=>new Promise<void>((resolve,reject)=>{
           const image=L.imageOverlay(url,rasters[index].web.latLngBounds,{pane,interactive:false,
-            alt:layer.kind==='sar'?`Sentinel-1 SAR ${sarMode.toUpperCase()}`:t('Ảnh Planet gốc','Original Planet imagery')});
+            alt:layer.kind==='sar'?`${t(...layer.name)} ${sarMode.toUpperCase()}`:t('Ảnh Planet gốc','Original Planet imagery')});
           const cleanup=()=>{image.off('load',loaded);image.off('error',failed);run.signal.removeEventListener('abort',aborted);};
           const loaded=()=>{cleanup();resolve();},failed=()=>{cleanup();reject(new Error('Image decode failed'));},aborted=()=>{cleanup();reject(run.signal.reason);};
           image.on('load',loaded).on('error',failed);run.signal.addEventListener('abort',aborted,{once:true});image.addTo(images);
@@ -110,7 +111,7 @@ export function PreparedImageryComparison({layers,records,selected,locale,onClos
     const timer=setInterval(()=>setFrame(value=>value==='before'?'after':'before'),delay);
     return ()=>clearInterval(timer);
   },[mode,playing,delay,status]);
-  const sourceCredit=kind==='sar'?'Copernicus Sentinel-1':'© Planet Labs PBC';
+  const sourceCredit=before?.kind==='sar'?before.credit??before.source:'© Planet Labs PBC';
   const credit=`${sourceCredit}, ${imagerySource.name}`;
   const exportGif=async()=>{
     if(!host.current||!before||!after)return;
@@ -130,12 +131,12 @@ export function PreparedImageryComparison({layers,records,selected,locale,onClos
     <header className="modal-head"><h2 id="prepared-comparison-title">{t('Đối chiếu vùng sạt trên ảnh','Compare mapped extents with imagery')}</h2><button className="icon-button" aria-label={t('Đóng','Close')} onClick={onClose}><UiIcon name="close"/></button></header>
     <div className="prepared-comparison-sources">
       <div className="prepared-comparison-modes" role="group" aria-label={t('Loại ảnh','Imagery type')}>
-        {available.map(value=><button key={value} type="button" disabled={gifState==='working'} aria-pressed={kind===value} onClick={()=>{setRequestedKind(value);setFrame('before');}}>{value==='sar'?'Sentinel-1 SAR':'PlanetScope'}</button>)}
+        {available.map(value=><button key={value} type="button" disabled={gifState==='working'} aria-pressed={kind===value} onClick={()=>{setRequestedKind(value);setFrame('before');}}>{value==='sar'?t(...preparedComparisonPair(layers,'sar')!.before.name):'PlanetScope'}</button>)}
       </div>
       {available.length>1&&<button type="button" className="prepared-comparison-hold" aria-pressed={hold} title={t('Đổi loại ảnh vẫn giữ nguyên vùng đang xem','Switching imagery type keeps the current view')} onClick={()=>setHold(value=>!value)}><UiIcon name="fit" size={16}/>{t('Giữ khung','Hold frame')}</button>}
       {kind==='sar'&&<>
-        <label>{t('Kênh SAR','SAR channel')}<select aria-label={t('Kênh SAR','SAR channel')} value={sarMode} disabled={gifState==='working'} onChange={event=>setSarMode(event.target.value as SarMode)}><option value="vv">VV</option><option value="vh">VH</option><option value="rgb">{t('Tổ hợp','Composite')}</option></select></label>
-        <span className="prepared-comparison-sar-scale">{sarMode==='rgb'?'R: VV, G: VH, B: VV/VH':before?.kind==='sar'?`${before.rangesDb[sarMode][0]} – ${before.rangesDb[sarMode][1]} dB`:''}</span>
+        <label>{t('Kênh SAR','SAR channel')}<select aria-label={t('Kênh SAR','SAR channel')} value={sarMode} disabled={gifState==='working'} onChange={event=>setSarMode(event.target.value as SarMode)}>{before?.kind==='sar'&&availableSarModes(before).map(mode=><option key={mode} value={mode}>{mode==='rgb'?t('Tổ hợp','Composite'):mode.toUpperCase()}</option>)}</select></label>
+        <span className="prepared-comparison-sar-scale">{sarMode==='rgb'?'R: VV, G: VH, B: VV/VH':before?.kind==='sar'?`${before.rangesDb[sarMode]?.[0]} – ${before.rangesDb[sarMode]?.[1]} dB`:''}</span>
       </>}
     </div>
     <div className="prepared-comparison-stage">

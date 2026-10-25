@@ -5,6 +5,7 @@ import { CommunityListView } from '../components/dear/CommunityListView';
 import { usePanelScroll } from '../shared/hooks/usePanelScroll';
 import type { ResponsePanelProps } from './responsePanelTypes';
 import type { PreparedPhotoPoint } from '../features/fieldPhotos/preparedPhotos';
+import type { HouseholdAccess } from '../features/presence/householdIsolation';
 
 type Props = Pick<
   ResponsePanelProps,
@@ -34,6 +35,7 @@ type Props = Pick<
   fieldPhotos?: Map<string, PreparedPhotoPoint>;
   /** @deprecated The overview no longer lists reference datasets; GIS owns them. */
   survey?: {areas:number;points:number}; onShowSurvey?:()=>void; onShowCorridor?:()=>void;
+  households?: HouseholdAccess[]; onSelectHousehold?: (id: string) => void; onShowHouseholds?: () => void;
 };
 
 /** Lists retain their context and scroll while a selected item opens in the detail surface. */
@@ -56,7 +58,7 @@ export function ResponsePanel({
   onSelectCommunity,
   onInspectObject,
   onRevealPanel,
-  onOpenDialog, fieldPhotos
+  onOpenDialog, fieldPhotos, households, onSelectHousehold, onShowHouseholds
 }: Props): JSX.Element {
   const {
     view,
@@ -130,6 +132,9 @@ export function ResponsePanel({
         assessments={assessments}
         onSelectCommunity={onSelectCommunity}
         onOpenCommunities={openCommunities}
+        households={households}
+        onSelectHousehold={onSelectHousehold}
+        onShowHouseholds={onShowHouseholds}
         onOpenRoads={(filter) => {
           onNavigate({ type: 'road-list', filter });
           onRevealPanel();

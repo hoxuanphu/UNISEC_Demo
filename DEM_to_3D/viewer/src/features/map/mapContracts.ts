@@ -87,6 +87,11 @@ export type MapDisplayProps = {
   /** Blocked corridor for comparison only; never offered as a route choice. */
   comparisonRoute?: ScenarioRoute | null;
   onInspectRoad?: (id: string) => void;
+  /** Field huts with people from the resident app; isolated ones show as alarms. */
+  households?: import('../presence/householdIsolation').HouseholdAccess[];
+  selectedHouseholdId?: string | null;
+  attendedHouseholds?: string;
+  onSelectHousehold?: (id: string) => void;
   /** Hide context areas below this zoom, where they would only be specks. */
   contextMinZoom?: number;
   /** Prepared EO rendering drawn above the basemap and below every vector layer. */

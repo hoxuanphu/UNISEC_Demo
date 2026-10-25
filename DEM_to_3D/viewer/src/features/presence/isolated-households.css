@@ -1,0 +1,61 @@
+/* Isolated huts with people: a small red disc, people glyph, one slow ring. Urgent without crowding the map. */
+.household-alert { background: none; border: 0; cursor: pointer; }
+.household-alert-disc {
+  position: absolute; inset: 0; display: grid; place-items: center; border: 2px solid #fff; border-radius: 50%;
+  background: #d32f2f; color: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .4); transition: scale 120ms ease;
+}
+.household-alert-ring { position: absolute; inset: 0; border: 2px solid #e53935; border-radius: 50%; animation: household-ring 2.4s ease-out infinite; pointer-events: none; }
+@keyframes household-ring { 0% { scale: 1; opacity: .85; } 100% { scale: 2.3; opacity: 0; } }
+/* The count reads as a label, not a second alarm: white chip, red text. */
+.household-alert-count {
+  position: absolute; left: 26px; top: 50%; transform: translateY(-50%); padding: 0 6px; border-radius: 4px;
+  background: rgba(255, 255, 255, .94); color: #b3261e; font: 600 11.5px/18px var(--font-map, sans-serif); font-variant-numeric: tabular-nums;
+  white-space: nowrap; box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+}
+.household-alert.is-selected .household-alert-disc { scale: 1.2; box-shadow: 0 0 0 3px rgba(211, 47, 47, .35), 0 1px 2px rgba(0, 0, 0, .4); }
+.household-alert.is-selected .household-alert-count { left: 29px; }
+.household-alert:focus-visible { outline: none; }
+.household-alert:focus-visible .household-alert-disc { outline: 2px solid #2f80ed; outline-offset: 2px; }
+@media (hover: hover) { .household-alert:hover .household-alert-disc { scale: 1.12; } }
+/* A team is with them: the alarm stops pulsing and carries the rescue colour. */
+.household-alert.is-attended .household-alert-ring { display: none; }
+.household-alert.is-attended .household-alert-disc::after { content: ""; position: absolute; right: -5px; top: -5px; width: 9px; height: 9px; border: 2px solid #fff; border-radius: 50%; background: var(--location-rescue); }
+@media (prefers-reduced-motion: reduce) { .household-alert-ring { animation: none; scale: 1.5; opacity: .35; } }
+
+/* Far out: one pin with the total in place of pins that would touch. */
+.leaflet-container:not(.households-merged) .household-aggregate { display: none; }
+.households-merged .household-alert:not(.is-selected):not(.household-aggregate) { display: none; }
+
+/* A slide the residents reported on their way out: red cross on white. */
+.household-reported-cut span {
+  position: absolute; inset: 0; border: 2px solid #c62828; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+}
+.household-reported-cut span::before, .household-reported-cut span::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 2.5px; border-radius: 1px; background: #c62828;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.household-reported-cut span::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+/* Card: what is known, from whom, and the way out that is cut. */
+.household-card { position: absolute; z-index: 30; left: 16px; bottom: 16px; width: min(360px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto;
+  border: 1px solid var(--card-line); border-radius: 12px; background: var(--card); color: var(--ws-text); box-shadow: 0 6px 24px rgba(0, 0, 0, .18); }
+.household-card header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 14px 10px 16px; }
+.household-card header small { display: inline-flex; align-items: center; gap: 6px; color: #b3261e; font-size: 12px; font-weight: 700; }
+.household-card header small::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #c62828; }
+.household-card h2 { margin: 2px 0 0; font-size: 17px; line-height: 1.3; }
+.household-card-people { display: flex; align-items: baseline; gap: 10px; margin: 0 16px 12px; }
+.household-card-people strong { font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
+.household-card-people span { color: var(--ws-muted); font-size: 13px; }
+.household-card dl { display: grid; margin: 0 16px 12px; border-top: 1px solid var(--ws-line); }
+.household-card dl > div { display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--ws-line); font-size: 13px; }
+.household-card dt { color: var(--ws-muted); }
+.household-card dd { margin: 0; }
+.household-card dd ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
+.household-card .household-team { display: inline-flex; flex-wrap: wrap; gap: 0 4px; min-height: 0; padding: 0; text-align: left; font-size: 13px; color: var(--ws-text); }
+.household-team strong { font-weight: 600; }
+.household-card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 16px 12px; }
+.household-card-actions .button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; border-radius: 8px; font-size: 13px; }
+.household-card-actions .button.primary { background: #c62828; border-color: #c62828; color: #fff; }
+@media (hover: hover) { .household-card-actions .button.primary:hover { background: #a61f1f; border-color: #a61f1f; } }
+.household-card footer { padding: 0 16px 14px; color: var(--ws-muted); font-size: 12px; }
+@media (max-width: 600px) { .household-card { left: 8px; right: 8px; bottom: 8px; width: auto; } }

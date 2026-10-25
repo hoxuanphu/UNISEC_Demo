@@ -89,7 +89,7 @@ def run(url, chrome, captures=None):
         page.get_by_role("button", name="Chuyển sang 2D", exact=True).click()
         expect(page.locator('img[alt="Ảnh phân tích"]')).to_be_visible(timeout=30000)
 
-        page.locator(".incident-landslide-row").first.click()
+        page.locator('.incident-landslide-row[data-map-preview^="hazard:"]').first.click()
         expect(detail.locator(".hazard-detail > .field-photo-strip:first-child")).to_be_visible()
         expect(detail.locator(".hazard-basis")).not_to_have_attribute("open","")
         if captures:page.screenshot(path=str(captures / "hazard-photo-first.png"))
@@ -125,7 +125,7 @@ def run(url, chrome, captures=None):
         page.get_by_role("button", name="Lớp bản đồ", exact=True).click()
         panel = page.locator(".layers-panel")
         expect(panel.locator(".layer-analysis")).to_have_attribute("open", "")
-        panel.get_by_role("radio", name="Không", exact=True).check()
+        panel.get_by_role("radio", name="Tắt ảnh phủ", exact=True).check()
         expect(page.locator('img[alt="Ảnh phân tích"]')).to_have_count(0)
         panel.get_by_role("button", name="Khôi phục hiển thị mặc định", exact=True).click()
         expect(panel.locator('.analysis-imagery input[type="radio"]:checked')).not_to_have_count(0)
@@ -170,7 +170,7 @@ def run(url, chrome, captures=None):
         photo_failure={"thumb":True,"image":True}
         recovery.route("**/*.thumb.webp",lambda route:route.abort() if photo_failure["thumb"] else route.continue_())
         recovery.route("**/*.image.webp",lambda route:route.abort() if photo_failure["image"] else route.continue_())
-        recovery.locator(".incident-landslide-row").first.click()
+        recovery.locator('.incident-landslide-row[data-map-preview^="hazard:"]').first.click()
         strip=recovery.locator("#response-details .field-photo-strip")
         expect(strip.get_by_role("status")).to_contain_text("Chưa tải được ảnh",timeout=30000)
         photo_failure["thumb"]=False

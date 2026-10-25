@@ -15,6 +15,8 @@ type Props = {
   state: FlyoverState;
   /** Route labels for the button and the file name. */
   title?: string;
+  networkJourney?: boolean;
+  onOpen?: () => void;
   fileName: string;
   mapMode: '2d' | '3d';
   onRequest3D: () => void;
@@ -51,7 +53,7 @@ async function withCurrentFlyover<T>(ref: MutableRefObject<ViewControls | null>,
   }
 }
 
-export function FlyoverBar({ layout = 'toolbar', disabled = false, locale, state, title, fileName, mapMode, onRequest3D, controlRef }: Props): JSX.Element | null {
+export function FlyoverBar({ layout = 'toolbar', disabled = false, locale, state, title, networkJourney = false, onOpen, fileName, mapMode, onRequest3D, controlRef }: Props): JSX.Element | null {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const bar = useRef<HTMLDivElement>(null);
   const [mapHost,setMapHost]=useState<HTMLElement|null>(null);
@@ -85,12 +87,13 @@ export function FlyoverBar({ layout = 'toolbar', disabled = false, locale, state
       if ((event.target as HTMLElement | null)?.closest('input, textarea, select')) return;
       if (event.key === ' ') { event.preventDefault(); if (state.status === 'playing') controls.pause(); else void controls.play(); }
       else if (event.key === 'Escape') controls.exit();
-      else if (event.key === 'ArrowRight') controls.seek(state.time + 5);
-      else if (event.key === 'ArrowLeft') controls.seek(state.time - 5);
+      // Five seconds of viewing time at the chosen speed.
+      else if (event.key === 'ArrowRight') controls.seek(state.time + 5 * (state.playbackRate ?? 1));
+      else if (event.key === 'ArrowLeft') controls.seek(state.time - 5 * (state.playbackRate ?? 1));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [active, state.status, state.time, controlRef]);
+  }, [active, state.status, state.time, state.playbackRate, controlRef]);
 
   useEffect(() => { if (state.error) { setMessage(t('Không mở được chế độ xem 3D.', 'The 3D route view could not start.')); setMenuOpen(true); } }, [state.error]);
   useEffect(() => () => {
@@ -160,16 +163,21 @@ export function FlyoverBar({ layout = 'toolbar', disabled = false, locale, state
     return <div ref={bar} className="flyover-launch">
       <button type="button" className="icon-button" aria-label={t('Xem tuyến 3D','3D route view')}
         title={t('Xem tuyến 3D','3D route view')} aria-expanded={menuOpen} aria-haspopup="dialog" aria-controls="flyover-menu"
-        onClick={()=>setMenuOpen(open=>!open)}><PlayIcon/><span>{t('Xem tuyến 3D','3D route view')}</span></button>
+        onClick={()=>{if(!menuOpen)onOpen?.();setMenuOpen(open=>!open);}}><PlayIcon/><span>{t('Xem tuyến 3D','3D route view')}</span></button>
       {menuOpen && <div className="flyover-menu" id="flyover-menu" data-popover role="dialog" aria-label={t('Xem tuyến 3D','3D route view')}>
+        {networkJourney && <a className="flyover-menu-action flyover-network-link" href={(()=>{const url=new URL(location.href);url.searchParams.set('workspace','routes');url.searchParams.delete('area');return url.href;})()}>
+          <PlayIcon/><span><strong>{t('Video toàn cảnh Chế Tạo','Chế Tạo overview video')}</strong><small>{t('Từ bản A đến bản C, xem các đường trong xã','Village A to Village C, showing local roads')}</small></span>
+        </a>}
         {title && <p>{title}</p>}
-        <button type="button" className="flyover-menu-action" onClick={()=>void start()}><PlayIcon/>{t('Bắt đầu xem','Start viewing')}</button>
-        <button type="button" className="flyover-menu-action" onClick={()=>void exportVideo()}><UiIcon name="download" size={16}/>{t('Xuất video MP4','Export MP4 video')}</button>
+        <button type="button" className="flyover-menu-action" disabled={disabled} onClick={()=>void start()}><PlayIcon/>{t('Bắt đầu xem','Start viewing')}</button>
+        <button type="button" className="flyover-menu-action" disabled={disabled} onClick={()=>void exportVideo()}><UiIcon name="download" size={16}/>{t('Xuất video MP4','Export MP4 video')}</button>
         {message && <p role="status">{message}</p>}
       </div>}
     </div>;
   }
   const controls = () => controlRef.current?.flyover;
+  // Viewing time at the chosen speed, as long as the exported video at that speed.
+  const rate = state.playbackRate ?? 1;
   return onMap(<div ref={bar} className={'flyover-bar flyover-player' + (idleUi ? ' is-resting' : '')}>
     <button type="button" className="icon-button flyover-icon" onClick={() => state.status === 'playing' ? controls()?.pause() : void controls()?.play()}
       aria-label={state.status === 'playing' ? t('Tạm dừng', 'Pause') : state.status === 'ended' ? t('Phát lại', 'Replay') : t('Tiếp tục', 'Resume')}>
@@ -177,8 +185,8 @@ export function FlyoverBar({ layout = 'toolbar', disabled = false, locale, state
     </button>
     <input type="range" className="flyover-seek" min={0} max={Math.max(1, state.duration)} step={.1} value={state.time}
       aria-label={t('Tiến trình xem tuyến', 'Route playback position')} onChange={event => controls()?.seek(Number(event.target.value))}/>
-    <span className="flyover-clock">{clock(state.time)} / {clock(state.duration)}</span>
-    <select className="flyover-speed" aria-label={t('Tốc độ phát','Playback speed')} value={state.playbackRate??1} onChange={event=>controls()?.setPlaybackRate(Number(event.target.value))}>
+    <span className="flyover-clock">{clock(state.time / rate)} / {clock(state.duration / rate)}</span>
+    <select className="flyover-speed" aria-label={t('Tốc độ phát','Playback speed')} value={rate} onChange={event=>controls()?.setPlaybackRate(Number(event.target.value))}>
       {[.75,1,1.25,1.5].map(rate=><option key={rate} value={rate}>{rate}×</option>)}
     </select>
     <button type="button" className="icon-button flyover-icon" onClick={() => void exportVideo()} title={t('Xuất video MP4', 'Export MP4 video')} aria-label={t('Xuất video MP4', 'Export MP4 video')}><UiIcon name="download" size={18}/></button>

@@ -135,6 +135,7 @@ def render_sar(db, transform, crs, layer_id, acquired, files, **metadata):
         products[mode] = output(rgba, warped_transform, TERRAIN, f'{layer_id}-{mode}', 10.0)
         print(layer_id, mode, products[mode]['terrain']['byteLength'], products[mode]['web']['byteLength'])
     manifest['layers'].append({'id': layer_id, 'name': NAMES['sentinel1'], 'kind': 'sar',
+                               'sensor': 'Sentinel-1D', 'credit': 'Copernicus Sentinel-1',
                                'acquired': acquired,
                                'source': 'Copernicus Sentinel-1D IW GRDH 1SDV (Google Earth Engine COPERNICUS/S1_GRD)',
                                'pixelM': 10.0, 'polarizations': ['VV', 'VH'], 'rangesDb': SAR_RANGES,
@@ -169,6 +170,13 @@ with rasterio.open(pre_path) as src:
         raise ValueError('Unexpected 11 October SAR source metadata')
     render_sar(src.read(), src.transform, src.crs.to_string(), 'sentinel1-oct11',
                '2026-10-11T11:13:48Z', [pre_path], sourceScene=scene, orbitPass='ASCENDING')
+
+# Additional sensors prepared independently must survive a Planet/Sentinel rebuild.
+if (OUT / 'imagery.json').exists():
+    previous = json.loads((OUT / 'imagery.json').read_text(encoding='utf-8'))
+    prepared_ids = {layer['id'] for layer in manifest['layers']}
+    manifest['layers'].extend(layer for layer in previous['layers']
+                              if layer['kind'] == 'sar' and layer['id'] not in prepared_ids)
 
 # LF on every OS: the manifest checksum must match a Linux checkout (.gitattributes eol=lf).
 (OUT / 'imagery.json').write_bytes(json.dumps(manifest, ensure_ascii=False, indent=1).encode('utf-8'))

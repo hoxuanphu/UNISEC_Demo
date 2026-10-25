@@ -35,18 +35,23 @@
 
 /* The film is an explicit tool action, never a launch pill over the map/profile. */
 .flyover-launch { position:relative; flex:none; }
-.flyover-menu { position:absolute; top:calc(100% + 8px); left:0; z-index:35; width:260px; max-width:calc(100vw - 24px); padding:8px;
+.flyover-menu { position:absolute; top:calc(100% + 14px); left:0; z-index:35; width:300px; max-width:calc(100vw - 24px); max-height:var(--map-controls-space,calc(100dvh - 180px)); overflow:auto; padding:8px;
   border:1px solid var(--ws-line); border-radius:var(--radius-popover); background:var(--ws-surface); color:var(--ws-text); box-shadow:var(--shadow-overlay); }
 .flyover-menu > p { margin:4px 8px 8px; color:var(--ws-muted); font-size:12px; line-height:1.5; }
 .flyover-menu-action { display:flex; align-items:center; gap:10px; width:100%; min-height:38px; padding:8px; border:0; border-radius:var(--radius-control); background:transparent; color:var(--ws-text); text-align:left; font-size:13px; }
 .flyover-menu-action:hover { background:var(--hover); }
 .flyover-menu-action svg { flex:none; }
+.flyover-network-link { text-decoration:none; border-bottom:1px solid var(--ws-line); margin-bottom:8px; border-radius:0; }
+.flyover-network-link > span { min-width:0; display:grid; gap:4px; }
+.flyover-network-link strong { font-size:13px; font-weight:600; }
+.flyover-network-link small { color:var(--ws-muted); font-size:11px; line-height:1.4; }
+.flyover-menu-action:disabled { opacity:.5; cursor:default; }
 .flyover-preparing { padding:10px 16px; border:1px solid var(--ws-line); border-radius:var(--radius-control); background:var(--ws-surface); color:var(--ws-text); box-shadow:var(--shadow-overlay); font-size:13px; }
 @container (max-width:600px) {
-  .map-area .map-advanced-tools:has(.flyover-launch):has(.map-journey-trigger) { grid-template-columns:repeat(6,minmax(0,1fr)); }
+  .map-area .map-advanced-tools:has(.flyover-launch) { grid-template-columns:repeat(6,minmax(0,1fr)); }
   .map-advanced-tools .flyover-launch { min-width:0; }
   .map-advanced-tools .flyover-launch > .icon-button { width:100%; }
-  .flyover-menu { position:fixed; top:auto; left:12px; right:12px; width:auto; max-width:calc(100vw - 24px); }
+  .flyover-menu { position:absolute; top:calc(100% + 14px); left:0; right:auto; width:min(300px,calc(100cqw - 24px)); max-width:calc(100cqw - 24px); }
 }
 
 .flyover-speed {width:66px;min-height:36px;padding:4px;border:1px solid #ffffff40;border-radius:4px;background:#1d2420;color:#fff;font-size:13px;}

@@ -1,4 +1,4 @@
-import { softenCoverageEdge } from '../features/imagery/coverageFeather';
+import { softenCoverageEdgeAsync } from '../features/imagery/coverageFeather';
 import type { ImageryLoadState } from '../features/imagery/ImageryStatus';
 import * as THREE from 'three';
 import type { LoadedModel } from '../types/terrain';
@@ -38,7 +38,7 @@ async function composeTexture(rasters: ImageryRaster[], maxSize: number, anisotr
     } finally { bitmap.close(); }
   }
   signal.throwIfAborted();
-  softenCoverageEdge(canvas,frame.metresPerPixel);
+  await softenCoverageEdgeAsync(canvas,frame.metresPerPixel,signal);
   const texture = new THREE.CanvasTexture(canvas);
   texture.flipY = false; texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = anisotropy;
   texture.minFilter = THREE.LinearMipmapLinearFilter; texture.magFilter = THREE.LinearFilter;

@@ -33,7 +33,7 @@ const OTHER_ROUTE = { color: roadColors.alternative, casing: roadColors.alternat
  * Resident map extras: other unblocked routes as quieter lines with their length, tappable to
  * choose (as in web maps), and a closure sign on each blocked section.
  */
-export function ResidentRouteExtras({ mapRef, metadata, alternatives, alerts, comparison, selected, locale, onChoose, onInspectRoad, areaLinks, showAreaLinks = true }: {
+export function ResidentRouteExtras({ mapRef, metadata, alternatives, alerts, comparison, selected, locale, onChoose, onInspectRoad, areaLinks, showAreaLinks = true, hazardPoints }: {
   mapRef: MutableRefObject<L.Map | null>;
   metadata?: TerrainMetadata;
   alternatives: ScenarioRoute[];
@@ -45,6 +45,8 @@ export function ResidentRouteExtras({ mapRef, metadata, alternatives, alerts, co
   locale: Locale;
   onChoose?: (id: string) => void;
   onInspectRoad?: (id: string) => void;
+  /** Shown incident landslides: a sign at one of them is carried by its pin. */
+  hazardPoints?: Array<{ x: number; y: number }>;
 }) {
   useEffect(() => {
     const map = mapRef.current;
@@ -92,14 +94,14 @@ export function ResidentRouteExtras({ mapRef, metadata, alternatives, alerts, co
       marker.getElement()?.setAttribute('data-route-id', route.id);
     }
     // Adjacent sections of the same source road share one condition sign.
-    const signs = roadConditionSigns(alerts, areaLinks);
+    const signs = roadConditionSigns(alerts, areaLinks, hazardPoints);
     for (const {road, point, condition} of signs) {
       const at = latLngs([point], metadata)[0];
       if (!at) continue;
       const landslide = road.hz === 'landslide';
       const label = roadConditionSignLabel(condition, locale);
       const marker = L.marker(at, { pane: mapPane('selection'), title: label, keyboard: true, bubblingMouseEvents: false, icon: L.divIcon({
-        className: `road-condition-sign ${condition === 'blocked' ? 'road-closure-sign' : 'road-risk-sign'}${landslide ? ' is-landslide' : ''}`, iconSize: [44, 44], iconAnchor: [22, 22],
+        className: `road-condition-sign ${condition === 'blocked' ? 'road-closure-sign' : 'road-risk-sign'}${landslide ? ' is-landslide' : ''}${road.id.startsWith('local-') ? ' is-local-road' : ''}`, iconSize: [44, 44], iconAnchor: [22, 22],
         html: roadConditionSvg(condition) }) }).addTo(group);
       marker.getElement()?.setAttribute('aria-label', label);
       marker.getElement()?.setAttribute('data-road-id', road.id);
@@ -129,8 +131,10 @@ export function ResidentRouteExtras({ mapRef, metadata, alternatives, alerts, co
         pin.marker.getElement()?.style.setProperty('--closure-symbol-size', `${Math.max(10, Math.min(22, distance - 4))}px`);
       }
     };
-    sizeSymbols(); map.on('zoom move resize', sizeSymbols);
-    return () => { map.off('zoom move resize', sizeSymbols); group.remove(); };
-  }, [mapRef, metadata, alternatives, alerts, comparison, selected, locale, onChoose, onInspectRoad, areaLinks, showAreaLinks]);
+    // Commune-road risk signs only crowd the far view; closures stay at every zoom.
+    const farView = () => map.getContainer().classList.toggle('road-signs-far', map.getZoom() < 13);
+    sizeSymbols(); farView(); map.on('zoom move resize', sizeSymbols); map.on('zoomend', farView);
+    return () => { map.off('zoom move resize', sizeSymbols); map.off('zoomend', farView); map.getContainer().classList.remove('road-signs-far'); group.remove(); };
+  }, [mapRef, metadata, alternatives, alerts, comparison, selected, locale, onChoose, onInspectRoad, areaLinks, showAreaLinks, hazardPoints]);
   return null;
 }

@@ -5,14 +5,16 @@ describe('flyover timeline', () => {
   const plan = planFlyover(32100, [21100, 17300, 22400]);
   const frames = Array.from({ length: Math.ceil(plan.duration * 60) + 1 }, (_, i) => plan.at(i / 60));
 
-  it('stays within 20–30 seconds, with brief scar visits and a complete closing shot', () => {
+  it('runs 25 seconds at 1x, with brief scar visits and a short closing shot', () => {
     expect(plan.duration).toBe(25);
     const dwell=plan.stopWindows.reduce((sum,stop)=>sum+stop.end-stop.start,0);
     expect(dwell).toBeCloseTo(4.8);
     expect(plan.stopWindows[0].start).toBeGreaterThan(7);
     expect(plan.stopWindows[0].start).toBeLessThan(13);
-    expect(planFlyover(1000,[]).duration).toBeGreaterThanOrEqual(20);
-    expect(planFlyover(1000,[]).duration).toBeLessThanOrEqual(plan.duration);
+    expect(planFlyover(1000,[]).duration).toBe(25);
+    // The closing pull-back is brief, then holds long enough to read the closing card.
+    const outro=frames.filter(f=>f.phase==='outro').length/60,final=frames.filter(f=>f.phase==='final').length/60;
+    expect(outro).toBeLessThan(2);expect(final).toBeGreaterThan(1.2);
     expect(plan.at(-1).distance).toBe(0);
     expect(plan.at(100).distance).toBe(plan.length);
     expect(planFlyover(200000,[100000,110000,120000]).duration).toBe(25);

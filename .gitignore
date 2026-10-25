@@ -51,3 +51,6 @@ DEM_to_3D/viewer/dist/
 DEM_to_3D/viewer/dist-release/
 DEM_to_3D/viewer/tsconfig.tsbuildinfo
 DEM_to_3D/viewer/.vercel/
+
+# Local browser captures belong in TEMP, never in the published app/source.
+DEM_to_3D/viewer/shots/

@@ -16,8 +16,9 @@ type Named = { id: string; name: [string, string] };
 export type OpticalLayer = Named & { kind: 'optical'; parts: OpticalPart[]; mosaic?: ImageryRaster };
 export type SarLayer = Named & {
   kind: 'sar'; acquired: string; source: string; pixelM: number;
-  rangesDb: { vv: [number, number]; vh: [number, number]; ratio: [number, number] };
-  modes: Record<SarMode, ImageryRaster>;
+  sensor?: string; credit?: string; nativePixelM?: number;
+  rangesDb: { vv: [number, number]; vh?: [number, number]; ratio?: [number, number] };
+  modes: { vv: ImageryRaster; vh?: ImageryRaster; rgb?: ImageryRaster };
 };
 export type AnalysisLayer = OpticalLayer | SarLayer;
 export type AnalysisSelection = { layer: string | null; sarMode: SarMode; opacity: number };
@@ -84,9 +85,17 @@ export function validateImageryCatalog(value: unknown, catalogUrl: string): Anal
       };
       const acquired = text(layer.acquired, `${id}.acquired`);
       if (!Number.isFinite(Date.parse(acquired))) fail(`${id}.acquired`);
+      const modes: SarLayer['modes'] = { vv: raster(layer.modes.vv, base, `${id}.modes.vv`) };
+      const rangesDb: SarLayer['rangesDb'] = { vv: range('vv') };
+      if (layer.modes.vh !== undefined) { modes.vh = raster(layer.modes.vh, base, `${id}.modes.vh`); rangesDb.vh = range('vh'); }
+      if (layer.modes.rgb !== undefined) {
+        if (!modes.vh) fail(`${id}.modes.rgb requires VH`);
+        modes.rgb = raster(layer.modes.rgb, base, `${id}.modes.rgb`); rangesDb.ratio = range('ratio');
+      }
       return { id, name, kind: 'sar', acquired, source: text(layer.source, `${id}.source`), pixelM: finite(layer.pixelM, `${id}.pixelM`),
-        rangesDb: { vv: range('vv'), vh: range('vh'), ratio: range('ratio') },
-        modes: { vv: raster(layer.modes.vv, base, `${id}.modes.vv`), vh: raster(layer.modes.vh, base, `${id}.modes.vh`), rgb: raster(layer.modes.rgb, base, `${id}.modes.rgb`) } };
+        ...(layer.sensor === undefined ? {} : {sensor: text(layer.sensor, `${id}.sensor`)}),
+        ...(layer.credit === undefined ? {} : {credit: text(layer.credit, `${id}.credit`)}),
+        ...(layer.nativePixelM === undefined ? {} : {nativePixelM: finite(layer.nativePixelM, `${id}.nativePixelM`)}), rangesDb, modes };
     }
     return fail(`${id}.kind`);
   });
@@ -103,7 +112,7 @@ export async function loadImageryCatalog(asset: ScenarioAsset, signal: AbortSign
 export function selectedRasters(layers: AnalysisLayer[], selection: AnalysisSelection): ImageryRaster[] {
   const layer = layers.find(item => item.id === selection.layer);
   if (!layer) return [];
-  if (layer.kind === 'sar') return [layer.modes[selection.sarMode]];
+  if (layer.kind === 'sar') return [layer.modes[selection.sarMode] ?? layer.modes.vv];
   return layer.mosaic ? [layer.mosaic] : layer.parts;
 }
 
@@ -133,7 +142,11 @@ export function acquisitionLabel(layer: AnalysisLayer): string {
 /** Retain an explicit off/valid choice, but never carry a missing layer ID
  * into another dataset and silently make its imagery disappear. */
 export function selectionForCatalog(layers:AnalysisLayer[],selection:AnalysisSelection,chosen:boolean):AnalysisSelection {
-  if(chosen&&(selection.layer===null||layers.some(layer=>layer.id===selection.layer)))return selection;
+  if(chosen&&(selection.layer===null||layers.some(layer=>layer.id===selection.layer))) {
+    const layer = layers.find(layer=>layer.id===selection.layer);
+    const mode = layer?.kind === 'sar' ? sarModeForLayer(layer,selection.sarMode) : selection.sarMode;
+    return mode === selection.sarMode ? selection : {...selection,sarMode:mode};
+  }
   return {...selection,layer:latestOpticalLayer(layers)?.id??null};
 }
 
@@ -147,5 +160,13 @@ export function latestOpticalLayer(layers: AnalysisLayer[]): OpticalLayer | unde
 export function analysisSourceInfo(layers: AnalysisLayer[], selection: AnalysisSelection, locale: 'vi' | 'en') {
   const layer=layers.find(item=>item.id===selection.layer);
   return layer ? {name:layer.name[locale==='vi'?0:1],acquired:acquisitionLabel(layer),
-    credit:layer.kind==='optical'?'© Planet Labs PBC':'Copernicus Sentinel-1'} : undefined;
+    credit:layer.kind==='optical'?'© Planet Labs PBC':layer.credit ?? layer.source} : undefined;
+}
+
+export const sarModeForLayer = (layer: SarLayer, requested: SarMode): SarMode => layer.modes[requested] ? requested : 'vv';
+export const availableSarModes = (layer: SarLayer): SarMode[] => (['vv','vh','rgb'] as const).filter(mode=>!!layer.modes[mode]);
+/** Organise the catalog by modality, then newest acquisition, without changing the user's selection. */
+export function imageryGroups(layers: AnalysisLayer[]) {
+  const acquired = (layer: AnalysisLayer) => layer.kind === 'sar' ? Date.parse(layer.acquired) : Math.max(...layer.parts.map(part=>Date.parse(part.acquired)));
+  return (['optical','sar'] as const).map(kind=>({kind,layers:layers.filter(layer=>layer.kind===kind).sort((a,b)=>acquired(b)-acquired(a)||a.id.localeCompare(b.id))}));
 }

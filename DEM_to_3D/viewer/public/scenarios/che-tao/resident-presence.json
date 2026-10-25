@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "dataKind": "simulated",
+  "source": ["Mô phỏng tín hiệu app DEAR của người dân", "Simulated DEAR resident app signals"],
+  "clusters": [
+    {
+      "id": "HH-01",
+      "name": ["Lán ruộng phía tây Bản C", "Terrace huts west of Village C"],
+      "longitude": 104.04824,
+      "latitude": 21.712893,
+      "households": 4,
+      "people": 13,
+      "devices": 3,
+      "lastSeenAt": "2026-09-12T13:52:00+07:00",
+      "need": ["Một người bị thương ở chân", "One person with a leg injury"],
+      "reportedCuts": [{ "longitude": 104.049612, "latitude": 21.714872, "reportedAt": "2026-09-12T13:40:00+07:00" }]
+    },
+    {
+      "id": "HH-02",
+      "name": ["Lán ruộng phía đông Bản B", "Terrace huts east of Village B"],
+      "longitude": 104.0365,
+      "latitude": 21.7174,
+      "households": 3,
+      "people": 9,
+      "devices": 2,
+      "lastSeenAt": "2026-09-12T13:47:00+07:00"
+    },
+    {
+      "id": "HH-03",
+      "name": ["Lán ruộng phía nam Bản C", "Terrace huts south of Village C"],
+      "longitude": 104.0505,
+      "latitude": 21.702,
+      "households": 5,
+      "people": 17,
+      "devices": 4,
+      "lastSeenAt": "2026-09-12T13:58:00+07:00",
+      "need": ["Gạo dự trữ còn khoảng 2 ngày", "About two days of rice left"]
+    },
+    {
+      "id": "HH-04",
+      "name": ["Lán ruộng bên kia suối", "Terrace huts across the stream"],
+      "longitude": 104.043,
+      "latitude": 21.7017,
+      "households": 2,
+      "people": 6,
+      "devices": 1,
+      "lastSeenAt": "2026-09-12T13:31:00+07:00"
+    }
+  ]
+}

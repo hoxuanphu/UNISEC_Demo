@@ -1,4 +1,5 @@
 import { hazardLayerVisible } from '../features/map/visibleMapRecords';
+import { mapLayoutMutation } from '../features/map/mapLayoutMutation';
 import type { Community, Hazard, Locale, ResponseSite } from '../types/dear';
 import type { OverlayHit } from '../features/map/mapContracts';
 import {poiFrameSvg,poiMetrics,markerSize} from './poiFrame';
@@ -8,11 +9,15 @@ import { markerPresentation } from './markerPresentation';
 import type { RoadSegment } from '../types/dear';
 import { roadCondition } from '../features/routes/roadConditions';
 import { roadConditionSvg } from '../features/map/roadConditionSvg';
+import { absorbedCondition, roadConditionSigns } from '../features/map/roadConditionSigns';
 
 export type ScreenMarkerOptions = {
   communities: Community[]; hazards: Hazard[]; layers: Record<string, boolean>;
   responseSites?: ResponseSite[];
   roads?: RoadSegment[];
+  /** Commune roads and extent links: their signs at a landslide merge into its pin. */
+  contextRoads?: RoadSegment[];
+  roadAreaLinks?: import('../features/route-film/localNetwork').LocalRoadAreaLink[];
   selectedCommunityId: string | null; selectedObjectId: string | null; locale: Locale;
   onSelect: (hit: OverlayHit) => void;
   interactive?: boolean;
@@ -34,6 +39,8 @@ type Marker = {
 
 /** Screen-sized, keyboard-accessible markers remain legible while the terrain zooms. */
 type Projection = (point: { x: number; y: number }) => { x: number; y: number } | null;
+
+const collisionElements = '#response-details,.geodata-detail,.geodata-map-toolbar,.geodata-map-zoom,.geodata-basemap,.scenario-card,.map-tools,.map-toolbar,.map-advanced-tools,.map-search-results,.map-help [data-popover],.map-bottom-bar,.map-reference,.basemap-status,.layers-panel,.profile-panel,.map-attribution,.map-source-popover,.map-tool-panel,.road-journey-panel,.map-location-panel,.map-measure-label,.map-panel-toggle,.revision-notice,.map-overview,.leaflet-tooltip,.leaflet-popup,.field-map-card,.field-selected-pin,.map-selected-reference,.notice-toast,.citizen-map-tools,.citizen-map-layers,.citizen-area-info,.citizen-pick-hint,.citizen-map-summary,.citizen-map-context,.road-condition-sign,.household-alert-disc,.household-alert-count,.local-road-card,.tracked-device-card';
 
 export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOptions): { update: (project: Projection) => void; dispose: () => void } {
   const { communities, hazards, layers, locale } = options;
@@ -160,6 +167,8 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
   const selectedPin = /^(community|hazard|poi):/.test(options.selectedObjectId ?? '') ? options.selectedObjectId
     : options.selectedCommunityId ? `community:${options.selectedCommunityId}` : null;
   if (layers.communities) communities.forEach(c => add({ type: 'community', id: c.id }, c.projected, c.name, `community${c.prio === 1 ? ' is-priority' : ''}`, 'community', selectedPin === `community:${c.id}`, c.labelMode !== 'hide'));
+  // Every road sign the map would draw, so a landslide pin can stand in for those at its site.
+  const signs = layers.status && layers.roads ? roadConditionSigns([...(options.roads ?? []), ...(layers.localRoads === false ? [] : options.contextRoads ?? [])], options.roadAreaLinks) : [];
   hazards.forEach(h => {
     const visible = hazardLayerVisible(h, layers);
     if (!visible) return;
@@ -167,7 +176,8 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
     const selected = selectedPin === `hazard:${h.id}`;
     add({ type: 'hazard', id: h.id }, h.projected, name, `hazard ${h.kind}${h.observation === 'suspected' ? ' is-suspected' : ''}`, h.kind, selected, h.labelMode === 'show' || (h.labelMode !== 'hide' && selected));
     const linked = layers.status ? options.roads?.filter(road => road.hazardIds?.includes(h.id)).map(roadCondition) ?? [] : [];
-    const condition = linked.includes('blocked') ? 'blocked' : linked.includes('risk') ? 'risk' : undefined;
+    const nearby = absorbedCondition(signs, h.projected);
+    const condition = linked.includes('blocked') || nearby === 'blocked' ? 'blocked' : linked.includes('risk') || nearby === 'risk' ? 'risk' : undefined;
     if (condition) {
       const marker = markers.at(-1)!;
       marker.condition = condition;
@@ -206,10 +216,12 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
   const controlRects = (): { controls: ScreenRect[]; labels: ScreenRect[] } => {
     const hostRect = host.getBoundingClientRect();
     const workspace = host.closest('.geodata-workspace, .workspace') ?? host.closest('.map-area') ?? host.parentElement;
-    const entries = Array.from(workspace?.querySelectorAll<HTMLElement>('#response-details,.geodata-detail,.geodata-map-toolbar,.geodata-map-zoom,.geodata-basemap,.scenario-card,.map-tools,.map-toolbar,.map-advanced-tools,.map-search-results,.map-help [data-popover],.map-bottom-bar,.map-reference,.basemap-status,.layers-panel,.profile-panel,.map-attribution,.map-source-popover,.map-tool-panel,.road-journey-panel,.map-location-panel,.map-measure-label,.map-panel-toggle,.revision-notice,.map-overview,.leaflet-tooltip,.leaflet-popup,.field-map-card,.field-selected-pin,.map-selected-reference, .notice-toast,.citizen-map-tools,.citizen-map-layers,.citizen-area-info,.citizen-pick-hint,.citizen-map-summary,.citizen-map-context,.terrain-area-label,.road-condition-sign svg,.local-road-card') ?? [])
-      .filter(el => !el.classList.contains('terrain-area-label') && !el.querySelector('.landslide-map-label') && el.getBoundingClientRect().height > 0).map(el => {
-        const r = el.getBoundingClientRect();
-        return { tooltip: el.classList.contains('leaflet-tooltip') || Boolean(el.closest('.road-condition-sign')), rect: { x: r.x - hostRect.x, y: r.y - hostRect.y, width: r.width, height: r.height } };
+    const entries = Array.from(workspace?.querySelectorAll<HTMLElement>(collisionElements) ?? [])
+      .filter(el => !el.querySelector('.landslide-map-label')).flatMap(el => {
+        // The sign's hit target is larger than its visible symbol.
+        const obstacle = el.matches('.road-condition-sign') ? el.querySelector('svg') ?? el : el;
+        const r = obstacle.getBoundingClientRect();
+        return r.height > 0 ? [{ tooltip: el.classList.contains('leaflet-tooltip') || Boolean(el.closest('.road-condition-sign, .household-alert')), rect: { x: r.x - hostRect.x, y: r.y - hostRect.y, width: r.width, height: r.height } }] : [];
       });
     // Map signs and hover tooltips constrain labels, never hide geographic
     // features or the selected pin as if they were toolbar controls.
@@ -318,7 +330,8 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
       const place = choices.find(p => p.x >= 6 && p.y >= 6 && p.x + marker.width <= width - 6 && p.y + 22 <= height - 6 && !occupied.some(r => overlaps({ ...p, width: marker.width, height: 22 }, r)));
       marker.button.classList.toggle('is-label-hidden', !place);
       if (place) {
-        const left = `${place.x - x + half - marker.button.clientLeft}px`, top = `${place.y - y + tip - marker.button.clientTop}px`;
+        // .map-pin has no border. Avoid a layout read after moving each pin.
+        const left = `${place.x - x + half}px`, top = `${place.y - y + tip}px`;
         if (marker.label.style.left !== left) marker.label.style.left = left;
         if (marker.label.style.top !== top) marker.label.style.top = top;
         occupied.push({ ...place, width: marker.width, height: 22 });
@@ -329,7 +342,12 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
   // popup changes, so collision avoidance also covers those layers, not just our symbols.
   let relayoutFrame = 0;
   const externalChanges = new MutationObserver(changes => {
-    if (changes.every(change => change.target === layer || layer.contains(change.target))) return;
+    const relevant = changes.some(change => {
+      if (change.target === layer || layer.contains(change.target)) return false;
+      return mapLayoutMutation(change, host, collisionElements);
+    });
+    // Moving device dots and loading image tiles do not change label obstacles.
+    if (!relevant) return;
     if (!relayoutFrame) relayoutFrame = requestAnimationFrame(() => {
       relayoutFrame = 0;
       if (!disposed && lastProjection) update(lastProjection);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import catalog from '../../../public/scenarios/che-tao/imagery/imagery.json';
-import { acquisitionLabel, defaultAnalysisSelection, latestOpticalLayer, selectionForCatalog, selectedRasters, validateImageryCatalog } from './analysisImagery';
+import { acquisitionLabel, analysisSourceInfo, availableSarModes, defaultAnalysisSelection, imageryGroups, latestOpticalLayer, selectionForCatalog, selectedRasters, validateImageryCatalog } from './analysisImagery';
 
 const url = '/scenarios/che-tao/imagery/imagery.json';
 
@@ -34,7 +34,7 @@ describe('prepared analysis imagery', () => {
   });
 
   it('keeps optical parts and SAR modes with resolved, checksummed assets', () => {
-    expect(layers.map(layer => layer.id)).toEqual(['planet-post', 'planet-pre', 'planet-sep01', 'sentinel1', 'sentinel1-oct11']);
+    expect(layers.map(layer => layer.id)).toEqual(['planet-post', 'planet-pre', 'planet-sep01', 'sentinel1', 'sentinel1-oct11', 'strix007-oct20']);
     const post = layers[0];
     expect(post.kind === 'optical' && post.parts).toHaveLength(3);
     expect(selectedRasters(layers,{layer:'planet-post',sarMode:'vv',opacity:1})).toHaveLength(1);
@@ -59,6 +59,36 @@ describe('prepared analysis imagery', () => {
     const pre=layers[1];
     expect(pre.kind==='optical' && pre.parts.every(part=>part.cloudPercent===0)).toBe(true);
     expect(acquisitionLabel(layers.find(layer=>layer.kind==='sar')!)).toBe('18/10/2026');
+  });
+
+  it('offers only the actual STRIX VV band and falls back from an unavailable remembered channel',()=>{
+    const layer=layers.find(layer=>layer.id==='strix007-oct20')!;
+    if(layer.kind!=='sar')throw new Error('SAR fixture required');
+    expect(availableSarModes(layer)).toEqual(['vv']);
+    expect(layer.acquired).toBe('2026-10-20T18:51:50Z');
+    expect(layer.nativePixelM).toBe(1.25);
+    expect(layer.pixelM).toBe(5);
+    const selection={layer:layer.id,sarMode:'vh' as const,opacity:.6};
+    expect(selectedRasters(layers,selection)).toEqual([layer.modes.vv]);
+    expect(selectionForCatalog(layers,selection,true)).toEqual({...selection,sarMode:'vv'});
+    expect(analysisSourceInfo(layers,selection,'vi')?.credit).toBe('Synspective STRIX-007');
+    expect(analysisSourceInfo(layers,selection,'vi')?.credit).not.toContain('Copernicus');
+  });
+
+  it('groups by modality with the latest dates first without mutating the catalog',()=>{
+    const groups=imageryGroups(layers);
+    expect(groups.map(group=>group.kind)).toEqual(['optical','sar']);
+    expect(groups[1].layers.map(layer=>layer.id)).toEqual(['strix007-oct20','sentinel1','sentinel1-oct11']);
+    expect(groups[0].layers[0].id).toBe('planet-post');
+    expect(layers[0].id).toBe('planet-post');
+  });
+
+  it('rejects a synthetic composite without its required VH source channel',()=>{
+    const clone=JSON.parse(JSON.stringify(catalog));
+    const strix=clone.layers.find((layer:{id:string})=>layer.id==='strix007-oct20');
+    strix.modes.rgb=strix.modes.vv;
+    strix.rangesDb.ratio=[0,15];
+    expect(()=>validateImageryCatalog(clone,url)).toThrow(/requires VH/);
   });
 
   it('rejects inverted bounds, foreign CRS and unsafe file names', () => {

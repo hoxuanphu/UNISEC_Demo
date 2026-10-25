@@ -13,6 +13,8 @@ import { buildLocalFlyover, localRouteStops } from './localFlyover';
 import { LocalAreaCard } from './LocalAreaCard';
 import './route-film.css';
 import { difficultRoadLabel, roadConditionMessage } from '../routes/localRoadLabels';
+import { useResidentPresence } from '../presence/residentPresence';
+import { assessHouseholdAccess } from '../presence/householdIsolation';
 const TerrainViewer=lazy(()=>import('../../components/TerrainViewer').then(module=>({default:module.TerrainViewer})));
 const noRoads:MapScene['roads']=[];
 
@@ -24,6 +26,7 @@ export function RouteFilmWorkspace({locale,onChangeLocale,theme='light'}:{locale
   const local=useLocalNetwork(true,runtime.fieldDataset?.records);
   const journey=useRoadJourney(local.network?.roads??noRoads,250);
   const photos=usePreparedPhotos(runtime.manifest?.fieldPhotos);
+  const presence=useResidentPresence(true);
   const [selectedArea,setSelectedArea]=useState<string|null>(()=>new URLSearchParams(location.search).get('area'));
   const [film,setFilm]=useState<FlyoverState>({status:'idle',time:0,duration:0});
   const [mapState,setMapState]=useState<BasemapState|null>(null);
@@ -44,7 +47,8 @@ export function RouteFilmWorkspace({locale,onChangeLocale,theme='light'}:{locale
     const cancel=(event:KeyboardEvent)=>{if(event.key==='Escape')journey.setPicking(null);};
     document.addEventListener('keydown',cancel);return()=>document.removeEventListener('keydown',cancel);
   },[journey.picking]);
-  const input=useMemo(()=>network&&local.context?buildLocalFlyover(network,local.context,journey.route,journey.start,journey.end,photos):null,[network,local.context,journey.route,journey.start,journey.end,photos]);
+  const households=useMemo(()=>network&&presence?assessHouseholdAccess(network,presence.clusters):[],[network,presence]);
+  const input=useMemo(()=>network&&local.context?buildLocalFlyover(network,local.context,journey.route,journey.start,journey.end,photos,households):null,[network,local.context,journey.route,journey.start,journey.end,photos,households]);
   const endpoints=useMemo(()=>[journey.start,journey.end].flatMap((endpoint,index)=>endpoint?[{label:index?'B':'A',point:endpoint.origin,anchor:endpoint.anchor?.point}]:[]),[journey.start,journey.end]);
   const scene=useMemo<MapScene|undefined>(()=>network?{
     datasetVersion:network.source.sha256,communities:network.places.filter(p=>p.kind==='village').map(p=>({id:p.id,name:p.name,commune:'Chế Tạo',prio:3,pop:0,hh:0,desc:['',''],facts:[],projected:p.projected})),
@@ -68,7 +72,8 @@ export function RouteFilmWorkspace({locale,onChangeLocale,theme='light'}:{locale
   };
   const close=()=>{const url=new URL(location.href);url.searchParams.delete('workspace');url.searchParams.delete('area');location.assign(url.href);};
   const failed=local.error||runtime.startupError||unavailable;
-  const stops=journey.route&&local.context?localRouteStops(journey.route,local.context.areas):[];
+  // The film reports its clock ten times a second: keep that re-render cheap.
+  const stops=useMemo(()=>journey.route&&local.context?localRouteStops(journey.route,local.context.areas):[],[journey.route,local.context]);
   return <main className="route-film-workspace">
     <header className="route-film-header"><button className="icon-button" aria-label={t('Về điều phối','Back to coordination')} onClick={close}><UiIcon name="back"/></button><div><strong>Chế Tạo</strong><span>{t('Mạng đường và hành trình 3D','Road network and 3D journey')}</span></div><select aria-label={t('Ngôn ngữ','Language')} value={locale} disabled={busy} onChange={e=>onChangeLocale(e.target.value as Locale)}><option value="en">English</option><option value="vi">Tiếng Việt</option></select></header>
     <div className="route-film-layout">

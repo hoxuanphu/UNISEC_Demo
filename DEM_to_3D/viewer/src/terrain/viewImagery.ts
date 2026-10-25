@@ -73,7 +73,8 @@ export function viewImageryTiles(metadata: TerrainMetadata, points: Array<{x:num
     if ((east-west+1)*(south-north+1)>budget || east-west+1>maxAxis || south-north+1>maxAxis) continue;
     const tiles:MapTile[]=[];
     for(let x=west;x<=east;x++)for(let y=north;y<=south;y++)tiles.push({x,y,z});
-    return tiles;
+    const cx = (west + east) / 2, cy = (north + south) / 2;
+    return tiles.sort((a, b) => Math.hypot(a.x-cx, a.y-cy) - Math.hypot(b.x-cx, b.y-cy));
   }
   return [];
 }

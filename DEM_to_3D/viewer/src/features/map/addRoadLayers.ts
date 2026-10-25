@@ -1,6 +1,6 @@
 import * as L from 'leaflet';
 import type { RoadSegment } from '../../types/dear';
-import { roadColors, roadStroke } from '../../terrain/roadStyle';
+import { guidedRouteStyle, roadColors, roadStroke } from '../../terrain/roadStyle';
 import { mapPane } from './mapLayerOrder';
 import { roadCondition } from '../routes/roadConditions';
 import { contextRoadStyle } from './contextRoadStyle';
@@ -19,7 +19,7 @@ export function addRoadLayers({ road, points, layer, selected, inspected, warnin
   const pane = mapPane(warning ? 'roadStatus' : selected ? 'route' : 'roads');
   const guided = selected && road.status !== 'blocked';
   const condition = roadCondition(road);
-  const color = guided ? roadColors.selected : warning ? roadColors[condition === 'blocked' ? 'blocked' : 'uncertain']
+  const color = guided ? guidedRouteStyle(warning).line : warning ? roadColors[condition === 'blocked' ? 'blocked' : 'uncertain']
     : selected ? roadColors.selected : resident ? roadColors.alternative : imagery ? roadColors.networkImagery : roadColors.networkTerrain;
   const weight = guided ? 5 : selected || inspected ? roadStroke.emphasis : roadStroke.normal;
   const opacity = resident && !selected && !inspected ? (road.status === 'blocked' && warning ? .9 : warning ? .55 : networkOpacity)
@@ -29,7 +29,7 @@ export function addRoadLayers({ road, points, layer, selected, inspected, warnin
   const context = contextZoom === undefined || selected ? null : contextRoadStyle(road, contextZoom, imagery, warning, inspected, networkOpacity);
   if (context) casing.setStyle({color:context.casing,weight:context.casingWidth,opacity:context.opacity*.7});
   if (guided) {
-    // Web-map route: a blue line with a thin darker rim; an amber rim keeps the caution on sections to verify.
+    // Web-map route: one line with a thin rim of its own shade; sections to verify turn amber.
     casing.setStyle(guidedCasing(warning));
   }
   const stroke = L.polyline(points, { pane, color, weight, opacity, interactive: false, className: selected ? 'map-road-route-line' : 'map-road-network-line',
@@ -49,7 +49,7 @@ export function addRoadLayers({ road, points, layer, selected, inspected, warnin
   target.on('click', onSelect);
   if (window.matchMedia('(hover: hover)').matches) {
     target.on('mouseover', () => casing.setStyle(guided && warning
-      ? { ...guidedCasing(true), weight: 11 }
+      ? { ...guidedCasing(true), weight: guidedRouteStyle(true).rimWidth + 2 }
       : { color: condition === 'blocked' && warning ? roadColors.neutralCasing : roadColors.inspectedCasing, opacity: 0.85, weight: weight + roadStroke.inspectedCasing }));
     target.on('mouseout', () => casing.setStyle(context ? {color:context.casing,weight:context.casingWidth,opacity:context.opacity*.7} : guided
       ? guidedCasing(warning)
@@ -57,5 +57,7 @@ export function addRoadLayers({ road, points, layer, selected, inspected, warnin
   }
 }
 
-const guidedCasing = (warning: boolean): L.PathOptions =>
-  ({ color: warning ? roadColors.uncertain : roadColors.selectedCasing, weight: warning ? 9 : 7.5, opacity: 1, lineCap: 'round', lineJoin: 'round' });
+const guidedCasing = (warning: boolean): L.PathOptions => {
+  const style = guidedRouteStyle(warning);
+  return { color: style.rim, weight: style.rimWidth, opacity: 1, lineCap: 'round', lineJoin: 'round' };
+};

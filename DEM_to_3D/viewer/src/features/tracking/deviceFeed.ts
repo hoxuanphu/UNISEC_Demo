@@ -4,9 +4,10 @@ import { projectedPathLength } from '../../terrain/pathGeometry';
 import { nearestRoadAnchor } from '../routes/selectedRoadJourney';
 import { simulationPoint } from '../routes/routeSimulation';
 export type DeviceRole = 'resident' | 'rescue';
-export type DeviceState = 'moving' | 'approaching' | 'waiting' | 'stopped' | 'dispatching' | 'responding' | 'assisting' | 'escorting' | 'arrived';
+export type DeviceState = 'moving' | 'approaching' | 'waiting' | 'stopped' | 'dispatching' | 'responding' | 'assisting' | 'escorting' | 'arrived'
+  | 'crossing' | 'on-site' | 'evacuated';
 type Point = {x:number;y:number};
-type Path = {points:Point[];stations:number[];total:number};
+export type Path = {points:Point[];stations:number[];total:number};
 export type DevicePosition = {
   id:string;role:DeviceRole;name:[string,string];roadId:string;roadName:[string,string];
   roadStatus:RoadSegment['status'];point:Point;stationM:number;state:DeviceState;updatedAt:number;
@@ -15,13 +16,15 @@ export type DevicePosition = {
 export type DevicePlan = {id:string;role:DeviceRole;name:[string,string];road:RoadSegment;path:Path;from:number;to:number;duration:number;
   missionId?:string;closureRoadId?:string;targetId?:string;targetName?:[string,string];
   timing?:{residentAt:number;dispatchAt:number;rescueAt:number;escortAt:number;finishAt:number;returnAt:number;cycle:number;residentStation:number;rescueStation:number;meetingStation:number};
+  /** A multi-leg mission in field seconds and path metres; it replays every cycle. */
+  script?:{legs:Array<{until:number;from:number;to:number;state:DeviceState}>;cycle:number;end:DeviceState};
 };
 /** Field speeds in m/s: walking, a rescue motorbike on a mountain road, and the slower escort back. */
 export const deviceSpeeds={walk:1.3,rescue:7,escort:2.5} as const;
 /** The scenario runs as a time-lapse: one screen second is this many field seconds, so walking
  * reads as movement at commune scale while the walk-to-motorbike ratio stays true. */
 export const deviceTimeLapse=8;
-function measure(road:RoadSegment):Path|null {
+export function measure(road:{points:Point[]}):Path|null {
   if(road.points.length<2||road.points.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y)))return null;
   const points=road.points.filter((p,i,all)=>!i||Math.hypot(p.x-all[i-1].x,p.y-all[i-1].y)>.00001).map(p=>({...p}));
   const stations=[0];
@@ -92,7 +95,14 @@ export function buildDevicePlans(roads:RoadSegment[],links:readonly LocalRoadAre
 function locate(plan:DevicePlan,clock:number,updatedAt:number):DevicePosition {
   let stationM=plan.path.total*plan.from,state:DeviceState='stopped';
   const timing=plan.timing;
-  if(timing){
+  if(plan.script){
+    const {legs,cycle,end}=plan.script,t=clock%cycle;let previous=0;
+    stationM=legs.at(-1)!.to;state=end;
+    for(const leg of legs){
+      if(t<leg.until){const progress=leg.until>previous?(t-previous)/(leg.until-previous):1;stationM=leg.from+(leg.to-leg.from)*progress;state=leg.state;break;}
+      previous=leg.until;
+    }
+  }else if(timing){
     const {residentAt,dispatchAt,rescueAt,escortAt,finishAt,returnAt,cycle,residentStation,rescueStation,meetingStation}=timing;
     const elapsed=clock%cycle;
     if(elapsed>=returnAt&&plan.role==='resident'){stationM=rescueStation+Math.min(residentStation-rescueStation,(elapsed-returnAt)*deviceSpeeds.walk);state='moving';}
@@ -119,9 +129,9 @@ function locate(plan:DevicePlan,clock:number,updatedAt:number):DevicePosition {
     missionId:plan.missionId,closureRoadId:plan.closureRoadId,targetId:plan.targetId,targetName:plan.targetName};
 }
 /** A single scenario clock, independent of rendering and isolated from real GPS or report submission. */
-export function createDeviceFeed(roads:RoadSegment[],links:readonly LocalRoadAreaLink[]=[],epoch=Date.now()) {
+export function createDeviceFeed(roads:RoadSegment[],links:readonly LocalRoadAreaLink[]=[],epoch=Date.now(),missions:readonly DevicePlan[]=[]) {
   // Field clock for movement; the signal time shown is the real one.
-  const plans=buildDevicePlans(roads,links);let elapsed=0,real=0;
+  const plans=[...buildDevicePlans(roads,links),...missions];let elapsed=0,real=0;
   const at=()=>epoch+Math.floor(real)*1000;
   let snapshot=plans.map(plan=>locate(plan,elapsed,at()));
   const listeners=new Set<()=>void>();

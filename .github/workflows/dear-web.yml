@@ -33,6 +33,7 @@ jobs:
       - run: python -m pip install numpy rasterio pillow pyshp 'affine>=3'
       - run: python -m unittest discover -s DEM_to_3D/tests -p 'test_imagery_mosaic.py'
       - run: python -m unittest discover -s DEM_to_3D/tests -p 'test_basemap_tone.py'
+      - run: python -m unittest discover -s DEM_to_3D/tests -p 'test_strix_sar.py'
       - run: python -m unittest discover -s DEM_to_3D/tests -p 'test_planet_sources.py'
       - run: python -m unittest discover -s DEM_to_3D/tests -p 'test_context_imagery.py'
       - run: python -m unittest discover -s DEM_to_3D/tests -p 'test_local_network.py'
@@ -99,6 +100,8 @@ jobs:
           python scripts/check_citizen_navigation.py --url http://127.0.0.1:5213
           python scripts/check_citizen_photos.py --url http://127.0.0.1:5213
           python scripts/check_main_local_roads.py --url http://127.0.0.1:5213
+          python scripts/check_map_inspector_layout.py --url http://127.0.0.1:5213
+          python scripts/check_map_performance.py --url http://127.0.0.1:5213
           python scripts/check_map_layer_order.py --url http://127.0.0.1:5213
           python scripts/check_route_person.py --url http://127.0.0.1:5213
           python scripts/check_live_devices.py --url http://127.0.0.1:5213
@@ -107,6 +110,7 @@ jobs:
           python scripts/check_dataset_selection.py --url http://127.0.0.1:5213
           python scripts/check_cartographic_evidence.py --url http://127.0.0.1:5213
           python scripts/check_prepared_comparison.py --url http://127.0.0.1:5213
+          python scripts/check_strix_imagery.py --url http://127.0.0.1:5213
           python scripts/check_selection_navigation.py --url http://127.0.0.1:5213 --captures dist-release/selection
           python scripts/check_focus_audit.py --url http://127.0.0.1:5213 --captures dist-release/focus
           python scripts/check_status_update.py --url http://127.0.0.1:5213 --captures dist-release/status

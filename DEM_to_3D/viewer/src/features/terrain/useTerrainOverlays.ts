@@ -33,5 +33,10 @@ export function useTerrainOverlays() {
       if (run === generation.current) setError(reason instanceof Error ? reason.message : String(reason));
     } finally { if (run === generation.current) setBusy(false); }
   };
-  return { options, setOptions, busy, error, setError, status, setStatus, importSar };
+  const suspendSar = () => {
+    generation.current++;
+    setBusy(false);setError(null);
+    setOptions(previous=>({...previous,sarVisible:false}));
+  };
+  return { options, setOptions, busy, error, setError, status, setStatus, importSar, suspendSar };
 }

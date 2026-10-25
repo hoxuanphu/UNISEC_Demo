@@ -111,9 +111,9 @@ def run(url, chrome, captures):
             lines.length >= 2 && new Set(lines.map(line=>line.getAttribute('stroke'))).size === 1
         '''), 'All non-selected routes must use the same colour'
         assert page.locator('.map-road-route-line').evaluate_all("""lines => lines.every(line =>
-            line.getAttribute('stroke') === '#2f80ed' && !line.getAttribute('stroke-dasharray') &&
+            ['#2f80ed', '#d7a34c'].includes(line.getAttribute('stroke')) && !line.getAttribute('stroke-dasharray') &&
             parseFloat(line.getAttribute('stroke-width')) >= 5)
-        """), 'Suggested route must be continuous and clearly emphasised'
+        """), 'Suggested route must be continuous and clearly emphasised: blue, amber where a section needs checking'
         assert not re.search(r'[·→—]|demo|mô phỏng', page.locator('.citizen-workspace').inner_text(), re.I)
         page.wait_for_timeout(650)
         assert page.locator('.journey-map-pin').evaluate_all("""pins => {
@@ -246,7 +246,7 @@ def run(url, chrome, captures):
         page.unroute("**/local-network.json")
         page.get_by_role("button", name="Thử lại", exact=True).click()
         expect(page.locator(".citizen-map-summary [role=alert]")).to_have_count(0)
-        # An unchecked-only alternative remains blue with a caution; a blocked
+        # An unchecked-only alternative stays emphasised in amber; a blocked
         # network must remove the previous route rather than retain stale advice.
         for road_status in ['uncertain', 'blocked']:
             def with_status(route):
@@ -267,7 +267,10 @@ def run(url, chrome, captures):
                 expect(page.locator('.citizen-direction-result')).to_contain_text('Có nguy cơ sạt lở')
                 page.get_by_role('button', name='Xem trên bản đồ', exact=True).click()
                 expect(page.locator('.citizen-route-status')).to_contain_text('Hỏi lại trước khi đi')
-                expect(page.locator('.map-road-route-line').first).to_have_attribute('stroke', '#2f80ed')
+                expect(page.locator('.map-road-route-line').first).to_have_attribute('stroke', '#d7a34c')
+                assert page.locator('.map-road-route-line').evaluate_all('''lines=>lines.length>0 && lines.every(line=>
+                    line.getAttribute('stroke')==='#d7a34c' && !line.getAttribute('stroke-dasharray') &&
+                    parseFloat(line.getAttribute('stroke-width'))>=5)''')
                 if captures:
                     page.wait_for_timeout(650)
                     page.screenshot(path=str(captures / 'resident-caution-route.png'))
@@ -312,7 +315,24 @@ def run(url, chrome, captures):
         expect(page.locator('.citizen-comparison-legend')).to_contain_text('Có nguy cơ')
         assert page.locator('.road-risk-sign svg').first.evaluate('svg=>!!svg.querySelector("path") && !svg.querySelector("rect")')
         page.wait_for_timeout(650)
-        page.locator('.road-risk-sign[data-road-id="local-4-2"]').click()
+        risk=page.locator('.road-risk-sign[data-road-id="local-4-2"]')
+        # Local risk signs deliberately appear only at street scale. Pan their
+        # geographic anchor into the usable map, then zoom with real pointer input.
+        surface=page.locator('.map-2d-surface');box=surface.bounding_box()
+        sheet=page.locator('.citizen-map-summary').bounding_box()
+        x=box['x']+box['width']/2;y=(box['y']+sheet['y'])/2
+        for _ in range(12):
+            at=risk.evaluate('''node=>{const m=new DOMMatrix(node.style.transform),r=node.parentElement.getBoundingClientRect();return {x:r.x+m.m41,y:r.y+m.m42};}''')
+            if abs(x-at['x'])<4 and abs(y-at['y'])<4:break
+            dx=max(-box['width']*.3,min(box['width']*.3,x-at['x']))
+            dy=max(-(sheet['y']-box['y'])*.3,min((sheet['y']-box['y'])*.3,y-at['y']))
+            page.mouse.move(x,y);page.mouse.down();page.mouse.move(x+dx,y+dy,steps=5);page.mouse.up()
+        page.mouse.move(x,y)
+        for _ in range(5):
+            if risk.is_visible():break
+            page.mouse.wheel(0,-180);page.wait_for_timeout(350)
+        expect(risk).to_be_visible()
+        risk.click()
         expect(page.locator('.citizen-map-summary')).to_contain_text('Có nguy cơ sạt lở, cần hỏi lại trước khi đi.')
         page.unroute('**/local-network.json', with_risk)
         page.get_by_role('button', name='Tài khoản', exact=True).click()

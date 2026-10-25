@@ -69,3 +69,5 @@
     .map-area:has(.map-advanced-tools:not([hidden])) .map-bottom-bar { --legend-top-clearance:calc(var(--size-workspace-toolbar) + 120px); }
   }
 }
+.legend-household { display:inline-grid; place-items:center; width:18px; height:18px; flex:none; border:1.5px solid #fff; border-radius:50%; background:#d32f2f; color:#fff; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
+.legend-household svg { width:11px; height:11px; }

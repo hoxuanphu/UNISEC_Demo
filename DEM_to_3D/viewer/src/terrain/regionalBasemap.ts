@@ -70,10 +70,12 @@ export function tileScenePoint(metadata: TerrainMetadata, tile: MapTile, u: numb
 
 export function tileGeometry(metadata: TerrainMetadata, tile: MapTile, elevation?: (x: number, y: number) => number | undefined, edges:readonly TerrainEdge[]=[]): THREE.BufferGeometry {
   const positions: number[] = [], uv: number[] = [], indices: number[] = [];
+  const projection = proj4('EPSG:4326', sourceCrs(metadata));
   const steps = elevation ? Math.max(4, Math.min(128, 2 ** (19 - tile.z))) : 4;
   const valid: boolean[] = [];
   for (let row = 0; row <= steps; row++) for (let col = 0; col <= steps; col++) {
-    const p = tileScenePoint(metadata, tile, col / steps, row / steps);
+    const [x, y] = projection.forward(tileLonLat(tile.x + col / steps, tile.y + row / steps, tile.z));
+    const p = projectedToScene(metadata, {x, y}, metadata.elevation.base_elevation - 20);
     const height = elevation?.(p.x + metadata.world_origin.x, metadata.world_origin.y - p.z);
     valid.push(!elevation || height !== undefined);
     if (height !== undefined) p.y = (height - metadata.elevation.base_elevation) * metadata.elevation.exaggeration;

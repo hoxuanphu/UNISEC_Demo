@@ -6,6 +6,8 @@ import { roadHazardIds } from '../../features/incident/roadHazards';
 import { PhotoThumb } from '../../features/fieldPhotos/PhotoThumb';
 import type { PreparedPhotoPoint } from '../../features/fieldPhotos/preparedPhotos';
 import '../../features/incident/incident-panel.css';
+import type { HouseholdAccess } from '../../features/presence/householdIsolation';
+import { householdClock } from '../../features/presence/HouseholdCard';
 import {
   workState,
   type ResponseWork,
@@ -34,13 +36,17 @@ type Props = {
   onOpenCommunities: () => void;
   onOpenRoads: (filter: 'blocked' | 'uncertain') => void;
   onOpenArea: () => void;
+  /** Field huts the resident app still places people at, with every road out cut. */
+  households?: HouseholdAccess[];
+  onSelectHousehold?: (id: string) => void;
+  onShowHouseholds?: () => void;
 };
 
 /** A compact field summary; counts are independent facts, not a causal diagram. */
 export function IncidentView({
   incident, locale, areaName, tasks, entries, communities, onSelectCommunity, onOpenWork, onOpenArea,
   hazards, roads, fieldPhotos, onInspectObject, reportPending, pendingReport,
-  onOpenReport, historical, onOpenRoads, onOpenCommunities
+  onOpenReport, historical, onOpenRoads, onOpenCommunities, households = [], onSelectHousehold, onShowHouseholds
 }: Props): JSX.Element {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   // English counts agree with their noun; Vietnamese has no plural form.
@@ -54,6 +60,7 @@ export function IncidentView({
   const priority = communities.filter(community => community.prio === 1);
   const openTasks = tasks.filter(task => task.kind !== 'report' && workState(task, entries).status !== 'done');
   const activeTasks = openTasks.filter(task => workState(task, entries).status === 'active');
+  const isolated = historical ? [] : households.filter(item => item.isolated).sort((a, b) => b.cluster.people - a.cluster.people);
   return <>
     <div className="sidebar-top incident-overview-heading">
       <div className="detail-title">
@@ -70,11 +77,16 @@ export function IncidentView({
           <span>{blocked.length || !uncertain.length ? t('Đoạn bị chặn', 'Blocked sections') : t('Đoạn cần xác minh', 'Sections to verify')}</span>
           <strong>{blocked.length || uncertain.length}</strong>
         </button>
-        <button className="incident-summary-fact" disabled={!priority.length} onClick={() => priority.length === 1 ? onSelectCommunity(priority[0].id) : onOpenCommunities()}>
+        {/* Who is waiting: people the app still sees cut off, when known; otherwise the priority villages. */}
+        {isolated.length > 0 ? <button className="incident-summary-fact" data-tone="critical" onClick={onShowHouseholds}>
+          <span>{t('Hộ bị cô lập', 'Isolated households')}</span>
+          <strong>{number(isolated.reduce((sum, item) => sum + item.cluster.households, 0))}</strong>
+          <small>{t(`${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} người`, `${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} people`)}</small>
+        </button> : <button className="incident-summary-fact" disabled={!priority.length} onClick={() => priority.length === 1 ? onSelectCommunity(priority[0].id) : onOpenCommunities()}>
           <span>{t('Địa bàn ưu tiên', 'Priority communities')}</span>
           <strong>{priority.length}</strong>
           {priority.length > 0 && <small>{t(`${number(priority.reduce((sum, community) => sum + community.pop, 0))} người`, `${number(priority.reduce((sum, community) => sum + community.pop, 0))} people`)}</small>}
-        </button>
+        </button>}
       </div>
     </div>
     <div className="sidebar-scroll incident-overview">
@@ -83,6 +95,18 @@ export function IncidentView({
         <UiIcon name="bell" size={18}/><span><strong>{t('Báo cáo mới chờ kiểm tra', 'New report to review')}</strong>
         {pendingReport && <small>{t(...pendingReport)}</small>}</span><UiIcon name="next" size={16}/>
       </button>}
+
+      {/* The alarm: people the app still sees at huts every road out of which is cut. */}
+      {isolated.length > 0 && <section className="incident-households">
+        <h2 className="incident-section-title"><span>{t('Còn người, bị cô lập', 'People cut off')}</span><small>{t(`${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} người`, `${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} people`)}</small></h2>
+        <div className="incident-landslide-list">
+          {isolated.map(item => <button className="incident-landslide-row incident-household-row" key={item.cluster.id} onClick={() => onSelectHousehold?.(item.cluster.id)}>
+            <span className="incident-household-icon"><UiIcon name="people" size={20}/></span>
+            <span className="incident-landslide-copy"><strong>{t(...item.cluster.name)}</strong><small>{t(`${item.cluster.people} người, ${item.cluster.households} hộ`, `${item.cluster.people} people, ${item.cluster.households} households`)}</small></span>
+            <small className="incident-status" data-tone="critical">{t(`App ${householdClock(item.cluster.lastSeenAt, locale)}`, `App ${householdClock(item.cluster.lastSeenAt, locale)}`)}</small>
+          </button>)}
+        </div>
+      </section>}
 
       <section className="incident-landslides">
         <h2 className="incident-section-title">{t('Điểm sạt lở', 'Landslides')}</h2>

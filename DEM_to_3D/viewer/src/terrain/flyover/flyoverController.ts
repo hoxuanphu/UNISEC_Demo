@@ -61,7 +61,9 @@ type Prepared = {
   overviewPoints:THREE.Vector3[];
   cameraTrack?:{aspect:number;fov:number;at:ReturnType<typeof createFlyoverCameraTrack>};
   trail: { base: Line2; glow: Line2; done: Line2; segments: number };
-  text: {start: string; end: string; attribution: string};
+  text: {start: string; end: string; attribution: string; blocked: string; cutOff: (people: number) => string};
+  alerts: Array<{ world: THREE.Vector3; people: number }>;
+  summary?: { title: string; stats: Array<{ value: string; label: string }> };
   places: Array<{ world: THREE.Vector3; label: string; kind: 'community' | 'staging' | 'hlz' }>;
   /** Route metres before the first surface point (off every terrain); chainage still counts them. */
   offset: number;
@@ -185,8 +187,11 @@ export function createFlyoverController(deps: Deps) {
           areas:(source.context?.areas??[]).filter(area=>area.kind==='landslide').map(area=>({id:area.id})),
           closures:(source.context?.closures??[]).flatMap(closure=>{const world=deps.surfaceWorld(closure.point);return world?[world]:[];})
         }, places:(source.places??[]).flatMap(place=>{const world=deps.surfaceWorld(place.projected);return world?[{world,label:name(place.name),kind:place.kind}]:[];}),
+        alerts:(source.alerts??[]).flatMap(alert=>{const world=deps.surfaceWorld(alert.projected);return world?[{world,people:alert.people}]:[];}),
+        summary:source.summary&&{title:name(source.summary.title),stats:source.summary.stats.map(stat=>({value:name(stat.value),label:name(stat.label)}))},
         plan, path, overviewPoints, bearing: createFlyoverBearing(path,plan), stops, areas, start: world[0], end: world[world.length - 1], trail, offset, imagery, imageryOpacity:source.imageryOpacity,
-        text: {start: offset > 100 ? '' : name(source.start), end: name(source.end),
+        text: {start: offset > 100 ? '' : name(source.start), end: name(source.end), blocked: t('Đường bị chặn','Road blocked'),
+          cutOff: people => locale === 'en' ? `${people} ${people === 1 ? 'person' : 'people'} cut off` : `${people} người bị cô lập`,
           attribution: [source.imagery.length ? `${source.imageryLabel[locale==='vi'?0:1]} © Planet Labs PBC` : '',imagerySource.credit,'© OpenStreetMap'].filter(Boolean).join(', ')}
       } satisfies Prepared;
     })();
@@ -264,37 +269,41 @@ export function createFlyoverController(deps: Deps) {
 
   /** Share of the route a network film keeps in frame while the marker moves. */
   const NETWORK_WINDOW=.6;
+  /** Seconds of camera smoothing: removes kinks where framing rules hand over, keeps every shot. */
+  const CAMERA_SMOOTHING=.5;
 
   function prepareCameraTrack(p:Prepared){
     if(p.cameraTrack?.aspect===camera.aspect&&p.cameraTrack.fov===camera.fov)return p.cameraTrack;
-    const overview=flyoverOverviewPose(p.overviewPoints,p.cameraMode==='network'?{x:.25,z:.97}:p.bearing(p.plan.duration),camera.fov,camera.aspect);
     // A network film reads as a wide oblique map. Keep its bearing and framing
-    // stable while the marker moves; only the closing shot expands to every road.
+    // stable while the marker moves; open on the route and close on the full area of interest.
     const networkPose=p.cameraMode==='network'?flyoverOverviewPose([
       ...p.path.cumulative.map(s=>{const q=p.path.pointAt(s);return new THREE.Vector3(q.x,q.y,q.z);}),
       ...p.stops.map(stop=>stop.world)
     ],{x:.25,z:.97},camera.fov,camera.aspect):null;
+    const close=flyoverOverviewPose(p.overviewPoints,p.cameraMode==='network'?{x:.25,z:.97}:p.bearing(p.plan.duration),camera.fov,camera.aspect);
     // While the marker travels, frame a window of about 60% of the route around it (at least
-    // 1.5 km) so the view visibly moves; the opening holds the whole route, the close every road.
-    // The window is sampled evenly along the route, so its framing changes continuously.
+    // 1.5 km) so the view visibly moves; the opening holds the route, and the close shows the whole road network.
+    // The window glides the whole way, eased at both ends, so it never starts or stops with
+    // a jolt; it is sampled densely so a hairpin entering it does not shake the frame.
     const networkWindow=(distance:number)=>{
       const length=p.path.length,span=Math.min(length,Math.max(1500,length*NETWORK_WINDOW));
-      const from=Math.max(0,Math.min(length-span,distance-span/2));
-      const points=Array.from({length:61},(_,i)=>{const q=p.path.pointAt(from+span*i/60);return new THREE.Vector3(q.x,q.y,q.z);});
+      const u=Math.min(1,Math.max(0,distance/length)),from=(length-span)*u*u*(3-2*u);
+      const points=Array.from({length:241},(_,i)=>{const q=p.path.pointAt(from+span*i/240);return new THREE.Vector3(q.x,q.y,q.z);});
       return flyoverOverviewPose(points,{x:.25,z:.97},camera.fov,camera.aspect);
     };
     const at=createFlyoverCameraTrack(p.plan.duration,time=>{
       const moment=p.plan.at(time);
-      let pose=followPose(p,moment);
-      if(networkPose){
+      let pose;
+      if(!networkPose)pose=followPose(p,moment);
+      else{
         pose=networkWindow(moment.distance);
         if(moment.phase==='intro'||moment.phase==='dive'){pose.position.lerp(networkPose.position,moment.overview);pose.target.lerp(networkPose.target,moment.overview);}
       }
       if(moment.phase==='outro'||moment.phase==='final'){
-        pose.position.lerp(overview.position,moment.overview);pose.target.lerp(overview.target,moment.overview);
+        pose.position.lerp(close.position,moment.overview);pose.target.lerp(close.target,moment.overview);
       }
       return pose;
-    });
+    },30,CAMERA_SMOOTHING);
     return p.cameraTrack={aspect:camera.aspect,fov:camera.fov,at};
   }
 
@@ -344,7 +353,8 @@ export function createFlyoverController(deps: Deps) {
       start: { label: p.text.start, screen: screen(p.start) }, end: { label: p.text.end, screen: screen(p.end) },
       head: screen(new THREE.Vector3(head.x, head.y, head.z)),
       stops: p.stops.map(stop => ({ ...stop.info, screen: screen(stop.world, 30) })),
-      context:{areas:p.context.areas,closures:p.context.closures.map(point=>screen(point,15))},
+      context:{areas:p.context.areas,closures:p.context.closures.map(point=>screen(point,15)),blocked:p.text.blocked},
+      alerts:p.alerts.map(alert=>({people:alert.people,screen:screen(alert.world,15)})),cutOff:p.text.cutOff,summary:p.summary,
       // The map's own place markers are hidden during the film, so every frame carries the names.
       places:p.places.map(place=>({label:place.label,kind:place.kind,screen:screen(place.world,15)}))
     };

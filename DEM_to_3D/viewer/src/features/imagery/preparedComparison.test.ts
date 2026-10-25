@@ -21,6 +21,12 @@ describe('prepared before/after pairs',()=>{
     const pair=preparedComparisonPair(layers,'optical')!;
     expect(pair.before.id).toBe('planet-pre');expect(pair.after.id).toBe('planet-post');
   });
+  it('does not compare a single STRIX acquisition with Sentinel-1 or invent extra bands',()=>{
+    const strix=layers.find(layer=>layer.id==='strix007-oct20')!;
+    const sentinel=layers.find(layer=>layer.id==='sentinel1')!;
+    expect(preparedComparisonPair([sentinel,strix],'sar')).toBeUndefined();
+    expect(preparedComparisonPair(layers,'sar')?.after.id).toBe('sentinel1');
+  });
   it('does not call a single acquisition or two copies of the same acquisition a temporal pair',()=>{
     const one=layers.find(layer=>layer.id==='sentinel1')!;
     expect(preparedComparisonPair([one],'sar')).toBeUndefined();

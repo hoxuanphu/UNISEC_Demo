@@ -4,7 +4,7 @@ import catalog from '../../../public/scenarios/che-tao/field-photos/photos.json'
 import { validatePhotoCatalog } from '../fieldPhotos/preparedPhotos';
 import { validateLocalNetwork } from './localNetwork';
 import { networkContext } from './networkContext';
-import { buildLocalFlyover, illustrativePhotoForArea, localRouteStops } from './localFlyover';
+import { buildLocalFlyover, FILM_STOP_EDGE_M, illustrativePhotoForArea, localRouteStops } from './localFlyover';
 import { analyseRoadJourney } from '../routes/journeyAnalysis';
 const network=validateLocalNetwork(data),context=networkContext(network);
 const points=validatePhotoCatalog(catalog,'/scenarios/che-tao/field-photos/photos.json');
@@ -24,6 +24,13 @@ describe('shared local map and 3D film',()=>{
     for(const stop of stops){expect(context.areas).toContain(stop.area);expect(stop.area.kind).toBe('landslide');expect(stop.offset).toBeLessThan(650);}
     expect(stops.map(stop=>stop.station)).toEqual(stops.map(stop=>stop.station).sort((a,b)=>a-b));
   });
+  it('stops only where a mapped slide meets the road, not at scars up the slope',()=>{
+    const ac=analyseRoadJourney(network.roads,endpoint('Village A'),endpoint('Village C'),true,250);
+    const stops=localRouteStops(ac.route!,context.areas);
+    // Vùng sạt 25 lies 58 m from the road at its nearest edge: not a stop.
+    expect(stops.map(stop=>stop.area.name[0])).toEqual(['Vùng sạt 01','Vùng sạt 13']);
+    for(const stop of stops)expect(stop.offset).toBeLessThanOrEqual(FILM_STOP_EDGE_M);
+  });
   it('uses one polygon/photo association in the map card and movie, labelled illustrative',()=>{
     const input=buildLocalFlyover(network,context,route.route,route.start,route.end,photos)!;
     expect(input.cameraMode).toBe('network');expect(input.retainContext).toBe(true);
@@ -31,6 +38,19 @@ describe('shared local map and 3D film',()=>{
     for(const stop of input.stops){expect(stop.photo).toEqual(illustrativePhotoForArea(stop.id,photos));expect(stop.photoRole).toBe('illustrative');expect(stop.photoCaption?.[1]).toContain('not evidence');expect(context.areas.find(area=>area.id===stop.id)?.center).toEqual(stop.projected);}
     expect(input.context).toBe(context);
     expect(input.imagery).toEqual([]);
+  });
+  it('closes on the route and its figures, and shows only the people cut off',()=>{
+    const ac=analyseRoadJourney(network.roads,endpoint('Village A'),endpoint('Village C'),true,250);
+    const hut=(id:string,isolated:boolean)=>({cluster:{id,people:4},projected:{x:1,y:2},isolated}) as unknown as NonNullable<Parameters<typeof buildLocalFlyover>[6]>[number];
+    const input=buildLocalFlyover(network,context,ac.route,ac.start,ac.end,photos,[hut('HH-01',true),hut('HH-02',false)])!;
+    expect(input.alerts).toEqual([{id:'HH-01',projected:{x:1,y:2},people:4}]);
+    expect(input.summary!.title).toEqual(['Bản A đến Bản C','Village A to Village C']);
+    const [km,slides,difficult]=input.summary!.stats;
+    expect(km.value[1]).toBe(ac.route!.lengthKm.toLocaleString('en-GB',{maximumFractionDigits:1}));
+    // Every slide the road meets counts, not only the film stops.
+    expect(Number(slides.value[1])).toBeGreaterThanOrEqual(input.stops.length);
+    expect(Number(difficult.value[1])).toBeGreaterThanOrEqual(0);
+    for(const stat of input.summary!.stats)expect(stat.label[1].length).toBeLessThan(22);
   });
   it('frames every mapped road in the closing overview without changing the selected route',()=>{
     const input=buildLocalFlyover(network,context,route.route,route.start,route.end,photos)!;

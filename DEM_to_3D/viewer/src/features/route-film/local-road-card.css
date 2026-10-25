@@ -1,5 +1,6 @@
-.local-road-card { position:absolute; z-index:24; right:16px; top:72px; width:min(300px,calc(100% - 32px)); padding:14px; border:1px solid var(--ws-line); border-radius:8px; background:var(--ws-surface); color:var(--ws-text); box-shadow:var(--shadow-pop); }
-.local-road-card header { display:flex; align-items:flex-start; gap:12px; justify-content:space-between; }
+.local-road-card { position:absolute; z-index:24; right:16px; top:calc(var(--map-controls-bottom,var(--map-toolbar-height,48px)) + 12px); width:min(300px,calc(100% - 32px)); max-height:calc(100% - var(--map-controls-bottom,var(--map-toolbar-height,48px)) - 28px); display:flex; flex-direction:column; overflow:hidden; padding:0; border:1px solid var(--ws-line); border-radius:8px; background:var(--ws-surface); color:var(--ws-text); box-shadow:var(--shadow-pop); }
+.local-road-card header { display:flex; flex:none; align-items:flex-start; gap:12px; justify-content:space-between; padding:14px 14px 0; }
+.local-road-body { min-height:0; overflow:auto; padding:0 14px 14px; }
 .local-road-card header > div { min-width:0; }
 .local-road-card small { color:var(--ws-muted); font-size:12px; }
 .local-road-card h2 { margin:4px 0 0; font-size:16px; line-height:1.4; overflow-wrap:anywhere; }
@@ -11,5 +12,5 @@
 .local-road-card [data-condition=blocked] { color:var(--critical-ink); }
 .local-road-card :is([data-condition=risk],[data-condition=uncertain]) { color:var(--warning-ink); }
 .local-road-card p { margin:0 0 14px; font-size:13px; line-height:1.5; }
-.local-road-card > .button { display:flex; justify-content:center; align-items:center; gap:8px; width:100%; min-height:44px; }
+.local-road-body > .button { display:flex; justify-content:center; align-items:center; gap:8px; width:100%; min-height:44px; }
 @media(max-width:600px) { .local-road-card { top:auto; bottom:16px; right:12px; width:calc(100% - 24px); } }

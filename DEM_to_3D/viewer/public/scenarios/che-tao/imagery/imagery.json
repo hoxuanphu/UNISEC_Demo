@@ -598,7 +598,9 @@
       ]
      }
     }
-   }
+   },
+   "sensor": "Sentinel-1D",
+   "credit": "Copernicus Sentinel-1"
   },
   {
    "id": "sentinel1-oct11",
@@ -732,6 +734,85 @@
        [
         21.8859266,
         104.157239
+       ]
+      ]
+     }
+    }
+   },
+   "sensor": "Sentinel-1D",
+   "credit": "Copernicus Sentinel-1"
+  },
+  {
+   "id": "strix007-oct20",
+   "name": [
+    "STRIX-007 SAR",
+    "STRIX-007 SAR"
+   ],
+   "kind": "sar",
+   "sensor": "STRIX007",
+   "credit": "Synspective STRIX-007",
+   "acquired": "2026-10-20T18:51:50Z",
+   "acquiredBasis": "source filename UTC, not TIFF processing time",
+   "source": "STRIX007 STORT sigma0, supplied single-VV GeoTIFF",
+   "pixelM": 5.0,
+   "nativePixelM": 1.25,
+   "polarizations": [
+    "VV"
+   ],
+   "rangesDb": {
+    "vv": [
+     -20.0,
+     5.0
+    ]
+   },
+   "sourceFiles": [
+    {
+     "file": "IMG-VV-STRIX007-20261020T185150Z-STORT-sigma0.tif",
+     "sha256": "b2389b7b41c873c8b4e080755de880235d8ac6e52da3bbf31871682404561ec3"
+    }
+   ],
+   "displayProcessing": {
+    "inputScale": "linear",
+    "inputScaleBasis": "supplied sigma0 product; TIFF band unit absent",
+    "formula": "10*log10(sigma0)",
+    "resampling": "average positive power to 5 m before logarithm",
+    "sourceNodata": 0,
+    "stretchDb": [
+     -20.0,
+     5.0
+    ],
+    "sourceModified": false
+   },
+   "modes": {
+    "vv": {
+     "terrain": {
+      "url": "strix007-oct20-vv.utm.webp",
+      "byteLength": 1009790,
+      "sha256": "7db55a64d945f67d9ef9863090cee9af52a838c796b449bcd49062e0987cbfed",
+      "width": 2407,
+      "height": 2369,
+      "crs": "EPSG:32648",
+      "bounds": [
+       396288.75,
+       2404625.0,
+       408323.75,
+       2416470.0
+      ]
+     },
+     "web": {
+      "url": "strix007-oct20-vv.web.webp",
+      "byteLength": 763640,
+      "sha256": "c6bcb6e18bd9a0fcb05f2a582ccc9a1eb12fdef7ef0c2e7c24190979c3b1e0dd",
+      "width": 2421,
+      "height": 2397,
+      "latLngBounds": [
+       [
+        21.74216777902405,
+        103.99634426429878
+       ],
+       [
+        21.84983385035005,
+        104.11346082331828
        ]
       ]
      }
