@@ -14,8 +14,13 @@ export type DevicePosition = {
 };
 export type DevicePlan = {id:string;role:DeviceRole;name:[string,string];road:RoadSegment;path:Path;from:number;to:number;duration:number;
   missionId?:string;closureRoadId?:string;targetId?:string;targetName?:[string,string];
-  timing?:{residentAt:number;dispatchAt:number;rescueAt:number;escortAt:number;finishAt:number;residentStation:number;rescueStation:number;meetingStation:number};
+  timing?:{residentAt:number;dispatchAt:number;rescueAt:number;escortAt:number;finishAt:number;returnAt:number;cycle:number;residentStation:number;rescueStation:number;meetingStation:number};
 };
+/** Field speeds in m/s: walking, a rescue motorbike on a mountain road, and the slower escort back. */
+export const deviceSpeeds={walk:1.3,rescue:7,escort:2.5} as const;
+/** The scenario runs as a time-lapse: one screen second is this many field seconds, so walking
+ * reads as movement at commune scale while the walk-to-motorbike ratio stays true. */
+export const deviceTimeLapse=8;
 function measure(road:RoadSegment):Path|null {
   if(road.points.length<2||road.points.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y)))return null;
   const points=road.points.filter((p,i,all)=>!i||Math.hypot(p.x-all[i-1].x,p.y-all[i-1].y)>.00001).map(p=>({...p}));
@@ -36,7 +41,7 @@ export function buildDevicePlans(roads:RoadSegment[],links:readonly LocalRoadAre
   const cruising=[...new Map([corridor[0],...local,...clear].filter((road):road is RoadSegment=>!!road).map(road=>[road.id,road])).values()].slice(0,4);
   const plans:DevicePlan[]=cruising.map((road,index)=>{
     const path=measure(road)!,from=.15+(index%3)*.15,to=Math.min(.92,from+Math.min(.4,250/path.total));
-    return{id:`ND-${String(index+1).padStart(2,'0')}`,role:'resident',name:named('resident',index+1),road,path,from,to,duration:Math.max(8,(to-from)*path.total/(1.2+index*.1))};
+    return{id:`ND-${String(index+1).padStart(2,'0')}`,role:'resident',name:named('resident',index+1),road,path,from,to,duration:Math.max(8,(to-from)*path.total/(deviceSpeeds.walk-.2+index*.1))};
   });
   const rendezvous:Point[]=[];
   const closures=candidates.filter(road=>road.status==='blocked').sort((a,b)=>Number(b.id.startsWith('local-'))-Number(a.id.startsWith('local-'))||a.id.localeCompare(b.id));
@@ -53,12 +58,16 @@ export function buildDevicePlans(roads:RoadSegment[],links:readonly LocalRoadAre
     const choice=choices.find(c=>!rendezvous.some(point=>gap(point,c.path.points.at(-1)!)<100))??(missions===0?choices[0]:undefined);
     if(!choice)continue;
     const {road,path}=choice;
-    const meetingStation=Math.max(0,path.total-8),residentStation=Math.max(0,meetingStation-18-missions*5),rescueStation=Math.max(0,residentStation-75-missions*20);
-    // The resident reaches the obstruction first; dispatch follows five seconds later.
-    const residentAt=(meetingStation-residentStation)/1.25,dispatchAt=residentAt+5;
-    const rescueAt=dispatchAt+(meetingStation-rescueStation)/3;
-    const escortAt=rescueAt+12,finishAt=escortAt+(meetingStation-rescueStation)/1.1;
-    const timing={residentAt,dispatchAt,rescueAt,escortAt,finishAt,residentStation,rescueStation,meetingStation};
+    // The resident walks up to the obstruction; the team rides in from about half a kilometre back.
+    const meetingStation=Math.max(0,path.total-8),residentStation=Math.max(0,meetingStation-80-missions*20),rescueStation=Math.max(0,residentStation-500-missions*120);
+    // Dispatch follows the resident's stop by 45 s; the team assists for 90 s, then escorts them back.
+    const residentAt=(meetingStation-residentStation)/deviceSpeeds.walk,dispatchAt=residentAt+45;
+    const rescueAt=dispatchAt+(meetingStation-rescueStation)/deviceSpeeds.rescue;
+    const escortAt=rescueAt+90,finishAt=escortAt+(meetingStation-rescueStation)/deviceSpeeds.escort;
+    // After resting at the assembly point the resident walks back to the initial approach.
+    // The cycle boundary is continuous; never teleport the person back towards the closure.
+    const returnAt=finishAt+120,cycle=returnAt+(residentStation-rescueStation)/deviceSpeeds.walk;
+    const timing={residentAt,dispatchAt,rescueAt,escortAt,finishAt,returnAt,cycle,residentStation,rescueStation,meetingStation};
     const missionId=`assist:${closed.id}:${missions+1}`,residentId=`ND-${String(plans.filter(p=>p.role==='resident').length+1).padStart(2,'0')}`,rescueId=`CH-${String(missions+1).padStart(2,'0')}`;
     const residentName=named('resident',Number(residentId.slice(3))),rescueName=named('rescue',missions+1);
     const base={road,path,missionId,closureRoadId:closed.id,timing};
@@ -76,16 +85,18 @@ export function buildDevicePlans(roads:RoadSegment[],links:readonly LocalRoadAre
     const contact=contacts.length?Math.min(...contacts):path.total*.5,forward=contact>=path.total*.5;
     const stop=forward?Math.max(0,contact-40):Math.min(path.total,contact+40);
     const start=forward?Math.max(0,stop-18):Math.min(path.total,stop+18),number=plans.filter(p=>p.role==='resident').length+1;
-    plans.push({id:`ND-${String(number).padStart(2,'0')}`,role:'resident',name:named('resident',number),road:closed,path,from:start/path.total,to:stop/path.total,duration:Math.max(1,Math.abs(start-stop)/1.25),closureRoadId:closed.id});
+    plans.push({id:`ND-${String(number).padStart(2,'0')}`,role:'resident',name:named('resident',number),road:closed,path,from:start/path.total,to:stop/path.total,duration:Math.max(1,Math.abs(start-stop)/deviceSpeeds.walk),closureRoadId:closed.id});
   }
   return plans.sort((a,b)=>a.role.localeCompare(b.role)||a.id.localeCompare(b.id));
 }
-function locate(plan:DevicePlan,elapsed:number,epoch:number):DevicePosition {
+function locate(plan:DevicePlan,clock:number,updatedAt:number):DevicePosition {
   let stationM=plan.path.total*plan.from,state:DeviceState='stopped';
   const timing=plan.timing;
   if(timing){
-    const {residentAt,dispatchAt,rescueAt,escortAt,finishAt,residentStation,rescueStation,meetingStation}=timing;
-    if(elapsed>=finishAt){stationM=rescueStation;state='arrived';}
+    const {residentAt,dispatchAt,rescueAt,escortAt,finishAt,returnAt,cycle,residentStation,rescueStation,meetingStation}=timing;
+    const elapsed=clock%cycle;
+    if(elapsed>=returnAt&&plan.role==='resident'){stationM=rescueStation+Math.min(residentStation-rescueStation,(elapsed-returnAt)*deviceSpeeds.walk);state='moving';}
+    else if(elapsed>=finishAt){stationM=rescueStation;state='arrived';}
     else if(elapsed>=escortAt){stationM=meetingStation-(meetingStation-rescueStation)*(elapsed-escortAt)/(finishAt-escortAt);state='escorting';}
     else if(plan.role==='resident'){
       stationM=elapsed<residentAt?residentStation+(meetingStation-residentStation)*elapsed/residentAt:meetingStation;
@@ -94,22 +105,29 @@ function locate(plan:DevicePlan,elapsed:number,epoch:number):DevicePosition {
       stationM=elapsed<dispatchAt?rescueStation:elapsed<rescueAt?rescueStation+(meetingStation-rescueStation)*(elapsed-dispatchAt)/(rescueAt-dispatchAt):meetingStation;
       state=elapsed<dispatchAt?'dispatching':elapsed<rescueAt?'responding':'assisting';
     }
+  }else if(plan.closureRoadId){
+    // Stopped short of a closure with no way round: they stay and wait.
+    const progress=Math.min(1,clock/plan.duration);stationM=plan.path.total*(plan.from+(plan.to-plan.from)*progress);
+    state=progress===1?'waiting':'approaching';
   }else{
-    const progress=Math.min(1,elapsed/plan.duration);stationM=plan.path.total*(plan.from+(plan.to-plan.from)*progress);
-    state=progress===1?(plan.closureRoadId?'waiting':'arrived'):plan.closureRoadId?'approaching':'moving';
+    // Residents on open roads keep walking their stretch, there and back.
+    const phase=(clock/plan.duration)%2,progress=phase<=1?phase:2-phase;
+    stationM=plan.path.total*(plan.from+(plan.to-plan.from)*progress);state='moving';
   }
   return {id:plan.id,role:plan.role,name:plan.name,roadId:plan.road.id,roadName:plan.road.name,roadStatus:plan.road.status,
-    point:simulationPoint(plan.path,stationM),stationM,state,updatedAt:epoch+Math.floor(elapsed)*1000,
+    point:simulationPoint(plan.path,stationM),stationM,state,updatedAt,
     missionId:plan.missionId,closureRoadId:plan.closureRoadId,targetId:plan.targetId,targetName:plan.targetName};
 }
 /** A single scenario clock, independent of rendering and isolated from real GPS or report submission. */
 export function createDeviceFeed(roads:RoadSegment[],links:readonly LocalRoadAreaLink[]=[],epoch=Date.now()) {
-  const plans=buildDevicePlans(roads,links);let elapsed=0;
-  let snapshot=plans.map(plan=>locate(plan,elapsed,epoch));
+  // Field clock for movement; the signal time shown is the real one.
+  const plans=buildDevicePlans(roads,links);let elapsed=0,real=0;
+  const at=()=>epoch+Math.floor(real)*1000;
+  let snapshot=plans.map(plan=>locate(plan,elapsed,at()));
   const listeners=new Set<()=>void>();
   return {getSnapshot:()=>snapshot,subscribe:(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener);};},
-    advance:(seconds:number)=>{if(!Number.isFinite(seconds)||seconds<=0)return;elapsed+=Math.min(seconds,.25);snapshot=plans.map(plan=>locate(plan,elapsed,epoch));listeners.forEach(listener=>listener());},
-    refreshSignal:()=>{epoch=Date.now()-Math.floor(elapsed)*1000;snapshot=plans.map(plan=>locate(plan,elapsed,epoch));listeners.forEach(listener=>listener());},
+    advance:(seconds:number)=>{if(!Number.isFinite(seconds)||seconds<=0)return;const step=Math.min(seconds,.25);real+=step;elapsed+=step*deviceTimeLapse;snapshot=plans.map(plan=>locate(plan,elapsed,at()));listeners.forEach(listener=>listener());},
+    refreshSignal:()=>{epoch=Date.now()-Math.floor(real)*1000;snapshot=plans.map(plan=>locate(plan,elapsed,at()));listeners.forEach(listener=>listener());},
   };
 }
 export type DeviceFeed=ReturnType<typeof createDeviceFeed>;

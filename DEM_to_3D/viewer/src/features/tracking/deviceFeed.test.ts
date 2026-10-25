@@ -5,7 +5,7 @@ import { validateLocalNetwork } from '../route-film/localNetwork';
 import { validateIncidentPacket } from '../../data/incidentPacket';
 import { nearestRoadAnchor } from '../routes/selectedRoadJourney';
 import type { RoadSegment } from '../../types/dear';
-import { buildDevicePlans,createDeviceFeed } from './deviceFeed';
+import { buildDevicePlans,createDeviceFeed,deviceSpeeds,deviceTimeLapse } from './deviceFeed';
 const roads=[...validateIncidentPacket(incident).roads,...validateLocalNetwork(data).roads];
 const line=(id:string,status:RoadSegment['status']='open'):RoadSegment=>({id,status,name:[id,id],cls:'track',len:1,points:[{x:0,y:0},{x:1000,y:0}]});
 describe('resident and rescue device feed',()=>{
@@ -55,7 +55,7 @@ describe('resident and rescue device feed',()=>{
     expect(person.road.id).toBe('local-approach');expect(team.road.id).toBe('local-approach');
     const feed=createDeviceFeed(roads,[],0),stages=new Set<string>();
     for(let i=0;i<1600;i++){
-      feed.advance(.25);const elapsed=(i+1)*.25;
+      feed.advance(.25);const elapsed=((i+1)*.25*deviceTimeLapse)%person.timing!.cycle;
       const resident=feed.getSnapshot().find(p=>p.id===person.id)!,rescue=feed.getSnapshot().find(p=>p.id===team.id)!;
       stages.add(resident.state+':'+rescue.state);
       expect(resident.point.x).toBeLessThan(1000);expect(rescue.point.x).toBeLessThan(1000);
@@ -63,12 +63,44 @@ describe('resident and rescue device feed',()=>{
         expect(resident.state).toBe('waiting');expect(resident.stationM).toBe(person.timing!.meetingStation);
       }
       if(elapsed<person.timing!.dispatchAt)expect(rescue.stationM).toBe(person.timing!.rescueStation);
-      if(elapsed>=person.timing!.rescueAt)expect(resident.point).toEqual(rescue.point);
+      if(elapsed>=person.timing!.rescueAt&&elapsed<person.timing!.returnAt)expect(resident.point).toEqual(rescue.point);
       expect(resident.targetId).toBe(rescue.id);expect(rescue.targetId).toBe(resident.id);
     }
     expect(stages.has('waiting:dispatching')).toBe(true);expect(stages.has('waiting:responding')).toBe(true);
     expect(stages.has('assisting:assisting')).toBe(true);expect(stages.has('escorting:escorting')).toBe(true);expect(stages.has('arrived:arrived')).toBe(true);
     expect(closed.status).toBe('blocked');
+  });
+  it('keeps moving at field speeds: walkers keep walking, missions replay, teams ride far faster than people walk',()=>{
+    const approach=line('local-approach'),closed={...line('closed','blocked'),points:[{x:1000,y:0},{x:1300,y:0}]};
+    const plans=buildDevicePlans([approach,closed]),person=plans.find(p=>p.role==='resident'&&p.missionId)!,t=person.timing!;
+    expect(t.meetingStation-t.rescueStation).toBeGreaterThanOrEqual(400);
+    expect((t.meetingStation-t.residentStation)/t.residentAt).toBeCloseTo(deviceSpeeds.walk);
+    expect((t.meetingStation-t.rescueStation)/(t.rescueAt-t.dispatchAt)).toBeCloseTo(deviceSpeeds.rescue);
+    const walker=createDeviceFeed([line('road')],[],0),start=walker.getSnapshot()[0].stationM,seen:number[]=[];
+    for(let i=0;i<4000;i++){walker.advance(.25);seen.push(walker.getSnapshot()[0].stationM);}
+    expect(Math.max(...seen)-Math.min(...seen)).toBeGreaterThan(100);
+    expect(seen.slice(-200).some(station=>Math.abs(station-seen.at(-1)!)>1)).toBe(true);
+    expect(seen.some(station=>Math.abs(station-start)<1)).toBe(true);
+    const feed=createDeviceFeed([approach,closed],[],0),states=new Set<string>();
+    for(let i=0;i<Math.ceil(t.cycle*1.5/deviceTimeLapse/.25);i++){feed.advance(.25);const now=feed.getSnapshot().find(p=>p.id===person.id)!;states.add(now.state);}
+    expect(states.has('arrived')&&states.has('approaching')).toBe(true);
+    expect(states.has('moving')).toBe(true);
+  });
+  it('repeats missions without teleporting and keeps signal timestamps on real elapsed seconds',()=>{
+    const approach=line('local-approach'),closed={...line('closed','blocked'),points:[{x:1000,y:0},{x:1300,y:0}]};
+    const feed=createDeviceFeed([approach,closed],[],5000);let previous=feed.getSnapshot();
+    for(let i=0;i<2000;i++){
+      feed.advance(.1);const next=feed.getSnapshot();
+      for(const device of next){
+        const before=previous.find(item=>item.id===device.id)!;
+        const speed=device.role==='rescue'?deviceSpeeds.rescue:deviceSpeeds.escort;
+        expect(Math.abs(device.stationM-before.stationM)).toBeLessThanOrEqual(speed*deviceTimeLapse*.1+.00001);
+        expect(device.point.x).toBeLessThan(1000);
+        expect(device.updatedAt).toBeLessThanOrEqual(5000+(i+1)*100+.01);
+      }
+      previous=next;
+    }
+    expect(feed.getSnapshot()[0].updatedAt).toBeGreaterThanOrEqual(204000);
   });
   it('does not dispatch a team across disconnected or merely crossing roads',()=>{
     const closed={...line('closed','blocked'),points:[{x:1000,y:0},{x:1300,y:0}]};
@@ -82,7 +114,8 @@ describe('resident and rescue device feed',()=>{
     expect(buildDevicePlans([{...line('broken'),points:[{x:NaN,y:0},{x:10,y:0}]}])).toEqual([]);
     const feed=createDeviceFeed([line('road')],[],0),initial=feed.getSnapshot();
     feed.advance(NaN);feed.advance(-1);feed.advance(0);expect(feed.getSnapshot()).toBe(initial);
-    feed.advance(1000);expect(Math.abs(feed.getSnapshot()[0].stationM-initial[0].stationM)).toBeLessThanOrEqual(1.1);
+    // A long frame is capped: one step moves a walker no further than a quarter second of time-lapse.
+    feed.advance(1000);expect(Math.abs(feed.getSnapshot()[0].stationM-initial[0].stationM)).toBeLessThanOrEqual(.25*deviceTimeLapse*deviceSpeeds.walk);
     let count=0;const unsub=feed.subscribe(()=>count++);feed.advance(.1);expect(count).toBe(1);unsub();feed.advance(.1);expect(count).toBe(1);
     const changed=createDeviceFeed([line('road','blocked')],[],0);
     expect(changed.getSnapshot().every(p=>p.roadStatus==='blocked'&&p.role==='resident')).toBe(true);
