@@ -49,8 +49,9 @@ export function addCoverageFog(map: L.Map, toLatLng: (point: Point) => L.LatLng 
       context.globalCompositeOperation = 'source-over';
     }
     if (shown.rescued) for (const point of rescued()) { const p = at(point); if (p) dot(context, p.x, p.y, 3.5, colour.rescued); }
-    if (shown.need) for (const spot of all) {
+    for (const spot of all) {
       if (spot.kind !== 'need' && spot.kind !== 'unverified') continue;
+      if (spot.kind === 'need' ? !shown.need : !shown.unverified) continue;
       const p = at(spot.point), r = radius(spot.point, spot.radiusM);
       if (!p) continue;
       const tint = spot.kind === 'need' ? colour.need : colour.unverified;

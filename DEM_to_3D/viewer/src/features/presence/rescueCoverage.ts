@@ -13,8 +13,8 @@ type Point = { x: number; y: number };
  */
 export type CoverageKind = 'reached' | 'need' | 'unverified' | 'team';
 export type CoverageSpot = { kind: CoverageKind; point: Point; radiusM: number };
-export type CoverageLayers = Record<'fog' | 'need' | 'team' | 'rescued', boolean>;
-export const defaultCoverageLayers: CoverageLayers = { fog: true, need: true, team: true, rescued: true };
+export type CoverageLayers = Record<'fog' | 'need' | 'unverified' | 'team' | 'rescued', boolean>;
+export const defaultCoverageLayers: CoverageLayers = { fog: true, need: true, unverified: true, team: true, rescued: true };
 
 /** How far a team sees around itself and an assembly point covers, in metres. */
 export const REACH_M = 400;

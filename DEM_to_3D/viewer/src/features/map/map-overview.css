@@ -30,3 +30,7 @@
 .overview-coverage [data-layer=need] i { background: #e53935; }
 .overview-coverage [data-layer=team] i { background: #26a65b; }
 .overview-coverage [data-layer=rescued] i { background: #9aa3ad; }
+
+/* The enlarged overview takes the legend's space; keep only one sheet there. */
+.map-area:has(.map-overview[data-large=true][data-expanded=true]) .map-bottom-bar { display: none; }
+.overview-coverage [data-layer=unverified] i { background: #f29900; }
