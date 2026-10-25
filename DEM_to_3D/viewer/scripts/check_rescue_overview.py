@@ -61,7 +61,9 @@ def run(url, chrome=None, captures=None):
             assert abs(case.bounding_box()['x']-before_case['x'])>30, 'Case did not move'
             drag(overview.locator('.overview-title'),100,-30)
             assert abs(overview.bounding_box()['x']-overview_left)>50, 'Overview did not move'
-            overview.locator('.overview-head').dblclick(position={'x':12,'y':12})
+            overview.locator('.overview-title').dblclick(position={'x':12,'y':12})
+            page.wait_for_function("sessionStorage.getItem('dear.panel-position.overview-map')===null")
+            assert abs(overview.bounding_box()['x']-overview_left)<2, 'Overview did not reset to its dock'
 
             expect(page.get_by_role('button', name='Switch to 3D', exact=True)).to_have_attribute('aria-pressed', 'true')
             page.keyboard.press('Escape')

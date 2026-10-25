@@ -165,7 +165,7 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
   const chips: Array<[keyof CoverageLayers, string]> = [
     ['fog', t('Đội chưa tới', 'Not reached')], ['need', t('Cần cứu', 'Needs rescue')], ['unverified', t('Chưa rõ', 'Unverified')], ['team', t('Đội cứu hộ', 'Rescue teams')], ['rescued', t('Đã cứu', 'Rescued')]];
   return <section ref={root} className="map-overview" data-expanded={expanded} data-coverage={!!coverage || undefined} data-large={large || undefined} aria-label={t('Bản đồ tổng quan', 'Overview map')}>
-    <div className="overview-head floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={t('Vị trí bản đồ tổng quan','Overview position')}>
+    <div className="overview-head floating-panel-handle" {...floating} onDoubleClickCapture={floating.onDoubleClick} tabIndex={0} role="group" aria-label={t('Vị trí bản đồ tổng quan','Overview position')}>
       <span className="overview-title"><UiIcon name="area" size={15}/>{t('Tổng quan','Overview')}</span>
       <button className="overview-toggle" aria-expanded={expanded} aria-controls="overview-map-surface"
         aria-label={expanded ? t('Thu gọn bản đồ tổng quan', 'Hide overview map') : t('Mở bản đồ tổng quan', 'Show overview map')}
