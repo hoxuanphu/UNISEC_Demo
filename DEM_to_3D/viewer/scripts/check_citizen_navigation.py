@@ -294,6 +294,9 @@ def run(url, chrome, captures):
         page.reload()
         expect(page.locator('.map-marker-layer[data-presentation=places]')).to_be_visible()
         point = page.locator('.map-pin[data-map-object="community:overlap-place"]')
+        expect(point).to_be_attached()
+        # Startup follows the resident's position; distant village checks use the commune overview.
+        page.get_by_role('button',name='Vừa bản đồ',exact=True).click()
         expect(point).to_be_visible()
         expect(page.locator('.map-pin.is-cluster,.map-pin.has-overlap')).to_have_count(0)
         point.click()
