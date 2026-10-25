@@ -885,7 +885,7 @@ export function CitizenWorkspace({
           >
             <button
               className="icon-button"
-              onClick={() => controls.current?.frameProjected?.(routeFramePoints)}
+              onClick={() => {if(roadMode==='local'&&!displayedRoute)setFitWholeNetwork(true);controls.current?.frameProjected?.(routeFramePoints);}}
               aria-label={t('Vừa bản đồ', 'Fit map')}
               title={t('Vừa bản đồ', 'Fit map')}
             >
@@ -898,6 +898,7 @@ export function CitizenWorkspace({
               title={m.myLocation}
               onClick={async () => {
                 const current=residentLocation?.getSnapshot()[0];
+                if(!displayedRoute)setFitWholeNetwork(false);
                 if(current){controls.current?.frameProjected?.([{x:current.point.x-350,y:current.point.y-350},{x:current.point.x+350,y:current.point.y+350}]);return;}
                 const p = await gps.request();
                 if (p) setLocationRequest((v) => v + 1);
