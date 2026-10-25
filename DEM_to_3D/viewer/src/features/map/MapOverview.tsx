@@ -59,6 +59,23 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
   const fogRef = useRef<{ draw: () => void } | null>(null);
   const root = useRef<HTMLElement>(null), host = useRef<HTMLDivElement>(null);
   const floating=useFloatingPanel(root,'overview-map',enabled,'fit');
+  useEffect(()=>{
+    const node=root.current,area=node?.closest('.map-area');if(!node||!area||!enabled)return;
+    const legend=area.querySelector<HTMLElement>('.map-bottom-bar');
+    const arrange=()=>{
+      if(node.dataset.floating==='true'){node.style.removeProperty('bottom');return;}
+      const bounds=area.getBoundingClientRect(),key=legend?.getBoundingClientRect();
+      const bottom=key&&key.width&&key.height?Math.max(48,bounds.bottom-key.top+12):48;
+      const toolbar=area.querySelector<HTMLElement>('.map-tools')?.getBoundingClientRect();
+      const top=toolbar?Math.max(64,toolbar.bottom-bounds.top+12):64;
+      node.style.bottom=`${bottom}px`;
+      node.style.setProperty('--overview-space',`${Math.max(120,bounds.height-bottom-top)}px`);
+    };
+    const observer=new ResizeObserver(arrange);observer.observe(area);if(legend)observer.observe(legend);
+    area.addEventListener('dear:map-layout',arrange);arrange();
+    return()=>{observer.disconnect();area.removeEventListener('dear:map-layout',arrange);};
+  },[enabled,expanded,large,raster]);
+
   const t = (vi: string, en: string) => locale === 'vi' ? vi : en;
   const waiting = useSyncExternalStore(coverage?.subscribe ?? noSubscription, () => coverage ? unreachedNeeds(coverage.spots()) : 0);
   useEffect(() => { fogRef.current?.draw(); }, [shownLayers]);

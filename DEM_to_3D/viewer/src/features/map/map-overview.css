@@ -31,8 +31,7 @@
 .overview-coverage [data-layer=team] i { background: #26a65b; }
 .overview-coverage [data-layer=rescued] i { background: #9aa3ad; }
 
-/* The enlarged overview takes the legend's space; keep only one sheet there. */
-.map-area:has(.map-overview[data-large=true][data-expanded=true]) .map-bottom-bar { display: none; }
+
 .overview-coverage [data-layer=unverified] i { background: #f29900; }
 
 .map-overview { max-width: calc(100% - 32px); }
@@ -68,8 +67,13 @@
 
 .map-overview[data-floating=true] { right:auto; bottom:auto; }
 .map-overview[data-large=true][data-expanded=true] { width:min(600px,calc(100% - 32px)); }
-.map-area:has(.map-overview[data-expanded=true]) .map-bottom-bar { display:none; }
+
 .overview-head { min-height:34px; padding-left:10px; gap:8px; }
 .overview-title { display:flex; align-items:center; flex:1; gap:7px; min-width:0; font-size:12px; }
 .overview-head .overview-toggle { flex:none; width:30px; min-height:30px; padding:5px; justify-content:center; }
 @media(max-width:900px) { .map-overview[data-coverage] { left:12px;right:auto; } }
+
+/* Overview and legend share a measured vertical dock; neither hides the other. */
+.map-overview { max-height:var(--floating-panel-height,var(--overview-space,calc(100% - 128px))); overflow:auto; }
+.map-overview[data-large] .map-overview-surface { height:min(420px,max(100px,calc(var(--overview-space,500px) - 140px))); }
+.overview-head { position:sticky; top:0; z-index:500; background:var(--ws-raised); }

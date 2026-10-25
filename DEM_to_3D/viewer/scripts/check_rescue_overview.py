@@ -67,7 +67,11 @@ def run(url, chrome=None, captures=None):
             page.keyboard.press('Escape')
             expect(page.locator('.household-card')).to_have_count(0)
             overview.get_by_role('button', name='Larger', exact=True).click()
-            expect(page.locator('.map-bottom-bar')).to_be_hidden()
+            expect(page.locator('.map-bottom-bar')).to_be_visible()
+            def check_legend():
+                a,b=overview.bounding_box(),page.locator('.map-bottom-bar').bounding_box()
+                assert a['y']+a['height']+8<=b['y'] or a['x']+a['width']+8<=b['x'] or b['x']+b['width']+8<=a['x'], 'Overview hides legend'
+            check_legend()
             if captures:
                 captures.mkdir(parents=True, exist_ok=True)
                 page.screenshot(path=str(captures / 'overview-3d.png'))
@@ -85,6 +89,7 @@ def run(url, chrome=None, captures=None):
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'), width
                 overview.locator('.overview-toggle').click()
                 expect(overview.locator('canvas')).to_have_count(0)
+                check_legend()
             page.set_viewport_size({'width': 1440, 'height': 960})
             page.get_by_role('button', name='Switch to 2D', exact=True).click()
             expect(page.locator('.map-2d-surface')).to_be_visible()
