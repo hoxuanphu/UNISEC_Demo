@@ -1,3 +1,5 @@
+import { useRescueDispatch } from '../features/tracking/useRescueDispatch';
+import { planDispatch, type DispatchTarget } from '../features/tracking/dispatchOrders';
 import { MapOverview } from '../features/map/MapOverview';
 import {useResidentLocation} from '../features/tracking/useResidentLocation';
 import {mergeLocationFeeds} from '../features/tracking/residentLocation';
@@ -11,7 +13,7 @@ import { HouseholdCard } from '../features/presence/HouseholdCard';
 import { householdWork } from '../features/presence/householdWork';
 import { householdRescues } from '../features/presence/householdRescue';
 import { householdStatuses, postEventCoverage } from '../features/presence/householdStatus';
-import { coverageSpots, createRescueTrail } from '../features/presence/rescueCoverage';
+import { defaultCoverageLayers, coverageSpots, createRescueTrail } from '../features/presence/rescueCoverage';
 import { rescueBases } from '../features/tracking/rescueBase';
 import { communeVillages } from '../features/presence/communeSites';
 import { CommuneVillages } from '../features/presence/CommuneVillages';
@@ -152,6 +154,8 @@ const defaultLayers = {
   roads: true,
   localRoads:true,
   devices:true,
+  households:true,
+  rescueCoverage:false,
   status: true,
   crossings: true,
   communities: true,
@@ -455,12 +459,13 @@ export function ResponseWorkspace({
   const journeyRoads=useMemo(()=>[...roads,...(localNetwork.network?.roads??[])],[roads,localNetwork.network]);
   // Teams muster at the scenario's assembly points on the commune roads.
   const bases=useMemo(()=>localNetwork.network?rescueBases(responseSites,localNetwork.network.roads):[],[localNetwork.network,responseSites]);
+  const rescueDispatch=useRescueDispatch(localNetwork.network,bases);
   // Teams sent to the isolated huts move in the same feed as the other rescue and resident dots.
   const householdTeams=useMemo(()=>localNetwork.network?householdRescues(localNetwork.network,households,bases):[],[localNetwork.network,households,bases]);
   const householdMissions=useMemo(()=>householdTeams.map(team=>team.plan),[householdTeams]);
   // Where each hut cluster stands: cut off, unverified, awaiting a team, or rescued.
   const imageryCoverage=useMemo(()=>postEventCoverage(analysisImagery.layers,incident.triggeredAt,incident.asOf),[analysisImagery.layers,incident.triggeredAt,incident.asOf]);
-  const householdTeamIds=useMemo(()=>new Set(householdTeams.map(team=>team.householdId)),[householdTeams]);
+  const householdTeamIds=useMemo(()=>new Set([...householdTeams.map(team=>team.householdId),...(!rescueDispatch.order?.recalledAt&&rescueDispatch.order?.target.id.startsWith('household:')?[rescueDispatch.order.target.id.slice(10)]:[])]),[householdTeams,rescueDispatch.order]);
   const householdBase=useMemo(()=>householdStatuses(households,imageryCoverage,householdTeamIds,new Set()),[households,imageryCoverage,householdTeamIds]);
   // People at field huts are relief or verification work alongside the evidence checks.
   const workTasks=useMemo(()=>[...householdWork(historical?[]:householdBase),...evidenceWork].sort((a,b)=>a.priority-b.priority||a.id.localeCompare(b.id)),[householdBase,evidenceWork,historical]);
@@ -471,18 +476,37 @@ export function ResponseWorkspace({
   const villages=useMemo(()=>localNetwork.network?communeVillages(localNetwork.network,householdViews,bases[0]):[],[localNetwork.network,householdViews,bases]);
   const operationalDeviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks,householdMissions,bases);
   const residentLocation=useResidentLocation(historical?null:localNetwork.network);
-  const deviceFeed=useMemo(()=>mergeLocationFeeds(operationalDeviceFeed,residentLocation),[operationalDeviceFeed,residentLocation]);
+  const deviceFeed=useMemo(()=>mergeLocationFeeds(mergeLocationFeeds(operationalDeviceFeed,residentLocation),rescueDispatch.feed),[operationalDeviceFeed,residentLocation,rescueDispatch.feed]);
   // The ground rescue teams have covered this session, for the overview's fog of war.
   const [rescueTrail,setRescueTrail]=useState<ReturnType<typeof createRescueTrail>|null>(null);
   useEffect(()=>{const trail=createRescueTrail(deviceFeed);setRescueTrail(trail);return trail.dispose;},[deviceFeed]);
   const rescueRequests=useMemo(()=>gis.records.flatMap(record=>{const geometry=record.feature.geometry;
     return observationOf(record)?.kind==='help'&&geometry.type==='Point'?[roadProjected(geometry.coordinates[1],geometry.coordinates[0])]:[];}),[gis.records]);
+  const dispatchTo=(target:DispatchTarget)=>{
+    const result=rescueDispatch.dispatch(target);
+    showToast(result==='ok'?['Đã giao đội cứu hộ 05.','Rescue team 05 assigned.']:result==='busy'?['Đội 05 đang có nhiệm vụ.','Team 05 already has a task.']:result==='storage-error'?['Chưa lưu được lệnh điều đội.','Dispatch could not be saved.']:['Chưa có tuyến tiếp cận liên thông.','No connected approach route.']);
+  };
+  const inspectApproach=(target:DispatchTarget)=>{
+    if(!localNetwork.network)return;
+    const order=rescueDispatch.order?.target.id===target.id?rescueDispatch.order:planDispatch(localNetwork.network.roads,bases,target,Date.now());
+    if(!order){showToast(['Chưa có tuyến tiếp cận liên thông.','No connected approach route.']);return;}
+    journey.setPoint('start',order.points[0],'dispatch:base',locale==='vi'?'Điểm tập kết':'Assembly point',localJourneyRoadIds);
+    journey.setPoint('end',order.points.at(-1)!,'dispatch:approach',locale==='vi'?'Điểm tiếp cận':'Approach point',localJourneyRoadIds);
+    setHouseholdId(null);resetTools();journey.setOpen(true);
+  };
+  const selectedDeviceId=selectedObjectId?.startsWith('device:')?selectedObjectId.slice(7):selectedObjectId?.startsWith('team:')?selectedObjectId.slice(5):null;
+  const [coverageLayers,setCoverageLayers]=useState(defaultCoverageLayers);
   const rescueCoverage=useMemo(()=>localNetwork.network&&!historical?{
+    layers:coverageLayers,
+    onOpenLayers:()=>setActiveDialog('layers'),
+    selected:()=>{if(household)return {point:household.projected,label:household.cluster.name[locale==='vi'?0:1]};
+      const device=deviceFeed?.getSnapshot().find(item=>item.id===selectedDeviceId);
+      return device?{point:device.point,label:device.name[locale==='vi'?0:1]}:null;},
     spots:()=>coverageSpots({households:householdViews,devices:deviceFeed?.getSnapshot()??[],trail:rescueTrail?.points()??[],bases:bases.map(base=>base.projected),requests:rescueRequests}),
     rescued:()=>householdViews.filter(item=>item.status==='rescued').map(item=>item.projected),
     subscribe:deviceFeed?.subscribe??(()=>()=>undefined),
     focus:localNetwork.network.roads.flatMap(road=>[road.points[0],road.points[road.points.length-1]]),
-  }:undefined,[localNetwork.network,historical,householdViews,deviceFeed,rescueTrail,bases,rescueRequests]);
+  }:undefined,[localNetwork.network,historical,householdViews,deviceFeed,rescueTrail,bases,rescueRequests,coverageLayers,household,selectedDeviceId,locale]);
   const localJourneyRoadIds=useMemo(()=>localNetwork.network?.roads.map(road=>road.id)??[],[localNetwork.network]);
   const localContext=useMemo(()=>localNetwork.context?{areas:localNetwork.context.areas.filter(area=>area.kind==='landslide' && layers.landslide!==false),closures:[]}:undefined,[localNetwork.context,layers.landslide]);
   const localArea=localContext?.areas.find(area=>area.id===localAreaId);
@@ -512,7 +536,6 @@ export function ResponseWorkspace({
     inspectObject('device:'+id);
     if(device)focusMapOn([device.point]);
   };
-  const selectedDeviceId=selectedObjectId?.startsWith('device:')?selectedObjectId.slice(7):selectedObjectId?.startsWith('team:')?selectedObjectId.slice(5):null;
   const showHouseholds=()=>{
     const isolated=householdViews.filter(entry=>entry.status!=='clear');if(!isolated.length)return;
     setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(null);resetTools();setMobileView('map');setMapMode('2d');
@@ -1173,7 +1196,9 @@ export function ResponseWorkspace({
         />
 
         <ResponseDetails
-          renderObject={(objectId,close)=>objectId.startsWith('device:')?<ResidentDeviceDetail feed={deviceFeed} id={objectId.slice(7)} roads={journeyRoads} locale={locale} onClose={close} onShow={point=>focusMapOn([point])} onRoad={id=>handleOverlayHit({type:'road',id})} records={gis.records} onReport={id=>showGisOnResponse(id)}/>:objectId.startsWith('team:')?<RescueTeamDetail onRoad={id=>handleOverlayHit({type:'road',id})} key={objectId} feed={deviceFeed} id={objectId.slice(5)} bases={bases} locale={locale} onClose={close}
+          renderObject={(objectId,close)=>objectId.startsWith('device:')?<ResidentDeviceDetail onDispatch={()=>{const device=deviceFeed?.getSnapshot().find(d=>d.id===selectedDeviceId);if(device)dispatchTo({id:device.id,name:device.name,point:device.point});}}
+                  onApproach={()=>{const device=deviceFeed?.getSnapshot().find(d=>d.id===selectedDeviceId);if(device)inspectApproach({id:device.id,name:device.name,point:device.point});}}
+                  onShowTeam={selectTeam} feed={deviceFeed} id={objectId.slice(7)} roads={journeyRoads} locale={locale} onClose={close} onShow={point=>focusMapOn([point])} onRoad={id=>handleOverlayHit({type:'road',id})} records={gis.records} onReport={id=>showGisOnResponse(id)}/>:objectId.startsWith('team:')?<RescueTeamDetail onRecall={objectId.slice(5)===rescueDispatch.order?.teamId&&!rescueDispatch.order?.recalledAt?()=>{if(!rescueDispatch.recall())showToast(['Chưa lưu được lệnh gọi đội về.','Recall could not be saved.']);}:undefined} onRoad={id=>handleOverlayHit({type:'road',id})} key={objectId} feed={deviceFeed} id={objectId.slice(5)} bases={bases} locale={locale} onClose={close}
             onShow={point=>focusMapOn([point])} onSelectBase={id=>inspectObject('poi:'+id)}
             onSelectTarget={team=>{
               if(team.missionId?.startsWith('household:'))inspectHousehold(team.missionId.slice(10));
@@ -1260,7 +1285,7 @@ export function ResponseWorkspace({
           <div className="map-canvas">
             {mapMode === '2d' ? (
               <Map2D selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} deviceFeed={layers.devices!==false?deviceFeed:null} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
-                households={householdViews} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold} rescueCoverage={rescueCoverage}
+                households={layers.households!==false?householdViews:[]} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold} rescueCoverage={rescueCoverage} rescueCoverageOnMap={layers.rescueCoverage===true}
                 analysisImagery={analysisDisplay}
                 gisEnabled={true}
                 gisRecords={displayedGis}
@@ -1349,7 +1374,7 @@ export function ResponseWorkspace({
                   fallback={terrain3DBusy ? null : terrainLoading(null)}
                 >
                   <TerrainViewer selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} deviceFeed={layers.devices!==false?deviceFeed:null}
-                    households={householdViews} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold}
+                    households={layers.households!==false?householdViews:[]} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold} rescueCoverage={rescueCoverage} rescueCoverageOnMap={layers.rescueCoverage===true}
                     pointPickActive={journey.open && !!journey.picking}
                     onPointPick={journey.pick}
                     routeEndpoints={journeyTerrainEndpoints}
@@ -1412,20 +1437,15 @@ export function ResponseWorkspace({
 
           {mapMode === '3d' && defaultTerrainData && rescueCoverage && <MapOverview
             terrain={defaultTerrainData} imageUrl={scenarioManifest?.terrain.image?.url}
-            coverage={rescueCoverage} locale={locale}
+            coverage={rescueCoverage} locale={locale} viewControlRef={viewControlRef} viewVersion={viewReadyVersion}
             enabled={!otherMapTool && !showProfile && !['playing','loading','paused','exporting'].includes(flyoverState.status)}
             onNavigate={point => { const host = workspaceRef.current?.querySelector<HTMLElement>('.map-area'); viewControlRef.current?.focusProjected(point, host ? detailInset(host) : undefined); }}/>}
 
           {household&&presence&&!localArea&&!localRoad&&<HouseholdCard key={household.cluster.id} item={household} areaName={householdAreaName} locale={locale} onClose={()=>setHouseholdId(null)}
             workStatus={(()=>{const task=workTasks.find(item=>item.id===`household:${household.cluster.id}`);return task?workState(task,work.entries).status:undefined;})()}
+            onDispatch={historical?undefined:()=>dispatchTo({id:`household:${household.cluster.id}`,name:household.cluster.name,point:household.projected})}
             onWork={historical?undefined:()=>{setWorkTaskId(`household:${household.cluster.id}`);setActiveDialog('responseWork');}}
-            onDirections={()=>{
-              // Directions end on the mapped approach, never at an inferred off-road connector.
-              const approach=householdTeams.find(team=>team.householdId===household.cluster.id)?.plan.path.points.at(-1)??household.access?.point;
-              if(!approach)return;
-              journey.setPoint('end',approach,`household:${household.cluster.id}`,locale==='vi'?'Điểm tiếp cận':'Approach point',localJourneyRoadIds);
-              setHouseholdId(null);resetTools();journey.setOpen(true);
-            }}
+            onDirections={()=>inspectApproach({id:`household:${household.cluster.id}`,name:household.cluster.name,point:household.projected})}
             helipad={(()=>{const pad=localNetwork.network?.places.filter(place=>place.kind==='hlz').map(place=>({place,d:Math.hypot(place.projected.x-household.projected.x,place.projected.y-household.projected.y)})).sort((a,b)=>a.d-b.d)[0];
               return pad?{name:[pad.place.name.replace(/^Helipad$/,'Bãi đáp'),pad.place.name] as [string,string],distanceKm:pad.d/1000}:undefined;})()}
             team={(()=>{const sent=householdTeams.find(entry=>entry.householdId===household.cluster.id);return sent&&deviceFeed?{feed:deviceFeed,id:sent.plan.id,onShow:point=>focusMapOn([point])}:undefined;})()}/>}
@@ -1463,7 +1483,7 @@ export function ResponseWorkspace({
 
           <MapControls hasLocationDevices={Boolean(deviceFeed?.getSnapshot().length)}
             hasLocalRoads={!!localNetwork.network}
-            householdStatuses={householdViews.map(item=>item.status)}
+            householdStatuses={layers.households!==false?householdViews.map(item=>item.status):[]}
             timelineExpanded={timelineExpanded}
             onToggleTimeline={() => setTimelineExpanded(open => !open)}
             headerCollapsed={headerCollapsed}
@@ -1642,6 +1662,7 @@ export function ResponseWorkspace({
 
           {activeDialog === 'layers' && (
             <LayersDialog
+              coverage={rescueCoverage ? {layers:coverageLayers,toggle:(key)=>setCoverageLayers(value=>({...value,[key]:!value[key]}))}:undefined}
               hasLocalRoads={!!localNetwork.network} onShowLocalRoads={showLocalRoads}
               onShowAnalysisImagery={()=>{
                 const points=analysisImagery.rasters.flatMap(raster=>{
@@ -1673,6 +1694,7 @@ export function ResponseWorkspace({
               onReset={() => {
                 setLayers({...defaultLayers, context:!offlineMode || runtime.localMap});
                 analysisImagery.resetSelection();
+                setCoverageLayers(defaultCoverageLayers);
                 terrainOverlays.suspendSar();
                 setLayerAppearance(defaultLayerAppearance);
               }}

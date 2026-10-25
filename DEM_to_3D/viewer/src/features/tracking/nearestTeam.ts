@@ -6,12 +6,14 @@ const noSubscription = () => () => undefined;
 
 /** The rescue team closest to `origin` in a straight line, re-read only when it, its state
  * or its distance (to 100 m) changes: not on every movement frame. */
-export function useNearestTeam(teams: LocationFeed | null, origin: () => Point | null, originFeed?: LocationFeed | null): { team: DevicePosition; distanceM: number } | null {
+export function useNearestTeam(teams: LocationFeed | null, origin: () => Point | null, originFeed?: LocationFeed | null, targetId?:string): { team: DevicePosition; distanceM: number } | null {
   const nearest = () => {
     const at = origin();
     if (!teams || !at) return null;
     let best: { team: DevicePosition; distanceM: number } | null = null;
-    for (const team of teams.getSnapshot()) {
+    const all=teams.getSnapshot(),assigned=targetId?all.find(team=>team.role==='rescue'&&team.targetId===targetId):undefined;
+    if(assigned)return {team:assigned,distanceM:Math.hypot(assigned.point.x-at.x,assigned.point.y-at.y)};
+    for (const team of all) {
       if (team.role !== 'rescue') continue;
       const distanceM = Math.hypot(team.point.x - at.x, team.point.y - at.y);
       if (!best || distanceM < best.distanceM) best = { team, distanceM };

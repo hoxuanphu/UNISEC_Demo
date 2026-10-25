@@ -1,3 +1,4 @@
+import type { CoverageLayers } from '../../features/presence/rescueCoverage';
 import { LandslideFillControl } from '../../features/landslides/LandslideFillControl';
 import { useLandslideAppearance } from '../../features/landslides/useLandslideAppearance';
 import { defaultLandslideFillOpacity } from '../../features/landslides/landslideAppearance';
@@ -16,6 +17,7 @@ import { useFloatingPanel } from '../../shared/hooks/useFloatingPanel';
 import '../../features/map/layers-panel.css';
 
 type Props = {
+  coverage?: {layers:CoverageLayers;toggle:(key:keyof CoverageLayers)=>void};
   locale: Locale; layers: Record<string, boolean>; appearance: LayerAppearance; mapMode: '2d' | '3d';
   onAppearance: (appearance: LayerAppearance) => void;
   hasFloodData: boolean; hasHLZData?: boolean; hasSelectedRoute: boolean; hasIncidentLayers: boolean;
@@ -26,7 +28,7 @@ type Props = {
 };
 type PreviewProps = { imageryPreview?: string; terrainOverlays?: ReturnType<typeof useTerrainOverlays>; hasTerrainGrid?: boolean; analysisImagery?: AnalysisImageryState };
 
-export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance, hasFloodData, hasHLZData, hasSelectedRoute, hasIncidentLayers, areaCount, onShowAreas, onReset, onToggleLayer, onClose, imageryPreview, terrainOverlays, hasTerrainGrid = false, analysisImagery, hasLocalRoads, onShowLocalRoads, onShowAnalysisImagery }: Props & PreviewProps): JSX.Element {
+export function LayersDialog({ coverage, locale, layers, appearance, mapMode, onAppearance, hasFloodData, hasHLZData, hasSelectedRoute, hasIncidentLayers, areaCount, onShowAreas, onReset, onToggleLayer, onClose, imageryPreview, terrainOverlays, hasTerrainGrid = false, analysisImagery, hasLocalRoads, onShowLocalRoads, onShowAnalysisImagery }: Props & PreviewProps): JSX.Element {
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   const panelRef = useRef<HTMLElement>(null);
   const { setFillOpacity } = useLandslideAppearance();
@@ -62,6 +64,7 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
   // Listed top to bottom as drawn: points over lines over areas, then rasters (GIS convention).
   const tiers = [
     { id: 'points', name: t('Điểm', 'Points'), rows: [
+      hasLocalRoads && row('households', t('Hộ dân cần hỗ trợ', 'Households needing support')),
       hasLocalRoads && row('devices', t('Thiết bị định vị', 'Location devices')),
       hasIncidentLayers && row('communities', t('Địa bàn dân cư', 'Communities')),
       hasIncidentLayers && row('crossings', t('Cầu, điểm vượt khe', 'Bridges and crossings')),
@@ -85,6 +88,12 @@ export function LayersDialog({ locale, layers, appearance, mapMode, onAppearance
   return <section className="layers-panel" id="map-layers-panel" ref={panelRef} role="dialog" aria-modal="false" aria-labelledby="map-layers-title">
     <div className="layers-heading floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={t('Vị trí bảng lớp', 'Layers panel position')} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home"><h2 id="map-layers-title">{t('Lớp bản đồ', 'Map layers')}</h2><button className="icon-button" onClick={onClose} aria-label={t('Đóng lớp bản đồ', 'Close map layers')}><UiIcon name="close" /></button></div>
     <div className="layers-content">
+      {coverage && <fieldset className="map-layer-group layer-tier" data-layer-stack="rescue"><legend>{t('Vùng cứu hộ', 'Rescue coverage')}</legend>
+        <div className="layer-row"><label><input type="checkbox" checked={layers.rescueCoverage===true} onChange={()=>onToggleLayer('rescueCoverage')}/><span>{t('Phủ vùng tiếp cận lên bản đồ chính','Show coverage on the main map')}</span></label></div>
+        <p className="analysis-note">{t('Bản đồ tổng quan', 'Overview map')}</p>
+        {([['fog',t('Đội chưa tới','Not reached')],['need',t('Cần cứu','Needs rescue')],['unverified',t('Chưa rõ','Unverified')],['team',t('Đội cứu hộ','Rescue teams')],['rescued',t('Đã cứu','Rescued')]] as Array<[keyof CoverageLayers,string]>).map(([key,label])=>
+          <div className="layer-row" key={key}><label><input type="checkbox" checked={coverage.layers[key]} onChange={()=>coverage.toggle(key)}/><span>{label}</span></label></div>)}
+      </fieldset>}
       {tiers.map(tier => <fieldset className="map-layer-group layer-tier" data-layer-stack={tier.id} key={tier.id}><legend>{tier.name}</legend>{tier.rows}</fieldset>)}
       {((analysisImagery && analysisImagery.catalogState !== 'off') || terrainOverlays) && <details className="layer-section layer-analysis" data-layer-stack="raster" open><summary>{t('Ảnh phủ', 'Image overlay')}<small title={imageName}>{imageName}</small></summary>
         {analysisImagery?.catalogState==='loading' && <p className="analysis-note" role="status">{t('Đang tải danh sách ảnh','Loading imagery catalog')}</p>}

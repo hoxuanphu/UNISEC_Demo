@@ -58,6 +58,7 @@ export function householdRescues(network: LocalNetwork, households: HouseholdAcc
       id, role: 'rescue', name: [`Đội cứu hộ ${String(number).padStart(2, '0')}`, `Rescue team ${String(number).padStart(2, '0')}`],
       road, path, from: 0, to: 1, duration: 1, missionId: `household:${item.cluster.id}`, targetId: `household:${item.cluster.id}`, targetName: item.cluster.name,
       segments: routeSegments(route.segs, network.roads).filter(part => part.fromM < path.total), baseId: best.base.id,
+      holdAtAccess:true,
       sortie: { homeM: 0, endM: path.total, workS: ACCESS_WAIT, workState: 'waiting', earliest: 0 },
     } });
   }

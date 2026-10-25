@@ -54,6 +54,9 @@ export type BasemapState = {
 };
 
 export type ViewControls = {
+  /** Projected footprint at the camera target's elevation, updated only as the view changes. */
+  getVisibleArea?: () => ReadonlyArray<{x:number;y:number}>;
+  subscribeView?: (listener: () => void) => () => void;
   zoomIn: () => void;
   zoomOut: () => void;
   resetView: () => void;
@@ -68,6 +71,9 @@ export type ViewControls = {
 
 /** The rescue picture for the overview's fog of war, read on demand and redrawn on `subscribe`. */
 export type RescueCoverage = {
+  layers?: import('../presence/rescueCoverage').CoverageLayers;
+  onOpenLayers?: () => void;
+  selected?: () => { point: {x:number;y:number}; label: string } | null;
   spots: () => readonly import('../presence/rescueCoverage').CoverageSpot[];
   rescued: () => ReadonlyArray<{x:number;y:number}>;
   subscribe: (listener: () => void) => () => void;
@@ -102,6 +108,7 @@ export type MapDisplayProps = {
   comparisonRoute?: ScenarioRoute | null;
   onInspectRoad?: (id: string) => void;
   rescueCoverage?: RescueCoverage;
+  rescueCoverageOnMap?: boolean;
   /** Field huts with people from the resident app, with where each stands; those needing a responder are drawn. */
   households?: import('../presence/householdStatus').HouseholdView[];
   selectedHouseholdId?: string | null;

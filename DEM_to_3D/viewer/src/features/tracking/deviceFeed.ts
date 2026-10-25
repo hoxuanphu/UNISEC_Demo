@@ -18,6 +18,7 @@ export type DevicePosition = {
   baseId?:string;
   householdName?:[string,string];
   source?:'scenario' | 'gps';
+  approachGapM?:number;
 };
 /** A team's job, in path metres: leave `homeM`, ride to `endM`, work there, come back.
  * An escorted resident walks up to `endM` from `startM` and is brought back to `safeM`. */
@@ -26,6 +27,8 @@ export type Sortie = {homeM:number;endM:number;workS:number;workState:DeviceStat
 export type DevicePlan = {id:string;role:DeviceRole;name:[string,string];road:RoadSegment;path:Path;from:number;to:number;duration:number;
   missionId?:string;closureRoadId?:string;targetId?:string;targetName?:[string,string];
   baseId?:string;
+  /** Unknown last-mile access: hold for a verified plan rather than leaving on a timer. */
+  holdAtAccess?:boolean;
   sortie?:Sortie;
   /** The roads a path from the base runs over, by path metres, so a position names the road it is on. */
   segments?:Array<{fromM:number;toM:number;road:RoadSegment}>;
@@ -186,10 +189,12 @@ export function buildDevicePlans(roads:RoadSegment[],links:readonly LocalRoadAre
   }
   return scheduleSorties(plans).sort((a,b)=>a.role.localeCompare(b.role)||a.id.localeCompare(b.id));
 }
-function locate(plan:DevicePlan,clock:number,updatedAt:number):DevicePosition {
+function locate(plan:DevicePlan,clock:number,updatedAt:number,repeat=true):DevicePosition {
   let stationM=plan.path.total*plan.from,state:DeviceState='stopped';
   if(plan.script){
-    const {legs,cycle,end}=plan.script,t=clock%cycle;let previous=0;
+    const {legs,cycle,end}=plan.script;
+    const safeStop=plan.holdAtAccess?legs.find(leg=>leg.state==='waiting')?.until:plan.role==='resident'?legs.find(leg=>leg.state==='arrived')?.until:undefined;
+    const t=repeat?clock%cycle:Math.min(clock,safeStop!==undefined?safeStop-.001:cycle);let previous=0;
     stationM=legs.at(-1)!.to;state=end;
     for(const leg of legs){
       if(t<leg.until){const progress=leg.until>previous?(t-previous)/(leg.until-previous):1;stationM=leg.from+(leg.to-leg.from)*progress;state=leg.state;break;}
@@ -210,16 +215,17 @@ function locate(plan:DevicePlan,clock:number,updatedAt:number):DevicePosition {
     missionId:plan.missionId,closureRoadId:plan.closureRoadId,targetId:plan.targetId,targetName:plan.targetName,baseId:plan.baseId};
 }
 /** A single scenario clock, independent of rendering and isolated from real GPS or report submission. */
-export function createDeviceFeed(roads:RoadSegment[],links:readonly LocalRoadAreaLink[]=[],epoch=Date.now(),missions:readonly DevicePlan[]=[],bases:readonly RescueBase[]=[]) {
+export function createDeviceFeed(roads:RoadSegment[],links:readonly LocalRoadAreaLink[]=[],epoch=Date.now(),missions:readonly DevicePlan[]=[],bases:readonly RescueBase[]=[],options:{repeat?:boolean;ambientLimit?:number}={}) {
   // Field clock for movement; the signal time shown is the real one. All teams share one timetable.
-  const plans=scheduleSorties([...buildDevicePlans(roads,links,bases),...missions]);let elapsed=0,real=0;
+  let ambient=0;
+  const plans=scheduleSorties([...buildDevicePlans(roads,links,bases),...missions]).filter(plan=>plan.missionId||plan.closureRoadId||ambient++<(options.ambientLimit??Infinity));let elapsed=0,real=0;
   const at=()=>epoch+Math.floor(real)*1000;
-  let snapshot=plans.map(plan=>locate(plan,elapsed,at()));
+  let snapshot=plans.map(plan=>locate(plan,elapsed,at(),options.repeat!==false));
   const listeners=new Set<()=>void>();
   return {getSnapshot:()=>snapshot,subscribe:(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener);};},
-    advance:(seconds:number)=>{if(!Number.isFinite(seconds)||seconds<=0)return;const step=Math.min(seconds,.25);real+=step;elapsed+=step*deviceTimeLapse;snapshot=plans.map(plan=>locate(plan,elapsed,at()));listeners.forEach(listener=>listener());},
-    synchronise:(seconds:number)=>{if(!Number.isFinite(seconds)||seconds<0)return;real=seconds;elapsed=seconds*deviceTimeLapse;snapshot=plans.map(plan=>locate(plan,elapsed,at()));listeners.forEach(listener=>listener());},
-    refreshSignal:()=>{epoch=Date.now()-Math.floor(real)*1000;snapshot=plans.map(plan=>locate(plan,elapsed,at()));listeners.forEach(listener=>listener());},
+    advance:(seconds:number)=>{if(!Number.isFinite(seconds)||seconds<=0)return;const step=Math.min(seconds,.25);real+=step;elapsed+=step*deviceTimeLapse;snapshot=plans.map(plan=>locate(plan,elapsed,at(),options.repeat!==false));listeners.forEach(listener=>listener());},
+    synchronise:(seconds:number)=>{if(!Number.isFinite(seconds)||seconds<0)return;real=seconds;elapsed=seconds*deviceTimeLapse;snapshot=plans.map(plan=>locate(plan,elapsed,at(),options.repeat!==false));listeners.forEach(listener=>listener());},
+    refreshSignal:()=>{epoch=Date.now()-Math.floor(real)*1000;snapshot=plans.map(plan=>locate(plan,elapsed,at(),options.repeat!==false));listeners.forEach(listener=>listener());},
   };
 }
 export type DeviceFeed=ReturnType<typeof createDeviceFeed>;

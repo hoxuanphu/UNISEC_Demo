@@ -1,3 +1,4 @@
+import { useRescueDispatch } from '../tracking/useRescueDispatch';
 import {mergeLocationFeeds, rescueOnly, residentDeviceId} from '../tracking/residentLocation';
 import { useResidentPresence } from '../presence/residentPresence';
 import { assessHouseholdAccess } from '../presence/householdIsolation';
@@ -196,14 +197,15 @@ export function CitizenWorkspace({
   const teamMissions=useMemo(()=>local.network?householdRescues(local.network,households,bases).map(team=>team.plan):[],[local.network,households,bases]);
   const teamRoads=useMemo(()=>local.network?[...snapshot.roads,...local.network.roads]:[],[local.network,snapshot.roads]);
   const teamFeed=useDeviceFeed(teamRoads,!!local.network,local.network?.conditions?.areaLinks,teamMissions,bases);
-  const rescueTeams=useMemo(()=>teamFeed?rescueOnly(teamFeed):null,[teamFeed]);
+  const rescueDispatch=useRescueDispatch(local.network,bases);
+  const rescueTeams=useMemo(()=>{const feed=mergeLocationFeeds(teamFeed,rescueDispatch.feed);return feed?rescueOnly(feed):null;} , [teamFeed,rescueDispatch.feed]);
   const mapFeed=useMemo(()=>mergeLocationFeeds(rescueTeams,residentLocation),[rescueTeams,residentLocation]);
   const heading=useDeviceHeading();
   // The compass when the phone has one, otherwise the direction of travel.
   const movement=useMovementHeading(residentLocation,residentLocation?residentDeviceId:null);
   const selfHeading=heading.heading??movement;
   const selfPoint=()=>residentLocation?.getSnapshot()[0]?.point??(gps.location?roadProjected(gps.location.latitude,gps.location.longitude):null);
-  const nearestTeam=useNearestTeam(rescueTeams,selfPoint,residentLocation);
+  const nearestTeam=useNearestTeam(rescueTeams,selfPoint,residentLocation,residentDeviceId);
   // Where the resident can walk to safety, and the road they are on: re-read on a change of road or state, not every step.
   const safePlaces=useSafePlaces(local.network?.roads??[],bases,selfPoint,residentLocation),safe=safePlaces[0];
   const hereKey=useSyncExternalStore(residentLocation?.subscribe??(()=>()=>undefined),()=>{const device=residentLocation?.getSnapshot()[0];return device?`${device.roadId}|${device.state}`:'';});
@@ -218,7 +220,10 @@ export function CitizenWorkspace({
   const placeName=(source?:string,label?:string)=>[...localCommunities,...snapshot.communities].find(place=>`community:${place.id}`===source)?.name
     ??localSites.find(site=>`site:${site.id}`===source)?.name[locale==='vi'?0:1]??label;
   // One tap asks for rescue where the resident is; the request joins their reports for the coordinators.
+  const helpInFlight=useRef(false);
   const sendHelp=async()=>{
+    if(helpInFlight.current)return;helpInFlight.current=true;
+    try{
     const p=await navigationGps.request();if(!p)return;
     const id=crypto.randomUUID(),now=new Date().toISOString();
     try{
@@ -228,6 +233,7 @@ export function CitizenWorkspace({
         {schema:'field-observation/v1',kind:'help',note:t('Cần cứu hộ tại vị trí này.','Rescue needed at this location.'),observer:identity.name,
           observedAt:now,accuracyM:p.accuracy??null,status:'unreviewed',updatedAt:now,photos:[]})]);
     }catch{setMessage(m.couldNotSaveTheReportCheckCoordinates);}
+    }finally{helpInFlight.current=false;}
   };
   // You and the nearest team together, above the card that covers the lower map.
   const showTeam=()=>{const me=selfPoint();if(nearestTeam)controls.current?.frameProjected?.([nearestTeam.team.point,...(me?[me]:[])],{bottom:320});};
@@ -1042,7 +1048,7 @@ export function CitizenWorkspace({
               localJourney.setOpen(true); localJourney.setPoint('end', mapPlace.projected, `${mapPlace.kind === 'village' ? 'community' : 'site'}:${mapPlace.id}`, mapPlace.name); switchTab('roads');
             }} : undefined}
             road={inspectedRoad} onCloseRoad={() => setMapSelection(null)} onDetails={() => switchTab('roads')}
-            nearestTeam={nearestTeam ? {name: nearestTeam.team.name[locale === 'vi' ? 0 : 1],
+            nearestTeam={nearestTeam ? {assigned:nearestTeam.team.targetId===residentDeviceId,name: nearestTeam.team.name[locale === 'vi' ? 0 : 1],
               detail: t(`Cách ${km(nearestTeam.distanceM)} km, ${teamStatus(nearestTeam.team, locale).text.toLocaleLowerCase('vi')}`,
                 `${km(nearestTeam.distanceM)} km away, ${teamStatus(nearestTeam.team, locale).text.toLocaleLowerCase('en')}`),
               summary: t(`${nearestTeam.team.name[0].replace(/^Đội cứu hộ /, 'Đội ')} cách ${km(nearestTeam.distanceM)} km, ${teamStatus(nearestTeam.team, locale).text.toLocaleLowerCase('vi')}`,

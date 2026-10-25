@@ -44,14 +44,15 @@ export function ResidentDeviceList({feed,roads,locale,onSelect,selectedId,record
   </section>;
 }
 /** The person behind a tracked phone, in the order a coordinator acts: what they reported, how to reach them, where they are. */
-export function ResidentDeviceDetail({feed,id,roads,locale,onClose,onShow,onRoad,records=[],onReport}:{feed:LocationFeed|null;id:string;roads:RoadSegment[];locale:Locale;onClose:()=>void;onShow:(point:{x:number;y:number})=>void;onRoad:(id:string)=>void;
+export function ResidentDeviceDetail({feed,id,roads,locale,onClose,onShow,onRoad,records=[],onReport,onDispatch,onApproach,onShowTeam}:{feed:LocationFeed|null;id:string;roads:RoadSegment[];locale:Locale;onClose:()=>void;onShow:(point:{x:number;y:number})=>void;onRoad:(id:string)=>void;
   /** Field records, to find what this person reported from the resident app. */
-  records?:GeometryRecord[];onReport?:(id:string)=>void}) {
+  records?:GeometryRecord[];onReport?:(id:string)=>void;onDispatch?:()=>void;onApproach?:()=>void;onShowTeam?:(id:string)=>void}) {
   const t=(vi:string,en:string)=>locale==='vi'?vi:en;
   const device=useResidentRows(feed).find(device=>device.id===id);
   const clock=new Intl.DateTimeFormat(locale==='vi'?'vi-VN':'en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Asia/Ho_Chi_Minh'});
   const blocked=roads.find(road=>road.id===device?.closureRoadId);
   const contact=deviceContact(id);
+  const assigned=feed?.getSnapshot().find(team=>team.role==='rescue'&&team.targetId===id);
   const time=(iso:string)=>new Date(iso).toLocaleString(locale==='vi'?'vi-VN':'en-GB',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
   const reports=records.filter(record=>submissionMatchesDevice(submissionOf(record),id)&&observationOf(record))
     .sort((a,b)=>submissionOf(b)!.submittedAt.localeCompare(submissionOf(a)!.submittedAt));
@@ -72,12 +73,14 @@ export function ResidentDeviceDetail({feed,id,roads,locale,onClose,onShow,onRoad
           </article>;})}
         </section>}
         {contact&&<section className="workflow-section resident-device-facts"><h3>{t('Liên lạc','Contact')}</h3>
-          <dl><div><dt>{t('Số điện thoại','Phone')}</dt><dd>{contact.phone}</dd></div>
+          <dl><div><dt>{t('Số điện thoại','Phone')}</dt><dd><a href={`tel:${contact.phone.replace(/[^+\d]/g,'')}`}>{contact.phone}</a></dd></div>
             {device.householdName&&<div><dt>{t('Hộ dân','Household')}</dt><dd>{device.householdName[locale==='vi'?0:1]}</dd></div>}</dl>
         </section>}
         <section className="workflow-section"><h3>{t('Vị trí','Location')}</h3><button className="object-row" aria-label={t('Xem đoạn đường','Inspect road section')} onClick={()=>onRoad(device.roadId)}><strong>{device.roadName[locale==='vi'?0:1]}</strong><UiIcon name="next" size={16}/></button>
           {blocked&&blocked.id!==device.roadId&&<button className="object-row" onClick={()=>onRoad(blocked.id)}><span><small>{t('Đoạn bị chặn','Blocked section')}</small>{blocked.name[locale==='vi'?0:1]!==device.roadName[locale==='vi'?0:1]&&<strong>{blocked.name[locale==='vi'?0:1]}</strong>}</span><UiIcon name="next" size={16}/></button>}
         </section>
+        {assigned&&<section className="workflow-section"><h3>{t('Đội được giao','Assigned team')}</h3><button className="object-row" onClick={()=>onShowTeam?.(assigned.id)}><span><strong>{assigned.name[locale==='vi'?0:1]}</strong><small>{deviceStatusText(assigned,locale)}</small></span><UiIcon name="next" size={16}/></button></section>}
+        {stranded(device)&&<div className="area-action">{!assigned&&onDispatch&&<button className="button primary" onClick={onDispatch}>{t('Điều đội cứu hộ','Dispatch team')}</button>}{onApproach&&<button className="button" onClick={onApproach}>{t('Điểm tiếp cận','Approach point')}</button>}</div>}
         <section className="workflow-section resident-device-facts"><h3>{t('Thiết bị','Device')}</h3>
           <dl>{!contact&&device.householdName&&<div><dt>{t('Hộ dân','Household')}</dt><dd>{device.householdName[locale==='vi'?0:1]}</dd></div>}
             <div><dt>{t('Mã thiết bị','Device ID')}</dt><dd>{device.id}</dd></div><div><dt>{t('Cập nhật','Updated')}</dt><dd>{clock.format(device.updatedAt)}</dd></div></dl>

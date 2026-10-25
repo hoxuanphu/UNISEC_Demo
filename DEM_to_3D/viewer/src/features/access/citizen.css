@@ -1051,3 +1051,5 @@
 .citizen-map:has(.citizen-nav-banner) .citizen-map-tools { top: 112px; }
 .citizen-map:has(.citizen-nav-banner) .citizen-map-compass { top: 214px; }
 .citizen-map:has(.citizen-nav-banner) .citizen-map-layers { display: none; }
+
+.citizen-team-label { margin:0; color:var(--ws-muted); font-size:12px; }

@@ -1,3 +1,4 @@
+import { UiIcon } from '../../shared/ui/UiIcon';
 import { DeviceLegendSymbol } from '../tracking/deviceSymbols';
 import { landslideAreaStyle } from '../landslides/landslideAreas';
 import { MapSymbol } from '../../shared/ui/MapSymbol';
@@ -15,6 +16,7 @@ export function MapLayerSample({kind,imagery}: {kind: string;imagery: boolean}) 
   const potential = landslideAreaStyle({state:'potential',review:'unreviewed'});
   const observed = landslideAreaStyle({state:'occurred',review:'reviewed'});
   const symbol: MapSymbolName | undefined = kind === 'communities' ? 'community' : kind === 'crossings' ? 'bridge' : ['staging','hlz','flood'].includes(kind) ? kind as MapSymbolName : undefined;
+  if (kind==='households') return <span className="layer-key-sample"><i className="legend-household" data-status="cut-off" aria-hidden="true"><UiIcon name="people" size={16}/></i></span>;
   if (kind==='devices') return <span className="layer-key-sample device-layer-sample"><DeviceLegendSymbol role="resident"/><DeviceLegendSymbol role="rescue"/></span>;
   if (symbol) return <span className="layer-key-sample"><MapPoiSample symbol={symbol} kind={symbol}/></span>;
   return <svg className="layer-key-sample" viewBox="0 0 32 24" fill="none" aria-hidden="true">

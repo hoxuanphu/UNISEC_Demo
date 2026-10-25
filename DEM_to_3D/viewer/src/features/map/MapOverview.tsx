@@ -4,7 +4,7 @@ import type { Locale } from '../../types/dear';
 import { UiIcon } from '../../shared/ui/UiIcon';
 import { createRaster2d, type Raster2D } from './raster2d';
 import type { TerrainData } from '../../types/terrain';
-import type { RescueCoverage } from './mapContracts';
+import type { ViewControls, RescueCoverage } from './mapContracts';
 import { addCoverageFog } from './coverageFog';
 import { defaultCoverageLayers, unreachedNeeds, type CoverageLayers } from '../presence/rescueCoverage';
 import { roadProjected, roadGeographic } from '../routes/selectedRoadJourney';
@@ -16,6 +16,8 @@ type Props = {
   terrain?: TerrainData;
   imageUrl?: string;
   onNavigate?: (point: { x: number; y: number }) => void;
+  viewControlRef?: MutableRefObject<ViewControls | null>;
+  viewVersion?: number;
   enabled: boolean;
   locale: Locale;
   area?: Array<[number, number]>;
@@ -29,7 +31,7 @@ const latLng = (point: { x: number; y: number }) => { const g = roadGeographic(p
 
 /** Local overview: reuses the raster and tracks the actual 2D map bounds. With rescue coverage it
  * also shows where teams have been and who still waits, each as a layer that can be switched. */
-export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl, onNavigate, enabled, locale, area = emptyArea, coverage }: Props): JSX.Element | null {
+export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl, onNavigate, viewControlRef, viewVersion, enabled, locale, area = emptyArea, coverage }: Props): JSX.Element | null {
   const [expanded, setExpanded] = useState(() => Boolean(coverage) && window.matchMedia('(min-width: 1100px) and (min-height: 650px)').matches);
   const [generatedRaster, setGeneratedRaster] = useState<Raster2D | null>(null);
   const [rasterError, setRasterError] = useState(false);
@@ -50,15 +52,17 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
   }, [providedRaster, terrain, imageUrl, enabled, expanded, attempt]);
   const [large, setLarge] = useState(false);
   const [layers, setLayers] = useState<CoverageLayers>(defaultCoverageLayers);
-  const layersRef = useRef(layers); layersRef.current = layers;
+  const shownLayers = coverage?.layers ?? layers;
+  const layersRef = useRef(shownLayers); layersRef.current = shownLayers;
   const fogRef = useRef<{ draw: () => void } | null>(null);
   const root = useRef<HTMLElement>(null), host = useRef<HTMLDivElement>(null);
   const t = (vi: string, en: string) => locale === 'vi' ? vi : en;
   const waiting = useSyncExternalStore(coverage?.subscribe ?? noSubscription, () => coverage ? unreachedNeeds(coverage.spots()) : 0);
-  useEffect(() => { fogRef.current?.draw(); }, [layers]);
+  useEffect(() => { fogRef.current?.draw(); }, [shownLayers]);
   useEffect(() => {
     const main = mapRef?.current, surface = host.current, container = root.current;
     if (!enabled || !expanded || !raster || (!main && !navigateRef.current) || !surface || !container) return;
+    let disposed = false;
     const overview = L.map(surface, {
       zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false,
       doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false,
@@ -72,19 +76,40 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
       className: 'overview-extent', color: '#ffffff', weight: 1.5,
       fillColor: '#197663', fillOpacity: .16, interactive: false
     }).addTo(overview) : null;
+    const viewApi = viewControlRef?.current;
+    const footprint = !main && viewApi?.getVisibleArea ? L.polygon([], { className: 'overview-extent', color: '#fff', weight: 2, fillColor: '#70b5e4', fillOpacity: .10, interactive: false }).addTo(overview) : null;
+    const selection = L.circleMarker([0,0], { className: 'overview-selected', radius: 9, color: '#fff', weight: 3, fillColor: '#2181cc', fillOpacity: .25, interactive: false });
     const context = coverage?.focus.length ? L.latLngBounds(coverage.focus.map(latLng)).pad(.12) : L.latLngBounds(raster.bounds).extend(area);
     const fog = coverage ? addCoverageFog(overview, latLng, coverage.spots, () => layersRef.current, coverage.rescued) : null;
     fogRef.current = fog;
     let fogFrame = 0;
-    const unsubscribe = coverage?.subscribe(() => { if (!fogFrame) fogFrame = requestAnimationFrame(() => { fogFrame = 0; fog?.draw(); }); }) ?? (() => undefined);
+    const unsubscribe = coverage?.subscribe(() => { if (!fogFrame) fogFrame = requestAnimationFrame(() => { fogFrame = 0; fog?.draw(); update(); }); }) ?? (() => undefined);
     const fit = () => {
+      if (disposed) return;
       if (!surface.clientWidth || !surface.clientHeight) return;
       overview.invalidateSize({ pan: false });
       overview.fitBounds(context, { padding: [8, 8], animate: false });
+      lastFootprint=undefined; schedule();
     };
+    let lastFootprint:ReadonlyArray<{x:number;y:number}>|undefined;
     let frame = 0;
-    const update = () => { frame = 0; if (main) extent?.setBounds(main.getBounds()); };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const update = () => {
+      frame = 0;
+      if (disposed || !overview.getPane('overlayPane')) return;
+      if (main) extent?.setBounds(main.getBounds());
+      const visible=viewApi?.getVisibleArea?.();
+      if (footprint && visible!==lastFootprint) {
+        const bounds=overview.getPixelBounds(),inset=new L.Bounds(bounds.min!.add([3,3]),bounds.max!.subtract([3,3]));
+        const clipped=L.PolyUtil.clipPolygon((visible??[]).map(point=>overview.project(latLng(point))),inset);
+        footprint.setLatLngs(clipped.map(point=>overview.unproject(point)));lastFootprint=visible;
+      }
+      const selected = coverage?.selected?.();
+      if (selected) { selection.setLatLng(latLng(selected.point)); if (!overview.hasLayer(selection)) selection.addTo(overview); selection.bringToFront();selection.getElement()?.setAttribute('aria-label',selected.label); }
+      else selection.remove();
+      // The view frame stays legible above the coverage mask.
+      overview.getPane('overlayPane')!.style.zIndex = '460';
+    };
+    const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(update); };
     let center = context.getCenter();
     const pan = (at: L.LatLng) => { center = at; if (main) main.panTo(at, { animate: false }); else navigateRef.current?.(roadProjected(at.lat, at.lng)); };
     const navigate = (event: L.LeafletMouseEvent) => pan(event.latlng);
@@ -101,17 +126,19 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
     };
     surface.addEventListener('keydown', keyboard);
     main?.on('move zoom resize', schedule);
+    const stopView = viewApi?.subscribeView?.(schedule);
     overview.on('click', navigate);
     const resize = new ResizeObserver(fit); resize.observe(surface);
     fit(); update();
     return () => {
-      cancelAnimationFrame(frame); cancelAnimationFrame(fogFrame); unsubscribe(); fog?.dispose(); fogRef.current = null; resize.disconnect();
+      disposed = true;
+      cancelAnimationFrame(frame); cancelAnimationFrame(fogFrame); unsubscribe(); stopView?.(); fog?.dispose(); fogRef.current = null; resize.disconnect();
       surface.removeEventListener('keydown', keyboard);
       main?.off('move zoom resize', schedule); overview.off('click', navigate);
       L.DomEvent.off(container);
       overview.remove();
     };
-  }, [enabled, expanded, mapRef, raster, area, coverage]);
+  }, [enabled, expanded, mapRef, raster, area, coverage, viewControlRef, viewVersion]);
   if (!enabled || (!raster && !terrain)) return null;
   const chips: Array<[keyof CoverageLayers, string]> = [
     ['fog', t('Đội chưa tới', 'Not reached')], ['need', t('Cần cứu', 'Needs rescue')], ['unverified', t('Chưa rõ', 'Unverified')], ['team', t('Đội cứu hộ', 'Rescue teams')], ['rescued', t('Đã cứu', 'Rescued')]];
@@ -123,7 +150,8 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
         <UiIcon name="area" size={15}/><span>{coverage ? t('Vùng cứu hộ', 'Rescue coverage') : t('Tổng quan', 'Overview')}</span><UiIcon name={expanded ? 'collapse' : 'expand'} size={14}/>
       </button>
       {expanded && coverage && <button className="icon-button overview-size" aria-pressed={large} aria-label={large ? t('Thu nhỏ', 'Smaller') : t('Phóng to', 'Larger')} title={large ? t('Thu nhỏ', 'Smaller') : t('Phóng to', 'Larger')}
-        onClick={() => setLarge(value => !value)}><UiIcon name={large ? 'zoomOut' : 'zoomIn'} size={14}/></button>}
+        onClick={() => setLarge(value => !value)}><UiIcon name={large ? 'collapse' : 'fit'} size={14}/></button>}
+      {expanded && coverage?.onOpenLayers && <button className="icon-button overview-size" aria-label={t('Lớp cứu hộ', 'Rescue layers')} title={t('Lớp cứu hộ', 'Rescue layers')} onClick={coverage.onOpenLayers}><UiIcon name="layers" size={15}/></button>}
     </div>
     {expanded && <div ref={host} id="overview-map-surface" className="map-overview-surface" tabIndex={0} role="group"
       aria-label={t('Định hướng bản đồ chính', 'Navigate the main map')}
@@ -134,9 +162,11 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
     {expanded && coverage && <div className="overview-coverage">
       <p className="overview-meaning"><i aria-hidden="true"/>{t('Sáng: đội đã đi qua, chưa có nghĩa đã cứu.', 'Light: teams passed through; rescue is recorded separately.')}</p>
       <p className={waiting ? 'is-alert' : undefined}>{waiting ? t(`${waiting} điểm cần cứu ngoài vùng đã tới`, `${waiting} rescue ${waiting === 1 ? 'location' : 'locations'} outside team coverage`) : t('Không có điểm cần cứu ngoài vùng đã tới', 'No rescue locations outside team coverage')}</p>
-      <fieldset aria-label={t('Lớp vùng cứu hộ', 'Coverage layers')}>
-        {chips.map(([key, label]) => <label key={key} data-layer={key}><input type="checkbox" checked={layers[key]} onChange={() => setLayers(value => ({ ...value, [key]: !value[key] }))}/><i aria-hidden="true"/>{label}</label>)}
-      </fieldset>
+      {coverage.onOpenLayers ? <div className="overview-key" aria-label={t('Chú giải cứu hộ', 'Rescue legend')}>
+        {chips.filter(([key]) => shownLayers[key]).map(([key,label]) => <span data-layer={key} key={key}><i aria-hidden="true"/>{label}</span>)}
+      </div> :       <fieldset aria-label={t('Lớp vùng cứu hộ', 'Coverage layers')}>
+        {chips.map(([key, label]) => <label key={key} data-layer={key}><input type="checkbox" checked={shownLayers[key]} onChange={() => setLayers(value => ({ ...value, [key]: !value[key] }))}/><i aria-hidden="true"/>{label}</label>)}
+      </fieldset>}
     </div>}
   </section>;
 }

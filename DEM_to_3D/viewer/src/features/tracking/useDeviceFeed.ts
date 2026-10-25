@@ -8,7 +8,7 @@ const noLinks:readonly LocalRoadAreaLink[]=[],noMissions:readonly DevicePlan[]=[
 export function useDeviceFeed(roads:RoadSegment[],enabled:boolean,links:readonly LocalRoadAreaLink[]=noLinks,missions:readonly DevicePlan[]=noMissions,bases:readonly RescueBase[]=noBases) {
   const epochKey=useMemo(()=>`dear.device-clock.v1:${roads.map(road=>road.id).sort().join(',')}:${missions.map(mission=>mission.id).sort().join(',')}`,[roads,missions]);
   const epoch=useMemo(()=>sharedScenarioEpoch(epochKey),[epochKey]);
-  const feed=useMemo(()=>{const feed=createDeviceFeed(roads,links,epoch,missions,bases);feed.synchronise(Math.max(0,(Date.now()-epoch)/1000));return feed;},[roads,links,missions,bases,epoch]);
+  const feed=useMemo(()=>{const feed=createDeviceFeed(roads,links,epoch,missions,bases,{repeat:false,ambientLimit:2});feed.synchronise(Math.max(0,(Date.now()-epoch)/1000));return feed;},[roads,links,missions,bases,epoch]);
   useEffect(()=>{
     if(!enabled)return;
     let frame=0,last:number|null=null;

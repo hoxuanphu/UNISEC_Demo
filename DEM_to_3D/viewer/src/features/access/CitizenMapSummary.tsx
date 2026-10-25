@@ -30,7 +30,7 @@ type Props = {
   risk?: boolean;
   blocked?: boolean;
   /** The rescue team closest to the resident: one line, tap to see it on the map. */
-  nearestTeam?: {name: string; detail: string; summary: string; onShow: () => void};
+  nearestTeam?: {assigned?:boolean;name: string; detail: string; summary: string; onShow: () => void};
   /** The road the resident is on, and whether it is blocked just ahead. */
   here?: {road: string; blocked: boolean};
   /** The nearest assembly point on foot; `reachable` false when every way there is blocked. */
@@ -74,6 +74,7 @@ export function CitizenMapSummary({locale, route, endpoints, place, road, onClos
   const home = !route && !endpoints && (safe || nearestTeam);
   if (waiting?.active && nearestTeam) return <section className="citizen-map-summary citizen-wait" aria-label={t('Chờ đội cứu hộ', 'Waiting for a rescue team')}>
     <header><strong>{t('Chờ đội cứu hộ', 'Waiting for a rescue team')}</strong><button className="icon-button" aria-label={t('Đóng', 'Close')} onClick={waiting.onClose}><UiIcon name="close" size={18}/></button></header>
+    <p className="citizen-team-label">{nearestTeam.assigned?t('Đội được giao','Assigned team'):t('Đội gần vị trí của bạn','Nearby team')}</p>
     <button className="citizen-team" onClick={nearestTeam.onShow}>
       <span className="citizen-team-icon" aria-hidden="true"><RescueCross size={16}/></span>
       <span className="citizen-team-copy"><strong>{nearestTeam.name}</strong><small>{nearestTeam.detail}</small></span>
@@ -83,6 +84,7 @@ export function CitizenMapSummary({locale, route, endpoints, place, road, onClos
       <li>{t('Ở yên chỗ an toàn, tránh xa taluy và suối.', 'Stay somewhere safe, away from slopes and streams.')}</li>
       <li>{t('Giữ máy bật để cập nhật vị trí.', 'Keep your phone on to update your location.')}</li>
     </ul>
+    {waiting.helpSentAt && !nearestTeam.assigned && <p className="citizen-help-sent" role="status">{t('Đang chờ giao đội.', 'Awaiting team assignment.')}</p>}
     {waiting.helpSentAt && <p className="citizen-help-sent" role="status"><UiIcon name="check" size={16}/>{t(`Đã gửi yêu cầu cứu lúc ${clock(waiting.helpSentAt, locale)}`, `Rescue request sent at ${clock(waiting.helpSentAt, locale)}`)}</p>}
     <div className="citizen-map-actions">
       {!waiting.helpSentAt && <button className="button citizen-primary citizen-help" onClick={waiting.onHelp}><UiIcon name="send" size={18}/>{t('Gửi yêu cầu cứu', 'Ask for rescue')}</button>}

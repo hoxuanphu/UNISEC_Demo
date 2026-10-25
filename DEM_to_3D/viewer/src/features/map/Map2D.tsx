@@ -1,3 +1,5 @@
+import { addCoverageFog } from './coverageFog';
+import { roadGeographic } from '../routes/selectedRoadJourney';
 import { hasRoutePlaceSymbol } from './routePlaceSymbol';
 import { TrackedDevices2D } from '../tracking/TrackedDevices2D';
 import { RouteSimulationLayer } from './RouteSimulationLayer';
@@ -98,6 +100,13 @@ export function Map2D(props: Props): JSX.Element {
       if (pane) pane.style.zIndex = String(200 + drawingLayerRank(name) * 30);
     }
   }, [mapReady]);
+  useEffect(()=>{
+    const map=mapRef.current,coverage=props.rescueCoverage;
+    if(!mapReady||!map||!coverage||!props.rescueCoverageOnMap)return;
+    const layer=addCoverageFog(map,point=>{const p=roadGeographic(point);return L.latLng(p.latitude,p.longitude);},coverage.spots,()=>coverage.layers!,coverage.rescued,false);
+    let last=0;const stop=coverage.subscribe(()=>{if(performance.now()-last>200){last=performance.now();layer.draw();}});
+    return()=>{stop();layer.dispose();};
+  },[mapReady,props.rescueCoverage,props.rescueCoverageOnMap]);
   const analysisRef = useRef<ReturnType<typeof createAnalysisOverlay2d> | null>(null);
   useEffect(() => {
     const map = mapRef.current;
