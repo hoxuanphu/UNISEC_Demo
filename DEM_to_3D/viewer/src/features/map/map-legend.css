@@ -71,3 +71,7 @@
 }
 .legend-household { display:inline-grid; place-items:center; width:18px; height:18px; flex:none; border:1.5px solid #fff; border-radius:50%; background:#d32f2f; color:#fff; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
 .legend-household svg { width:11px; height:11px; }
+.legend-household[data-status='unverified'] { background:#c77700; }
+.legend-household[data-status='rescued'] { background:#6b7280; }
+.legend-household[data-status='team'] { position:relative; }
+.legend-household[data-status='team']::after { content:""; position:absolute; right:-4px; top:-4px; width:7px; height:7px; border:1.5px solid #fff; border-radius:50%; background:var(--location-rescue); }

@@ -28,7 +28,11 @@
           "latitude": 21.714872,
           "reportedAt": "2026-09-12T13:40:00+07:00"
         }
-      ]
+      ],
+      "contact": {
+        "name": "Giàng A Sử",
+        "phone": "0900 000 201"
+      }
     },
     {
       "id": "HH-02",
@@ -58,7 +62,11 @@
       "need": [
         "Gạo dự trữ còn khoảng 2 ngày",
         "About two days of rice left"
-      ]
+      ],
+      "contact": {
+        "name": "Sùng A Chứ",
+        "phone": "0900 000 203"
+      }
     },
     {
       "id": "HH-04",
@@ -71,7 +79,31 @@
       "households": 2,
       "people": 6,
       "devices": 1,
-      "lastSeenAt": "2026-09-12T13:31:00+07:00"
+      "lastSeenAt": "2026-09-12T12:35:00+07:00",
+      "rescued": {
+        "at": "2026-09-12T13:20:00+07:00",
+        "to": [
+          "Bản C",
+          "Village C"
+        ]
+      },
+      "contact": {
+        "name": "Lý A Pao",
+        "phone": "0900 000 204"
+      }
+    },
+    {
+      "id": "HH-05",
+      "name": [
+        "Lán nương phía bắc Bản B",
+        "Hillside huts north of Village B"
+      ],
+      "longitude": 104.027806,
+      "latitude": 21.71999,
+      "households": 3,
+      "people": 8,
+      "devices": 2,
+      "lastSeenAt": "2026-09-12T13:44:00+07:00"
     }
   ]
 }

@@ -1,18 +1,18 @@
 import type { LocalNetwork, NetworkPlace } from '../route-film/localNetwork';
 import { analyseRoadJourney } from '../routes/journeyAnalysis';
 import { routeCondition } from '../routes/roadConditions';
-import type { HouseholdAccess } from './householdIsolation';
+import { householdStatusOrder, type HouseholdView } from './householdStatus';
 
 type Point = { x: number; y: number };
 export type VillageAccess = 'open' | 'difficult' | 'cut' | 'unknown';
-export type CommuneVillage = { place: NetworkPlace; name: [vi: string, en: string]; access: VillageAccess; huts: HouseholdAccess[] };
+export type CommuneVillage = { place: NetworkPlace; name: [vi: string, en: string]; access: VillageAccess; huts: HouseholdView[] };
 
 /**
  * The commune's villages as a responder reaches them: by open road from the assembly point
  * (`entry`), and the hut clusters the resident app places people at, each under its nearest
  * village. Access is computed from the mapped roads; nothing is declared.
  */
-export function communeVillages(network: LocalNetwork, households: readonly HouseholdAccess[], entry?: { id: string; projected: Point }): CommuneVillage[] {
+export function communeVillages(network: LocalNetwork, households: readonly HouseholdView[], entry?: { id: string; projected: Point }): CommuneVillage[] {
   const villages = network.places.filter(place => place.kind === 'village');
   const near = (p: Point) => villages.reduce((best, place) => Math.hypot(place.projected.x - p.x, place.projected.y - p.y) < Math.hypot(best.projected.x - p.x, best.projected.y - p.y) ? place : best);
   return villages.map(place => {
@@ -20,7 +20,7 @@ export function communeVillages(network: LocalNetwork, households: readonly Hous
     const access: VillageAccess = journey?.route ? routeCondition(journey.route) === 'open' ? 'open' : 'difficult'
       : journey?.kind === 'blocked-network' ? 'cut' : 'unknown';
     const huts = households.filter(item => near(item.projected) === place)
-      .sort((a, b) => Number(b.isolated) - Number(a.isolated) || b.cluster.people - a.cluster.people);
+      .sort((a, b) => householdStatusOrder.indexOf(a.status) - householdStatusOrder.indexOf(b.status) || b.cluster.people - a.cluster.people);
     return { place, name: [place.name.replace(/^Village /, 'Bản '), place.name], access, huts };
   });
 }

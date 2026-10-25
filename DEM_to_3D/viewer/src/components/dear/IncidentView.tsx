@@ -7,8 +7,7 @@ import { roadHazardIds } from '../../features/incident/roadHazards';
 import { PhotoThumb } from '../../features/fieldPhotos/PhotoThumb';
 import type { PreparedPhotoPoint } from '../../features/fieldPhotos/preparedPhotos';
 import '../../features/incident/incident-panel.css';
-import type { HouseholdAccess } from '../../features/presence/householdIsolation';
-import { householdClock } from '../../features/presence/HouseholdCard';
+import { householdsOfConcern, householdStatusText, householdStatusTone, type HouseholdView } from '../../features/presence/householdStatus';
 import {
   workState,
   type ResponseWork,
@@ -37,9 +36,9 @@ type Props = {
   onOpenCommunities: () => void;
   onOpenRoads: (filter: 'blocked' | 'uncertain') => void;
   onOpenArea: () => void;
-  /** Field huts the resident app still places people at, with every road out cut. */
   residentDevices?: import('react').ReactNode;
-  households?: HouseholdAccess[];
+  /** Field huts the resident app places people at, with where each stands. */
+  households?: HouseholdView[];
   onSelectHousehold?: (id: string) => void;
   onShowHouseholds?: () => void;
 };
@@ -63,7 +62,8 @@ export function IncidentView({
   const priority = communities.filter(community => community.prio === 1);
   const openTasks = tasks.filter(task => task.kind !== 'report' && workState(task, entries).status !== 'done');
   const activeTasks = openTasks.filter(task => workState(task, entries).status === 'active');
-  const isolated = historical ? [] : households.filter(item => item.isolated).sort((a, b) => b.cluster.people - a.cluster.people);
+  const concern = historical ? [] : householdsOfConcern(households);
+  const isolated = concern.filter(item => item.status === 'cut-off' || item.status === 'team');
   return <>
     <div className="sidebar-top incident-overview-heading">
       <div className="detail-title">
@@ -99,14 +99,14 @@ export function IncidentView({
         {pendingReport && <small>{t(...pendingReport)}</small>}</span><UiIcon name="next" size={16}/>
       </button>}
 
-      {/* The alarm: people the app still sees at huts every road out of which is cut. */}
-      {isolated.length > 0 && <section className="incident-households" ref={householdSection}>
-        <h2 className="incident-section-title"><span>{t('Hộ bị cô lập', 'Isolated households')}</span><small>{t(`${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} người`, `${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} people`)}</small></h2>
+      {/* People the app places at huts who need a responder, most urgent first, each with where it stands. */}
+      {concern.length > 0 && <section className="incident-households" ref={householdSection}>
+        <h2 className="incident-section-title"><span>{t('Hộ dân', 'Households')}</span><small>{t(`${number(concern.reduce((sum, item) => sum + item.cluster.people, 0))} người`, `${number(concern.reduce((sum, item) => sum + item.cluster.people, 0))} people`)}</small></h2>
         <div className="incident-landslide-list">
-          {isolated.map(item => <button className="incident-landslide-row incident-household-row" key={item.cluster.id} onClick={() => onSelectHousehold?.(item.cluster.id)}>
-            <span className="incident-household-icon"><UiIcon name="people" size={20}/></span>
+          {concern.map(item => <button className="incident-landslide-row incident-household-row" key={item.cluster.id} onClick={() => onSelectHousehold?.(item.cluster.id)}>
+            <span className="incident-household-icon" data-status={item.status}><UiIcon name="people" size={20}/></span>
             <span className="incident-landslide-copy"><strong>{t(...item.cluster.name)}</strong><small>{t(`${item.cluster.people} người, ${item.cluster.households} hộ`, `${item.cluster.people} people, ${item.cluster.households} households`)}</small></span>
-            <small className="incident-status" data-tone="critical">{t(`App ${householdClock(item.cluster.lastSeenAt, locale)}`, `App ${householdClock(item.cluster.lastSeenAt, locale)}`)}</small>
+            <small className="incident-status" data-tone={householdStatusTone[item.status]}>{t(...householdStatusText[item.status])}</small>
           </button>)}
         </div>
       </section>}

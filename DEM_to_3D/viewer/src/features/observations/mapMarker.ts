@@ -21,7 +21,7 @@ export function observationMarker(
       html: icon,
       className:
         "field-map-marker" +
-        (observation.kind === "survey" ? " is-survey" : "") +
+        (observation.kind === "survey" ? " is-survey" : observation.kind === "help" ? " is-help" : "") +
         (options.selected ? " is-selected map-selected-reference" : ""),
       ...poiGeometry(options.selected),
       tooltipAnchor: [0, -30],

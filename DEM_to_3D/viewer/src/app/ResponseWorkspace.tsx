@@ -9,6 +9,7 @@ import { assessHouseholdAccess } from '../features/presence/householdIsolation';
 import { HouseholdCard } from '../features/presence/HouseholdCard';
 import { householdWork } from '../features/presence/householdWork';
 import { householdRescues } from '../features/presence/householdRescue';
+import { householdStatuses, postEventCoverage } from '../features/presence/householdStatus';
 import { rescueBases } from '../features/tracking/rescueBase';
 import { communeVillages } from '../features/presence/communeSites';
 import { CommuneVillages } from '../features/presence/CommuneVillages';
@@ -47,8 +48,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
-  useSyncExternalStore
+  useState
 } from 'react';
 import '../styles.css';
 import '../styles/tokens.css';
@@ -170,8 +170,6 @@ type Props = {
   runtime: ReturnType<typeof useTerrainWorkspace> & { packet: IncidentPacket };
 };
 
-/** Stands in for the device feed before it exists. */
-const noSubscription = () => () => {};
 
 export function ResponseWorkspace({
   revision,
@@ -441,9 +439,6 @@ export function ResponseWorkspace({
   const presence=useResidentPresence(scenarioManifest?.residentPresence);
   const households=useMemo(()=>!historical&&localNetwork.network&&presence?assessHouseholdAccess(localNetwork.network,presence.clusters):[],[historical,localNetwork.network,presence]);
   const [householdId,setHouseholdId]=useState<string|null>(null);
-  // People cut off at field huts are relief work alongside the evidence checks.
-  const workTasks=useMemo(()=>[...householdWork(historical?[]:households),...evidenceWork].sort((a,b)=>a.priority-b.priority||a.id.localeCompare(b.id)),[households,evidenceWork,historical]);
-  const household=households.find(item=>item.cluster.id===householdId&&item.isolated);
   const [localRoadId,setLocalRoadId]=useState<string|null>(null);
   const localRoad=localNetwork.network?.roads.find(road=>road.id===localRoadId);
   const showLocalRoads=()=>{
@@ -458,16 +453,23 @@ export function ResponseWorkspace({
   const journeyRoads=useMemo(()=>[...roads,...(localNetwork.network?.roads??[])],[roads,localNetwork.network]);
   // Teams muster at the scenario's assembly points on the commune roads.
   const bases=useMemo(()=>localNetwork.network?rescueBases(responseSites,localNetwork.network.roads):[],[localNetwork.network,responseSites]);
-  // Villages as reached from the commune's first assembly point, with the huts around each.
-  const villages=useMemo(()=>localNetwork.network?communeVillages(localNetwork.network,households,bases[0]):[],[localNetwork.network,households,bases]);
   // Teams sent to the isolated huts move in the same feed as the other rescue and resident dots.
   const householdTeams=useMemo(()=>localNetwork.network?householdRescues(localNetwork.network,households,bases):[],[localNetwork.network,households,bases]);
   const householdMissions=useMemo(()=>householdTeams.map(team=>team.plan),[householdTeams]);
+  // Where each hut cluster stands: cut off, unverified, awaiting a team, or rescued.
+  const imageryCoverage=useMemo(()=>postEventCoverage(analysisImagery.layers,incident.triggeredAt,incident.asOf),[analysisImagery.layers,incident.triggeredAt,incident.asOf]);
+  const householdTeamIds=useMemo(()=>new Set(householdTeams.map(team=>team.householdId)),[householdTeams]);
+  const householdBase=useMemo(()=>householdStatuses(households,imageryCoverage,householdTeamIds,new Set()),[households,imageryCoverage,householdTeamIds]);
+  // People at field huts are relief or verification work alongside the evidence checks.
+  const workTasks=useMemo(()=>[...householdWork(historical?[]:householdBase),...evidenceWork].sort((a,b)=>a.priority-b.priority||a.id.localeCompare(b.id)),[householdBase,evidenceWork,historical]);
+  const assistedHouseholds=useMemo(()=>new Set(workTasks.filter(task=>task.id.startsWith('household:')&&workState(task,work.entries).status==='done').map(task=>task.id.slice(10))),[workTasks,work.entries]);
+  const householdViews=useMemo(()=>historical?[]:householdStatuses(households,imageryCoverage,householdTeamIds,assistedHouseholds),[historical,households,imageryCoverage,householdTeamIds,assistedHouseholds]);
+  const household=householdViews.find(item=>item.cluster.id===householdId&&item.status!=='clear');
+  // Villages as reached from the commune's first assembly point, with the huts around each.
+  const villages=useMemo(()=>localNetwork.network?communeVillages(localNetwork.network,householdViews,bases[0]):[],[localNetwork.network,householdViews,bases]);
   const operationalDeviceFeed=useDeviceFeed(journeyRoads,snapshotReady && !historical && !!localNetwork.network,localNetwork.network?.conditions?.areaLinks,householdMissions,bases);
   const residentLocation=useResidentLocation(historical?null:localNetwork.network);
   const deviceFeed=useMemo(()=>mergeLocationFeeds(operationalDeviceFeed,residentLocation),[operationalDeviceFeed,residentLocation]);
-  // Huts a team has reached; a string so the workspace re-renders on arrival, not on every move.
-  const attendedHouseholds=useSyncExternalStore(deviceFeed?.subscribe??noSubscription,()=>deviceFeed?householdTeams.filter(team=>['on-site','escorting','evacuated'].includes(deviceFeed.getSnapshot().find(device=>device.id===team.plan.id)?.state??'')).map(team=>team.householdId).join(','):'');
   const localJourneyRoadIds=useMemo(()=>localNetwork.network?.roads.map(road=>road.id)??[],[localNetwork.network]);
   const localContext=useMemo(()=>localNetwork.context?{areas:localNetwork.context.areas.filter(area=>area.kind==='landslide' && layers.landslide!==false),closures:[]}:undefined,[localNetwork.context,layers.landslide]);
   const localArea=localContext?.areas.find(area=>area.id===localAreaId);
@@ -480,7 +482,7 @@ export function ResponseWorkspace({
     if(area)focusMapOn([{x:area.center.x-area.radius,y:area.center.y-area.radius},{x:area.center.x+area.radius,y:area.center.y+area.radius}]);
   };
   const inspectHousehold=(id:string)=>{
-    const item=households.find(entry=>entry.cluster.id===id);if(!item)return;
+    const item=householdViews.find(entry=>entry.cluster.id===id&&entry.status!=='clear');if(!item)return;
     navigation.dispatch({type:'view',view:navigation.view,list:true});
     setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(id);resetTools();setMobileView('map');setMapMode('2d');
     focusMapOn([item.projected,...(item.access?[item.access.point]:[])]);
@@ -499,7 +501,7 @@ export function ResponseWorkspace({
   };
   const selectedDeviceId=selectedObjectId?.startsWith('device:')?selectedObjectId.slice(7):selectedObjectId?.startsWith('team:')?selectedObjectId.slice(5):null;
   const showHouseholds=()=>{
-    const isolated=households.filter(entry=>entry.isolated);if(!isolated.length)return;
+    const isolated=householdViews.filter(entry=>entry.status!=='clear');if(!isolated.length)return;
     setGisCardId(null);setGisGroupIds([]);setLocalRoadId(null);setLocalAreaId(null);setHouseholdId(null);resetTools();setMobileView('map');setMapMode('2d');
     requestAnimationFrame(()=>viewControlRef.current?.frameProjected?.(isolated.flatMap(entry=>[entry.projected,...(entry.access?[entry.access.point]:[])])));
   };
@@ -1115,7 +1117,7 @@ export function ResponseWorkspace({
 
       <main className="work-area">
         <WorkspaceNav view={view} locale={locale} onChangeView={changeView} rescue={bases.length > 0} />
-        <ResponsePanel residentDevices={!historical&&<ResidentDeviceList selectedId={selectedDeviceId} feed={deviceFeed} roads={journeyRoads} locale={locale} onSelect={selectDevice}/>}
+        <ResponsePanel residentDevices={!historical&&<ResidentDeviceList selectedId={selectedDeviceId} feed={deviceFeed} roads={journeyRoads} locale={locale} onSelect={selectDevice} records={gis.records}/>}
           fieldPhotos={fieldPhotos}
           survey={!historical && runtime.fieldDataset ? {areas:gis.records.filter(r => r.feature.properties.sourceDatasetId === runtime.fieldDataset!.id && r.feature.geometry.type !== 'Point').length,points:gis.records.filter(r => r.feature.properties.sourceDatasetId === runtime.fieldDataset!.id && r.feature.geometry.type === 'Point').length} : undefined}
           onShowCorridor={!historical && gis.records.some(r => r.feature.properties.referenceKind === 'road-corridor') ? () => {
@@ -1147,7 +1149,7 @@ export function ResponseWorkspace({
           onInspectObject={inspectObject}
           onRevealPanel={revealPanel}
           onOpenDialog={setActiveDialog}
-          households={households}
+          households={householdViews}
           onSelectHousehold={inspectHousehold}
           onShowHouseholds={showHouseholds}
           communityExtra={!historical&&<CommuneVillages villages={villages} entryName={bases[0]?.name} locale={locale}
@@ -1158,7 +1160,7 @@ export function ResponseWorkspace({
         />
 
         <ResponseDetails
-          renderObject={(objectId,close)=>objectId.startsWith('device:')?<ResidentDeviceDetail feed={deviceFeed} id={objectId.slice(7)} roads={journeyRoads} locale={locale} onClose={close} onShow={point=>focusMapOn([point])} onRoad={id=>handleOverlayHit({type:'road',id})}/>:objectId.startsWith('team:')?<RescueTeamDetail onRoad={id=>handleOverlayHit({type:'road',id})} key={objectId} feed={deviceFeed} id={objectId.slice(5)} bases={bases} locale={locale} onClose={close}
+          renderObject={(objectId,close)=>objectId.startsWith('device:')?<ResidentDeviceDetail feed={deviceFeed} id={objectId.slice(7)} roads={journeyRoads} locale={locale} onClose={close} onShow={point=>focusMapOn([point])} onRoad={id=>handleOverlayHit({type:'road',id})} records={gis.records} onReport={id=>showGisOnResponse(id)}/>:objectId.startsWith('team:')?<RescueTeamDetail onRoad={id=>handleOverlayHit({type:'road',id})} key={objectId} feed={deviceFeed} id={objectId.slice(5)} bases={bases} locale={locale} onClose={close}
             onShow={point=>focusMapOn([point])} onSelectBase={id=>inspectObject('poi:'+id)}
             onSelectTarget={team=>{
               if(team.missionId?.startsWith('household:'))inspectHousehold(team.missionId.slice(10));
@@ -1245,7 +1247,7 @@ export function ResponseWorkspace({
           <div className="map-canvas">
             {mapMode === '2d' ? (
               <Map2D selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} deviceFeed={layers.devices!==false?deviceFeed:null} contextGeometry={localContext} selectedContextAreaId={localAreaId} onSelectContextArea={inspectLocalArea}
-                households={historical?[]:households} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold} attendedHouseholds={attendedHouseholds}
+                households={householdViews} selectedHouseholdId={household?.cluster.id??null} onSelectHousehold={inspectHousehold}
                 analysisImagery={analysisDisplay}
                 gisEnabled={true}
                 gisRecords={displayedGis}
@@ -1441,7 +1443,7 @@ export function ResponseWorkspace({
 
           <MapControls hasLocationDevices={Boolean(deviceFeed?.getSnapshot().length)}
             hasLocalRoads={!!localNetwork.network}
-            hasIsolatedHouseholds={!historical&&households.some(item=>item.isolated)}
+            householdStatuses={householdViews.map(item=>item.status)}
             timelineExpanded={timelineExpanded}
             onToggleTimeline={() => setTimelineExpanded(open => !open)}
             headerCollapsed={headerCollapsed}
@@ -1585,8 +1587,8 @@ export function ResponseWorkspace({
               places={[...(localNetwork.network?.places??[]).map(place=>({key:`local:${place.id}`,label:locale==='vi'?place.name.replace(/^Village /,'Bản ').replace(/^Helipad$/,'Bãi đáp'):place.name,
                 group:locale==='vi'?'Trong xã Chế Tạo':'Within Chế Tạo',latitude:place.latitude,longitude:place.longitude,
                 roadIds:localJourneyRoadIds})),
-                ...households.filter(item=>item.isolated).map(item=>({key:`household:${item.cluster.id}`,label:item.cluster.name[locale==='vi'?0:1],
-                  group:locale==='vi'?'Hộ bị cô lập':'Isolated households',latitude:item.cluster.latitude,longitude:item.cluster.longitude,roadIds:localJourneyRoadIds})),
+                ...householdViews.filter(item=>item.status!=='clear').map(item=>({key:`household:${item.cluster.id}`,label:item.cluster.name[locale==='vi'?0:1],
+                  group:locale==='vi'?'Hộ dân':'Households',latitude:item.cluster.latitude,longitude:item.cluster.longitude,roadIds:localJourneyRoadIds})),
                 ...(layers.gis ? gisJourneyPlaces(gis.records) : [])]}
               onProfile={() =>
                 interaction.dispatch({ type: 'toggle-tool', tool: 'profile' })

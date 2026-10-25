@@ -86,6 +86,8 @@ export function createTrackingOverlay(host:HTMLElement,feed:LocationFeed,locale:
       marker.dataset.worldX=device.point.x.toFixed(3);marker.dataset.worldY=device.point.y.toFixed(3);marker.dataset.signal=String(device.updatedAt);
       marker.dataset.groupLeader=group?.id??'';marker.dataset.members=JSON.stringify(group?.members??[]);
       const active=selectedId()??selected;marker.classList.toggle('is-selected',!!active&&!!group?.members.includes(active));
+      // A resident held before a closure: drawn above the closure sign, with a red ring.
+      marker.classList.toggle('is-stranded',device.role==='resident'&&device.id!==selfId&&!!device.closureRoadId&&(device.state==='waiting'||device.state==='approaching'));
       const label=device.id===selfId?t('Vị trí của bạn','Your location'):device.name[vi?0:1]+(group&&group.members.length>1?t(`, ${group.members.length} thiết bị tại đây`,`, ${group.members.length} devices here`):'');
       marker.setAttribute('aria-label',label);
       const name=marker.querySelector<HTMLElement>('.tracked-device-name');if(name&&device.id!==selfId)text(name,label);

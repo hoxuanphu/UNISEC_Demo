@@ -996,3 +996,39 @@
 .citizen-team-copy strong { font-size: 14px; font-weight: 600; line-height: 1.35; }
 .citizen-team-copy small { overflow: hidden; color: var(--ws-muted); font-size: 12px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
 .citizen-team > svg { color: var(--ws-muted); }
+
+/* Where you are, then the two ways to safety: walk to an assembly point, or stay for a team. */
+.citizen-here small { display: block; color: var(--ws-muted); font-size: 12px; }
+.citizen-workspace .citizen-here strong { font-size: 16px; }
+.citizen-workspace .citizen-here p { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 13px; font-weight: 600; }
+.citizen-options { display: grid; gap: 8px; }
+.citizen-option { display: grid; grid-template-columns: 36px minmax(0, 1fr) 16px; align-items: center; gap: 10px; width: 100%; min-height: 60px; padding: 10px 12px; border: 1px solid var(--card-line); border-radius: 10px; background: var(--card); color: var(--ws-text); text-align: left; font: inherit; }
+.citizen-option:disabled { opacity: 1; background: var(--ws-tint, var(--fill)); }
+.citizen-option:disabled strong { color: var(--critical-ink); }
+@media (hover: hover) { .citizen-option:not(:disabled):hover { background: var(--hover); } }
+.citizen-option > svg { color: var(--ws-muted); }
+.citizen-option-copy { display: grid; gap: 2px; min-width: 0; }
+.citizen-option-copy strong { font-size: 14px; font-weight: 600; line-height: 1.35; }
+.citizen-option-copy small { color: var(--ws-muted); font-size: 12px; line-height: 1.4; }
+.citizen-option-icon { display: grid; place-items: center; width: 32px; height: 32px; justify-self: center; border-radius: 50%; color: #fff; }
+.citizen-option-icon.is-assembly { background: var(--sym-staging, #2e7a4d); }
+.citizen-option-icon.is-team { background: var(--location-rescue, #26a65b); }
+.citizen-map-links { display: flex; justify-content: center; gap: 20px; }
+.citizen-map-links .text-button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; font-size: 13px; }
+.citizen-wait-tips { display: grid; gap: 6px; margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.45; }
+.citizen-wait .citizen-team { margin: 0; }
+
+/* Two road views; the main road keeps its village route and search one level down. */
+.citizen-workspace .citizen-segments.is-two { grid-template-columns: 1fr 1fr; }
+.citizen-workspace .citizen-segments.is-two button { flex-direction: row; gap: 6px; padding: 10px 6px; font-size: 13px; }
+.citizen-subtabs { display: flex; gap: 16px; padding: 0 2px; }
+.citizen-subtabs .text-button { min-height: 36px; padding: 0; border-bottom: 2px solid transparent; border-radius: 0; color: var(--ws-muted); font-size: 13px; }
+.citizen-subtabs .text-button[aria-pressed="true"] { border-bottom-color: var(--ws-brand); color: var(--ws-text); font-weight: 600; }
+.citizen-workspace .citizen-stop { gap: 6px; }
+.citizen-stop-row { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; }
+.citizen-stop-row .icon-button { width: 44px; height: 44px; border: 1px solid var(--card-line); border-radius: 8px; background: var(--card); color: var(--ws-brand); }
+.citizen-safe-places button:disabled { opacity: 1; cursor: default; }
+.citizen-safe-places small[data-road-state="open"] { color: var(--ws-muted); }
+.citizen-safe-places button > .citizen-option-icon { flex: none; }
+.citizen-help-sent { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--ws-brand); font-size: 13px; font-weight: 600; }
+.citizen-workspace .citizen-map-summary .button.citizen-help { color: #fff; background: #c62828; border-color: #c62828; }

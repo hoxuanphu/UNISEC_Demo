@@ -5,6 +5,7 @@ const labels: Record<ObservationKind, [string, string]> = {
   'road-damage': ['Hư hỏng đường', 'Road damage'],
   water: ['Nước / ngập', 'Water / flooding'],
   survey: ['Điểm khảo sát', 'Survey point'],
+  help: ['Cần cứu hộ', 'Needs rescue'],
   other: ['Ghi nhận khác', 'Other observation']
 };
 export function observationLabel(
@@ -14,7 +15,7 @@ export function observationLabel(
   return labels[kind][locale === 'vi' ? 0 : 1];
 }
 export function observationColor(kind: ObservationKind): string {
-  return kind === 'survey' ? '#3186bc' : '#b87919';
+  return kind === 'survey' ? '#3186bc' : kind === 'help' ? '#d32f2f' : '#b87919';
 }
 
 const photoLabels: Record<string, [string, string]> = {

@@ -125,6 +125,8 @@
 /* Evidence symbols use the same disc/pin anchor as the response map. */
 .field-map-marker {--pin:var(--sym-report,#987b4e);border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--pin);}
 .field-map-marker.is-survey {--pin:var(--sym-survey,#627f94);}
+/* A resident asking for rescue: the pin in the alarm red. */
+.field-map-marker.is-help {--pin:#c62828;}
 .field-map-marker > .field-map-symbol {position:relative;isolation:isolate;display:block;flex:none;min-width:0;min-height:0;max-width:34px;max-height:46px;line-height:0;}
 .field-map-marker > .field-map-symbol > svg {position:absolute;z-index:0;inset:0;display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;fill:#f5f0e4;stroke:var(--pin);stroke-width:1.1;}
 .field-map-marker b {position:absolute;z-index:1;top:6px;left:6px;width:16px;height:16px;display:grid;place-items:center;color:var(--pin);font:600 13px/16px var(--font-sans);}

@@ -5,13 +5,18 @@
  * information. Selected objects never yield.
  */
 const ranks: ReadonlyArray<readonly [selector: string, rank: number]> = [
-  ['.household-alert', 90],            // people cut off: the alarm
+  ['.household-alert:is(.is-cut-off,.is-team)', 90], // people cut off: the alarm
+  ['.tracked-device.is-stranded', 88],  // a resident held at a closure stands beside its sign
+  ['.field-map-marker.is-help', 86],    // a rescue request; the stranded dot it came from already says it
   ['.map-pin.community.is-priority', 85],
   ['.map-pin.hazard', 82],              // incident landslides outrank the closures they cause
   ['.road-closure-sign', 80],
+  ['.household-alert.is-unverified', 78],
   ['.map-pin.community', 76],
   ['.tracked-device', 70],
+  ['.field-map-marker', 62],           // residents' reports
   ['.map-pin', 60],                    // staging, landing sites, other places
+  ['.household-alert', 55],            // already rescued: a record, yields to everything live
   ['.road-risk-sign', 50],
 ];
 const selected = '.is-selected';
@@ -37,6 +42,7 @@ function symbolBox(element: HTMLElement): Box | null {
   if (element.matches('.road-condition-sign')) { const svg = element.querySelector('svg'); return svg ? boxOf(svg) : null; }
   if (element.matches('.map-pin')) return boxOf(element.querySelector('.map-pin-shape') ?? element);
   if (element.matches('.tracked-device')) return boxOf(element.querySelector('.tracked-device-dot') ?? element);
+  if (element.matches('.field-map-marker')) return boxOf(element.querySelector('.field-map-symbol') ?? element);
   return boxOf(element);
 }
 

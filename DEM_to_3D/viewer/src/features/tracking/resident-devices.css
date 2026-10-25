@@ -11,3 +11,14 @@
 .resident-device-facts dd {margin:0;overflow-wrap:anywhere;font-size:14px;font-variant-numeric:tabular-nums}
 .resident-device-detail .object-row span {display:grid;gap:4px}
 .resident-device-detail .object-row small {color:var(--ws-muted);font-size:12px}
+/* As on the map, larger: a person in the alarm red while held at a closure. */
+.resident-device-row > .tracked-device-symbol { width:40px; height:40px; border:0; background-size:20px 20px; background-color:#c62828; box-shadow:none; }
+/* What the person reported: newest first, a rescue request in the alarm red. */
+.resident-device-reports h3 { display:flex; justify-content:space-between; align-items:baseline; }
+.resident-device-reports h3 small { color:var(--ws-muted); font-size:12px; font-weight:500; }
+.resident-device-reports article + article { margin-top:10px; padding-top:10px; border-top:1px solid var(--ws-line); }
+.resident-device-reports article[data-kind='help'] .object-row strong { color:var(--critical-ink); }
+.resident-device-reports .object-row span { display:grid; gap:2px; }
+.resident-device-reports .object-row small { color:var(--ws-muted); font-size:12px; }
+.resident-device-reports article > p { margin:6px 0 0; font-size:14px; line-height:1.5; }
+.resident-device-row .resident-device-asked { color:var(--critical-ink); font-weight:600; }

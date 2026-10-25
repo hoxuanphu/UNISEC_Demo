@@ -26,7 +26,7 @@ export const vi = {
   help: 'Hướng dẫn',
   switchRole: 'Đổi vai trò',
   residentTasks: 'Công việc của người dân',
-  roadInformation: 'Thông tin đường',
+  roadInformation: 'Tìm đường',
   reportAnObservation: 'Gửi ghi nhận',
   myReports: 'Đã gửi',
   accessToAnArea: 'Thông tin đường',

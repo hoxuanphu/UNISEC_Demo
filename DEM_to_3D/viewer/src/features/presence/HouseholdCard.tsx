@@ -4,13 +4,13 @@ import type { LocationFeed } from '../tracking/deviceFeed';
 import { deviceStatusText } from '../tracking/trackingOverlay';
 import { workStatusText, type WorkStatus } from '../incident/responseWork';
 import { UiIcon } from '../../shared/ui/UiIcon';
-import type { HouseholdAccess, HouseholdCut } from './householdIsolation';
+import type { HouseholdCut } from './householdIsolation';
+import { householdStatusText, unverifiedText, type HouseholdView } from './householdStatus';
 import './isolated-households.css';
 
 export const householdClock = (iso: string, locale: Locale) =>
   new Date(iso).toLocaleTimeString(locale === 'en' ? 'en-GB' : 'vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' });
 
-/** One isolated hut cluster: how many people, how recently the app saw them, and what cuts the way out. */
 /** The team sent to these huts, live from the same feed as the map dots. */
 function TeamRow({ feed, id, locale, onShow }: { feed: LocationFeed; id: string; locale: Locale; onShow: (point: { x: number; y: number }) => void }) {
   // Re-render on a change of state only, not on every position update.
@@ -23,7 +23,7 @@ function TeamRow({ feed, id, locale, onShow }: { feed: LocationFeed; id: string;
 }
 
 export function HouseholdCard({ item, areaName, locale, onClose, workStatus, onWork, onDirections, helipad, team }: {
-  item: HouseholdAccess;
+  item: HouseholdView;
   areaName: (id: string) => string;
   locale: Locale;
   onClose: () => void;
@@ -48,20 +48,24 @@ export function HouseholdCard({ item, areaName, locale, onClose, workStatus, onW
     : entry.kind === 'road' ? t(`${entry.name[0]} bị chặn`, `${entry.name[1]} blocked`)
     : t(`Sạt lở dân báo lúc ${householdClock(entry.reportedAt, locale)}`, `Slide reported by residents at ${householdClock(entry.reportedAt, locale)}`);
   const cuts = [...new Set(item.cutBy.map(cut))];
-  return <aside className="household-card" aria-label={t('Hộ bị cô lập', 'Isolated households')}>
-    <header><div><small>{t('Hộ bị cô lập', 'Isolated households')}</small><h2>{cluster.name[vi ? 0 : 1]}</h2></div>
+  return <aside className="household-card" aria-label={cluster.name[vi ? 0 : 1]}>
+    <header><div><small data-status={item.status}>{t(...householdStatusText[item.status])}</small><h2>{cluster.name[vi ? 0 : 1]}</h2></div>
       <button type="button" className="icon-button" aria-label={t('Đóng', 'Close')} onClick={onClose}><UiIcon name="close"/></button></header>
     <p className="household-card-people"><strong>{cluster.people}</strong><span>{t(`người, ${cluster.households} hộ`, `people, ${cluster.households} households`)}</span></p>
     <dl>
+      {cluster.contact && <div><dt>{t('Liên lạc', 'Contact')}</dt><dd>{cluster.contact.name}, {cluster.contact.phone}</dd></div>}
       <div><dt>{t('Tín hiệu app', 'App signal')}</dt><dd>{t(`${cluster.devices} máy, lần cuối ${householdClock(cluster.lastSeenAt, locale)}`, `${cluster.devices} phones, last at ${householdClock(cluster.lastSeenAt, locale)}`)}</dd></div>
-      <div><dt>{t('Đường ra bị cắt', 'Way out cut by')}</dt><dd><ul>{cuts.length ? cuts.map(label => <li key={label}>{label}</li>) : <li>{t('Chưa rõ', 'Unknown')}</li>}</ul></dd></div>
-      <div><dt>{t('Tiếp cận', 'Access')}</dt><dd>{t('Chưa xác định lối vào', 'Access path unknown')}</dd></div>
+      {cluster.rescued ? <div><dt>{t('Đã cứu', 'Rescued')}</dt><dd>{t(`Đưa về ${cluster.rescued.to[0]} lúc ${householdClock(cluster.rescued.at, locale)}`, `Brought to ${cluster.rescued.to[1]} at ${householdClock(cluster.rescued.at, locale)}`)}</dd></div>
+      : item.isolated ? <>
+        <div><dt>{t('Đường ra bị cắt', 'Way out cut by')}</dt><dd><ul>{cuts.length ? cuts.map(label => <li key={label}>{label}</li>) : <li>{t('Chưa rõ', 'Unknown')}</li>}</ul></dd></div>
+        <div><dt>{t('Tiếp cận', 'Access')}</dt><dd>{t('Chưa xác định lối vào', 'Access path unknown')}</dd></div>
+      </> : item.unverified && <div><dt>{t('Đường ra', 'Way out')}</dt><dd>{t(...unverifiedText[item.unverified])}</dd></div>}
       <div><dt>{t('Nhu cầu', 'Needs')}</dt><dd>{cluster.need ? cluster.need[vi ? 0 : 1] : t('Chưa rõ', 'Unknown')}</dd></div>
       {team && <TeamRow feed={team.feed} id={team.id} locale={locale} onShow={point => { onClose(); team.onShow(point); }}/>}
       {helipad && <div><dt>{t('Bãi đáp gần nhất', 'Nearest landing')}</dt><dd>{t(`${helipad.name[0]}, ${helipad.distanceKm.toLocaleString('vi-VN', { maximumFractionDigits: 1 })} km đường chim bay`, `${helipad.name[1]}, ${helipad.distanceKm.toLocaleString('en-GB', { maximumFractionDigits: 1 })} km straight line`)}</dd></div>}
     </dl>
-    {(onWork || onDirections) && <div className="household-card-actions">
-      {onWork && <button type="button" className="button primary" onClick={onWork}><UiIcon name="priority" size={16}/>{workStatus && workStatus !== 'pending' ? t(...workStatusText[workStatus]) : t('Giao việc cứu trợ', 'Assign relief')}</button>}
+    {(onWork || onDirections) && !cluster.rescued && <div className="household-card-actions">
+      {onWork && <button type="button" className="button primary" onClick={onWork}><UiIcon name="priority" size={16}/>{workStatus && workStatus !== 'pending' ? t(...workStatusText[workStatus]) : item.isolated ? t('Giao việc cứu trợ', 'Assign relief') : t('Giao việc xác minh', 'Assign a check')}</button>}
       {onDirections && <button type="button" className="button" onClick={onDirections}><UiIcon name="route" size={16}/>{t('Đường tiếp cận', 'Road approach')}</button>}
     </div>}
   </aside>;

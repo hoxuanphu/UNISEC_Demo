@@ -5,6 +5,10 @@ import { householdRescues } from '../presence/householdRescue';
 import { rescueBases } from '../tracking/rescueBase';
 import { useDeviceFeed } from '../tracking/useDeviceFeed';
 import { useNearestTeam } from '../tracking/nearestTeam';
+import { useSafePlaces } from './safePlaces';
+import { MapSymbol } from '../../shared/ui/MapSymbol';
+import { MapPoiSample } from '../map/MapLayerSample';
+import { DeviceLegendSymbol } from '../tracking/deviceSymbols';
 import { teamStatus } from '../tracking/RescueTeams';
 import { MapCompass } from '../map/MapCompass';
 import { useDeviceHeading } from '../../shared/hooks/useDeviceHeading';
@@ -17,7 +21,7 @@ import { northernComparisonRoute } from '../route-film/localRoadConditions';
 import { HeaderAccount } from '../../components/dear/HeaderAccount';
 import { CitizenMapSummary } from './CitizenMapSummary';
 import { difficultRoadLabel } from '../routes/localRoadLabels';
-import { roadCondition } from '../routes/roadConditions';
+import { roadCondition, routeCondition } from '../routes/roadConditions';
 import { RoadConditionSymbol } from '../map/RoadConditionSymbol';
 import { roadColors } from '../../terrain/roadStyle';
 import { roadAreaContact } from '../route-film/roadAreaContact';
@@ -45,7 +49,7 @@ import { useDeviceLocation } from "../../shared/hooks/useDeviceLocation";
 import { roadGeographic, roadProjected } from "../routes/selectedRoadJourney";
 import { recommendRoute, routeProblems } from "../routes/routeAdvice";
 import { CitizenRouteCard } from "./CitizenRouteCard";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type {
   OverlayHit,
   ViewControls,
@@ -142,10 +146,15 @@ export function CitizenWorkspace({
     id: place.id, name: place.name, commune: 'Chế Tạo', prio: 3, pop: 0, hh: 0,
     desc: ['', ''], facts: [], projected: place.projected,
   })), [localPlaces]);
-  const localSites = useMemo<ResponseSite[]>(() => localPlaces.filter(place => place.kind === 'hlz').map(place => ({
-    id: place.id, name: [place.name, place.name], kind: 'hlz', projected: place.projected,
-    assessment: 'candidate', observedAt: '', source: [local.network!.source.file, local.network!.source.file],
-  })), [localPlaces, local.network]);
+  // The commune's rescue teams muster at its assembly points: on the commune roads, from the scenario.
+  const bases=useMemo(()=>local.network?rescueBases(snapshot.responseSites,local.network.roads):[],[local.network,snapshot.responseSites]);
+  const localSites = useMemo<ResponseSite[]>(() => [
+    ...bases.map(base => ({ id: base.id, name: base.name, kind: 'staging' as const, projected: base.projected,
+      assessment: 'candidate' as const, observedAt: '', source: [local.network!.source.file, local.network!.source.file] as [string, string] })),
+    ...localPlaces.filter(place => place.kind === 'hlz').map(place => ({
+      id: place.id, name: [place.name, place.name] as [string, string], kind: 'hlz' as const, projected: place.projected,
+      assessment: 'candidate' as const, observedAt: '', source: [local.network!.source.file, local.network!.source.file] as [string, string],
+    }))], [bases, localPlaces, local.network]);
   const [fitWholeNetwork, setFitWholeNetwork] = useState(false);
   const [mapOnMobile, setMapOnMobile] = useState(true),
     [picking, setPicking] = useState(false),
@@ -183,7 +192,6 @@ export function CitizenWorkspace({
   // The commune's rescue teams, on the same timetable as the coordination map. Residents see teams only.
   const presence=useResidentPresence(local.network?manifest?.residentPresence:undefined);
   const households=useMemo(()=>local.network&&presence?assessHouseholdAccess(local.network,presence.clusters):[],[local.network,presence]);
-  const bases=useMemo(()=>local.network?rescueBases(snapshot.responseSites,local.network.roads):[],[local.network,snapshot.responseSites]);
   const teamMissions=useMemo(()=>local.network?householdRescues(local.network,households,bases).map(team=>team.plan):[],[local.network,households,bases]);
   const teamRoads=useMemo(()=>local.network?[...snapshot.roads,...local.network.roads]:[],[local.network,snapshot.roads]);
   const teamFeed=useDeviceFeed(teamRoads,!!local.network,local.network?.conditions?.areaLinks,teamMissions,bases);
@@ -195,6 +203,51 @@ export function CitizenWorkspace({
   const selfHeading=heading.heading??movement;
   const selfPoint=()=>residentLocation?.getSnapshot()[0]?.point??(gps.location?roadProjected(gps.location.latitude,gps.location.longitude):null);
   const nearestTeam=useNearestTeam(rescueTeams,selfPoint,residentLocation);
+  // Where the resident can walk to safety, and the road they are on: re-read on a change of road or state, not every step.
+  const safePlaces=useSafePlaces(local.network?.roads??[],bases,selfPoint,residentLocation),safe=safePlaces[0];
+  const hereKey=useSyncExternalStore(residentLocation?.subscribe??(()=>()=>undefined),()=>{const device=residentLocation?.getSnapshot()[0];return device?`${device.roadId}|${device.state}`:'';});
+  const here=useMemo(()=>{const device=residentLocation?.getSnapshot()[0];return device?{road:device.roadName[locale==='vi'?0:1],blocked:!!device.closureRoadId&&device.state==='waiting'}:undefined;},
+    // `hereKey` stands for the device's road and state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hereKey,residentLocation,locale]);
+  const [waiting,setWaiting]=useState(false);
+  // One tap asks for rescue where the resident is; the request joins their reports for the coordinators.
+  const sendHelp=async()=>{
+    const p=await navigationGps.request();if(!p)return;
+    const id=crypto.randomUUID(),now=new Date().toISOString();
+    try{
+      gis.add([annotateRecord({...draft,id,name:`${observationLabel('help',locale)} ${observationCode(id)}`,
+        feature:{...draft.feature,geometry:validateGeometry({type:'Point',coordinates:[p.longitude,p.latitude]}),
+          properties:{...draft.feature.properties,[submissionKey]:newSubmission(identity,'device',residentLocation?residentDeviceId:undefined)}}},
+        {schema:'field-observation/v1',kind:'help',note:t('Cần cứu hộ tại vị trí này.','Rescue needed at this location.'),observer:identity.name,
+          observedAt:now,accuracyM:p.accuracy??null,status:'unreviewed',updatedAt:now,photos:[]})]);
+    }catch{setMessage(m.couldNotSaveTheReportCheckCoordinates);}
+  };
+  // You and the nearest team together, above the card that covers the lower map.
+  const showTeam=()=>{const me=selfPoint();if(nearestTeam)controls.current?.frameProjected?.([nearestTeam.team.point,...(me?[me]:[])],{bottom:320});};
+  const km=(metres:number)=>(metres/1000).toLocaleString(locale==='vi'?'vi-VN':'en-GB',{maximumFractionDigits:1});
+  const safeDetail=(place:NonNullable<typeof safe>)=>{
+    if(!place.route)return t(`Chưa tìm được tuyến, ${km(place.straightM)} km đường chim bay`,`No mapped route, ${km(place.straightM)} km straight-line`);
+    const condition=routeCondition(place.route);
+    return t(`${km(place.route.lengthKm*1000)} km đi bộ, ${condition==='open'?'chưa ghi nhận chặn':condition==='risk'?'có nguy cơ sạt lở':'có đoạn khó đi'}`,
+      `${km(place.route.lengthKm*1000)} km on foot, ${condition==='open'?'no recorded blockage':condition==='risk'?'landslide risk':'difficult sections'}`);
+  };
+  // A walk to the nearest reachable assembly point, from where the resident is now.
+  const goSafe=(place=safe)=>{
+    const me=selfPoint();if(!me||!place?.route)return;
+    setWaiting(false);setMapSelection(null);setFitWholeNetwork(false);
+    if(roadMode!=='local')showRoadMode('local');
+    localJourney.setOpen(true);
+    localJourney.setPoint('start',me,'device',t('Vị trí của bạn','Your location'));
+    localJourney.setPoint('end',place.base.projected,`site:${place.base.id}`,t(...place.base.name));
+    setTab('roads');setMapOnMobile(true);
+  };
+  // Directions start from where the resident is, as in a map app.
+  useEffect(()=>{
+    const me=selfPoint();
+    if(local.network&&me&&!localJourney.start)localJourney.setPoint('start',me,'device',t('Vị trí của bạn','Your location'));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[local.network,residentLocation]);
   const currentResidentPosition=()=>{
     const device=residentLocation?.getSnapshot()[0];
     return device?{...roadGeographic(device.point),accuracy:15,timestamp:device.updatedAt}:null;
@@ -370,7 +423,7 @@ export function CitizenWorkspace({
             properties: {
               ...draft.feature.properties,
               [submissionKey]: {
-                ...newSubmission(identity, source),
+                ...newSubmission(identity, source,residentLocation?residentDeviceId:undefined),
                 ...(source === "community"
                   ? { locationCommunityId: locationCommunity }
                   : {}),
@@ -456,7 +509,14 @@ export function CitizenWorkspace({
             {tab === "roads" && (
               <section className="citizen-roads">
                 <h1 className="visually-hidden">{m.accessToAnArea}</h1>
-                <div className="citizen-segments" role="group" aria-label={t("Cách xem đường", "Road view")}>
+                {hasLocalNetwork ? <div className="citizen-segments is-two" role="group" aria-label={t("Cách xem đường", "Road view")}>
+                  <button type="button" aria-pressed={roadMode === 'local'} onClick={() => showRoadMode('local')}>
+                    <UiIcon name="map" size={16}/>{t('Trong xã', 'In the commune')}
+                  </button>
+                  <button type="button" aria-pressed={roadMode !== 'local'} onClick={() => showRoadMode('village')}>
+                    <UiIcon name="home" size={16} />{t('Đường chính', 'Main road')}
+                  </button>
+                </div> : <div className="citizen-segments" role="group" aria-label={t("Cách xem đường", "Road view")}>
                   <button type="button" aria-pressed={roadMode === "village"} onClick={() => showRoadMode("village")}>
                     <UiIcon name="home" size={16} />
                     {t("Đường về thôn, bản", "Village access")}
@@ -465,10 +525,11 @@ export function CitizenWorkspace({
                     <UiIcon name="route" size={16} />
                     {t("Tìm đường", "Find a route")}
                   </button>
-                  {hasLocalNetwork && <button type="button" aria-pressed={roadMode === 'local'} onClick={() => showRoadMode('local')}>
-                    <UiIcon name="map" size={16}/>{t('Trong xã', 'In the commune')}
-                  </button>}
-                </div>
+                </div>}
+                {hasLocalNetwork && roadMode !== 'local' && <div className="citizen-subtabs" role="group" aria-label={t('Đường chính', 'Main road')}>
+                  <button type="button" className="text-button" aria-pressed={roadMode === 'village'} onClick={() => showRoadMode('village')}>{t('Đường về bản', 'Village access')}</button>
+                  <button type="button" className="text-button" aria-pressed={roadMode === 'journey'} onClick={() => showRoadMode('journey')}>{t('Tìm đường', 'Find a route')}</button>
+                </div>}
                 {roadMode === "village" ? (
                   <section className="citizen-card citizen-village" aria-label={t("Đường về thôn, bản", "Village access")}>
                     {snapshot.communities.length > 1 && (
@@ -519,13 +580,19 @@ export function CitizenWorkspace({
                   />
                 ) : (
                   <section className="citizen-local">
-                    <header><h2>{t('Đường trong xã', 'Local roads')}</h2></header>
                     {local.error ? <p role="alert">{t('Chưa tải được đường trong xã.', 'Local roads could not load.')} <button className="text-button" onClick={local.retry}>{t('Thử lại', 'Retry')}</button></p> : !local.network ? <p role="status">{t('Đang tải đường', 'Loading roads')}</p> : <>
-                      <button className="button citizen-local-map" onClick={() => { setMapSelection(null); setFitWholeNetwork(true); setMapOnMobile(true); }}><UiIcon name="map" size={18}/>{t('Xem toàn bộ đường và địa điểm', 'See all roads and places')}</button>
+                      {safePlaces.length > 0 && <>
+                        <h3>{t('Điểm tập kết gần bạn', 'Assembly points near you')}</h3>
+                        <ul className="citizen-local-places citizen-safe-places">{safePlaces.map(place => <li key={place.base.id}><button disabled={!place.route} onClick={() => goSafe(place)}>
+                          <span className="citizen-option-icon is-assembly" aria-hidden="true"><MapSymbol name="staging" size={16}/></span>
+                          <span><strong>{t(...place.base.name)}</strong><small data-road-state={place.route ? routeCondition(place.route) : 'blocked'}>{safeDetail(place)}</small></span>
+                          {place.route && <UiIcon name="next" size={16}/>}</button></li>)}</ul>
+                      </>}
+                      <h3>{t('Tìm đường', 'Directions')}</h3>
                       <CitizenDirections journey={localJourney} communities={localCommunities} sites={localSites} locale={locale} gps={navigationGps} gpsError={residentLocation?null:gpsError} local
                         onPick={side => { gps.cancel(); setPicking(false); localJourney.setPicking(side); setMapOnMobile(true); }} onMap={() => {setMapSelection(null);setFitWholeNetwork(false);setMapOnMobile(true);}}/>
-                      <h3>{t('Địa điểm trong xã', 'Places in the commune')} <small>{localPlaces.length}</small></h3>
-                      <ul className="citizen-local-places">{localPlaces.map(place => <li key={place.id}><button onClick={() => { setMapSelection({kind: 'place', id: place.id}); setMapOnMobile(true); }}><UiIcon name="location" size={20}/><span><strong>{place.name}</strong>{(() => { const me = selfPoint(); return me && <small>{t(`Cách bạn ${(Math.hypot(place.projected.x - me.x, place.projected.y - me.y) / 1000).toLocaleString('vi-VN', {maximumFractionDigits: 1})} km`, `${(Math.hypot(place.projected.x - me.x, place.projected.y - me.y) / 1000).toLocaleString('en-GB', {maximumFractionDigits: 1})} km away`)}</small>; })()}</span><UiIcon name="next" size={16}/></button></li>)}</ul>
+                      <h3>{t('Địa điểm', 'Places')}</h3>
+                      <ul className="citizen-local-places">{localPlaces.map(place => <li key={place.id}><button onClick={() => { setMapSelection({kind: 'place', id: place.id}); setMapOnMobile(true); }}><UiIcon name={place.kind === 'village' ? 'home' : 'location'} size={20}/><span><strong>{place.name}</strong>{(() => { const me = selfPoint(); return me && <small>{t(`Cách bạn ${(Math.hypot(place.projected.x - me.x, place.projected.y - me.y) / 1000).toLocaleString('vi-VN', {maximumFractionDigits: 1})} km`, `${(Math.hypot(place.projected.x - me.x, place.projected.y - me.y) / 1000).toLocaleString('en-GB', {maximumFractionDigits: 1})} km away`)}</small>; })()}</span><UiIcon name="next" size={16}/></button></li>)}</ul>
                     </>}
                   </section>
                 )}
@@ -558,9 +625,9 @@ export function CitizenWorkspace({
                       <button
                         type="button"
                         className="button"
-                        disabled={gps.busy}
+                        disabled={navigationGps.busy}
                         onClick={async () => {
-                          const p = await gps.request();
+                          const p = await navigationGps.request();
                           if (p) {
                             position(p.latitude, p.longitude, "device");
                             setAccuracy(p.accuracy);
@@ -568,7 +635,7 @@ export function CitizenWorkspace({
                         }}
                       >
                         <UiIcon name="myLocation" size={20} />
-                        {gps.busy ? m.locating : m.myLocation}
+                        {navigationGps.busy ? m.locating : m.myLocation}
                       </button>
                       <button
                         type="button"
@@ -584,7 +651,7 @@ export function CitizenWorkspace({
                         {m.chooseOnMap}
                       </button>
                     </div>
-                    {gpsError}
+                    {residentLocation ? null : gpsError}
                     {lat && lon && (
                       <p className="citizen-position-value">
                         <UiIcon name="check" size={16} />
@@ -948,6 +1015,8 @@ export function CitizenWorkspace({
                 </>}
                 {layerOptions.landslide && <span><i className="is-landslide-area"/>{t('Vùng sạt lở', 'Landslide area')}</span>}
                 {layerOptions.landslide && mapRecords.some(record => landslideAreaOf(record)?.state === 'potential') && <span><i className="is-landslide-area is-potential"/>{t('Vùng có nguy cơ sạt lở', 'Area at risk of landslide')}</span>}
+                {roadMode === 'local' && bases.length > 0 && <span><MapPoiSample symbol="staging" kind="staging"/>{t('Điểm tập kết', 'Assembly point')}</span>}
+                {rescueTeams && <span><DeviceLegendSymbol role="rescue"/>{t('Đội cứu hộ', 'Rescue team')}</span>}
               </div>
             </fieldset>
           </details>
@@ -963,9 +1032,22 @@ export function CitizenWorkspace({
             }} : undefined}
             road={inspectedRoad} onCloseRoad={() => setMapSelection(null)} onDetails={() => switchTab('roads')}
             nearestTeam={nearestTeam ? {name: nearestTeam.team.name[locale === 'vi' ? 0 : 1],
-              detail: t(`Gần bạn nhất, ${(nearestTeam.distanceM / 1000).toLocaleString('vi-VN', {maximumFractionDigits: 1})} km đường chim bay, ${teamStatus(nearestTeam.team, locale).text.toLocaleLowerCase('vi')}`,
-                `Nearest, ${(nearestTeam.distanceM / 1000).toLocaleString('en-GB', {maximumFractionDigits: 1})} km straight-line, ${teamStatus(nearestTeam.team, locale).text.toLocaleLowerCase('en')}`),
-              onShow: () => { const me = selfPoint(); controls.current?.frameProjected?.([nearestTeam.team.point, ...(me ? [me] : [])]); setMapOnMobile(true); }} : undefined}
+              detail: t(`Cách ${km(nearestTeam.distanceM)} km, ${teamStatus(nearestTeam.team, locale).text.toLocaleLowerCase('vi')}`,
+                `${km(nearestTeam.distanceM)} km away, ${teamStatus(nearestTeam.team, locale).text.toLocaleLowerCase('en')}`),
+              summary: t(`${nearestTeam.team.name[0].replace(/^Đội cứu hộ /, 'Đội ')} cách ${km(nearestTeam.distanceM)} km, ${teamStatus(nearestTeam.team, locale).text.toLocaleLowerCase('vi')}`,
+                `${nearestTeam.team.name[1].replace(/^Rescue team /, 'Team ')} ${km(nearestTeam.distanceM)} km away, ${teamStatus(nearestTeam.team, locale).text.toLocaleLowerCase('en')}`),
+              onShow: () => { showTeam(); setMapOnMobile(true); }} : undefined}
+            here={roadMode === 'local' ? here : undefined}
+            safe={roadMode === 'local' && safe ? {name: t(...safe.base.name).replace(/^Điểm tập kết /, 'điểm tập kết '), detail: safeDetail(safe), reachable: !!safe.route, onGo: () => goSafe()} : undefined}
+            waiting={roadMode === 'local' && nearestTeam ? {active: waiting,
+              onStart: () => { setWaiting(true); showTeam(); },
+              onClose: () => setWaiting(false),
+              helpSentAt: own.flatMap(record => observationOf(record)?.kind === 'help' ? [submissionOf(record)!.submittedAt] : []).sort().at(-1) ?? null,
+              onHelp: () => void sendHelp(),
+              onReport: async () => {
+                setWaiting(false); setMapSelection(null); setTab('report'); setMessage('');
+                const p = await navigationGps.request(); if (p) { position(p.latitude, p.longitude, 'device'); setAccuracy(p.accuracy); }
+              }} : undefined}
             onFind={() => { showRoadMode(roadMode === 'local' ? 'local' : 'journey'); switchTab('roads'); }}
             onPlaces={() => { showRoadMode(hasLocalNetwork ? 'local' : 'village'); switchTab('roads'); }} loadError={roadMode === 'local' && local.error} onRetry={local.retry}/>}
           {localArea && !placeHazard && !placeArea && !picking && !journey.picking && <CitizenPlaceCard

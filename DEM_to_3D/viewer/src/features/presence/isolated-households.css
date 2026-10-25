@@ -1,25 +1,28 @@
-/* Isolated huts with people: a small red disc, people glyph, one slow ring. Urgent without crowding the map. */
-.household-alert { background: none; border: 0; cursor: pointer; }
+/* Huts with people: a small disc with a people glyph in the colour of where they stand. Only the
+   cut-off ones carry the slow ring: urgent without crowding the map. */
+.household-alert { --hh: #d32f2f; --hh-ink: #b3261e; background: none; border: 0; cursor: pointer; }
+.household-alert.is-unverified { --hh: #c77700; --hh-ink: #8a5300; }
+.household-alert.is-rescued { --hh: #6b7280; --hh-ink: #4b5563; }
 .household-alert-disc {
   position: absolute; inset: 0; display: grid; place-items: center; border: 2px solid #fff; border-radius: 50%;
-  background: #d32f2f; color: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .4); transition: scale 120ms ease;
+  background: var(--hh); color: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .4); transition: scale 120ms ease;
 }
 .household-alert-ring { position: absolute; inset: 0; border: 2px solid #e53935; border-radius: 50%; animation: household-ring 3.2s ease-out infinite; pointer-events: none; }
+.household-alert:not(.is-cut-off) .household-alert-ring { display: none; }
 @keyframes household-ring { 0% { scale: 1; opacity: .55; } 100% { scale: 1.8; opacity: 0; } }
 /* The count reads as a label, not a second alarm: white chip, red text. */
 .household-alert-count {
   position: absolute; left: 26px; top: 50%; transform: translateY(-50%); padding: 0 6px; border-radius: 4px;
-  background: rgba(255, 255, 255, .94); color: #b3261e; font: 600 11.5px/18px var(--font-map, sans-serif); font-variant-numeric: tabular-nums;
+  background: rgba(255, 255, 255, .94); color: var(--hh-ink); font: 600 11.5px/18px var(--font-map, sans-serif); font-variant-numeric: tabular-nums;
   white-space: nowrap; box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
 }
-.household-alert.is-selected .household-alert-disc { scale: 1.2; box-shadow: 0 0 0 3px rgba(211, 47, 47, .35), 0 1px 2px rgba(0, 0, 0, .4); }
+.household-alert.is-selected .household-alert-disc { scale: 1.2; box-shadow: 0 0 0 3px color-mix(in srgb, var(--hh) 35%, transparent), 0 1px 2px rgba(0, 0, 0, .4); }
 .household-alert.is-selected .household-alert-count { left: 29px; }
 .household-alert:focus-visible { outline: none; }
 .household-alert:focus-visible .household-alert-disc { outline: 2px solid #2f80ed; outline-offset: 2px; }
 @media (hover: hover) { .household-alert:hover .household-alert-disc { scale: 1.12; } }
-/* A team is with them: the alarm stops pulsing and carries the rescue colour. */
-.household-alert.is-attended .household-alert-ring { display: none; }
-.household-alert.is-attended .household-alert-disc::after { content: ""; position: absolute; right: -5px; top: -5px; width: 9px; height: 9px; border: 2px solid #fff; border-radius: 50%; background: var(--location-rescue); }
+/* A team is assigned: the alarm stops pulsing and carries the rescue colour. */
+.household-alert.is-team .household-alert-disc::after { content: ""; position: absolute; right: -5px; top: -5px; width: 9px; height: 9px; border: 2px solid #fff; border-radius: 50%; background: var(--location-rescue); }
 @media (prefers-reduced-motion: reduce) { .household-alert-ring { animation: none; scale: 1.5; opacity: .35; } }
 
 /* A slide the residents reported on their way out: red cross on white. */
@@ -38,6 +41,10 @@
 .household-card header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 14px 10px 16px; }
 .household-card header small { display: inline-flex; align-items: center; gap: 6px; color: #b3261e; font-size: 12px; font-weight: 700; }
 .household-card header small::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #c62828; }
+.household-card header small[data-status='unverified'] { color: #8a5300; }
+.household-card header small[data-status='unverified']::before { background: #c77700; }
+.household-card header small[data-status='rescued'] { color: var(--ws-muted); }
+.household-card header small[data-status='rescued']::before { background: #6b7280; }
 .household-card h2 { margin: 2px 0 0; font-size: 17px; line-height: 1.3; }
 .household-card-people { display: flex; align-items: baseline; gap: 10px; margin: 0 16px 12px; }
 .household-card-people strong { font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }

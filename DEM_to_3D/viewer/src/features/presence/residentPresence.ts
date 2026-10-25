@@ -16,6 +16,10 @@ export type PresenceCluster = {
   need?: [vi: string, en: string];
   /** Slides the residents reported on their way out, with the app's location. */
   reportedCuts?: Array<{ longitude: number; latitude: number; reportedAt: string }>;
+  /** Who answered when the commune called the huts, and on which phone. */
+  contact?: { name: string; phone: string };
+  /** A team has already brought these people out: when, and where to. */
+  rescued?: { at: string; to: [vi: string, en: string] };
 };
 export type ResidentPresence = {
   schemaVersion: 1;
@@ -35,6 +39,8 @@ export function validateResidentPresence(value: unknown): ResidentPresence {
     !d.clusters.every(c => text(c.id, 64) && pair(c.name) && (c.need === undefined || pair(c.need)) &&
       Number.isFinite(c.longitude) && c.longitude > 104 && c.longitude < 104.12 && Number.isFinite(c.latitude) && c.latitude > 21.65 && c.latitude < 21.79 &&
       count(c.households, 500) && count(c.people, 5000) && count(c.devices, 5000) && c.households <= c.people && Number.isFinite(Date.parse(c.lastSeenAt)) &&
+      (c.rescued === undefined || Number.isFinite(Date.parse(c.rescued.at)) && pair(c.rescued.to)) &&
+      (c.contact === undefined || text(c.contact.name, 80) && typeof c.contact.phone === 'string' && /^[0-9 +]{6,20}$/.test(c.contact.phone)) &&
       (c.reportedCuts === undefined || Array.isArray(c.reportedCuts) && c.reportedCuts.length <= 20 && c.reportedCuts.every(r =>
         Number.isFinite(r.longitude) && r.longitude > 104 && r.longitude < 104.12 && Number.isFinite(r.latitude) && r.latitude > 21.65 && r.latitude < 21.79 && Number.isFinite(Date.parse(r.reportedAt))))))
     throw new Error('Invalid resident presence');

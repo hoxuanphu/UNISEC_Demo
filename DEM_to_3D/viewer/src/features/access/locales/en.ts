@@ -26,7 +26,7 @@ export const en = {
   help: 'Help',
   switchRole: 'Switch role',
   residentTasks: 'Resident tasks',
-  roadInformation: 'Road information',
+  roadInformation: 'Directions',
   reportAnObservation: 'Report',
   myReports: 'My reports',
   accessToAnArea: 'Road information',

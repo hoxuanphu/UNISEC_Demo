@@ -7,7 +7,7 @@ import { UiIcon } from "../../shared/ui/UiIcon";
 import { roadConditionLabel, roadConditionMessage } from '../routes/localRoadLabels';
 import { roadCondition } from '../routes/roadConditions';
 
-/** Two places, each picked from a list, from the map or (for the start) from the phone's location. */
+/** Two places, each picked from one list (the start also offers the phone's location) or from the map. */
 export function CitizenDirections({
   journey,
   communities,
@@ -34,64 +34,47 @@ export function CitizenDirections({
     ...communities.map((c) => ({ key: "community:" + c.id, name: c.name, projected: c.projected })),
     ...sites.map((s) => ({ key: "site:" + s.id, name: t(...s.name), projected: s.projected })),
   ];
-  const choose = (side: "start" | "end", key: string) => {
+  const choose = async (side: "start" | "end", key: string) => {
     gps.cancel();
     journey.setOpen(true);
     if (!key) {
       journey.clear(side);
       return;
     }
+    if (key === "device") {
+      const p = await gps.request();
+      if (p) journey.setPoint("start", roadProjected(p.latitude, p.longitude), "device", t("Vị trí của bạn", "Your location"));
+      return;
+    }
     const place = places.find((p) => p.key === key);
     if (place) journey.setPoint(side, place.projected, key, place.name);
   };
+  const staging = (key: string) => sites.some(site => "site:" + site.id === key && site.kind === "staging");
   const km = (value: number) =>
     new Intl.NumberFormat(locale === "vi" ? "vi-VN" : "en-GB", { maximumFractionDigits: 1 }).format(value);
   const stop = (side: "start" | "end") => {
     const other = journey[side === "start" ? "end" : "start"]?.source;
     return (
       <div className="citizen-stop">
-        <label className="geodata-field">
-          {side === "start" ? t("Đi từ", "From") : t("Đến", "To")}
-          <select value={journey[side]?.source ?? ""} onChange={(e) => choose(side, e.target.value)}>
+        <label className="geodata-field" htmlFor={`citizen-stop-${side}`}>{side === "start" ? t("Đi từ", "From") : t("Đến", "To")}</label>
+        <div className="citizen-stop-row">
+          <select id={`citizen-stop-${side}`} value={journey[side]?.source ?? ""} disabled={gps.busy && side === "start"} onChange={(e) => void choose(side, e.target.value)}>
             <option value="">{side === "start" ? t("Chọn nơi xuất phát", "Choose starting point") : t("Chọn nơi đến", "Choose destination")}</option>
-            {journey[side]?.source === "device" && <option value="device">{t("Vị trí của tôi", "My location")}</option>}
+            {side === "start" && <option value="device">{gps.busy ? t("Đang lấy vị trí", "Locating") : t("Vị trí của bạn", "Your location")}</option>}
             {journey[side]?.source === "map" && <option value="map">{t("Điểm chọn trên bản đồ", "Point on map")}</option>}
+            {sites.some(site => site.kind === "staging") && <optgroup label={t("Điểm tập kết", "Assembly points")}>
+              {places.filter((p) => staging(p.key)).map((p) => <option key={p.key} value={p.key} disabled={p.key === other}>{p.name}</option>)}
+            </optgroup>}
             {communities.length > 0 && <optgroup label={t("Thôn, bản", "Villages")}>
               {places.filter((p) => p.key.startsWith("community:")).map((p) => <option key={p.key} value={p.key} disabled={p.key === other}>{p.name}</option>)}
             </optgroup>}
-            {sites.length > 0 && <optgroup label={local ? t('Địa điểm khác', 'Other places') : t("Điểm tập kết", "Staging points")}>
-              {places.filter((p) => p.key.startsWith("site:")).map((p) => <option key={p.key} value={p.key} disabled={p.key === other}>{p.name}</option>)}
+            {sites.some(site => site.kind !== "staging") && <optgroup label={local ? t('Địa điểm khác', 'Other places') : t("Điểm tập kết", "Staging points")}>
+              {places.filter((p) => p.key.startsWith("site:") && !staging(p.key)).map((p) => <option key={p.key} value={p.key} disabled={p.key === other}>{p.name}</option>)}
             </optgroup>}
           </select>
-        </label>
-        <div className="citizen-stop-actions">
-          {side === "start" && (
-            <button
-              type="button"
-              className="button"
-              disabled={gps.busy}
-              onClick={async () => {
-                const p = await gps.request();
-                if (p) {
-                  journey.setOpen(true);
-                  journey.setPoint("start", roadProjected(p.latitude, p.longitude), "device", t("Vị trí của tôi", "My location"));
-                }
-              }}
-            >
-              <UiIcon name="myLocation" size={16} />
-              {gps.busy ? t("Đang lấy vị trí", "Locating") : t("Vị trí của tôi", "My location")}
-            </button>
-          )}
-          <button
-            type="button"
-            className="button"
-            onClick={() => {
-              journey.setOpen(true);
-              onPick(side);
-            }}
-          >
-            <UiIcon name="map" size={16} />
-            {t("Chọn trên bản đồ", "Choose on map")}
+          <button type="button" className="icon-button" aria-label={t("Chọn trên bản đồ", "Choose on map")} title={t("Chọn trên bản đồ", "Choose on map")}
+            onClick={() => { journey.setOpen(true); onPick(side); }}>
+            <UiIcon name="map" size={20} />
           </button>
         </div>
         {side === "start" && gpsError}

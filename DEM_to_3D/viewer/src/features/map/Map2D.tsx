@@ -280,7 +280,8 @@ export function Map2D(props: Props): JSX.Element {
         map.invalidateSize({pan:false});
         const p = ll(point); if (!p) return;
         const zoom = Math.min(map.getMaxZoom(), Math.max(map.getZoom(), POINT_ZOOM));
-        const right = Math.min(inset?.right ?? 0, Math.max(0, host.clientWidth - 240));
+        // An open detail panel covers the right of the map: centre in what stays visible.
+        const right = Math.min(inset?.right ?? profileInset(), Math.max(0, host.clientWidth - 240));
         const target = right ? map.unproject(map.project(p, zoom).add([right / 2, 0]), zoom) : p;
         map.stop(); map.setView(target, zoom, { animate: !window.matchMedia('(prefers-reduced-motion: reduce)').matches, duration: 0.45 });
       },
@@ -289,7 +290,7 @@ export function Map2D(props: Props): JSX.Element {
         const positions = points.map(ll).filter((p): p is L.LatLng => p !== null);
         if (!positions.length) return;
         map.stop();
-        const right = Math.min(inset?.right ?? 0, Math.max(0, host.clientWidth - 240));
+        const right = Math.min(inset?.right ?? profileInset(), Math.max(0, host.clientWidth - 240));
         const summary = host.closest('.citizen-map')?.querySelector('.citizen-map-summary')?.getBoundingClientRect();
         const bottom = summary ? Math.max(100, host.getBoundingClientRect().bottom - summary.top + 16) : Math.max(100, Math.min(inset?.bottom ?? 0, host.clientHeight - 160));
         map.fitBounds(L.latLngBounds(positions), {paddingTopLeft:summary?[45,70]:[65,90],paddingBottomRight:[right + 65,bottom],maxZoom:Math.max(map.getZoom(),SELECTION_MAX_ZOOM),animate:!window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration:.5});
@@ -499,7 +500,7 @@ export function Map2D(props: Props): JSX.Element {
       comparison={props.comparisonRoute} selected={props.scenarioProps?.selectedRoute} locale={props.locale ?? 'vi'} onChoose={props.onChooseRoute}
       onInspectRoad={props.onInspectRoad ?? (id => props.onSelectOverlayHit?.({type:'road',id}))}
       areaLinks={props.roadAreaLinks ?? props.scenarioProps?.roadAreaLinks} hazardPoints={hazardPoints} showAreaLinks={props.showRoadAreaLinks ?? Boolean(props.scenarioProps?.layers.landslide && props.scenarioProps?.layers.status)}/>}
-    {mapReady && !!props.households?.length && <IsolatedHouseholds2D mapRef={mapRef} metadata={props.terrain?.metadata} households={props.households} selectedId={props.selectedHouseholdId} locale={props.locale ?? 'vi'} onSelect={props.onSelectHousehold} attended={props.attendedHouseholds}/>}
+    {mapReady && !!props.households?.length && <IsolatedHouseholds2D mapRef={mapRef} metadata={props.terrain?.metadata} households={props.households} selectedId={props.selectedHouseholdId} locale={props.locale ?? 'vi'} onSelect={props.onSelectHousehold}/>}
     {mapReady && (props.routeGuidance || !!props.journeyEndpoints?.length && props.journeyEndpoints.every(point=>point.source?.startsWith('local:'))) && <ResidentRouteGuidance mapRef={mapRef} route={props.scenarioProps?.selectedRoute ?? null} metadata={props.terrain?.metadata} endpoints={Boolean(props.journeyEndpoints?.length)}/>}
     {mapReady && props.gisRecords && props.onGisSelect && <ResponseGisLayer compact={props.routeGuidance} pointMode={props.routeGuidance ? 'individual' : undefined} mapRef={mapRef} records={props.gisRecords} roads={props.scenarioProps?.roads} networkVersion={props.scenarioProps?.datasetVersion} selectedId={props.gisSelectedId ?? null} request={props.gisRequest ?? {version:0,id:null}} enabled={props.gisEnabled !== false} interactive={!props.pointPickActive && !props.measurementOpen && !props.locationOpen && !props.drawOpen} locale={props.locale ?? 'vi'} groupIds={props.gisGroupIds} onSelect={props.onGisSelect} onGroup={props.onGisGroup}/>}
     {props.showOverview !== false && <MapOverview mapRef={mapRef} raster={overviewRaster} area={overviewArea} locale={props.locale ?? 'vi'}

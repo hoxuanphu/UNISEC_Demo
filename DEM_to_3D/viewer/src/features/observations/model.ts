@@ -8,6 +8,8 @@ export const observationKinds = [
   'road-damage',
   'water',
   'survey',
+  /** A resident asking for rescue where they are, sent with one tap. */
+  'help',
   'other'
 ] as const;
 export type ObservationKind = (typeof observationKinds)[number];

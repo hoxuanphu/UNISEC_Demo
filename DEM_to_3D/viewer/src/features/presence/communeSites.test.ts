@@ -9,9 +9,10 @@ import { rescueBases } from '../tracking/rescueBase';
 import { assessHouseholdAccess } from './householdIsolation';
 import { validateResidentPresence } from './residentPresence';
 import { communeVillages } from './communeSites';
+import { householdStatuses } from './householdStatus';
 
 const network = withLocalRoadConditions(validateLocalNetwork(data));
-const households = assessHouseholdAccess(network, validateResidentPresence(presenceJson).clusters);
+const households = householdStatuses(assessHouseholdAccess(network, validateResidentPresence(presenceJson).clusters), [], new Set(), new Set());
 const entry = rescueBases(validateIncidentPacket(incident).responseSites, network.roads)[0];
 
 describe('commune villages', () => {

@@ -23,7 +23,7 @@ export type HouseholdRescue = { plan: DevicePlan; householdId: string; rideM: nu
  * await an access plan; a nearest-road projection does not establish a trail to the households.
  * Timing comes from the shared timetable (`scheduleSorties`), with every other team. */
 export function householdRescues(network: LocalNetwork, households: HouseholdAccess[], bases: readonly RescueBase[]): HouseholdRescue[] {
-  const order = households.filter(item => item.isolated).sort((a, b) => Number(Boolean(b.cluster.need)) - Number(Boolean(a.cluster.need)) || b.cluster.people - a.cluster.people);
+  const order = households.filter(item => item.isolated && !item.cluster.rescued).sort((a, b) => Number(Boolean(b.cluster.need)) - Number(Boolean(a.cluster.need)) || b.cluster.people - a.cluster.people);
   const rescues: HouseholdRescue[] = [];
   for (const item of order) {
     if (rescues.length === TEAMS) break;

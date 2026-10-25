@@ -5,6 +5,7 @@ export type Submission = {
   schema: "field-submission/v1";
   authorId: string;
   authorName: string;
+  deviceId?: string;
   role: "resident" | "manager";
   homeCommunityId: string | null;
   submittedAt: string;
@@ -30,6 +31,7 @@ export function submissionOf(record: GeometryRecord): Submission | null {
       !s.authorName.trim() ||
       s.authorName.length > 160 ||
       s.authorId.length > 256 ||
+      (s.deviceId !== undefined && (typeof s.deviceId !== 'string' || !/^[a-zA-Z0-9-]{1,64}$/.test(s.deviceId))) ||
       typeof s.review?.reviewer !== "string" ||
       typeof s.review?.reviewedAt !== "string" ||
       !Number.isFinite(Date.parse(s.submittedAt)) ||
@@ -79,11 +81,13 @@ export function canEditSubmission(
 export function newSubmission(
   identity: DemoIdentity,
   source: Submission["locationSource"],
+  deviceId?: string,
 ): Submission {
   return {
     schema: "field-submission/v1",
     authorId: identity.id,
     authorName: identity.name,
+    ...(deviceId ? {deviceId} : {}),
     role: identity.role,
     homeCommunityId: identity.communityId,
     submittedAt: new Date().toISOString(),

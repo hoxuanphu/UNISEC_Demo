@@ -7,7 +7,10 @@
 .commune-huts { display:grid; margin:0 0 6px 30px; padding-left:4px; border-left:2px solid var(--ws-line); }
 #response-panel .commune-huts .commune-hut-row { grid-template-columns:28px minmax(0,1fr) auto; gap:10px; }
 .commune-hut-row > svg:last-child { color:var(--ws-muted); }
-.commune-hut-row[data-isolated] small { color:var(--critical-ink, #b3261e); }
+.commune-hut-row:is([data-status='cut-off'],[data-status='team']) small { color:var(--critical-ink, #b3261e); }
+.commune-hut-row[data-status='unverified'] small { color:var(--warning-ink, #8a5300); }
 .commune-hut-row strong { font-size:13px; font-weight:500; }
 .commune-hut-icon { display:grid; place-items:center; width:24px; height:24px; justify-self:center; border-radius:50%; background:var(--ws-muted); color:#fff; }
-.commune-hut-row[data-isolated] .commune-hut-icon { background:#c62828; }
+/* The same colours as the hut discs on the map. */
+.commune-hut-row:is([data-status='cut-off'],[data-status='team']) .commune-hut-icon { background:#c62828; }
+.commune-hut-row[data-status='unverified'] .commune-hut-icon { background:#c77700; }

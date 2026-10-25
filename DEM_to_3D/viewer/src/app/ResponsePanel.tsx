@@ -5,7 +5,7 @@ import { CommunityListView } from '../components/dear/CommunityListView';
 import { usePanelScroll } from '../shared/hooks/usePanelScroll';
 import type { ResponsePanelProps } from './responsePanelTypes';
 import type { PreparedPhotoPoint } from '../features/fieldPhotos/preparedPhotos';
-import type { HouseholdAccess } from '../features/presence/householdIsolation';
+import type { HouseholdView } from '../features/presence/householdStatus';
 
 type Props = Pick<
   ResponsePanelProps,
@@ -35,7 +35,7 @@ type Props = Pick<
   fieldPhotos?: Map<string, PreparedPhotoPoint>;
   /** @deprecated The overview no longer lists reference datasets; GIS owns them. */
   survey?: {areas:number;points:number}; onShowSurvey?:()=>void; onShowCorridor?:()=>void;
-  households?: HouseholdAccess[]; onSelectHousehold?: (id: string) => void; onShowHouseholds?: () => void;
+  households?: HouseholdView[]; onSelectHousehold?: (id: string) => void; onShowHouseholds?: () => void;
   /** The rescue tab, where teams are tracked. */
   residentDevices?: import('react').ReactNode;
   rescueView?: import('react').ReactNode;

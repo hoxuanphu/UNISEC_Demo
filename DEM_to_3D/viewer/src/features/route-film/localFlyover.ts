@@ -68,7 +68,7 @@ export function buildLocalFlyover(network:LocalNetwork,context:MapContextGeometr
   const from=placeName(start.label??'A'),to=placeName(end.label??'B');
   const km=(locale:string)=>route.lengthKm.toLocaleString(locale,{maximumFractionDigits:1});
   const slides=routeLandslides(route,context.areas).length,difficult=difficultSections(route);
-  const alerts=households.filter(item=>item.isolated).map(item=>({id:item.cluster.id,projected:item.projected,people:item.cluster.people}));
+  const alerts=households.filter(item=>item.isolated&&!item.cluster.rescued).map(item=>({id:item.cluster.id,projected:item.projected,people:item.cluster.people}));
   return {key:JSON.stringify([route.id,stops.map(stop=>[stop.id,stop.photo?.image.sha256]),network.source.sha256,alerts]),
     route:route.points,start:from,end:to,stops,alerts,
     summary:{title:[`${from[0]} đến ${to[0]}`,`${from[1]} to ${to[1]}`],stats:[
