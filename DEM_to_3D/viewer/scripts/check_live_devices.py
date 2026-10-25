@@ -21,11 +21,27 @@ def run(url,chrome=None,captures=None):
         before=devices.evaluate_all('nodes=>Object.fromEntries(nodes.map(n=>[n.dataset.deviceId,[n.dataset.worldX,n.dataset.worldY,n.dataset.signal]]))')
         page.wait_for_function("""before=>Array.from(document.querySelectorAll('.tracked-device')).some(n=>n.dataset.worldX!==before[n.dataset.deviceId][0]||n.dataset.worldY!==before[n.dataset.deviceId][1])""",arg=before)
         warnings=page.locator('.road-closure-sign').count()
+        def fit_network():
+            page.bring_to_front()
+            page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
+            page.get_by_role('button',name='Xem đường trong xã Chế Tạo',exact=True).click()
+            close=page.get_by_role('button',name='Đóng lớp bản đồ',exact=True)
+            if close.is_visible():close.click()
+            page.wait_for_timeout(500)
         def open_device(selector):
+            fit_network()
             target=page.locator(selector).first
             target_id=target.get_attribute('data-device-id')
-            leader=target.get_attribute('data-group-leader')
-            marker=page.locator(f'.tracked-device[data-device-id="{leader}"]')
+            # Movement can change the leader between reads: locate its current visible group.
+            marker=page.locator(f'.tracked-device:not([hidden])[data-members*=\'"{target_id}"\']')
+            # At overview scale a dot yields to a coincident closure/household alert.
+            # Zoom at the actual coordinate until the symbols separate; never force a hidden click.
+            for _ in range(3):
+                if marker.is_visible():break
+                box=target.bounding_box()
+                assert box, 'Device has no projected hit target'
+                page.mouse.move(box['x']+box['width']/2,box['y']+box['height']/2)
+                page.mouse.wheel(0,-500);page.wait_for_timeout(700)
             expect(marker).to_be_visible();box=marker.bounding_box();
             hit=marker.evaluate('(n)=>{const b=n.getBoundingClientRect(),hit=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return {own:n.contains(hit),warning:!!hit?.closest(".road-condition-sign,.map-pin")}}')
             if hit['own']:page.mouse.click(box['x']+box['width']/2,box['y']+box['height']/2)
@@ -38,13 +54,6 @@ def run(url,chrome=None,captures=None):
             if peer.is_visible() and peer.get_attribute('aria-pressed')!='true':peer.click()
             expect(card.locator('header small')).to_have_text(target_id)
             return card
-        # Fit the local network to expose its road devices independently of the initial selection.
-        page.bring_to_front()
-        page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
-        page.get_by_role('button',name='Xem đường trong xã Chế Tạo',exact=True).click()
-        close=page.get_by_role('button',name='Đóng lớp bản đồ',exact=True)
-        if close.is_visible():close.click()
-        page.wait_for_timeout(500)
         card=open_device('.tracked-device[data-device-role="resident"][data-closure-road]:not([data-closure-road=""])')
         expect(card).to_contain_text(re.compile('chặn|cứu hộ|điểm tập kết'))
         expect(card).to_contain_text('Tín hiệu lúc')
