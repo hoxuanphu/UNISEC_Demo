@@ -82,7 +82,9 @@ def run(url, chrome, captures):
         expect(page.locator('.map-road-target[data-route-segment]').first).to_be_attached()
         assert page.locator('.map-road-target[data-route-segment]').evaluate_all('nodes=>nodes.every(n=>n.dataset.roadId.startsWith("local-"))')
         assert page.locator('.map-road-route-line').evaluate_all('nodes=>nodes.every(n=>n.dataset.roadStatus!=="blocked")')
-        assert page.locator('.map-road-route-line').evaluate_all('nodes=>nodes.every(n=>n.getAttribute("stroke")==="#2f80ed"&&!n.getAttribute("stroke-dasharray"))')
+        assert page.locator('.map-road-route-line').evaluate_all('''nodes=>nodes.length>0&&nodes.every(n=>
+            n.getAttribute('stroke')===(n.dataset.roadCondition==='open'?'#2f80ed':'#d7a34c')&&!n.getAttribute('stroke-dasharray'))''')
+        assert page.locator('.map-road-route-line[data-road-condition="risk"]').count()>0
         if captures:page.screenshot(path=str(captures/'main-local-journey.png'))
         alternatives=panel.locator('.journey-alternatives')
         if alternatives.count():
