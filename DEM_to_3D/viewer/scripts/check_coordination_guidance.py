@@ -1,5 +1,7 @@
 """Emergency notification, controlled travel guidance and resident route proposals."""
 import argparse
+import math
+import re
 from pathlib import Path
 from playwright.sync_api import expect,sync_playwright
 
@@ -33,6 +35,34 @@ def run(url,chrome=None,captures=None):
    expect(mobile.locator('.tracked-device[data-device-id="GPS-AP01"]')).to_have_attribute('data-motion','waiting',timeout=30000)
    expect(mobile.locator('.citizen-official-guidance')).to_be_visible()
    expect(mobile.locator('.map-road-route-line').first).to_be_attached()
+   own=mobile.locator('.tracked-device[data-device-id="GPS-AP01"]')
+   tracked=admin.locator('.tracked-device[data-device-id="GPS-AP01"]')
+   def point(marker):return tuple(float(marker.get_attribute('data-world-'+axis)) for axis in ['x','y'])
+   origin=point(own)
+   def verify_shared_movement():
+    expect(own).to_have_attribute('data-motion','moving',timeout=10000)
+    admin.bring_to_front();expect(tracked).to_have_attribute('data-motion','moving',timeout=10000)
+    row=admin.locator('[data-resident-device="GPS-AP01"]');expect(row.locator('.incident-status')).to_have_text('Moving')
+    assert math.dist(point(own),point(tracked))<20,'Resident and coordinator positions diverged'
+    for view in [admin,mobile]:assert not re.search(r'\b(?:demo|simulated|simulation)\b|mô phỏng|giả lập',view.locator('body').inner_text(),re.I)
+    if captures:
+     captures.mkdir(parents=True,exist_ok=True);admin.screenshot(path=str(captures/'resident-moving-admin.png'));mobile.screenshot(path=str(captures/'resident-moving-mobile.png'))
+   mobile.locator('.citizen-official-guidance').get_by_role('button',name='Start',exact=True).click()
+   verify_shared_movement()
+   admin.reload();verify_shared_movement()  # Opening coordination cannot rewind the resident.
+   # Reopening the resident screen prepares the same assigned route at its origin.
+   mobile.bring_to_front();mobile.reload();expect(mobile.locator('.citizen-official-guidance')).to_be_visible(timeout=30000)
+   expect(own).not_to_have_attribute('data-motion','moving');assert math.dist(origin,point(own))<1
+   admin.bring_to_front();expect(tracked).not_to_have_attribute('data-motion','moving');assert math.dist(origin,point(tracked))<1
+   mobile.bring_to_front();mobile.locator('.citizen-official-guidance').get_by_role('button',name='Start',exact=True).click()
+   # Advance the current instruction's clock to exercise arrival without a long wait.
+   mobile.evaluate('''()=>{const key=Object.keys(localStorage).find(k=>k.startsWith('dear.resident-guidance.v1:'));const entries=JSON.parse(localStorage.getItem(key));for(const entry of entries)if(entry.recipientId==='GPS-AP01'){entry.startedAt=Date.now()-86400000;delete entry.pausedAt;}localStorage.setItem(key,JSON.stringify(entries));window.dispatchEvent(new Event('dear:guidance-changed'));}''')
+   expect(own).to_have_attribute('data-motion','arrived');admin.bring_to_front();expect(tracked).to_have_attribute('data-motion','arrived')
+   mobile.bring_to_front();mobile.get_by_role('button',name='My location',exact=True).click()
+   expect(mobile.locator('.citizen-official-guidance')).to_be_visible();expect(own).not_to_have_attribute('data-motion','moving')
+   assert math.dist(origin,point(own))<1
+   admin.bring_to_front();expect(tracked).not_to_have_attribute('data-motion','arrived');assert math.dist(origin,point(tracked))<1
+   mobile.bring_to_front()
    mobile.get_by_role('button',name='Ask for rescue',exact=True).click();expect(mobile.locator('.citizen-help-sent')).to_be_visible()
    admin.bring_to_front();admin.get_by_role('button',name='Incident notifications',exact=True).click()
    alert=admin.locator('.notification-rescue-row').filter(has_text='Rescue request');expect(alert).to_contain_text('A Phủ');alert.click()
@@ -51,7 +81,8 @@ def run(url,chrome=None,captures=None):
    dialog.get_by_role('button',name='Send guidance',exact=True).click()
    mobile.bring_to_front();expect(official).to_contain_text(chosen['label']);expect(mobile.locator('.map-road-route-line').first).to_be_attached()
    before_move=mobile.locator('.tracked-device[data-device-id="GPS-AP01"]').get_attribute('data-world-x');official.get_by_role('button',name='Start',exact=True).click();expect(mobile.locator('.citizen-nav-banner')).to_be_visible();mobile.wait_for_timeout(700);assert mobile.locator('.tracked-device[data-device-id="GPS-AP01"]').get_attribute('data-world-x')!=before_move
-   admin.bring_to_front();expect(admin.locator('[data-resident-device="GPS-AP01"]')).to_be_visible();expect(detail.get_by_role('button',name='Dispatch team',exact=True)).to_be_visible();mobile.bring_to_front()
+   verify_shared_movement();expect(detail.locator('.detail-meta')).to_have_text('Moving')
+   expect(detail.get_by_role('button',name='Dispatch team',exact=True)).to_be_visible();mobile.bring_to_front()
    mobile.get_by_role('button',name='Exit',exact=True).click();expect(official).to_be_visible()
    if captures:mobile.screenshot(path=str(captures/'assigned-route-mobile.png'))
    official.get_by_role('button',name='Suggest another route',exact=True).click()
@@ -66,7 +97,7 @@ def run(url,chrome=None,captures=None):
    admin.bring_to_front();detail.get_by_role('button',name='Travel guidance',exact=True).click();dialog.get_by_role('button',name='Send guidance',exact=True).click()
    mobile.bring_to_front();expect(official).to_contain_text('Wait at a safe location');expect(mobile.locator('.map-road-route-line')).to_have_count(0)
    assert not errors,errors
-   print('Coordination guidance passed: clear layers, emergency alert, hold/one approved route, navigation, separate proposal and route withdrawal offline.')
+   print('Coordination guidance passed: shared mobile/coordinator movement, reopen/arrival restart, emergency alert, hold/approved route, navigation, proposal and withdrawal offline.')
   finally:browser.close()
 
 

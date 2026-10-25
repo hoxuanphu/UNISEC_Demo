@@ -21,8 +21,9 @@ export function createResidentLocation(roads:RoadSegment[],links:readonly LocalR
     let state:DevicePosition['state']=distance<Math.abs(end-start)?closureRoadId?'approaching':'moving':closureRoadId?'waiting':'arrived';
     let missionId:string|undefined;
     if(entry){
+      if(entry.mode==='route')missionId='guidance:'+entry.id;
       if(entry.mode==='hold'){point=entry.origin;state=Math.hypot(point.x-closurePoint.x,point.y-closurePoint.y)<100?'waiting':'stopped';if(state==='stopped')closureRoadId=undefined;}
-      else if(entry.startedAt&&path){stationM=Math.min(path.total,Math.max(0,(entry.pausedAt??time)-entry.startedAt)/1000*deviceSpeeds.walk*deviceTimeLapse);point=simulationPoint(path,stationM);state=entry.pausedAt?'stopped':stationM<path.total?'moving':'arrived';closureRoadId=undefined;missionId='guidance:'+entry.id;}
+      else if(entry.startedAt&&path){stationM=Math.min(path.total,Math.max(0,(entry.pausedAt??time)-entry.startedAt)/1000*deviceSpeeds.walk*deviceTimeLapse);point=simulationPoint(path,stationM);state=entry.pausedAt?'stopped':stationM<path.total?'moving':'arrived';closureRoadId=undefined;}
       else if(entry.startedAt){point=lastPoint??entry.origin;state='stopped';closureRoadId=undefined;}
       else {point=entry.origin;state=Math.hypot(point.x-closurePoint.x,point.y-closurePoint.y)<100?'waiting':'stopped';if(state==='stopped')closureRoadId=undefined;}
       lastPoint=point;

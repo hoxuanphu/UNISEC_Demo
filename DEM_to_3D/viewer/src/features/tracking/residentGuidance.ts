@@ -1,5 +1,5 @@
 import { createResidentLocation } from './residentLocation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LocalNetwork } from '../route-film/localNetwork';
 import type { RoadSegment } from '../../types/dear';
 import { analyseRoadJourney } from '../routes/journeyAnalysis';
@@ -38,7 +38,7 @@ export function initialGuidance(network:LocalNetwork,recipientId:string,bases:re
     .filter(item=>item.length>.05).sort((a,b)=>a.length-b.length)[0]?.entry??null;
 }
 const emptyBases:readonly RescueBase[]=[];
-export function useResidentGuidance(network:LocalNetwork|null,recipientId:string|null,bases:readonly RescueBase[]=emptyBases){
+export function useResidentGuidance(network:LocalNetwork|null,recipientId:string|null,bases:readonly RescueBase[]=emptyBases,options:{restartOnOpen?:boolean}={}){
   const key=network?'dear.resident-guidance.v1:'+network.source.sha256:'', [revision,setRevision]=useState(0);
   const entries=useMemo(()=>{try{const raw=key?localStorage.getItem(key):null;if(!raw||raw.length>1_000_000)return[];const data:unknown=JSON.parse(raw);return Array.isArray(data)?data.filter(validGuidance).slice(-100):[];}catch{return[];}},[key,revision]);
   useEffect(()=>{const sync=(event:Event)=>{if(!(event instanceof StorageEvent)||event.key===key)setRevision(n=>n+1);};window.addEventListener('storage',sync);window.addEventListener(eventName,sync);return()=>{window.removeEventListener('storage',sync);window.removeEventListener(eventName,sync);};},[key]);
@@ -71,5 +71,23 @@ export function useResidentGuidance(network:LocalNetwork|null,recipientId:string
       localStorage.setItem(key,JSON.stringify(all.map(item=>item.id===entry.id?{...item,pausedAt:Date.now()}:item)));window.dispatchEvent(new Event(eventName));
     }catch{/* The emergency report can still be submitted. */}
   };
-  return {entry,route,issue,start,pause};
+  const restart=useCallback(()=>{
+    if(!entry||entry.mode!=='route'||!key)return false;
+    try{
+      const raw=localStorage.getItem(key),saved:unknown=raw?JSON.parse(raw):[];
+      const all=Array.isArray(saved)?saved.filter(validGuidance):[];
+      const latest=[...all].reverse().find(item=>item.recipientId===entry.recipientId);
+      if(!latest||latest.id!==entry.id)return false;
+      if(latest.startedAt===undefined&&latest.pausedAt===undefined)return true;
+      localStorage.setItem(key,JSON.stringify(all.map(item=>item.id===entry.id?{...item,startedAt:undefined,pausedAt:undefined}:item)));
+      window.dispatchEvent(new Event(eventName));return true;
+    }catch{return false;}
+  },[key,entry?.id,entry?.recipientId,entry?.mode]);
+  const opened=useRef('');
+  useEffect(()=>{
+    // Only the resident opening their screen restarts the assigned trip. Opening
+    // another coordinator window must leave an ongoing trip untouched.
+    if(options.restartOnOpen&&key&&opened.current!==key&&restart())opened.current=key;
+  },[key,options.restartOnOpen,restart]);
+  return {entry,route,issue,start,pause,restart};
 }

@@ -192,7 +192,7 @@ export function CitizenWorkspace({
   const localJourney = useRoadJourney(local.network?.roads ?? [], 250, 'conditions');
   const journey = roadMode === 'local' ? localJourney : incidentJourney;
   const gps = useDeviceLocation();
-  const guidance=useResidentGuidance(local.network,residentDeviceId,bases);
+  const guidance=useResidentGuidance(local.network,residentDeviceId,bases,{restartOnOpen:true});
   const residentLocation=useResidentLocation(local.network,bases,guidance);
   const [proposalSession,setProposalSession]=useState<{active:boolean;guidanceId:string|null}>({active:false,guidanceId:null});
   const proposing=proposalSession.active&&proposalSession.guidanceId===(guidance.entry?.id??null);
@@ -1004,6 +1004,7 @@ export function CitizenWorkspace({
               title={m.myLocation}
               onClick={async () => {
                 const current=residentLocation?.getSnapshot()[0];
+                if(current?.state==='arrived'&&guidance.restart()){returnToGuidance();return;}
                 if(!displayedRoute)setFitWholeNetwork(false);
                 if(current){controls.current?.frameProjected?.([{x:current.point.x-350,y:current.point.y-350},{x:current.point.x+350,y:current.point.y+350}]);return;}
                 const p = await gps.request();

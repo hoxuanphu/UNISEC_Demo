@@ -28,18 +28,18 @@ function rescueRequestAt(id:string,records:readonly GeometryRecord[]):string|nul
 export function ResidentDeviceList({feed,roads,locale,onSelect,selectedId,records=[]}:{feed:LocationFeed|null;roads:RoadSegment[];locale:Locale;onSelect:(id:string)=>void;selectedId?:string|null;records?:GeometryRecord[]}) {
   const t=(vi:string,en:string)=>locale==='vi'?vi:en;
   const clock=(iso:string)=>new Date(iso).toLocaleTimeString(locale==='vi'?'vi-VN':'en-GB',{hour:'2-digit',minute:'2-digit'});
-  const devices=useResidentRows(feed).filter(device=>stranded(device)||records.some(record=>submissionMatchesDevice(submissionOf(record),device.id)&&observationOf(record)?.kind==='help'&&submissionOf(record)?.review.status==='pending')).sort((a,b)=>Number(b.state==='waiting')-Number(a.state==='waiting')||a.name[0].localeCompare(b.name[0]));
+  const devices=useResidentRows(feed).filter(device=>stranded(device)||device.missionId?.startsWith('guidance:')||records.some(record=>submissionMatchesDevice(submissionOf(record),device.id)&&observationOf(record)?.kind==='help'&&submissionOf(record)?.review.status==='pending')).sort((a,b)=>Number(b.state==='waiting')-Number(a.state==='waiting')||a.name[0].localeCompare(b.name[0]));
   const groups=new Map<string,ResidentRow[]>();
   devices.forEach(device=>{const road=roads.find(road=>road.id===(device.closureRoadId??device.roadId));const key=road?.sourceRoadId??road?.name.join(' / ')??device.closureRoadId??device.roadId;groups.set(key,[...(groups.get(key)??[]),device]);});
   if(!devices.length)return null;
   return <section className="resident-devices-section">
-    <h2 className="incident-section-title"><span>{t('Người cần hỗ trợ','Residents needing help')}</span><small>{t(`${devices.length} thiết bị`,`${devices.length} ${devices.length===1?'device':'devices'}`)}</small></h2>
+    <h2 className="incident-section-title"><span>{t('Người dân','Residents')}</span><small>{t(`${devices.length} thiết bị`,`${devices.length} ${devices.length===1?'device':'devices'}`)}</small></h2>
     {[...groups].map(([roadId,people])=><div className="resident-road-group" key={roadId}>
       <h3>{roads.find(road=>road.id===(people[0].closureRoadId??people[0].roadId))?.name[locale==='vi'?0:1]??people[0].roadName[locale==='vi'?0:1]}</h3>
       {people.map(device=><button key={device.id} className="incident-landslide-row resident-device-row" data-resident-device={device.id} aria-current={device.id===selectedId||undefined} onClick={()=>onSelect(device.id)}>
         <i className="tracked-device-symbol is-resident" aria-hidden="true"/>
         <span className="incident-landslide-copy"><strong>{device.name[locale==='vi'?0:1]}</strong>{(()=>{const asked=rescueRequestAt(device.id,records);return asked?<small className="resident-device-asked">{t(`Gửi yêu cầu cứu lúc ${clock(asked)}`,`Asked for rescue at ${clock(asked)}`)}</small>:<small>{deviceContact(device.id)?.phone??device.id}</small>;})()}</span>
-        <small className="incident-status" data-tone="warning">{!stranded(device)?t('Cầu cứu','Rescue requested'):device.state==='approaching'?t('Sắp tới chỗ chặn','Nearing closure'):device.state==='assisting'?t('Đang hỗ trợ','Being assisted'):t('Chờ cứu hộ','Waiting for rescue')}</small>
+        <small className="incident-status" data-tone={stranded(device)?'warning':'neutral'}>{deviceStatusText(device,locale)}</small>
       </button>)}
     </div>)}
   </section>;
@@ -72,7 +72,7 @@ export function ResidentDeviceDetail({feed,id,roads,locale,onClose,onShow,onRoad
     <div className="sidebar-top object-detail-heading resident-device-heading" data-tracked-device={id}>
       <div className="detail-title"><div className="detail-name"><p>{t('Vị trí người dân','Resident location')}</p><h1>{device?.name[locale==='vi'?0:1]??t('Thiết bị','Device')}</h1></div>
         <button className="icon-button panel-close" onClick={onClose} aria-label={t('Đóng chi tiết thiết bị','Close device details')}><UiIcon name="close"/></button></div>
-      {device&&<div className="detail-priority detail-meta"><StatusText tone={needsResponse?'warning':'neutral'}>{needsResponse&&!stranded(device)?t('Có yêu cầu cứu hộ','Rescue requested'):deviceStatusText(device,locale)}</StatusText></div>}
+      {device&&<div className="detail-priority detail-meta"><StatusText tone={stranded(device)?'warning':'neutral'}>{deviceStatusText(device,locale)}</StatusText></div>}
     </div>
     <div className="sidebar-scroll resident-device-detail">
       {!device?<p className="detail-empty">{t('Không còn tín hiệu của thiết bị này.','No signal from this device.')}</p>:<>
