@@ -22,7 +22,7 @@ def run(url, chrome=None, captures=None):
         expect(page.locator('.incident-overview-heading')).to_be_visible(timeout=30000)
         page.get_by_role('button',name='Lớp bản đồ',exact=True).click()
         panel=page.locator('.layers-panel')
-        assert panel.locator('[data-layer-stack]').evaluate_all('nodes=>nodes.map(node=>node.dataset.layerStack)')==['data','raster','basemap']
+        assert panel.locator('[data-layer-stack]').evaluate_all('nodes=>nodes.map(node=>node.dataset.layerStack)')==['points','lines','areas','reference','raster','basemap']
         optical=panel.get_by_role('group',name='Quang học',exact=True)
         radar=panel.get_by_role('group',name='SAR',exact=True)
         expect(optical.locator('legend')).to_be_visible()
@@ -34,7 +34,7 @@ def run(url, chrome=None, captures=None):
         panel.get_by_role('radio',name='VH',exact=True).click()
         panel.get_by_role('radio',name=re.compile('^STRIX-007')).check()
         expect(panel.locator('.analysis-sar-modes')).to_have_count(0)
-        expect(panel.locator('.analysis-active-details')).to_contain_text('Pixel nguồn 1,25 m, hiển thị 5 m')
+        expect(panel.locator('.analysis-active-details')).to_contain_text('Pixel 1,25 m')
         expect(panel.locator('.analysis-legend')).to_contain_text('-20 dB')
         expect(panel.locator('.analysis-legend')).to_contain_text('5 dB')
         # Changing the basemap or its opacity never replaces or fades the selected EO scene.
