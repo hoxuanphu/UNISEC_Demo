@@ -118,12 +118,12 @@ def run(url, chrome, captures):
             page.locator('.mobile-view-switch').get_by_role('button',name='Bản đồ',exact=True).click()
             expect(panel).to_be_visible()
             page.wait_for_timeout(700)
+            if captures:page.screenshot(path=str(captures/f'main-directions-{width}.png'))
             for endpoint in page.locator('.resident-route-endpoint').all():
                 assert endpoint.evaluate('''pin=>{
                     const a=pin.getBoundingClientRect(),b=document.querySelector('.road-journey-panel').getBoundingClientRect();
                     return a.left>=0&&a.top>=0&&a.right<=innerWidth&&a.bottom<=b.top;
-                }'''),f'Endpoint covered on mobile at {width}px'
-            if captures:page.screenshot(path=str(captures/f'main-directions-{width}.png'))
+                }'''),f'Endpoint covered on mobile at {width}px: '+str(endpoint.bounding_box())+'; sheet: '+str(panel.bounding_box())
         page.set_viewport_size({'width':1440,'height':900})
         panel.get_by_role('button',name='Đóng bảng tìm đường',exact=True).click()
         fit_local_roads()

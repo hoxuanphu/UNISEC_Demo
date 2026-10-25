@@ -175,3 +175,9 @@
 .workspace .map-area[data-controls-layout] :is(.layers-panel,.map-location-panel,.map-tool-panel,.road-journey-panel,.local-area-card,.field-map-card) { max-height:min(calc(100% - var(--map-controls-bottom) - 32px),var(--floating-panel-height,100%)); }
 .workspace .map-area[data-controls-layout] .household-card { max-height:calc(var(--map-controls-space) - 12px); }
 .workspace .map-area[data-controls-layout][data-profile="true"] :is(.road-journey-panel,.local-area-card) { max-height:calc(100% - var(--map-controls-bottom) - var(--map-profile-height,320px) - 24px); }
+
+/* Mobile directions stay in a bottom sheet, leaving the route visible above it. */
+@media(max-width:760px) {
+ .workspace .map-area[data-controls-layout] .road-journey-panel { top:auto; max-height:min(55%,var(--floating-panel-height,100%)); }
+ .workspace .map-area[data-controls-layout][data-profile="true"] .road-journey-panel { max-height:min(55%,calc(100% - var(--map-controls-bottom) - var(--map-profile-height,320px) - 24px)); }
+}
