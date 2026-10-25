@@ -26,6 +26,7 @@ def run(url, chrome=None, captures=None):
             admin.bring_to_front();admin.locator('[data-resident-device="GPS-AP01"]').click()
             detail=admin.locator('#response-details')
             expect(detail.locator('article[data-kind="help"]')).to_have_count(1)
+            expect(admin.locator('.map-north')).to_be_hidden()
             expect(detail.locator('a[href^="tel:"]')).to_be_visible()
             detail.get_by_role('button',name='Dispatch team',exact=True).click()
             expect(detail.get_by_role('heading',name='Assigned team',exact=True)).to_be_visible()

@@ -1,4 +1,4 @@
-.map-overview { position: absolute; right: 16px; bottom: 48px; z-index: 12; overflow: hidden; border: 1px solid var(--map-control-line); border-radius: var(--radius-control); background: var(--ws-raised); color: var(--ws-text); box-shadow: var(--shadow-float); }
+.map-overview { position: absolute; left:auto; right: 16px; bottom: 48px; z-index: 14; max-width:calc(100% - 32px); overflow: hidden; border: 1px solid var(--map-control-line); border-radius: var(--radius-control); background: var(--ws-raised); color: var(--ws-text); box-shadow: var(--shadow-float); }
 .overview-toggle { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 30px; padding: 6px 10px; border: 0; background: none; color: inherit; font-size: 11px; font-weight: 400; line-height: 1.4; text-align: left; }
 .overview-toggle > span { flex: 1; }
 .overview-toggle:hover { background: var(--hover); }
@@ -15,8 +15,6 @@
 .overview-size { flex: none; width: 30px; height: 30px; min-height: 30px; padding: 0; border: 0; background: none; }
 .map-overview[data-coverage][data-expanded=true] { width: 248px; }
 .map-overview[data-coverage] .map-overview-surface { height: 200px; }
-.map-overview[data-large][data-expanded=true] { width: min(720px, calc(100% - 32px - var(--overview-detail-reserve, 0px))); }
-.map-overview[data-large] .map-overview-surface { height: min(520px, calc(100vh - 300px)); }
 .map-overview-surface { position: relative; }
 .coverage-fog { position: absolute; inset: 0; z-index: 450; pointer-events: none; }
 .overview-coverage { display: grid; gap: 6px; padding: 8px 10px 10px; border-top: 1px solid var(--ws-line); }
@@ -34,7 +32,6 @@
 
 .overview-coverage [data-layer=unverified] i { background: #f29900; }
 
-.map-overview { max-width: calc(100% - 32px); }
 .overview-coverage .overview-meaning { display: flex; align-items: flex-start; gap: 6px; font-size: 11px; }
 .overview-meaning > i { flex: none; width: 14px; height: 14px; margin-top: 1px; border-radius: 2px; background: radial-gradient(#c3d4c3, #172a20); }
 .overview-loading { display: grid; place-items: center; height: 100%; margin: 0; color: var(--ws-muted); font-size: 12px; }
@@ -55,7 +52,6 @@
 .map-2d-surface > .rescue-coverage-mask { z-index:450; }
 .flyover-active .rescue-coverage-mask { visibility:hidden; }
 
-.map-overview { left:16px; right:auto; z-index:14; }
 .overview-head .overview-size { border:0; border-radius:0; background:transparent; box-shadow:none; }
 .overview-head .overview-size:hover { background:var(--hover); }
 .overview-coverage { gap:5px; }
@@ -67,13 +63,23 @@
 .overview-head { min-height:34px; padding-left:10px; gap:8px; }
 .overview-title { display:flex; align-items:center; flex:1; gap:7px; min-width:0; font-size:12px; }
 .overview-head .overview-toggle { flex:none; width:30px; min-height:30px; padding:5px; justify-content:center; }
-@media(max-width:900px) { .map-overview[data-coverage] { left:12px;right:auto; } }
 
 /* Overview and legend share a measured vertical dock; neither hides the other. */
 .map-overview { max-height:var(--floating-panel-height,var(--overview-space,calc(100% - 128px))); overflow:auto; }
 .map-overview[data-large] .map-overview-surface { height:min(420px,max(100px,calc(var(--overview-space,500px) - 140px))); }
 .overview-head { position:sticky; top:0; z-index:500; background:var(--ws-raised); }
 
-.map-overview[data-auto-compact=true][data-expanded] { width:min(248px,calc(100% - 24px)); }
 .map-overview[data-auto-compact=true] :is(.map-overview-surface,.overview-coverage,.overview-size) { display:none; }
 .map-overview[data-occluded=true] { visibility:hidden; pointer-events:none; }
+
+/* Folding changes width, keeping the same dock corner or dragged heading. */
+.map-overview:not([data-expanded=true]),
+.map-overview[data-expanded][data-auto-compact=true] { width: max-content; min-width: 0; }
+.map-overview:not([data-expanded=true]) .overview-head,
+.map-overview[data-auto-compact=true] .overview-head { padding-right: 2px; }
+.map-overview:not([data-expanded=true]) .overview-title,
+.map-overview[data-auto-compact=true] .overview-title { flex: none; }
+@media (max-width: 900px) { .map-overview[data-coverage] { left: auto; right: 12px; } }
+.map-overview:not([data-expanded=true]) .overview-head,
+.map-overview[data-auto-compact=true] .overview-head { padding: 0; }
+.overview-head .overview-toggle.overview-open { width: auto; gap: 7px; padding: 0 8px 0 10px; min-height: 34px; font-size: 12px; }

@@ -1,5 +1,6 @@
 import { useMapSurfaceClearance } from '../../features/map/useMapSurfaceClearance';
 import { DeviceLegendSymbol } from '../../features/tracking/deviceSymbols';
+import { openMapSurface, useMapSurface } from '../../features/map/mapSurfaces';
 import { householdLegendText, householdStatusOrder, type HouseholdStatus } from '../../features/presence/householdStatus';
 import type { GeometryRecord } from '../../geo/vector/types';
 import { landslideAreaOf, landslideAreaStyle } from '../../features/landslides/landslideAreas';
@@ -47,6 +48,8 @@ export function MapControls({ onActivateMapContext, orbiting = false, onToggleOr
   useMapControlsLayout(toolbar);
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [legendMinimized, setLegendMinimized] = useState(true);
+  // The overview or a detail panel opening folds the legend.
+  useMapSurface('legend', () => setLegendMinimized(true));
   const legendRef=useRef<HTMLDivElement>(null);
   const compactLegend=useMapSurfaceClearance(legendRef,!layersOpen&&!measuring&&!drawing&&!locating,!legendMinimized,false,true,false);
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
@@ -124,7 +127,7 @@ export function MapControls({ onActivateMapContext, orbiting = false, onToggleOr
     </div>
     <div ref={legendRef} className="map-bottom-bar" hidden={layersOpen || measuring || drawing || locating || !legend.length} data-expanded={legendExpanded} data-minimized={legendMinimized}>
       <div className="map-legend-heading">
-        {legend.length > 0 && <button className="text-button legend-toggle" aria-expanded={!legendMinimized && !compactLegend} aria-controls="map-legend-items" onClick={() => { if(compactLegend)onActivateMapContext?.();setLegendMinimized(false); setLegendExpanded(expanded => compactLegend || legendMinimized || !expanded); }}>{t('Chú giải', 'Legend')}<UiIcon name={!legendMinimized && legendExpanded ? 'collapse' : 'expand'} size={14}/></button>}
+        {legend.length > 0 && <button className="text-button legend-toggle" aria-expanded={!legendMinimized && !compactLegend} aria-controls="map-legend-items" onClick={() => { if(legendMinimized||compactLegend){onActivateMapContext?.();openMapSurface('legend');}setLegendMinimized(false); setLegendExpanded(expanded => compactLegend || legendMinimized || !expanded); }}>{t('Chú giải', 'Legend')}<UiIcon name={!legendMinimized && legendExpanded ? 'collapse' : 'expand'} size={14}/></button>}
         {!legendMinimized && <button className="icon-button legend-minimize" aria-label={t('Thu gọn chú giải', 'Minimize legend')} title={t('Thu gọn chú giải', 'Minimize legend')} onClick={() => setLegendMinimized(true)}><UiIcon name="minus" size={14}/></button>}
       </div>
       {!layersOpen && !measuring && !drawing && !legendMinimized && visibleLegend.length > 0 && <div className="map-legend" id="map-legend-items" aria-label={t('Chú giải', 'Legend')}>

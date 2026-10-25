@@ -156,6 +156,7 @@ def run(archive, chrome=None, captures=None, video=None):
     from check_citizen_photos import run as resident_photos
     from check_main_local_roads import run as main_local_roads
     from check_map_inspector_layout import run as inspector_layout
+    from check_panel_fit import run as panel_fit
     from check_map_performance import run as map_performance
     from check_map_layer_order import run as map_layer_order
     from check_route_person import run as route_person
@@ -252,6 +253,7 @@ def run(archive, chrome=None, captures=None, video=None):
                              ('resident and rescue device locations', lambda: live_devices(base, chrome, captures)),
                              ('shared resident location and coordinator inspector', lambda: resident_locations(base, chrome, captures)),
                              ('isolated household panels and rescue focus', lambda: households(base, chrome, captures)),
+                             ('compact inspectors and stable map references', lambda: panel_fit(base, chrome, captures)),
                              ('Planet/field photos and failure recovery', lambda: evidence(base, chrome, captures)),
                              ('MP4 encoding and decoded frames', lambda: film(base, chrome, video, lang='en'))]
                     for name, check in steps:

@@ -7,9 +7,10 @@
   --detail-inset: 20px;
   position: absolute;
   z-index: 18;
-  top: calc(var(--size-workspace-toolbar) + 16px);
+  top: var(--response-detail-top, calc(var(--size-workspace-toolbar) + 16px));
   right: 16px;
-  bottom: 16px;
+  bottom: auto;
+  max-height: var(--response-detail-max-height, calc(100% - var(--size-workspace-toolbar) - 116px));
   width: min(
     var(--response-detail-width),
     calc(100% - var(--panel-width, var(--size-panel-left)) - 96px)
@@ -27,37 +28,7 @@
 .response-detail-dock[hidden] {
   display: none;
 }
-.workspace[data-response-profile='true'] .response-detail-dock {
-  bottom: 336px;
-}
-/* The dock floats over a full-width map (as in Google Earth); only right-edge map
-   controls step aside so the card never covers them. */
-.map-area :is(.map-north, .map-overview, .map-attribution) {
-  transition: margin-right var(--motion-panel, 200ms) cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.workspace[data-response-layout='dock'][data-response-detail='true']
-  .map-area
-  :is(.map-north, .map-overview, .map-attribution) {
-  margin-right: var(--response-detail-reserve);
-}
-/* Enter like a sheet sliding in from the map edge. */
-.response-detail-dock:not([hidden]) {
-  animation: response-dock-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-@keyframes response-dock-in {
-  from {
-    opacity: 0;
-    transform: translateX(16px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .response-detail-dock:not([hidden]) {
-    animation: none;
-  }
-  .map-area :is(.map-north, .map-overview, .map-attribution) {
-    transition: none;
-  }
-}
+/* Short windows scroll within the inspector; map references keep their corner. */
 /* One information pane when a resized list leaves insufficient space for the dock. */
 .workspace[data-response-layout='pane'][data-response-detail='true']
   .work-area
@@ -70,6 +41,7 @@
   grid-row: 2;
   inset: auto;
   width: auto;
+  max-height: none;
   min-width: 0;
   border: 0;
   border-right: 1px solid var(--ws-line);
@@ -83,7 +55,7 @@
   .workspace[data-mobile='map'] .response-detail-dock {
     display: none;
   }
-  .workspace .response-detail-dock { position:relative; grid-column:1; grid-row:2; inset:auto; width:auto; min-width:0; border-radius:0; box-shadow:none; }
+  .workspace .response-detail-dock { position:relative; grid-column:1; grid-row:2; inset:auto; width:auto; min-width:0; max-height:none; border-radius:0; box-shadow:none; }
   .workspace[data-response-detail="true"] .work-area > .sidebar { visibility:hidden; }
 }
 
@@ -99,6 +71,7 @@
 .response-detail-dock { --sheet-inset: var(--detail-inset); }
 .response-detail-dock .sidebar-top { flex:none; }
 .response-detail-dock .sidebar-scroll { flex:1; min-height:0; }
+.workspace[data-response-layout='dock'] .response-detail-dock .sidebar-scroll { flex:0 1 auto; }
 .road-status-edit-trigger { display:inline-flex; align-items:center; gap:8px; min-height:36px; font-size:13px; }
 .object-profile-tools .button { display:inline-flex; align-items:center; gap:8px; margin:0; }
 
@@ -127,7 +100,12 @@
   inset:auto; width:100%; max-height:none; overflow:hidden; padding:0;
   border:0; border-radius:0; box-shadow:none; background:transparent;
 }
+.workspace[data-response-layout='dock'] .response-detail-dock > .field-map-card.is-docked { flex:0 1 auto; }
 .response-detail-dock .field-map-card-body { padding:8px var(--detail-inset) 20px; }
 .response-detail-dock .field-map-card-head .key-facts { margin-top:14px; }
 
 .response-detail-dock :is(h1,h2)[tabindex="-1"]:focus { outline:none; }
+
+/* The case is the current task; its header replaces the compass while it is open. */
+.workspace[data-response-detail='true'] .map-north,
+.map-area:has(.household-card,.local-road-card,.local-area-card,.point-group-card) .map-north { display:none; }

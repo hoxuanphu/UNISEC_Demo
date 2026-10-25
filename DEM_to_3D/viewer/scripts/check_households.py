@@ -4,9 +4,10 @@ import re
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 from browser_preferences import use_vietnamese
+from incident_panel_checks import check_incident_layout
 
 
-def run(url, chrome=None, captures=None):
+def run(url, chrome=None, captures=None, overview_only=False):
     with sync_playwright() as p:
         browser=p.chromium.launch(headless=True,executable_path=chrome)
         for locale in ['en','vi']:
@@ -18,6 +19,28 @@ def run(url, chrome=None, captures=None):
             expect(page.locator('.incident-household-row')).to_have_count(4,timeout=30000)
             expect(page.locator('.incident-household-row').first).to_be_in_viewport()
             assert page.locator('.incident-households').evaluate('n=>n.getBoundingClientRect().top<document.querySelector(".incident-landslides").getBoundingClientRect().top')
+            # Populated household groups precede the report notice. Its own
+            # margin reset must never remove the space between adjacent cards.
+            for theme in ['light','dark']:
+                page.evaluate('theme=>document.documentElement.dataset.theme=theme',theme)
+                for width in [1440,1024,390,320]:
+                    page.set_viewport_size({'width':width,'height':960})
+                    info=page.locator('.mobile-view-switch').get_by_role('button',name='Information' if locale=='en' else 'Thông tin',exact=True)
+                    if info.is_visible():info.click()
+                    expect(page.locator('.incident-report-review')).to_be_visible()
+                    check_incident_layout(page)
+                    gap=page.locator('.incident-report-review').evaluate('n=>n.getBoundingClientRect().top-document.querySelector(".incident-households").getBoundingClientRect().bottom')
+                    assert 11<=gap<=13,('Households/report gap',locale,theme,width,gap)
+                    if captures and width in [1440,320]:
+                        captures.mkdir(parents=True,exist_ok=True)
+                        page.locator('.incident-report-review').scroll_into_view_if_needed()
+                        page.screenshot(path=str(captures/f'household-report-{locale}-{theme}-{width}.png'),animations='disabled')
+            page.set_viewport_size({'width':1440,'height':960})
+            page.evaluate('document.documentElement.dataset.theme="light"')
+            if overview_only:
+                assert not errors,errors
+                context.close()
+                continue
             # Team -> assembly point -> team -> household remains one inspector.
             name='Rescue team 03' if locale=='en' else 'Đội cứu hộ 03'
             page.locator('.workspace-nav').get_by_role('button',name='Rescue' if locale=='en' else 'Cứu hộ',exact=True).click()
@@ -63,7 +86,10 @@ def run(url, chrome=None, captures=None):
             assert not errors,errors
             context.close()
         browser.close()
-    print('Household panel passed: EN/VI, Escape, team focus, no invented boundary/connector, compact status and 320–1440 px offline.')
+    if overview_only:
+        print('Household overview passed: EN/VI, light/dark, 320–1440 px, consistent card insets and 12 px household/report spacing.')
+    else:
+        print('Household panel passed: EN/VI, Escape, team focus, no invented boundary/connector, compact status and 320–1440 px offline.')
 
 
 if __name__ == '__main__':
@@ -71,5 +97,6 @@ if __name__ == '__main__':
     parser.add_argument('--url', default='http://127.0.0.1:5213')
     parser.add_argument('--chrome')
     parser.add_argument('--captures', type=Path)
+    parser.add_argument('--overview-only',action='store_true',help='Check overview card spacing without the rescue workflow.')
     args = parser.parse_args()
-    run(args.url.rstrip('/'), args.chrome, args.captures)
+    run(args.url.rstrip('/'), args.chrome, args.captures,args.overview_only)

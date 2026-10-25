@@ -18,6 +18,7 @@ import { householdWork } from '../features/presence/householdWork';
 import { householdRescues } from '../features/presence/householdRescue';
 import { householdStatuses, postEventCoverage } from '../features/presence/householdStatus';
 import { defaultCoverageLayers, coverageSpots, createRescueTrail } from '../features/presence/rescueCoverage';
+import { openMapSurface } from '../features/map/mapSurfaces';
 import { rescueBases } from '../features/tracking/rescueBase';
 import { communeVillages } from '../features/presence/communeSites';
 import { CommuneVillages } from '../features/presence/CommuneVillages';
@@ -1068,6 +1069,8 @@ export function ResponseWorkspace({
     !journey.open &&
     (Boolean(gisCard) || gisGroup.length < 2) &&
     !activeDialog && !guidanceTarget;
+  // A detail panel opening folds the overview and the legend: one secondary surface at a time.
+  useEffect(() => { if (responseDetailVisible) openMapSurface('detail'); }, [responseDetailVisible]);
   useEffect(() => {
     if(showProfile || journey.open)return; // The active route tool owns framing.
     const selection = view === 'priority' ? selectedObjectId ?? (selectedCommunityId && `community:${selectedCommunityId}`) : selectedObjectId;

@@ -65,7 +65,8 @@
 .workspace-shell :is(#response-panel, .response-detail-dock) :is(.workflow-section, .incident-overview > section, .object-observation, .route-sections, .assessment-basis, .route-summary, .access-route-choice) {
   padding: 12px 14px; border: 1px solid var(--card-line); border-radius: 10px; background: var(--card);
 }
-.workspace-shell #response-panel .incident-overview > * + * { margin-top: 12px; }
+.workspace-shell #response-panel .incident-overview { display: flex; flex-direction: column; gap: 12px; }
+.workspace-shell #response-panel .incident-overview > * { flex: none; min-width: 0; margin-block: 0; }
 #response-details :is(.sidebar-scroll, .hazard-detail, .site-detail, .community-evidence, .decision-route) { display:flex; flex-direction:column; gap:12px; }
 #response-details :is(.sidebar-scroll, .hazard-detail, .site-detail, .community-evidence, .decision-route) > * { flex:none; min-width:0; margin-block:0; }
 .workspace-shell :is(#response-panel, .response-detail-dock) :is(.workflow-section > h3, .object-observation > h3, h2.incident-section-title) {

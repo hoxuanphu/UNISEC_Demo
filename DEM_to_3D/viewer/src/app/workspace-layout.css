@@ -54,7 +54,6 @@
 .workspace-shell > .assessment-timeline { grid-row:3; }
 .assessment-timeline .assessment-collapse { flex:none; width:28px; height:32px; min-height:32px; padding:0; border:0; background:transparent; color:var(--ws-muted); }
 .assessment-timeline { gap:16px; }
-.workspace[data-response-layout="dock"]:has(.map-advanced-tools:not([hidden])) .response-detail-dock { top:calc(var(--size-workspace-toolbar) + 60px); }
 @media(max-width:900px) {
  .workspace.workspace-shell { grid-template-rows:var(--size-header) minmax(0,1fr) 56px var(--timeline-height); }
  .workspace.workspace-shell[data-timeline-expanded="true"] { --timeline-height:62px; }

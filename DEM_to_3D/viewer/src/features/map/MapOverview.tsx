@@ -1,5 +1,6 @@
 import { useMapSurfaceClearance } from './useMapSurfaceClearance';
 import { useFloatingPanel } from '../../shared/hooks/useFloatingPanel';
+import { openMapSurface, useMapSurface } from './mapSurfaces';
 import { localMapSource } from './localMapSource';
 import { useEffect, useRef, useState, useSyncExternalStore, type MutableRefObject } from 'react';
 import * as L from 'leaflet';
@@ -61,20 +62,27 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
     return () => controller.abort();
   }, [providedRaster, terrain, imageUrl, enabled, expanded, attempt]);
   const [large, setLarge] = useState(false);
+  // The legend or a detail panel opening folds the overview to its button.
+  useMapSurface('overview', () => { setExpanded(false); setLarge(false); });
   const [layers, setLayers] = useState<CoverageLayers>(defaultCoverageLayers);
   const shownLayers = coverage?.layers ?? layers;
   const layersRef = useRef(shownLayers); layersRef.current = shownLayers;
   const fogRef = useRef<{ draw: () => void } | null>(null);
   const root = useRef<HTMLElement>(null), host = useRef<HTMLDivElement>(null);
-  const floating=useFloatingPanel(root,'overview-map',enabled&&!!(raster||terrain),'fit');
+  // Folded, the overview goes home to its corner and opens from there again. A position dragged
+  // for the open map never strands the pill, or an open map sized from it, mid-screen.
+  const floating=useFloatingPanel(root,'overview-map-v2',enabled&&!!(raster||terrain),'fit',!expanded);
   const autoCompact=useMapSurfaceClearance(root,enabled,expanded,large,!!raster);
   useEffect(()=>{
     const node=root.current,area=node?.closest('.map-area');if(!node||!area||!enabled)return;
     const legend=area.querySelector<HTMLElement>('.map-bottom-bar');
     const arrange=()=>{
       if(node.dataset.floating==='true'){node.style.removeProperty('bottom');return;}
-      const bounds=area.getBoundingClientRect(),key=legend?.getBoundingClientRect();
-      const bottom=key&&key.width&&key.height?Math.max(48,bounds.bottom-key.top+12):48;
+      const bounds=area.getBoundingClientRect(),key=legend?.getBoundingClientRect(),own=node.getBoundingClientRect();
+      const requestedWidth=expanded?Math.min(large?600:coverage?248:176,bounds.width-32):own.width;
+      // Rise above the legend only when the two share columns; docked at the right they rarely do.
+      const shared=key&&key.width&&key.height&&key.left<own.right&&own.right-requestedWidth<key.right;
+      const bottom=shared?Math.max(48,bounds.bottom-key.top+12):48;
       const toolbar=area.querySelector<HTMLElement>('.map-tools')?.getBoundingClientRect();
       const top=toolbar?Math.max(64,toolbar.bottom-bounds.top+12):64;
       node.style.bottom=`${bottom}px`;
@@ -171,15 +179,22 @@ export function MapOverview({ mapRef, raster: providedRaster, terrain, imageUrl,
     };
   }, [enabled, expanded, mapRef, raster, area, coverage, viewControlRef, viewVersion]);
   if (!enabled || (!raster && !terrain)) return null;
+  const open = expanded && !autoCompact;
   const chips: Array<[keyof CoverageLayers, string]> = [
     ['fog', t('Đội chưa tới', 'Not reached')], ['need', t('Cần cứu', 'Needs rescue')], ['unverified', t('Chưa rõ', 'Unverified')], ['team', t('Đội cứu hộ', 'Rescue teams')], ['rescued', t('Đã cứu', 'Rescued')]];
   return <section ref={root} className="map-overview" data-expanded={expanded} data-coverage={!!coverage || undefined} data-large={large || undefined} aria-label={t('Bản đồ tổng quan', 'Overview map')}>
     <div className="overview-head floating-panel-handle" {...floating} onDoubleClickCapture={floating.onDoubleClick} tabIndex={0} role="group" aria-label={t('Vị trí bản đồ tổng quan','Overview position')}>
-      <span className="overview-title"><UiIcon name="area" size={15}/>{t('Tổng quan','Overview')}</span>
-      <button className="overview-toggle" aria-expanded={expanded&&!autoCompact} aria-controls="overview-map-surface"
-        aria-label={expanded&&!autoCompact ? t('Thu gọn bản đồ tổng quan', 'Hide overview map') : t('Mở bản đồ tổng quan', 'Show overview map')}
-        onClick={() => {expansionChosen.current=true;if(autoCompact){onActivate?.();setExpanded(true);}else setExpanded(value=>!value);}}>
-        <UiIcon name={expanded&&!autoCompact ? 'collapse' : 'expand'} size={14}/>
+      {open && <span className="overview-title"><UiIcon name="area" size={15}/>{t('Tổng quan','Overview')}</span>}
+      {/* Folded, the whole pill is one button: its label opens it, not only the chevron. */}
+      <button className={open ? 'overview-toggle' : 'overview-toggle overview-open'} aria-expanded={open} aria-controls="overview-map-surface"
+        aria-label={open ? t('Thu gọn bản đồ tổng quan', 'Hide overview map') : t('Mở bản đồ tổng quan', 'Show overview map')}
+        onClick={() => {
+          expansionChosen.current=true;
+          // Opening the overview replaces whatever card or detail held the map, as in a map app.
+          if(!open){openMapSurface('overview');onActivate?.();setExpanded(true);}else setExpanded(false);
+        }}>
+        {!open && <><UiIcon name="area" size={15}/><span>{t('Tổng quan','Overview')}</span></>}
+        <UiIcon name={open ? 'collapse' : 'expand'} size={14}/>
       </button>
       {expanded && coverage && <button className="icon-button overview-size" aria-pressed={large} aria-label={large ? t('Thu nhỏ', 'Smaller') : t('Phóng to', 'Larger')} title={large ? t('Thu nhỏ', 'Smaller') : t('Phóng to', 'Larger')}
         onClick={() => setLarge(value => !value)}><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d={large ? "M3 8h5V3M17 12h-5v5M8 8 2 2m10 10 6 6" : "M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6"}/></svg></button>}

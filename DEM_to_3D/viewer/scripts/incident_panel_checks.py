@@ -25,8 +25,10 @@ def check_incident_layout(page):
             if (label && getComputedStyle(label).textTransform === 'uppercase') errors.push('uppercase label: ' + label.textContent);
         });
         const children = [...body.children];
-        for (let i = 1; i < children.length; i++)
-            if (rect(children[i]).top - rect(children[i - 1]).bottom < 8) errors.push('groups touch');
+        for (let i = 1; i < children.length; i++) {
+            const gap = rect(children[i]).top - rect(children[i - 1]).bottom;
+            if (gap < 8) errors.push(`group gap ${gap}px: ${children[i - 1].className} / ${children[i].className}`);
+        }
         return errors;
     }""")
     assert not problems, problems

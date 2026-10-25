@@ -156,7 +156,13 @@
 .area-facts dt { color: var(--ws-muted); font-size: 12px; margin-bottom: 6px; }
 .area-facts dd { margin: 0; font-size: 20px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .area-facts small { font-size: 13px; font-weight: 400; }
+/* Panel actions: full-width buttons with a gap; two actions share one row. */
+.area-action { display: grid; gap: 8px; }
+.area-action:has(> .button + .button:last-child) { grid-template-columns: 1fr 1fr; }
 .area-action .button { width: 100%; justify-content: center; }
+/* Three actions: the main one takes the full row, the other two share the row below. */
+.area-action:has(> .button:nth-child(3)) { grid-template-columns: 1fr 1fr; }
+.area-action > .button.primary:first-child:nth-last-child(odd) { grid-column: 1 / -1; }
 .object-facts { display: grid; gap: 16px; margin: 20px 0; }
 .object-facts > div { display: grid; grid-template-columns: var(--meta-label) minmax(0, 1fr); gap: 12px; align-items: baseline; }
 .object-facts dt { color: var(--ws-muted); font-size: 12px; }

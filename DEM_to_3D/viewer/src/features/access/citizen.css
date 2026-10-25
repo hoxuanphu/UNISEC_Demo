@@ -897,7 +897,7 @@
 .citizen-workspace .citizen-map-summary .button.citizen-primary { color: var(--on-primary); background: var(--primary); border-color: var(--primary); }
 .citizen-map-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--ws-muted); font-size: 11px; }
 .citizen-map-legend span { display: inline-flex; align-items: center; gap: 6px; }
-.citizen-map-legend i { width: 18px; border-top: 3px solid #2789e8; }
+.citizen-map-legend > span > i:not(.legend-symbol):not(.tracked-device-symbol) { width: 18px; border-top: 3px solid #2789e8; }
 .citizen-map-legend .is-uncertain { border-color: #d7a348; border-top-style: dashed; }
 .citizen-map-legend .is-blocked { border-color: #d54c36; }
 .citizen-map-legend .is-comparison { border-color: #b4bdc5; }
@@ -1080,3 +1080,6 @@
 .citizen-official-guidance .citizen-map-actions > .citizen-start + .button:last-child { grid-column: 1 / -1; }
 .citizen-official-guidance .citizen-map-actions .button { white-space: nowrap; }
 .citizen-official-guidance > .text-button { justify-self: center; min-height: 36px; font-size: 13px; }
+
+/* The layer picker owns the map until it closes; route actions remain available afterward. */
+.citizen-map:has(.citizen-map-layers[open]) :is(.citizen-map-summary,.citizen-proposal-bar) { visibility:hidden;pointer-events:none; }

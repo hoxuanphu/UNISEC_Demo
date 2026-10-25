@@ -6,11 +6,14 @@ type Position = { x: number; y: number };
 export function constrainPanel(position: Position, width: number, height: number, panelWidth: number, panelHeight: number, minimumTop = 64): Position {
   // The scale bar and the source button sit along the bottom edge.
   const y = Math.max(minimumTop, Math.min(position.y, Math.max(minimumTop, height - panelHeight - BOTTOM_PX)));
-  const right = y >= minimumTop + RIGHT_TOOLS_PX ? 8 : 64;
-  return { x: Math.max(8, Math.min(position.x, Math.max(8, width - panelWidth - right))), y };
+  // Side margins match the map's layout clearance (useMapSurfaceClearance), so a panel dragged to
+  // an edge is never judged out of bounds and moved elsewhere.
+  const right = y >= minimumTop + RIGHT_TOOLS_PX ? EDGE_PX : 64;
+  return { x: Math.max(EDGE_PX, Math.min(position.x, Math.max(EDGE_PX, width - panelWidth - right))), y };
 }
 /** Height of the compass and buttons down the map's right edge, below the toolbar. */
 const RIGHT_TOOLS_PX = 96;
+const EDGE_PX = 12;
 /** Room kept along the bottom edge for the scale bar and the source button. */
 const BOTTOM_PX = 56;
 
@@ -20,8 +23,17 @@ export function anchoredPanel(position: Position, width: number, height: number,
   return { ...anchor, maxHeight: Math.max(0, height - anchor.y - 32) };
 }
 
+/** Growing content scrolls below the same heading instead of pushing the window upward. */
+export function fittedPanel(position: Position, width: number, height: number, panelWidth: number, headingHeight=48, minimumTop=64) {
+  const heading=Math.min(headingHeight,Math.max(0,height-minimumTop-BOTTOM_PX));
+  const anchor=constrainPanel(position,width,height,Math.min(panelWidth,160),heading,minimumTop);
+  const right=anchor.y>=minimumTop+RIGHT_TOOLS_PX?EDGE_PX:64;
+  return {...anchor,maxWidth:Math.max(0,width-anchor.x-right),maxHeight:Math.max(0,height-anchor.y-BOTTOM_PX)};
+}
+
 /** Move a tool window, preserving geographic features and keeping navigation accessible. */
-export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enabled = true, sizing: 'anchor'|'fit' = 'anchor') {
+/** `home`: while true the panel forgets any dragged position and stays docked. */
+export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enabled = true, sizing: 'anchor'|'fit' = 'anchor', home = false) {
   const position = useRef<Position | null>(null);
   const drag = useRef<{ origin: Position; client: Position; pointerId: number } | null>(null);
   const apply = () => {
@@ -30,18 +42,21 @@ export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enab
     if (window.innerWidth <= 900 || !position.current) {
       node.style.removeProperty('left'); node.style.removeProperty('top');
       node.style.removeProperty('--floating-panel-height');
+      node.style.removeProperty('max-width');
       delete node.dataset.floating;
     } else {
       const bounds = area.getBoundingClientRect(), rect = node.getBoundingClientRect();
       const controls = [...area.querySelectorAll<HTMLElement>('.map-tools,.map-advanced-tools:not([hidden])')];
       const minimumTop = controls.length ? Math.max(...controls.map(control => control.getBoundingClientRect().bottom)) - bounds.top + 16 : 64;
-      const anchor = sizing==='fit' ? {...constrainPanel(position.current,bounds.width,bounds.height,rect.width,rect.height,minimumTop),maxHeight:bounds.height-minimumTop-32} : anchoredPanel(position.current, bounds.width, bounds.height, rect.width, minimumTop);
+      const headingHeight=node.querySelector<HTMLElement>('.floating-panel-handle,header')?.offsetHeight??48;
+      const anchor = sizing==='fit' ? fittedPanel(position.current,bounds.width,bounds.height,rect.width,headingHeight,minimumTop) : anchoredPanel(position.current, bounds.width, bounds.height, rect.width, minimumTop);
       node.dataset.floating='true';
       // Positions are measured in the map area; the panel is placed in its own containing block,
       // which may start below the map toolbar.
       const parent = (node.offsetParent as HTMLElement | null)?.getBoundingClientRect() ?? bounds;
       node.style.left = `${anchor.x - (parent.left - bounds.left)}px`; node.style.top = `${anchor.y - (parent.top - bounds.top)}px`;
       node.style.setProperty('--floating-panel-height', `${anchor.maxHeight}px`);
+      if(sizing==='fit')node.style.maxWidth=`${'maxWidth' in anchor?anchor.maxWidth:bounds.width}px`;
     }
     area.dispatchEvent(new Event('dear:map-layout'));
   };
@@ -63,10 +78,12 @@ export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enab
     if (area) {
       resize.observe(area);
       area.querySelectorAll('.map-tools,.map-advanced-tools').forEach(control => resize.observe(control));
+      if(sizing==='fit')resize.observe(root.current);
     }
     window.addEventListener('resize', apply);
     return () => { resize.disconnect(); window.removeEventListener('resize', apply); drag.current = null; };
   }, [enabled, key, sizing]);
+  useLayoutEffect(() => { if (enabled && home && position.current) reset(); }, [enabled, home]);
   const blocked = (target: EventTarget | null) => (target as HTMLElement | null)?.closest('button,input,select,a,summary');
   return {
     onPointerDown: (event: PointerEvent<HTMLElement>) => {
@@ -81,7 +98,8 @@ export function useFloatingPanel(root: RefObject<HTMLElement>, key: string, enab
       if (!drag.current || drag.current.pointerId !== event.pointerId) return;
       const node = root.current!, bounds = node.closest('.map-area')!.getBoundingClientRect();
       // The panel's real height: a collapsed one can go down to the bottom edge.
-      position.current = constrainPanel({ x: drag.current.origin.x + event.clientX - drag.current.client.x, y: drag.current.origin.y + event.clientY - drag.current.client.y }, bounds.width, bounds.height, node.offsetWidth, Math.min(node.offsetHeight, 240));
+      const minimumHeight=sizing==='fit'?(node.querySelector<HTMLElement>('.floating-panel-handle,header')?.offsetHeight??48):Math.min(node.offsetHeight,240);
+      position.current = constrainPanel({ x: drag.current.origin.x + event.clientX - drag.current.client.x, y: drag.current.origin.y + event.clientY - drag.current.client.y }, bounds.width, bounds.height, sizing==='fit'?Math.min(node.offsetWidth,160):node.offsetWidth, minimumHeight);
       apply();
     },
     onPointerUp: (event: PointerEvent<HTMLElement>) => {
