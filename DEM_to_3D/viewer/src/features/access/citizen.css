@@ -1087,3 +1087,8 @@
 @media(hover:hover) {
  .citizen-workspace .button.citizen-primary:hover:not(:disabled) { background:var(--primary); color:var(--on-primary); filter:brightness(.94); }
 }
+
+@media(hover:hover) {
+ .citizen-workspace .citizen-map-summary .button.citizen-help:hover:not(:disabled) { background:#c62828; color:#fff; filter:brightness(.94); }
+}
+.citizen-workspace .citizen-map-summary .button.citizen-help:active:not(:disabled) { background:#c62828; color:#fff; filter:brightness(.88); }

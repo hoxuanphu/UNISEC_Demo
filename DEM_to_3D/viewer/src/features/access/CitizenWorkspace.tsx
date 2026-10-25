@@ -285,6 +285,7 @@ export function CitizenWorkspace({
   };
   const navigationGps=residentLocation?{...gps,busy:false,error:null,request:async()=>currentResidentPosition()}:gps;
   const [locationRequest, setLocationRequest] = useState(0);
+  const [guidanceViewRequest,setGuidanceViewRequest]=useState(0);
   const advice = recommendRoute(snapshot.routes.get(community)),
     route = advice.best;
   const displayedRoute = tab !== 'roads' ? null : guidance.entry&&!proposing ? guidance.route : roadMode === 'village' ? route : journey.route;
@@ -415,7 +416,7 @@ export function CitizenWorkspace({
       }
     });
     return () => cancelAnimationFrame(frame);
-  }, [mapOnMobile, defaultTerrain, roadMode, displayedRoute, routeFramePoints, local.network, roadView, shownRoadId, picking, journey.picking, journey.fitSequence, mapPlaceId, fitWholeNetwork, residentLocation, navigating]);
+  }, [mapOnMobile, defaultTerrain, roadMode, displayedRoute, routeFramePoints, local.network, roadView, shownRoadId, picking, journey.picking, journey.fitSequence, mapPlaceId, fitWholeNetwork, residentLocation, navigating, guidanceViewRequest]);
   const gpsError = gps.error ? (
     <p className="field-error" role="alert">
       {gps.error === "denied"
@@ -516,7 +517,7 @@ export function CitizenWorkspace({
     gps.cancel();setPicking(false);incidentJourney.setPicking(null);localJourney.setPicking(null);
     setProposing(false);setMapSelection(null);setOwnSelected(null);setNavigating(false);
     setRoadMode('local');setFitWholeNetwork(false);setTab('roads');setMapOnMobile(true);
-    requestAnimationFrame(()=>controls.current?.frameProjected?.(guidance.route?.points??(guidance.entry?[guidance.entry.origin]:[]),{bottom:260}));
+    setGuidanceViewRequest(value=>value+1);
   };
   return (
     <div

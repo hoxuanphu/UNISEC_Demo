@@ -13,7 +13,7 @@ export function TrackedDevices2D({map,feed,locale,interactive,onRoad,onDevice,se
   const runtime=useRef<ReturnType<typeof createTrackingOverlay>|null>(null);
   useEffect(()=>{
     if(!map||!feed)return;
-    let zoomView:L.ZoomAnimEvent|null=null;
+    let zoomView:L.ZoomAnimEvent|null=null,settleFrame=0;
     const overlay=createTrackingOverlay(map.getContainer().parentElement??map.getContainer(),feed,locale,point=>{
       const geo=roadGeographic(point);
       if(zoomView){const at=map.project([geo.latitude,geo.longitude],zoomView.zoom).subtract(map.project(zoomView.center,zoomView.zoom)),size=map.getSize();return{x:at.x+size.x/2,y:at.y+size.y/2,visible:true};}
@@ -23,10 +23,19 @@ export function TrackedDevices2D({map,feed,locale,interactive,onRoad,onDevice,se
       map.setView([geo.latitude,geo.longitude],Math.max(map.getZoom(),POINT_ZOOM),{animate:!matchMedia('(prefers-reduced-motion: reduce)').matches});
     },onDevice?id=>live.current.onDevice?.(id):undefined,()=>live.current.selectedId??null,selfId);
     runtime.current=overlay;
-    const animate=(event:L.ZoomAnimEvent)=>{zoomView=event;overlay.setZooming(true);overlay.update();};
-    const finish=()=>{zoomView=null;overlay.setZooming(false);overlay.update();};
-    map.on('zoomanim',animate);map.on('zoomend',finish);map.on('move zoom resize viewreset',overlay.update);
-    return()=>{map.off('zoomanim',animate);map.off('zoomend',finish);map.off('move zoom resize viewreset',overlay.update);overlay.dispose();runtime.current=null;};
+    const finish=()=>{cancelAnimationFrame(settleFrame);settleFrame=0;zoomView=null;overlay.setZooming(false);};
+    // Reframing a hidden/resized map can interrupt zoom without a matching zoomend.
+    // Release the screen overlay when Leaflet's own transition ends, also on a new drag.
+    const settle=()=>{
+      if(map.getPane('mapPane')?.classList.contains('leaflet-zoom-anim'))settleFrame=requestAnimationFrame(settle);
+      else finish();
+    };
+    const animate=(event:L.ZoomAnimEvent)=>{
+      cancelAnimationFrame(settleFrame);zoomView=event;overlay.setZooming(true);
+      settleFrame=requestAnimationFrame(settle);
+    };
+    map.on('zoomanim',animate);map.on('zoomend moveend dragstart viewreset',finish);map.on('move zoom resize',overlay.update);
+    return()=>{cancelAnimationFrame(settleFrame);map.off('zoomanim',animate);map.off('zoomend moveend dragstart viewreset',finish);map.off('move zoom resize',overlay.update);overlay.dispose();runtime.current=null;};
   },[map,feed,locale,selfId]);
   useEffect(()=>{runtime.current?.update();},[interactive,selectedId]);
   useEffect(()=>{runtime.current?.setHeading(heading);},[heading,feed,selfId,locale,map]);
