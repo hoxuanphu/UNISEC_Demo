@@ -8,6 +8,7 @@ def run(url, chrome=None, captures=None):
  with sync_playwright() as p:
   browser=p.chromium.launch(headless=True,**({'executable_path':chrome} if chrome else {}))
   context=browser.new_context(viewport={'width':1440,'height':960})
+  context.add_init_script('Object.defineProperty(navigator,"onLine",{configurable:true,get:()=>false})')
   context.route('**/*',lambda r:r.continue_() if r.request.url.startswith((url+'/','data:','blob:')) else r.abort())
   page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(e.stack))
   try:
