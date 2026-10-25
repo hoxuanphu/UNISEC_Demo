@@ -25,7 +25,7 @@ export function LocalAreaCard({area,photos,locale,onClose,linkToJourney=false}:{
   },[photo?.image.sha256,attempt]);
   const image=loaded?.key===photo?.image.sha256?loaded?.url:undefined;
   const vi=locale==='vi',title=area.name[vi?0:1].replace(/ \([^)]*\)$/,'');
-  const caption=vi?'Ảnh minh họa, chưa xác minh tại vùng này.':'Illustrative photo, not field verified at this extent.';
+  const caption=vi?'Ảnh tham chiếu · Chế Tạo':'Reference photo · Chế Tạo';
   const url=new URL(location.href);url.searchParams.set('workspace','routes');url.searchParams.set('area',area.id);
   return <aside className="local-area-card" aria-label={vi?'Vùng sạt lở':'Landslide area'}>
     <header><div><small>{vi?'Vùng sạt lở':'Landslide extent'}</small><h2>{title}</h2></div><button type="button" className="icon-button" aria-label={vi?'Đóng vùng sạt':'Close landslide area'} onClick={onClose}><UiIcon name="close"/></button></header>

@@ -5,3 +5,7 @@
 .rescue-team-symbol .tracked-device-symbol { transform:scale(1.25); }
 .rescue-team-row .status-text { white-space:nowrap; font-size:12px; }
 .rescue-team-detail .object-row strong { font-weight:600; }
+.rescue-base-symbol { display:grid; place-items:center; width:32px; height:32px; justify-self:center; border-radius:50%; background:#2e7a4d; color:#fff; }
+.rescue-base-row > svg:last-child { color:var(--ws-muted); }
+.rescue-bases { margin-top:16px; }
+.rescue-teams .rescue-team-row[aria-current='true'], .rescue-bases .rescue-base-row[aria-current='true'] { box-shadow:inset 3px 0 var(--select-ink,var(--ws-text)); background:var(--ws-card,var(--card)); }

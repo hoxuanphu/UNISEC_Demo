@@ -4,6 +4,7 @@ import type { Locale } from '../../types/dear';
 import type { DeviceFeed } from './deviceFeed';
 import { roadGeographic } from '../routes/selectedRoadJourney';
 import { createTrackingOverlay } from './trackingOverlay';
+import { POINT_ZOOM } from '../map/selectionScale';
 import './tracked-devices.css';
 export function TrackedDevices2D({map,feed,locale,interactive,onRoad}:{map:L.Map|null;feed:DeviceFeed|null;locale:Locale;interactive:boolean;onRoad?:(id:string)=>void}) {
   const live=useRef({interactive,onRoad});live.current={interactive,onRoad};
@@ -17,7 +18,7 @@ export function TrackedDevices2D({map,feed,locale,interactive,onRoad}:{map:L.Map
       const at=map.latLngToContainerPoint([geo.latitude,geo.longitude]);return{x:at.x,y:at.y,visible:true};
     },()=>live.current.interactive,id=>live.current.onRoad?.(id),point=>{
       const geo=roadGeographic(point);
-      map.setView([geo.latitude,geo.longitude],Math.max(map.getZoom(),15),{animate:!matchMedia('(prefers-reduced-motion: reduce)').matches});
+      map.setView([geo.latitude,geo.longitude],Math.max(map.getZoom(),POINT_ZOOM),{animate:!matchMedia('(prefers-reduced-motion: reduce)').matches});
     });
     runtime.current=overlay;
     const animate=(event:L.ZoomAnimEvent)=>{zoomView=event;overlay.setZooming(true);overlay.update();};

@@ -40,9 +40,53 @@ export function teamTask(team: DevicePosition, locale: Locale): string {
   return team.missionId?.startsWith('household:') ? name : locale === 'vi' ? `${name} tại đoạn chặn` : `${name} at a closure`;
 }
 
+/** The rescue tab: how many teams and where they stand, then each team, then the assembly points. */
+export function RescueView({ feed, bases, locale, selectedId, onSelectTeam, onSelectBase, onShowAll }: {
+  feed: DeviceFeed | null; bases: readonly RescueBase[]; locale: Locale; selectedId?: string | null;
+  onSelectTeam: (id: string) => void; onSelectBase: (id: string) => void; onShowAll: () => void;
+}): JSX.Element {
+  const t = (vi: string, en: string) => locale === 'vi' ? vi : en;
+  const teams = useTeams(feed);
+  const out = teams.filter(team => !IDLE.includes(team.state)).length;
+  const waiting = teams.filter(team => team.state === 'waiting').length;
+  return <>
+    <div className="sidebar-top incident-overview-heading">
+      <div className="detail-title">
+        <h1>{t('Cứu hộ', 'Rescue')}</h1>
+        <button className="icon-button" aria-label={t('Xem các đội trên bản đồ', 'Show teams on the map')} title={t('Xem các đội trên bản đồ', 'Show teams on the map')} disabled={!teams.length} onClick={onShowAll}><UiIcon name="fit" size={18}/></button>
+      </div>
+      <div className="incident-summary" aria-label={t('Thống kê', 'Summary')}>
+        <div className="incident-summary-fact"><span>{t('Đội cứu hộ', 'Rescue teams')}</span><strong>{teams.length}</strong></div>
+        <div className="incident-summary-fact"><span>{t('Đang làm nhiệm vụ', 'Deployed')}</span><strong>{out}</strong></div>
+        <div className="incident-summary-fact" data-tone={waiting ? 'warning' : undefined}><span>{t('Chờ tiếp cận', 'Awaiting access')}</span><strong>{waiting}</strong></div>
+      </div>
+    </div>
+    <div className="sidebar-scroll incident-overview">
+      {teams.length ? <RescueTeamList feed={feed} locale={locale} onSelect={onSelectTeam} selectedId={selectedId} counted={false}/>
+        : <p className="detail-empty">{t('Chưa có đội cứu hộ nào được theo dõi.', 'No rescue teams are being tracked.')}</p>}
+      {bases.length > 0 && <section className="rescue-bases">
+        <h2 className="incident-section-title">{t('Điểm tập kết', 'Assembly points')}</h2>
+        <div className="incident-landslide-list">
+          {bases.map(base => {
+            const count = teams.filter(team => team.baseId === base.id).length;
+            return <button className="incident-landslide-row rescue-base-row" key={base.id} aria-current={selectedId === `poi:${base.id}` || undefined} onClick={() => onSelectBase(base.id)}>
+              <span className="rescue-base-symbol" aria-hidden="true"><UiIcon name="location" size={18}/></span>
+              <span className="incident-landslide-copy"><strong>{base.name[locale === 'vi' ? 0 : 1]}</strong>
+                <small>{count ? t(`${count} đội`, `${count} ${count === 1 ? 'team' : 'teams'}`) : t('Chưa có đội', 'No team')}</small></span>
+              <UiIcon name="next" size={16}/>
+            </button>;
+          })}
+        </div>
+      </section>}
+    </div>
+  </>;
+}
+
 /** Every rescue team at a glance: who, sent where, doing what. Optionally those of one assembly point. */
-export function RescueTeamList({ feed, locale, onSelect, baseId, title }: {
-  feed: DeviceFeed | null; locale: Locale; onSelect: (id: string) => void; baseId?: string; title?: string;
+export function RescueTeamList({ feed, locale, onSelect, baseId, title, selectedId, counted = true }: {
+  feed: DeviceFeed | null; locale: Locale; onSelect: (id: string) => void; baseId?: string; title?: string; selectedId?: string | null;
+  /** Off where a summary above already gives the count. */
+  counted?: boolean;
 }): JSX.Element | null {
   const t = (vi: string, en: string) => locale === 'vi' ? vi : en;
   const teams = useTeams(feed).filter(team => !baseId || team.baseId === baseId);
@@ -50,11 +94,11 @@ export function RescueTeamList({ feed, locale, onSelect, baseId, title }: {
   const out = teams.filter(team => !IDLE.includes(team.state)).length;
   return <section className="rescue-teams">
     <h2 className="incident-section-title"><span>{title ?? t('Đội cứu hộ', 'Rescue teams')}</span>
-      <small>{t(`${out}/${teams.length} đang làm nhiệm vụ`, `${out} of ${teams.length} deployed`)}</small></h2>
+      {counted && <small>{t(`${out}/${teams.length} đang làm nhiệm vụ`, `${out} of ${teams.length} deployed`)}</small>}</h2>
     <div className="incident-landslide-list">
       {teams.map(team => {
         const status = teamStatus(team, locale);
-        return <button className="incident-landslide-row rescue-team-row" key={team.id} onClick={() => onSelect(team.id)}>
+        return <button className="incident-landslide-row rescue-team-row" key={team.id} aria-current={selectedId === `team:${team.id}` || undefined} onClick={() => onSelect(team.id)}>
           <span className="rescue-team-symbol"><DeviceLegendSymbol role="rescue"/></span>
           <span className="incident-landslide-copy"><strong>{team.name[locale === 'vi' ? 0 : 1]}</strong><small>{teamTask(team, locale)}</small></span>
           <StatusText tone={status.tone}>{status.text}</StatusText>

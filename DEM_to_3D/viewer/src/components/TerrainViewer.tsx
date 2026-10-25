@@ -47,6 +47,7 @@ import type { MapDisplayProps, OverlayHit } from '../features/map/mapContracts';
 import { createFlyoverController, type FlyoverController, type FlyoverState } from '../terrain/flyover/flyoverController';
 import type { FlyoverInput } from '../features/flyover/flyoverInput';
 import type { ViewControls } from '../features/map/mapContracts';
+import { withMinimumExtent } from '../features/map/selectionScale';
 import '../features/flyover/flyover.css';
 
 export type TerrainViewerProps = MapDisplayProps & {
@@ -625,7 +626,7 @@ export function TerrainViewer({
         retryBasemap: () => {basemap?.retry();viewImagery?.retry();},
         focusProjected: (point, inset) => {
           const target = projectedWorld(point);if (!target) return;
-          const nearby = [{x:point.x-250,y:point.y-250},point,{x:point.x+250,y:point.y+250}]
+          const nearby = withMinimumExtent([point])
             .map(projectedWorld).filter((item): item is THREE.Vector3 => item !== null);
           const framed = nearby.length > 1 ? frameCameraPoints(camera,controls.target,nearby,{width:host.clientWidth,height:host.clientHeight,right:inset?.right ?? 0,minDistance:controls.minDistance,maxDistance:controls.maxDistance}) : null;
           if (framed) { moveCamera(framed.position,framed.target); return; }
@@ -634,7 +635,7 @@ export function TerrainViewer({
           moveCamera(pose.position,pose.target);
         },
         frameProjected: (points, inset) => {
-          const worldPoints = points.map(projectedWorld).filter((point): point is THREE.Vector3 => point !== null);
+          const worldPoints = withMinimumExtent(points).map(projectedWorld).filter((point): point is THREE.Vector3 => point !== null);
           const pose = frameCameraPoints(camera,controls.target,worldPoints,{width:host.clientWidth,height:host.clientHeight,right:inset?.right ?? 0,bottom:inset?.bottom ?? 0,minDistance:controls.minDistance,maxDistance:controls.maxDistance});
           if (pose) moveCamera(pose.position,pose.target,560);
         }

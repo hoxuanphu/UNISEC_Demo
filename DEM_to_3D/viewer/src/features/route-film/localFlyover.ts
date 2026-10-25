@@ -56,7 +56,7 @@ export function buildLocalFlyover(network:LocalNetwork,context:MapContextGeometr
   start:JourneyEndpoint|null,end:JourneyEndpoint|null,photos:Map<string,PreparedPhotoPoint>,households:HouseholdAccess[]=[]):FlyoverInput|null {
   if(!route||!start||!end)return null;
   const stops=localRouteStops(route,context.areas).map(({area})=>({id:area.id,name:area.name,projected:area.center,status:'suspected' as const,
-    photo:illustrativePhotoForArea(area.id,photos),photoRole:'illustrative' as const,photoCaption:['Ảnh khảo sát Chế Tạo, chưa xác nhận vùng này','Chế Tạo survey photo, not evidence for this extent'] as [string,string]}));
+    photo:illustrativePhotoForArea(area.id,photos),photoRole:'illustrative' as const,photoCaption:['Ảnh tham chiếu · Chế Tạo','Reference photo · Chế Tạo'] as [string,string]}));
   // Real road vertices, not unoccupied rectangle corners. Preserve each road's
   // extrema so the final frame includes its full extent without excessive empty land.
   const overviewPoints=network.roads.flatMap(road=>{

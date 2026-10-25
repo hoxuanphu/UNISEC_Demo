@@ -1,5 +1,6 @@
 import { TrackedDevices2D } from '../tracking/TrackedDevices2D';
 import { RouteSimulationLayer } from './RouteSimulationLayer';
+import { POINT_ZOOM, SELECTION_MAX_ZOOM } from './selectionScale';
 import { drawingLayerRank } from './mapLayerOrder';
 import { routeStopSvg } from '../routes/routeStopSymbol';
 import { ContextAreas2D } from './ContextAreas2D';
@@ -276,7 +277,7 @@ export function Map2D(props: Props): JSX.Element {
       focusProjected: (point, inset) => {
         map.invalidateSize({pan:false});
         const p = ll(point); if (!p) return;
-        const zoom = Math.min(map.getMaxZoom(), Math.max(map.getZoom(), 16));
+        const zoom = Math.min(map.getMaxZoom(), Math.max(map.getZoom(), POINT_ZOOM));
         const right = Math.min(inset?.right ?? 0, Math.max(0, host.clientWidth - 240));
         const target = right ? map.unproject(map.project(p, zoom).add([right / 2, 0]), zoom) : p;
         map.stop(); map.setView(target, zoom, { animate: !window.matchMedia('(prefers-reduced-motion: reduce)').matches, duration: 0.45 });
@@ -289,7 +290,7 @@ export function Map2D(props: Props): JSX.Element {
         const right = Math.min(inset?.right ?? 0, Math.max(0, host.clientWidth - 240));
         const summary = host.closest('.citizen-map')?.querySelector('.citizen-map-summary')?.getBoundingClientRect();
         const bottom = summary ? Math.max(100, host.getBoundingClientRect().bottom - summary.top + 16) : Math.max(100, Math.min(inset?.bottom ?? 0, host.clientHeight - 160));
-        map.fitBounds(L.latLngBounds(positions), {paddingTopLeft:summary?[45,70]:[65,90],paddingBottomRight:[right + 65,bottom],maxZoom:17,animate:!window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration:.5});
+        map.fitBounds(L.latLngBounds(positions), {paddingTopLeft:summary?[45,70]:[65,90],paddingBottomRight:[right + 65,bottom],maxZoom:Math.max(map.getZoom(),SELECTION_MAX_ZOOM),animate:!window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration:.5});
       },
       retryBasemap: () => { tileKey = ''; refresh(); }
     };

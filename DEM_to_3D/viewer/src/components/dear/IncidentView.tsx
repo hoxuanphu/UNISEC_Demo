@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useRef } from 'react';
 import type { Community, Hazard, IncidentModel, Locale, RoadSegment } from '../../types/dear';
 import { UiIcon } from '../../shared/ui/UiIcon';
 import type { ResponseAssessment } from '../../features/incident/responseAssessment';
@@ -41,16 +41,15 @@ type Props = {
   households?: HouseholdAccess[];
   onSelectHousehold?: (id: string) => void;
   onShowHouseholds?: () => void;
-  /** The rescue teams and what each is doing, under the people waiting for them. */
-  rescueTeams?: ReactNode;
 };
 
 /** A compact field summary; counts are independent facts, not a causal diagram. */
 export function IncidentView({
   incident, locale, areaName, tasks, entries, communities, onSelectCommunity, onOpenWork, onOpenArea,
   hazards, roads, fieldPhotos, onInspectObject, reportPending, pendingReport,
-  onOpenReport, historical, onOpenRoads, onOpenCommunities, households = [], onSelectHousehold, onShowHouseholds, rescueTeams
+  onOpenReport, historical, onOpenRoads, onOpenCommunities, households = [], onSelectHousehold, onShowHouseholds
 }: Props): JSX.Element {
+  const householdSection = useRef<HTMLElement>(null);
   const t = (vi: string, en: string) => locale === 'en' ? en : vi;
   // English counts agree with their noun; Vietnamese has no plural form.
   const tn = (count: number, vi: string, one: string, many: string) => locale === 'en' ? (count === 1 ? one : many) : vi;
@@ -81,7 +80,7 @@ export function IncidentView({
           <strong>{blocked.length || uncertain.length}</strong>
         </button>
         {/* Who is waiting: people the app still sees cut off, when known; otherwise the priority villages. */}
-        {isolated.length > 0 ? <button className="incident-summary-fact" data-tone="critical" onClick={onShowHouseholds}>
+        {isolated.length > 0 ? <button className="incident-summary-fact" data-tone="critical" onClick={() => { onShowHouseholds?.(); householdSection.current?.scrollIntoView({block:"nearest",inline:"nearest"}); }}>
           <span>{t('Hộ bị cô lập', 'Isolated households')}</span>
           <strong>{number(isolated.reduce((sum, item) => sum + item.cluster.households, 0))}</strong>
           <small>{t(`${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} người`, `${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} people`)}</small>
@@ -100,8 +99,8 @@ export function IncidentView({
       </button>}
 
       {/* The alarm: people the app still sees at huts every road out of which is cut. */}
-      {isolated.length > 0 && <section className="incident-households">
-        <h2 className="incident-section-title"><span>{t('Còn người, bị cô lập', 'People cut off')}</span><small>{t(`${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} người`, `${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} people`)}</small></h2>
+      {isolated.length > 0 && <section className="incident-households" ref={householdSection}>
+        <h2 className="incident-section-title"><span>{t('Hộ bị cô lập', 'Isolated households')}</span><small>{t(`${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} người`, `${number(isolated.reduce((sum, item) => sum + item.cluster.people, 0))} people`)}</small></h2>
         <div className="incident-landslide-list">
           {isolated.map(item => <button className="incident-landslide-row incident-household-row" key={item.cluster.id} onClick={() => onSelectHousehold?.(item.cluster.id)}>
             <span className="incident-household-icon"><UiIcon name="people" size={20}/></span>
@@ -111,8 +110,7 @@ export function IncidentView({
         </div>
       </section>}
 
-      {!historical && rescueTeams}
-
+      {/* Landslides first: what happened, with its survey photos. */}
       <section className="incident-landslides">
         <h2 className="incident-section-title">{t('Điểm sạt lở', 'Landslides')}</h2>
         <div className="incident-landslide-list">

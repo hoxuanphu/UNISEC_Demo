@@ -35,7 +35,7 @@ describe('shared local map and 3D film',()=>{
     const input=buildLocalFlyover(network,context,route.route,route.start,route.end,photos)!;
     expect(input.cameraMode).toBe('network');expect(input.retainContext).toBe(true);
     expect(input.stops.length).toBeGreaterThan(0);
-    for(const stop of input.stops){expect(stop.photo).toEqual(illustrativePhotoForArea(stop.id,photos));expect(stop.photoRole).toBe('illustrative');expect(stop.photoCaption?.[1]).toContain('not evidence');expect(context.areas.find(area=>area.id===stop.id)?.center).toEqual(stop.projected);}
+    for(const stop of input.stops){expect(stop.photo).toEqual(illustrativePhotoForArea(stop.id,photos));expect(stop.photoRole).toBe('illustrative');expect(stop.photoCaption?.[1]).toContain('Reference photo');expect(context.areas.find(area=>area.id===stop.id)?.center).toEqual(stop.projected);}
     expect(input.context).toBe(context);
     expect(input.imagery).toEqual([]);
   });

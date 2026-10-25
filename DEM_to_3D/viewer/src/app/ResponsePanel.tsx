@@ -36,7 +36,10 @@ type Props = Pick<
   /** @deprecated The overview no longer lists reference datasets; GIS owns them. */
   survey?: {areas:number;points:number}; onShowSurvey?:()=>void; onShowCorridor?:()=>void;
   households?: HouseholdAccess[]; onSelectHousehold?: (id: string) => void; onShowHouseholds?: () => void;
-  rescueTeams?: import('react').ReactNode;
+  /** The rescue tab, where teams are tracked. */
+  rescueView?: import('react').ReactNode;
+  /** Under the community list: the commune's villages and the people around them. */
+  communityExtra?: import('react').ReactNode;
 };
 
 /** Lists retain their context and scroll while a selected item opens in the detail surface. */
@@ -59,7 +62,7 @@ export function ResponsePanel({
   onSelectCommunity,
   onInspectObject,
   onRevealPanel,
-  onOpenDialog, fieldPhotos, households, onSelectHousehold, onShowHouseholds, rescueTeams
+  onOpenDialog, fieldPhotos, households, onSelectHousehold, onShowHouseholds, rescueView, communityExtra
 }: Props): JSX.Element {
   const {
     view,
@@ -78,7 +81,7 @@ export function ResponsePanel({
       ? `priority:${communityFilter}:${communityQuery}`
       : view === 'impact'
         ? `impact:${impactTab}:${roadFilter}:${roadQuery}`
-        : 'incident';
+        : view;
   usePanelScroll(panelRef, screenKey);
 
   const openCommunities = () => {
@@ -136,13 +139,14 @@ export function ResponsePanel({
         households={households}
         onSelectHousehold={onSelectHousehold}
         onShowHouseholds={onShowHouseholds}
-        rescueTeams={rescueTeams}
         onOpenRoads={(filter) => {
           onNavigate({ type: 'road-list', filter });
           onRevealPanel();
         }}
       />
     );
+  } else if (view === 'rescue') {
+    content = <>{rescueView}</>;
   } else if (view === 'impact') {
     content = (
       <ImpactView
@@ -181,6 +185,7 @@ export function ResponsePanel({
         onSelectCommunity={onSelectCommunity}
         selectedId={selectedCommunityId}
         routes={routes}
+        extra={communityExtra}
       />
     );
   }

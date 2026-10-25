@@ -586,3 +586,10 @@
 .evidence-limitation svg { flex: none; margin-top: 3px; color: var(--warning-ink); }
 .detail-empty { margin: 0 0 8px; color: var(--ws-muted); font-size: 13px; }
 .hazard-detail .hazard-observation { margin: 0 0 10px; }
+
+/* Four response tabs retain their labels within narrow sidebars and mobile screens. */
+.workspace-nav { min-width:0; }
+.workspace-nav:has(button:nth-child(4)) button { min-width:0; padding-inline:6px; gap:5px; }
+@container(max-width:420px) {
+  .workspace-nav:has(button:nth-child(4)) button > svg { display:none; }
+}

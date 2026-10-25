@@ -17,7 +17,7 @@ export type WorkspaceNavigation = {
 
 export const initialWorkspaceNavigation: WorkspaceNavigation = {
   view: 'incident', selectedCommunityId: null, selectedRouteType: 'candidate', routeSectionId: null,
-  objectIds: { incident: null, impact: null },
+  objectIds: { incident: null, impact: null, rescue: null },
   detailTab: 'decision', roadFilter: 'all', communityFilter: 'all', roadQuery: '', communityQuery: '', impactTab: 'roads'
 };
 
@@ -53,9 +53,11 @@ export function workspaceNavigationReducer(state: WorkspaceNavigation, action: N
         selectedRouteType: 'candidate', detailTab: 'decision', routeSectionId: null };
     }
     case 'inspect-object': {
-      // Roads and hazards belong to the road tab. Other places open where the user already is,
-      // so picking a staging or landing site from the road tab does not switch tabs.
-      const owner: ObjectView = action.id.startsWith('road:') || action.id.startsWith('hazard:') || state.view === 'impact' ? 'impact' : 'incident';
+      // Roads and hazards belong to the road tab, teams to the rescue tab. Other places open where
+      // the user already is, so picking a staging site from the road or rescue tab does not switch tabs.
+      const owner: ObjectView = action.id.startsWith('team:') ? 'rescue'
+        : action.id.startsWith('road:') || action.id.startsWith('hazard:') || state.view === 'impact' ? 'impact'
+        : state.view === 'rescue' ? 'rescue' : 'incident';
       return { ...state, view: owner, objectIds: { ...state.objectIds, [owner]: action.id } };
     }
     case 'view': {

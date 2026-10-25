@@ -74,7 +74,7 @@
   },
   "residentPresence": {
     "url": "/scenarios/che-tao/resident-presence.json",
-    "byteLength": 1831,
-    "sha256": "2df73ce406fef331eb790acf44d728001b6bc6d75952ed7250751444a43d113c"
+    "byteLength": 1812,
+    "sha256": "ec4398504ea8aadd273d5944d6bcaf64f8ea4e6ef1a594e9586725e28dc281f1"
   }
 }

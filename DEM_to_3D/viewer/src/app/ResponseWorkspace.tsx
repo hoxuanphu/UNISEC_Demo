@@ -7,7 +7,9 @@ import { HouseholdCard } from '../features/presence/HouseholdCard';
 import { householdWork } from '../features/presence/householdWork';
 import { householdRescues } from '../features/presence/householdRescue';
 import { rescueBases } from '../features/tracking/rescueBase';
-import { RescueTeamDetail, RescueTeamList } from '../features/tracking/RescueTeams';
+import { communeVillages } from '../features/presence/communeSites';
+import { CommuneVillages } from '../features/presence/CommuneVillages';
+import { RescueTeamDetail, RescueTeamList, RescueView } from '../features/tracking/RescueTeams';
 import { surveyConditionAreas } from '../features/routes/surveyRoadConditions';
 import { LocalRoadCard } from '../features/route-film/LocalRoadCard';
 import { supportsBasemapTone } from '../features/imagery/basemapTone';
@@ -453,6 +455,8 @@ export function ResponseWorkspace({
   const journeyRoads=useMemo(()=>[...roads,...(localNetwork.network?.roads??[])],[roads,localNetwork.network]);
   // Teams muster at the scenario's assembly points on the commune roads.
   const bases=useMemo(()=>localNetwork.network?rescueBases(responseSites,localNetwork.network.roads):[],[localNetwork.network,responseSites]);
+  // Villages as reached from the commune's first assembly point, with the huts around each.
+  const villages=useMemo(()=>localNetwork.network?communeVillages(localNetwork.network,households,bases[0]):[],[localNetwork.network,households,bases]);
   // Teams sent to the isolated huts move in the same feed as the other rescue and resident dots.
   const householdTeams=useMemo(()=>localNetwork.network?householdRescues(localNetwork.network,households,bases):[],[localNetwork.network,households,bases]);
   const householdMissions=useMemo(()=>householdTeams.map(team=>team.plan),[householdTeams]);
@@ -1098,7 +1102,7 @@ export function ResponseWorkspace({
       />
 
       <main className="work-area">
-        <WorkspaceNav view={view} locale={locale} onChangeView={changeView} />
+        <WorkspaceNav view={view} locale={locale} onChangeView={changeView} rescue={bases.length > 0} />
         <ResponsePanel
           fieldPhotos={fieldPhotos}
           survey={!historical && runtime.fieldDataset ? {areas:gis.records.filter(r => r.feature.properties.sourceDatasetId === runtime.fieldDataset!.id && r.feature.geometry.type !== 'Point').length,points:gis.records.filter(r => r.feature.properties.sourceDatasetId === runtime.fieldDataset!.id && r.feature.geometry.type === 'Point').length} : undefined}
@@ -1134,7 +1138,11 @@ export function ResponseWorkspace({
           households={households}
           onSelectHousehold={inspectHousehold}
           onShowHouseholds={showHouseholds}
-          rescueTeams={deviceFeed && <RescueTeamList feed={deviceFeed} locale={locale} onSelect={selectTeam}/>}
+          communityExtra={!historical&&<CommuneVillages villages={villages} entryName={bases[0]?.name} locale={locale}
+            onSelectVillage={village=>focusMapOn([village.place.projected,...village.huts.map(item=>item.projected)])} onSelectHuts={inspectHousehold}/>}
+          rescueView={<RescueView feed={historical?null:deviceFeed} bases={bases} locale={locale} selectedId={navigation.objectIds.rescue}
+            onSelectTeam={selectTeam} onSelectBase={id=>inspectObject('poi:'+id)}
+            onShowAll={()=>{const teams=deviceFeed?.getSnapshot().filter(device=>device.role==='rescue')??[];if(teams.length)focusMapOn([...teams.map(team=>team.point),...bases.map(base=>base.projected)]);}}/>}
         />
 
         <ResponseDetails

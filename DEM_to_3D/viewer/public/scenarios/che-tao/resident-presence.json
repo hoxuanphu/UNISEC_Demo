@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "dataKind": "simulated",
   "source": [
-    "Mô phỏng tín hiệu app DEAR của người dân",
-    "Simulated DEAR resident app signals"
+    "Tín hiệu ứng dụng người dân DEAR",
+    "DEAR resident app signals"
   ],
   "clusters": [
     {

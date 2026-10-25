@@ -35,6 +35,8 @@ type Marker = {
   button: HTMLButtonElement; label: HTMLSpanElement; icon: HTMLElement;
   count: HTMLSpanElement; point: { x: number; y: number }; selected: boolean; priority: number; width: number; labelEligible: boolean;
   condition?: 'blocked' | 'risk';
+  /** Belongs to the commune scale (a secondary assembly point): left out of a wider view. */
+  local?: boolean;
 };
 
 /** Screen-sized, keyboard-accessible markers remain legible while the terrain zooms. */
@@ -185,11 +187,13 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
       marker.button.dataset.roadCondition = condition;
     }
   });
+  const primaryStaging = options.responseSites?.find(site => site.kind === 'staging')?.id;
   (options.responseSites ?? []).forEach(site => {
     if (!layers[site.kind]) return;
     add({ type: 'poi', id: site.id }, site.projected, locale === 'vi' ? site.name[0] : site.name[1],
       `${site.kind}${site.assessment === 'candidate' ? ' is-suspected' : site.assessment === 'unavailable' ? ' is-unavailable' : ''}`,
       site.kind, selectedPin === `poi:${site.id}`, site.labelMode !== 'hide');
+    if (site.kind === 'staging' && site.id !== primaryStaging) markers.at(-1)!.local = true;
   });
   markers.sort((a, b) => b.priority - a.priority);
   const markerById = new Map(markers.map(marker => [marker.id, marker]));
@@ -231,7 +235,11 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
     lastProjection = project;
     const width = host.clientWidth, height = host.clientHeight;
     const { controls, labels: externalLabels } = controlRects();
+    // Commune assembly points read at commune scale only: drawn once a kilometre spans 80 px.
+    const scaleAt = markers[0] && project(markers[0].point), scaleTo = markers[0] && project({ x: markers[0].point.x + 1000, y: markers[0].point.y });
+    const communeScale = !scaleAt || !scaleTo || Math.hypot(scaleTo.x - scaleAt.x, scaleTo.y - scaleAt.y) >= 80;
     let positions = markers.flatMap(marker => {
+      if (marker.local && !marker.selected && !communeScale) return [];
       const position = project(marker.point);
       return position ? [{ id: marker.id, ...position, priority: marker.priority, selected: marker.selected, category: marker.symbol,
         featured: marker.hit.type === 'hazard' && marker.labelEligible }] : [];

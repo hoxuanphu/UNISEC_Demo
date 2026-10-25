@@ -16,8 +16,11 @@ def run(url, chrome=None, captures=None):
             page=context.new_page();errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
             page.goto(url+'/?offline=1&map=2d&demoRole=manager')
             expect(page.locator('.incident-household-row')).to_have_count(4,timeout=30000)
+            expect(page.locator('.incident-household-row').first).to_be_in_viewport()
+            assert page.locator('.incident-households').evaluate('n=>n.getBoundingClientRect().top<document.querySelector(".incident-landslides").getBoundingClientRect().top')
             # Team -> assembly point -> team -> household remains one inspector.
             name='Rescue team 03' if locale=='en' else 'Đội cứu hộ 03'
+            page.locator('.workspace-nav').get_by_role('button',name='Rescue' if locale=='en' else 'Cứu hộ',exact=True).click()
             teams=page.locator('#response-panel .rescue-team-row')
             expect(teams).to_have_count(4,timeout=30000)
             teams.filter(has=page.get_by_text(name,exact=True)).click()
@@ -31,6 +34,7 @@ def run(url, chrome=None, captures=None):
             detail.locator('.object-row').first.click()
             expect(page.locator('.household-card')).to_be_visible()
             page.keyboard.press('Escape')
+            page.locator('.workspace-nav').get_by_role('button',name='Incident' if locale=='en' else 'Sự kiện',exact=True).click()
             page.locator('.incident-household-row').first.click();card=page.locator('.household-card');expect(card).to_be_visible()
             expect(card).not_to_contain_text(re.compile('simulat|demo|mô phỏng|giả lập|Not verified in the field',re.I))
             expect(card.locator('footer')).to_have_count(0)
@@ -43,6 +47,7 @@ def run(url, chrome=None, captures=None):
                 switch=page.locator('.mobile-view-switch').get_by_role('button',name='Map' if locale=='en' else 'Bản đồ',exact=True)
                 if switch.is_visible():switch.click()
                 expect(card).to_be_visible()
+                assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'), page.evaluate('''()=>[...document.querySelectorAll('body *')].filter(n=>{const r=n.getBoundingClientRect();return r.width>0&&r.right>innerWidth+1&&getComputedStyle(n).position!=="absolute"}).slice(0,12).map(n=>[n.tagName,n.className,n.getBoundingClientRect().right])''')
                 box=card.bounding_box();assert box['x']>=0 and box['x']+box['width']<=width+1,box
             page.set_viewport_size({'width':1440,'height':960})
             if captures:

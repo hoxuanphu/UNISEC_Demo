@@ -142,7 +142,7 @@ export type ScenarioRoutePair = {
   direct: ScenarioRoute | null;
 };
 
-export type WorkspaceView = 'incident' | 'impact' | 'priority';
+export type WorkspaceView = 'incident' | 'impact' | 'priority' | 'rescue';
 export type DetailTab = 'decision' | 'evidence';
 export type RoadFilter = 'all' | 'blocked' | 'uncertain';
 export type ImpactTab = 'roads' | 'hazards';

@@ -16,6 +16,8 @@ type Props = {
   onSelectCommunity: (id: string) => void;
   selectedId: string | null;
   routes: Map<string, ScenarioRoutePair>;
+  /** What lies inside the communities, such as a commune's villages; shown while not searching. */
+  extra?: React.ReactNode;
 };
 
 export const CommunityListView: React.FC<Props> = ({
@@ -27,7 +29,8 @@ export const CommunityListView: React.FC<Props> = ({
   onChangeFilter,
   onSelectCommunity,
   selectedId,
-  routes
+  routes,
+  extra
 }) => {
 
   const t = (vi: string, en: string) => (locale === 'en' ? en : vi);
@@ -88,7 +91,7 @@ export const CommunityListView: React.FC<Props> = ({
       <div className="sidebar-scroll">
         <div className="list-label">
           <span>
-            {filtered.length} {t('địa bàn', 'communities')}
+            {filtered.length} {t('địa bàn', filtered.length === 1 ? 'community' : 'communities')}
           </span>
         </div>
 
@@ -114,6 +117,7 @@ export const CommunityListView: React.FC<Props> = ({
             </button>
           ))
         )}
+        {!query && extra}
       </div>
     </>
   );

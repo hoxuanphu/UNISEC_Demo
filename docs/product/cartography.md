@@ -249,3 +249,5 @@ Lớp thiết bị định vị điều phối dùng dữ liệu kịch bản c�
 Với hộ ngoài mạng đường, điểm gần đường nhất chỉ là phép chiếu khoảng cách, không xác lập lối đi. Không vẽ đường nối từ hộ tới phép chiếu hoặc cho đội đi theo đoạn đó. Tuyến cứu hộ bám đường đã có dữ liệu, dừng trước chỗ bị cắt và chờ phương án tiếp cận; không tự chuyển sang trạng thái đã tới hộ hay đã sơ tán.
 
 Bảng lớp dùng các nhóm cố định theo thứ tự trên xuống: Điểm, Đường, Vùng, Tham chiếu, Ảnh phủ, Bản đồ nền. Thứ tự vẽ thống nhất giữa 2D/3D, cảnh báo luôn nằm trên tuyến. Điều phối dùng lớp thiết bị chung thay cho một người phát lại riêng trên tuyến đang chọn. Đội cứu hộ xuất phát từ điểm tập kết có đường nối, dùng chung lịch xuất phát/quay về và dừng trước đoạn bị cắt; không tự tạo vị trí xuất phát khi không nối được tới điểm tập kết.
+
+Hộ bị cô lập giữ trong mục Sự kiện, đặt trước danh sách sạt lở và có tổng số hộ/người. Mục Cứu hộ tách riêng danh sách đội và điểm tập kết; chuyển qua lại không làm mất đối tượng đang xem ở mục khác. Thiếu mạng đường được ghi Chưa rõ, không suy thành Bị cô lập.

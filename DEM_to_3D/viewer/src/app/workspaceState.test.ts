@@ -3,6 +3,13 @@ import { initialWorkspaceNavigation as initial, selectedMapObject, workspaceNavi
 import { initialWorkspaceInteraction, workspaceInteractionReducer as interact } from './workspaceInteraction';
 
 describe('workspace navigation', () => {
+  it('opens a rescue team in the rescue tab while retaining the previous road selection',()=>{
+    const road=navigate(initial,{type:'inspect-object',id:'road:E1'});
+    const team=navigate(road,{type:'inspect-object',id:'team:CH-03'});
+    expect(team.view).toBe('rescue');expect(selectedMapObject(team)).toBe('team:CH-03');
+    const back=navigate(team,{type:'view',view:'impact'});
+    expect(selectedMapObject(back)).toBe('road:E1');
+  });
   it('keeps road inspection inside the selected route and clears it when changing routes', () => {
     const community = navigate(initial, { type: 'select-community', id: 'NK' });
     const section = navigate(community, { type: 'route-section', id: 'E13' });
