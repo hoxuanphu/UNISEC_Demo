@@ -10,17 +10,21 @@ def run(url,chrome=None,captures=None):
   context=browser.new_context(viewport={'width':1440,'height':960})
   context.add_init_script('Object.defineProperty(navigator,"onLine",{get:()=>false})')
   context.add_init_script("""(()=>{
-   window.redRoadDraws=[];
+   window.redRoadDraws=[];window.roadUniformAudit=[];
    for(const name of ['WebGLRenderingContext','WebGL2RenderingContext']){
     const proto=globalThis[name]?.prototype;if(!proto)continue;
-    const locations=new WeakMap(),programs=new WeakMap();
-    const get=proto.getUniformLocation,one=proto.uniform1f,three=proto.uniform3f;
+    const locations=new WeakMap(),programs=new WeakMap(),active=new WeakMap();
+    const get=proto.getUniformLocation,one=proto.uniform1f,three=proto.uniform3f,use=proto.useProgram;
+    proto.useProgram=function(program){active.set(this,program);return use.call(this,program);};
     proto.getUniformLocation=function(program,name){const loc=get.call(this,program,name);if(loc){let state=programs.get(program);if(!state){state={};programs.set(program,state);}locations.set(loc,{name,state});}return loc;};
     proto.uniform3f=function(loc,r,g,b){const info=loc&&locations.get(loc);if(info?.name==='diffuse')info.state.color=[r,g,b];return three.call(this,loc,r,g,b);};
-    proto.uniform1f=function(loc,value){const info=loc&&locations.get(loc);if(info){const s=info.state;if(info.name==='opacity')s.opacity=value;if(info.name==='linewidth'&&s.color&&s.color[0]>.3&&s.color[1]<.3&&s.color[2]<.2&&value>=4.19&&value<6&&window.redRoadDraws.length<12000)window.redRoadDraws.push({t:performance.now(),width:value,opacity:s.opacity});}return one.call(this,loc,value);};
+    proto.uniform1f=function(loc,value){const info=loc&&locations.get(loc);if(info){if(info.name==='opacity')info.state.opacity=value;if(info.name==='linewidth')info.state.width=value;}return one.call(this,loc,value);};
+    for(const method of ['drawElements','drawArrays','drawElementsInstanced']){
+     const draw=proto[method];if(!draw)continue;
+     proto[method]=function(...args){const s=programs.get(active.get(this));if(s?.width>=4.19&&s.width<6){const value={t:performance.now(),width:s.width,opacity:s.opacity,color:s.color};if(window.roadUniformAudit.length<300)window.roadUniformAudit.push(value);if(s.color&&s.color[0]>.3&&s.color[1]<.3&&s.color[2]<.2&&window.redRoadDraws.length<12000)window.redRoadDraws.push(value);}return draw.apply(this,args);};
+    }
    }
   })()""")
-  context.route('**/*',lambda r:r.continue_() if r.request.url.startswith((url+'/','data:','blob:')) else r.abort())
   page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   try:
    for mode in ['2d','3d']:
@@ -45,7 +49,7 @@ def run(url,chrome=None,captures=None):
     if mode=='3d':
      page.evaluate('window.redRoadDraws=[]')
      page.wait_for_timeout(2800)
-     values=page.evaluate('window.redRoadDraws');assert values,'No blocked red road drawn on GPU'
+     values=page.evaluate('window.redRoadDraws');assert values,('No blocked red road drawn on GPU',page.evaluate('window.roadUniformAudit.slice(-8)'))
      assert max(v['width'] for v in values)-min(v['width'] for v in values)>.65,values[-8:]
      assert max(v['opacity'] for v in values)-min(v['opacity'] for v in values)>.25,values[-8:]
      if captures:
