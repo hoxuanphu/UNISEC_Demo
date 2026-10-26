@@ -29,3 +29,14 @@ export function applyBreath(root: THREE.Object3D | null | undefined, factor: num
   });
   return changed;
 }
+
+/** Warning ink remains readable while a modest width change makes the breath visible. */
+export function applyWarningBreath(materials:readonly (BreathMaterial&{linewidth:number})[],factor:number,motion=true):boolean {
+ const phase=Math.max(0,Math.min(1,(factor-.4)/.6));let changed=false;
+ for(const material of materials){
+  const base=material.userData.warningWidth??(material.userData.warningWidth=material.linewidth);
+  const opacity=motion?.58+.42*phase:1,width=base*(motion?1+.24*phase:1);
+  if(Math.abs(material.opacity-opacity)>.002||Math.abs(material.linewidth-width)>.002){material.opacity=opacity;material.linewidth=width;changed=true;}
+ }
+ return changed;
+}

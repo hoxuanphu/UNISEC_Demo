@@ -1,3 +1,4 @@
+import type {LineMaterial} from 'three/examples/jsm/lines/LineMaterial.js';
 import { createCoverageCanvas } from '../features/map/coverageFog';
 import { viewFootprint } from '../terrain/viewFootprint';
 import { hasRoutePlaceSymbol } from '../features/map/routePlaceSymbol';
@@ -54,7 +55,7 @@ import type { FlyoverInput } from '../features/flyover/flyoverInput';
 import type { ViewControls } from '../features/map/mapContracts';
 import { withMinimumExtent } from '../features/map/selectionScale';
 import '../features/flyover/flyover.css';
-import { applyBreath, breathFactor } from '../terrain/breath';
+import { applyBreath, applyWarningBreath, breathFactor } from '../terrain/breath';
 
 export type TerrainViewerProps = MapDisplayProps & {
   surfaceLayers?: Record<string, boolean>;
@@ -1012,8 +1013,8 @@ export function TerrainViewer({
       if(document.hidden||flyoverActive||flyoverController.exporting)return;
       const factor=reducedMotion.matches?1:breathFactor(performance.now());
       let changed=false;
-      const materials=scenarioOverlayGroup?.visible?scenarioOverlayGroup.userData.warningMaterials as Array<{opacity:number}>|undefined:undefined;
-      materials?.forEach(material=>{if(Math.abs(material.opacity-factor)>=.002){material.opacity=factor;changed=true;}});
+      const materials=scenarioOverlayGroup?.visible?scenarioOverlayGroup.userData.warningMaterials as LineMaterial[]|undefined:undefined;
+      if(materials&&applyWarningBreath(materials,factor,!reducedMotion.matches))changed=true;
       if(applyBreath(mappedAreaGroup,factor))changed=true;
       if(contextLayer?.group.visible&&applyBreath(contextLayer.group,factor))changed=true;
       if(changed)invalidate();

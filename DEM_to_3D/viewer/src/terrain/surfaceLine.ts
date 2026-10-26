@@ -35,7 +35,11 @@ export function stabiliseSurfaceLine(material:LineMaterial):LineMaterial {
       // clip space`);
     shader.vertexShader=shader.vertexShader.replace('dir = normalize( dir );',
       'float directionLength=length(dir); dir=directionLength>1e-7 ? dir/directionLength : vec2(1.0,0.0);');
+    // LineMaterial's antialiased caps replace alpha with coverage. Dense draped
+    // segments are mostly caps on screen: retain opacity there as well as on the body.
+    shader.fragmentShader=shader.fragmentShader.replace(/alpha = 1\.0 - smoothstep\(([^;]+)\);/g,
+      'alpha = opacity * (1.0 - smoothstep($1));');
   };
-  material.customProgramCacheKey=()=> 'surface-line-v2';
+  material.customProgramCacheKey=()=> 'surface-line-v3';
   return material;
 }

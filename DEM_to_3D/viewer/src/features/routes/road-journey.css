@@ -364,3 +364,7 @@
 .road-warning-breathe { animation:road-warning-breathe 2.4s ease-in-out infinite; }
 @keyframes road-warning-breathe { 0%,100% { stroke-opacity:.4; } 50% { stroke-opacity:1; } }
 @media(prefers-reduced-motion:reduce) { .road-warning-breathe { animation:none; } }
+
+.road-warning-breathe[data-road-condition="blocked"] { animation:blocked-road-breathe 2.4s ease-in-out infinite; }
+@keyframes blocked-road-breathe { 0%,100% { stroke-opacity:.58; stroke-width:4.2px; } 50% { stroke-opacity:1; stroke-width:5.2px; } }
+@media(prefers-reduced-motion:reduce) { .road-warning-breathe[data-road-condition="blocked"] { animation:none; } }

@@ -18,3 +18,8 @@
 .road-condition-marker-layer[inert] .road-condition-sign { pointer-events:none; }
 .road-condition-sign[hidden] { display:none; }
 .road-signs-far .road-condition-sign.road-risk-sign.is-local-road { display: none; }
+
+/* The closure sign stays solid; only its surrounding alarm ring breathes. */
+.road-closure-sign::after { content:""; position:absolute; left:50%; top:50%; width:29px; height:29px; border-radius:50%; transform:translate(-50%,-50%); pointer-events:none; animation:closure-sign-breathe 2.4s ease-in-out infinite; }
+@keyframes closure-sign-breathe { 0%,100% { box-shadow:0 0 0 1px #d32f2f30; } 50% { box-shadow:0 0 0 5px #ef535088; } }
+@media(prefers-reduced-motion:reduce) { .road-closure-sign::after { animation:none; box-shadow:0 0 0 2px #d32f2f40; } }
