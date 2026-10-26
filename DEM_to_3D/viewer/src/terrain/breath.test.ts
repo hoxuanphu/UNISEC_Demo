@@ -14,7 +14,7 @@ it('restores a changed fill setting and settles without repeated render requests
 
 it('breathes the actual warning linewidth without accumulating scale or hiding the road',()=>{
  const material=new LineMaterial({linewidth:4.2,opacity:1});
- applyWarningBreath([material],.4);expect(material.linewidth).toBe(4.2);expect(material.opacity).toBe(.58);
+ applyWarningBreath([material],.4);expect(material.linewidth).toBe(4.2);expect(material.opacity).toBe(.82);
  for(let i=0;i<20;i++)applyWarningBreath([material],1);
  expect(material.linewidth).toBeCloseTo(5.208);expect(material.opacity).toBe(1);
  applyWarningBreath([material],.4,false);expect(material.linewidth).toBe(4.2);expect(material.opacity).toBe(1);

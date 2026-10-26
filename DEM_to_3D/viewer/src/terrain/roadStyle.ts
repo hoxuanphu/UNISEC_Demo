@@ -6,8 +6,8 @@ export const roadColors = {
   selected: '#2f80ed',
   alternative: '#b4bdc5',
   alternativeCasing: '#52636d',
-  blocked: '#d96552',
-  uncertain: '#d7a34c',
+  blocked: '#f56457',
+  uncertain: '#f4c052',
   blockedSymbol: '#bb3028',
   riskSymbol: '#ae7412',
   // A rim one shade darker than the line it edges, never a second colour around it.
@@ -20,7 +20,7 @@ export const roadColors = {
 } as const;
 
 /** Screen pixels; wider transparent hit targets are defined independently. */
-export const roadStroke = { normal: 2.5, emphasis: 3.5, blocked: 4.2, caution: 3.4, casing: 1.2, inspectedCasing: 1.8 } as const;
+export const roadStroke = { normal: 2.5, emphasis: 3.5, blocked: 4.6, caution: 3.8, casing: 1.2, inspectedCasing: 1.8 } as const;
 /** The suggested route as web maps draw it: one line with a thin rim of its own darker
  * shade. A section to verify keeps that shape in amber, as traffic shows on a route. */
 export const guidedRouteStyle = (caution: boolean) => caution

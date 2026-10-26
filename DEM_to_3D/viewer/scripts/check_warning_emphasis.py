@@ -37,7 +37,7 @@ def run(url,chrome=None,captures=None):
     expect(ring).to_have_css('animation-name','household-ring')
     if mode=='2d':
      blocked=page.locator('path[data-road-condition="blocked"]').first;expect(blocked).to_be_attached()
-     page.wait_for_function("()=>{const n=document.querySelector('path[data-road-condition=blocked]');return n&&parseFloat(getComputedStyle(n).strokeWidth)>=4.19&&parseFloat(getComputedStyle(n).strokeWidth)<=5.21;}")
+     page.wait_for_function("()=>{const n=document.querySelector('path[data-road-condition=blocked]');return n&&parseFloat(getComputedStyle(n).strokeWidth)>=4.59&&parseFloat(getComputedStyle(n).strokeWidth)<=5.71;}")
      expect(blocked).to_have_css('animation-name','blocked-road-breathe')
     label=page.locator('.map-pin-label:visible').first
     if label.count():expect(label).to_have_css('font-size','14px')
@@ -51,10 +51,10 @@ def run(url,chrome=None,captures=None):
      page.wait_for_timeout(2800)
      values=page.evaluate('window.redRoadDraws');assert values,('No blocked red road drawn on GPU',page.evaluate('window.roadUniformAudit.slice(-8)'))
      assert max(v['width'] for v in values)-min(v['width'] for v in values)>.65,values[-8:]
-     assert max(v['opacity'] for v in values)-min(v['opacity'] for v in values)>.25,values[-8:]
+     assert max(v['opacity'] for v in values)-min(v['opacity'] for v in values)>.12,values[-8:]
      if captures:
       captures.mkdir(parents=True,exist_ok=True)
-      for phase,condition in [('thin','v.width<4.35'),('bright','v.width>5.05')]:
+      for phase,condition in [('thin','v.width<4.75'),('bright','v.width>5.5')]:
        page.wait_for_function('()=>{const v=window.redRoadDraws.at(-1);return v&&'+condition+';}')
        page.screenshot(path=str(captures/f'red-road-{phase}.png'))
      print('Blocked road GPU breath: linewidth %.2f–%.2f px, opacity %.2f–%.2f'%(min(v['width'] for v in values),max(v['width'] for v in values),min(v['opacity'] for v in values),max(v['opacity'] for v in values)),flush=True)

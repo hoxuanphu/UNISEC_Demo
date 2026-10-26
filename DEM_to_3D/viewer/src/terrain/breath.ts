@@ -35,7 +35,7 @@ export function applyWarningBreath(materials:readonly (BreathMaterial&{linewidth
  const phase=Math.max(0,Math.min(1,(factor-.4)/.6));let changed=false;
  for(const material of materials){
   const base=material.userData.warningWidth??(material.userData.warningWidth=material.linewidth);
-  const opacity=motion?.58+.42*phase:1,width=base*(motion?1+.24*phase:1);
+  const opacity=motion?.82+.18*phase:1,width=base*(motion?1+.24*phase:1);
   if(Math.abs(material.opacity-opacity)>.002||Math.abs(material.linewidth-width)>.002){material.opacity=opacity;material.linewidth=width;changed=true;}
  }
  return changed;
