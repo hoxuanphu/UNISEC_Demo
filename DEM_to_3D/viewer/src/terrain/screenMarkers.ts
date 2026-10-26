@@ -301,7 +301,7 @@ export function createScreenMarkers(host: HTMLElement, options: ScreenMarkerOpti
       const display = marker;
       const transform = `translate(${x - half}px,${y - tip}px)`;
       if (marker.button.style.transform !== transform) marker.button.style.transform = transform;
-      const hoverLeft = `${x + 31 + marker.width < width - 8 ? 31 : -marker.width - 3}px`;
+      const hoverLeft = `${x + 34 + marker.width < width - 8 ? 34 : -marker.width - 3}px`;
       const hoverTop = `${y - tip + 4 < 8 ? tip + 6 : 4}px`;
       if (marker.button.style.getPropertyValue('--hover-label-left') !== hoverLeft) marker.button.style.setProperty('--hover-label-left', hoverLeft);
       if (marker.button.style.getPropertyValue('--hover-label-top') !== hoverTop) marker.button.style.setProperty('--hover-label-top', hoverTop);

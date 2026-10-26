@@ -124,7 +124,7 @@ describe('individual web-map places', () => {
     ];
     const layout = layoutPlaceMarkers(points, 400, 300, []);
     expect(layout).toHaveLength(3);
-    expect(layout.every(item => item.rect.width === 28 && item.members.length === 1)).toBe(true);
+    expect(layout.every(item => item.rect.width === 30 && item.members.length === 1)).toBe(true);
     expect(layout.map(item => item.anchor.x)).toEqual([100, 134, 168]);
   });
   it('retains coincident items behind a normal hazard symbol without moving any point', () => {
@@ -134,7 +134,7 @@ describe('individual web-map places', () => {
     ];
     const [item] = layoutPlaceMarkers(points, 400, 300, []);
     expect(item.anchor.id).toBe('hazard');
-    expect(item.rect.width).toBe(28);
+    expect(item.rect.width).toBe(30);
     expect(item.members.map(member => member.id)).toEqual(['hazard','place']);
     expect(layoutPlaceMarkers(points, 400, 300, [item.rect])).toHaveLength(0);
   });

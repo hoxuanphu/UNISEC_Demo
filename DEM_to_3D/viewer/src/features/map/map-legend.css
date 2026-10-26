@@ -22,24 +22,24 @@
 .map-bottom-bar[hidden] { display: none; }
 .map-bottom-bar > * { pointer-events: auto; }
 .map-legend-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.legend-toggle { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; color: var(--ws-text); font-size: 11px; font-weight: 600; }
+.legend-toggle { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; color: var(--ws-text); font-size: 13px; font-weight: 600; }
 .map-legend-heading .legend-minimize { width: 24px; height: 24px; min-height: 24px; padding: 0; border: 0; background: transparent; color: var(--ws-muted); }
 .map-legend-heading button:focus-visible { outline-offset: -2px; }
-.map-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 14px; padding-top: 6px; color: var(--ws-muted); font-size: 11px; line-height: 1.4; }
+.map-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 14px; padding-top: 6px; color: var(--ws-text); font-size: 13px; line-height: 1.4; }
 .map-bottom-bar[data-expanded="false"] .map-legend { grid-template-columns: minmax(0, max-content) minmax(0, 1fr); }
 .legend-item { display: inline-flex; align-items: center; gap: 7px; min-width: 0; overflow-wrap: anywhere; }
 /* One symbol column: every sample sits centred in the same width, so the labels line up. */
-.legend-sample { display: grid; flex: 0 0 28px; place-items: center; }
+.legend-sample { display: grid; flex: 0 0 30px; place-items: center; }
 .line.local-network { filter: drop-shadow(0 1px 0 #243f45) drop-shadow(0 -1px 0 #243f45); }
 .tracked-device-symbol.is-stranded { background-color: #d32f2f; }
-.legend-sample > .line { display: block; width: 22px; height: 0; border-top: 2px solid; }
+.legend-sample > .line { display: block; width: 26px; height: 0; border-top: 3px solid; }
 .line.network { filter: drop-shadow(0 1px 0 #243f45) drop-shadow(0 -1px 0 #243f45); }
 .line.uncertain { border-top-style: dashed; }
 .map-legend .line.aoi { border-color: #85aa9d; border-top-style: dashed; }
 /* Samples use the same coloured disc, white rim and white glyph as map markers. */
-.legend-symbol { position:relative; display:inline-block; flex:none; width:24px; height:24px; color:var(--sym-community); }
-.legend-symbol > svg:first-child { position:absolute; inset:0; width:24px; height:24px; fill:currentColor; stroke:#fff; stroke-width:1.5; stroke-linejoin:round; filter:drop-shadow(0 1px 1px rgba(0,0,0,.3)); }
-.legend-symbol > svg:last-child { position:absolute; left:5px; top:5px; width:14px; height:14px; color:#fff; }
+.legend-symbol { position:relative; display:inline-block; flex:none; width:26px; height:26px; color:var(--sym-community); }
+.legend-symbol > svg:first-child { position:absolute; inset:0; width:26px; height:26px; fill:currentColor; stroke:#fff; stroke-width:1.5; stroke-linejoin:round; filter:drop-shadow(0 1px 1px rgba(0,0,0,.3)); }
+.legend-symbol > svg:last-child { position:absolute; left:5px; top:5px; width:16px; height:16px; color:#fff; }
 .legend-symbol.priority { color:var(--sym-priority); }
 .legend-symbol.landslide,.legend-symbol.suspected { color:var(--sym-landslide); }
 .legend-symbol.bridge,.legend-symbol.crossing { color:var(--sym-verify); }
@@ -63,7 +63,7 @@
 }
 @media (max-width: 900px) {
   .map-bottom-bar { --legend-available-width: calc(100% - 24px); --legend-top-clearance: 116px; left: 12px; }
-  .map-legend { font-size: 10px; gap: 6px 12px; }
+  .map-legend { font-size: 12px; gap: 6px 12px; }
   .map-area[data-profile="true"] .map-bottom-bar { bottom: calc(min(320px, 60%) + 16px); }
   .map-area[data-profile="true"] .map-bottom-bar[data-expanded="false"] .map-legend { display: none; }
 }

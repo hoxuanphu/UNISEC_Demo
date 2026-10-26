@@ -54,6 +54,7 @@ import type { FlyoverInput } from '../features/flyover/flyoverInput';
 import type { ViewControls } from '../features/map/mapContracts';
 import { withMinimumExtent } from '../features/map/selectionScale';
 import '../features/flyover/flyover.css';
+import { applyBreath, breathFactor } from '../terrain/breath';
 
 export type TerrainViewerProps = MapDisplayProps & {
   surfaceLayers?: Record<string, boolean>;
@@ -1006,13 +1007,16 @@ export function TerrainViewer({
       return Boolean(cameraTransition || moved || controls.autoRotate);
     });
     invalidate = loop.invalidate;
-    // Animate warning ink at 15 fps; camera, labels and layout remain demand-driven.
+    // Warning roads and landslide areas breathe at 15 fps; camera, labels and layout remain demand-driven.
     const warningTimer=window.setInterval(()=>{
-      const materials=scenarioOverlayGroup?.userData.warningMaterials as Array<{opacity:number}>|undefined;
-      if(!materials?.length||!scenarioOverlayGroup?.visible||document.hidden||flyoverActive||flyoverController.exporting)return;
-      const opacity=reducedMotion.matches?1:.7-.3*Math.cos(performance.now()*Math.PI*2/2400);
-      if(materials.every(material=>Math.abs(material.opacity-opacity)<.002))return;
-      materials.forEach(material=>{material.opacity=opacity;});invalidate();
+      if(document.hidden||flyoverActive||flyoverController.exporting)return;
+      const factor=reducedMotion.matches?1:breathFactor(performance.now());
+      let changed=false;
+      const materials=scenarioOverlayGroup?.visible?scenarioOverlayGroup.userData.warningMaterials as Array<{opacity:number}>|undefined:undefined;
+      materials?.forEach(material=>{if(Math.abs(material.opacity-factor)>=.002){material.opacity=factor;changed=true;}});
+      if(applyBreath(mappedAreaGroup,factor))changed=true;
+      if(contextLayer?.group.visible&&applyBreath(contextLayer.group,factor))changed=true;
+      if(changed)invalidate();
     },66);
 
     const onVisibility = () => {if (!document.hidden) {markerLayoutDirty = true;invalidate();}};

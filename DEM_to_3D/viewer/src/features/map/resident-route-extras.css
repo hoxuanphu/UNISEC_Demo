@@ -9,9 +9,9 @@
 @media (hover: hover) { .resident-route-alternative-label button:hover { border-color: #52636d; } }
 .resident-route-alternative-label button:focus-visible { outline: 2px solid #2f80ed; outline-offset: 3px; }
 .road-condition-sign { display: grid; place-items: center; background: none; border: 0; cursor: pointer; }
-.road-condition-sign svg { display: block; width: var(--closure-symbol-size, 22px); height: var(--closure-symbol-size, 22px); filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, .4)); }
+.road-condition-sign svg { display: block; width: var(--closure-symbol-size, 25px); height: var(--closure-symbol-size, 25px); filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, .4)); }
 .road-condition-sign:focus-visible { outline: 2px solid white; outline-offset: -7px; border-radius: 50%; }
-.road-condition-icon { display: inline-flex; flex: none; width: 15px; height: 15px; }
+.road-condition-icon { display: inline-flex; flex: none; width: 18px; height: 18px; }
 .road-condition-icon svg { display: block; width: 100%; height: 100%; }
 .road-condition-marker-layer { position:absolute; inset:0; pointer-events:none; z-index:2; overflow:hidden; }
 .road-condition-marker-layer .road-condition-sign { position:absolute; left:0; top:0; width:44px; height:44px; padding:0; pointer-events:auto; }

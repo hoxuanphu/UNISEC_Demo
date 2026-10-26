@@ -13,24 +13,28 @@
 .map-marker-layer {position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
 .map-pin {
  --pin:var(--sym-community);position:absolute;top:0;left:0;display:block;
- width:28px;height:28px;padding:0;border:0;border-radius:0;background:transparent;
+ width:30px;height:30px;padding:0;border:0;border-radius:0;background:transparent;
  color:#fff;box-shadow:none;pointer-events:auto;cursor:pointer;
 }
 .map-pin[hidden] {display:none;}
 /* Landslides breathe: a soft halo in the pin colour swells and fades behind the pin, in step with
    the roads to verify. The pin itself stays still so it can be read and clicked. */
-.map-pin.hazard.landslide::before {content:'';position:absolute;top:0;left:0;width:28px;height:28px;border-radius:50%;background:var(--pin);opacity:0;pointer-events:none;animation:landslide-breathe 2.4s ease-in-out infinite;}
+.map-pin.hazard.landslide::before {content:'';position:absolute;top:0;left:0;width:30px;height:30px;border-radius:50%;background:var(--pin);opacity:0;pointer-events:none;animation:landslide-breathe 2.4s ease-in-out infinite;}
 .map-pin.hazard.landslide.is-selected::before {width:34px;height:34px;}
 @keyframes landslide-breathe { 0%,100% { opacity:0; scale:1; } 50% { opacity:.45; scale:1.6; } }
-@media (prefers-reduced-motion:reduce) { .map-pin.hazard.landslide::before {animation:none;} }
+/* Landslide areas breathe too, in the same rhythm and range as the roads to verify and the 3D map
+   (terrain/breath.ts). Opacity scales the whole shape, so the fill setting still applies. */
+.leaflet-container path:is(.landslide-area,.map-context-landslide) {animation:area-breathe 2.4s ease-in-out infinite;}
+@keyframes area-breathe { 0%,100% { opacity:.4; } 50% { opacity:1; } }
+@media (prefers-reduced-motion:reduce) { .map-pin.hazard.landslide::before,.leaflet-container path:is(.landslide-area,.map-context-landslide) {animation:none;} }
 .map-pin-shape {position:absolute;inset:0;pointer-events:none;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.38));transition:scale 120ms ease;}
 .map-pin-shape svg {display:block;width:100%;height:100%;fill:var(--pin);stroke:#fff;stroke-width:1.5;stroke-linejoin:round;}
-.map-pin-icon {position:absolute;top:6px;left:6px;width:16px;height:16px;display:grid;place-items:center;color:#fff;pointer-events:none;transition:scale 120ms ease;}
-.map-pin-icon svg {width:16px;height:16px;}
+.map-pin-icon {position:absolute;top:6px;left:6px;width:18px;height:18px;display:grid;place-items:center;color:#fff;pointer-events:none;transition:scale 120ms ease;}
+.map-pin-icon svg {width:18px;height:18px;}
 .map-pin-icon[hidden],.map-pin-count[hidden] {display:none;}
 .map-pin.has-road-condition:not(.is-selected) .map-pin-shape {visibility:hidden;}
-.map-pin.has-road-condition:not(.is-selected) .map-pin-icon {left:2px;top:2px;width:24px;height:24px;}
-.map-pin.has-road-condition:not(.is-selected) .map-pin-icon svg {width:24px;height:24px;}
+.map-pin.has-road-condition:not(.is-selected) .map-pin-icon {left:2px;top:2px;width:26px;height:26px;}
+.map-pin.has-road-condition:not(.is-selected) .map-pin-icon svg {width:26px;height:26px;}
 .map-pin.community {--pin:var(--sym-community);}
 .map-pin.community.is-priority {--pin:var(--sym-priority);}
 .map-pin.landslide {--pin:var(--sym-landslide);}
@@ -53,14 +57,14 @@
 .map-pin.is-selected .map-pin-shape svg {stroke-width:2;}
 .map-pin.is-selected .map-pin-icon {top:8px;left:8px;width:18px;height:18px;}
 .map-pin.is-selected .map-pin-icon svg {width:18px;height:18px;}
-.map-pin.is-cluster:not(.is-selected),.map-pin.has-overlap:not(.is-selected) {width:32px;height:32px;}
+.map-pin.is-cluster:not(.is-selected),.map-pin.has-overlap:not(.is-selected) {width:34px;height:34px;}
 .map-pin.is-cluster:not(.is-selected) .map-pin-icon,.map-pin.has-overlap:not(.is-selected) .map-pin-icon {left:8px;top:8px;}
-.map-pin.has-overlap .map-pin-icon svg {width:16px;height:16px;}
+.map-pin.has-overlap .map-pin-icon svg {width:18px;height:18px;}
 .map-pin.is-cluster .map-pin-count {position:absolute;top:-4px;right:-6px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:8px;background:#fff;color:var(--pin);text-align:center;font:700 10px/16px var(--font-map);font-variant-numeric:tabular-nums;box-shadow:0 1px 2px rgba(0,0,0,.35);pointer-events:none;}
 .map-pin.has-overlap::after {content:'';position:absolute;right:1px;top:22px;width:8px;height:8px;border:1.5px solid #fff;border-radius:50%;background:var(--sym-ink);box-sizing:border-box;}
 .map-pin.has-overlap.has-hazard::after {background:var(--sym-landslide);}
 /* Map labels have their own typography, independent of panel font preferences. */
-.map-pin-label {position:absolute;left:31px;top:4px;padding:1px 0;color:#fff;font-family:var(--font-map);font-size:13px;line-height:1.35;font-weight:400;white-space:nowrap;pointer-events:auto;cursor:pointer;text-shadow:0 1px 2px #101c1ccc,0 0 2px #101c1caa;}
+.map-pin-label {position:absolute;left:34px;top:4px;padding:1px 0;color:#fff;font-family:var(--font-map);font-size:14px;line-height:1.35;font-weight:400;white-space:nowrap;pointer-events:auto;cursor:pointer;text-shadow:0 1px 2px #101c1ccc,0 0 2px #101c1caa;}
 .map-pin.is-selected .map-pin-label {left:38px;top:8px;font-weight:600;}
 .map-marker-layer[data-basemap="terrain"] .map-pin .map-pin-label {color:#24363b;text-shadow:0 0 2px #fff,0 0 4px #fff;}
 [data-theme="dark"] .map-marker-layer[data-basemap="terrain"] .map-pin .map-pin-label {color:#edf2ed;text-shadow:0 1px 2px #111b16,0 0 3px #111b16;}
@@ -81,7 +85,7 @@
 .leaflet-tooltip-right:has(> .landslide-map-label)::before { border-right-color:#242820ed; }
 
 .terrain-reference-layer {position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:4;}
-.terrain-reference-point {position:absolute;top:0;left:0;display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;background:transparent;color:#7b5737;pointer-events:auto;}
+.terrain-reference-point {position:absolute;top:0;left:0;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;background:transparent;color:#7b5737;pointer-events:auto;}
 .terrain-reference-point[hidden] {display:none;}
 .terrain-reference-point.is-selected {height:28px;}
 .terrain-reference-label {display:none;position:absolute;width:max-content;max-width:var(--reference-label-width,260px);overflow:hidden;text-overflow:ellipsis;left:28px;top:4px;padding:3px 6px;border-radius:2px;background:#242820ed;color:#f6f5ed;font:500 12px/1.4 var(--font-map);white-space:nowrap;}

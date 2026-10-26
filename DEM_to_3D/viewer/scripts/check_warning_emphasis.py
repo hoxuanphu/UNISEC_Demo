@@ -15,23 +15,32 @@ def run(url,chrome=None,captures=None):
    for mode in ['2d','3d']:
     page.goto(url+'/?offline=1&demoRole=manager&lang=en&map='+mode)
     icon=page.locator('.incident-household-icon[data-status="cut-off"]').first;expect(icon).to_be_visible(timeout=45000)
-    assert icon.evaluate('n=>getComputedStyle(n).animationName')=='household-icon-pulse'
+    expect(icon).to_have_css('animation-name','household-icon-pulse')
     row=page.locator('.incident-household-row').filter(has_text='Terrace huts east of Village B');row.click()
     expect(page.locator('.household-card')).to_be_visible()
     ring=page.locator('.household-alert.is-cut-off .household-alert-ring').first;expect(ring).to_be_attached()
-    assert ring.evaluate('n=>getComputedStyle(n).animationName')=='household-ring'
+    expect(ring).to_have_css('animation-name','household-ring')
     if mode=='2d':
      blocked=page.locator('path[data-road-condition="blocked"]').first;expect(blocked).to_be_attached()
-     assert blocked.evaluate('n=>parseFloat(getComputedStyle(n).strokeWidth)')>=4
-     assert blocked.evaluate('n=>getComputedStyle(n).animationName')=='road-warning-breathe'
+     expect(blocked).to_have_css('stroke-width','4.2px')
+     expect(blocked).to_have_css('animation-name','road-warning-breathe')
+    label=page.locator('.map-pin-label:visible').first
+    if label.count():expect(label).to_have_css('font-size','14px')
+    expect(page.locator('.household-overlay .household-alert').first if mode=='3d' else page.locator('.household-alert').first).to_have_css('width','26px')
     page.wait_for_timeout(600)
     if captures:
      captures.mkdir(parents=True,exist_ok=True);page.screenshot(path=str(captures/f'warning-emphasis-{mode}.png'))
     page.emulate_media(reduced_motion='reduce')
-    assert icon.evaluate('n=>getComputedStyle(n).animationName')=='none'
-    assert ring.evaluate('n=>getComputedStyle(n).animationName')=='none'
-    if mode=='2d':assert blocked.evaluate('n=>getComputedStyle(n).animationName')=='none'
+    expect(icon).to_have_css('animation-name','none')
+    expect(ring).to_have_css('animation-name','none')
+    if mode=='2d':expect(blocked).to_have_css('animation-name','none')
     page.emulate_media(reduced_motion='no-preference')
+    page.keyboard.press('Escape')
+    page.get_by_role('button',name='Legend',exact=True).click()
+    expect(page.locator('.map-legend')).to_be_visible()
+    expect(page.locator('.map-legend')).to_have_css('font-size','13px')
+    assert not page.evaluate('document.documentElement.scrollWidth>innerWidth')
+    if captures:page.screenshot(path=str(captures/f'presentation-legend-{mode}.png'))
    assert not errors,errors
    print('Warning emphasis passed: list/map pulses, wider blocked roads, 2D/3D inspection and reduced motion.')
   finally:browser.close()

@@ -12,12 +12,12 @@
 @keyframes household-ring { 0% { scale: 1; opacity: .95; } 65% { opacity: .55; } 100% { scale: 2; opacity: 0; } }
 /* The count reads as a label, not a second alarm: white chip, red text. */
 .household-alert-count {
-  position: absolute; left: 26px; top: 50%; transform: translateY(-50%); padding: 0 6px; border-radius: 4px;
-  background: rgba(255, 255, 255, .94); color: var(--hh-ink); font: 600 11.5px/18px var(--font-map, sans-serif); font-variant-numeric: tabular-nums;
+  position: absolute; left: 30px; top: 50%; transform: translateY(-50%); padding: 0 6px; border-radius: 4px;
+  background: rgba(255, 255, 255, .94); color: var(--hh-ink); font: 600 13px/20px var(--font-map, sans-serif); font-variant-numeric: tabular-nums;
   white-space: nowrap; box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
 }
 .household-alert.is-selected .household-alert-disc { scale: 1.2; box-shadow: 0 0 0 3px color-mix(in srgb, var(--hh) 35%, transparent), 0 1px 2px rgba(0, 0, 0, .4); }
-.household-alert.is-selected .household-alert-count { left: 29px; }
+.household-alert.is-selected .household-alert-count { left: 33px; }
 /* The panel lists the counts; on the map the count shows only for the symbol in hand. */
 .household-alert .household-alert-count { display: none; }
 .household-alert:is(:hover, :focus-visible, .is-selected) .household-alert-count { display: block; z-index: 1; }
@@ -72,5 +72,5 @@
 
 /* The same symbols placed in screen space over the 3D view. */
 .household-overlay { position: absolute; inset: 0; z-index: auto; overflow: hidden; pointer-events: none; }
-.household-overlay .household-alert { z-index: 2; position: absolute; left: 0; top: 0; width: 22px; height: 22px; padding: 0; pointer-events: auto; }
+.household-overlay .household-alert { z-index: 2; position: absolute; left: 0; top: 0; width: 26px; height: 26px; padding: 0; pointer-events: auto; }
 .flyover-active .household-overlay { visibility: hidden; }

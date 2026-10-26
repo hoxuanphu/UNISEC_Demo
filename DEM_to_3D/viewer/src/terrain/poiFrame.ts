@@ -24,7 +24,7 @@ export function drawPoiMarker(ctx:CanvasRenderingContext2D,symbol:MapSymbolName,
   ctx.shadowColor='transparent';ctx.globalAlpha=1;ctx.strokeStyle='#ffffff';ctx.lineWidth=1.5;ctx.stroke(frame);
   drawMapSymbol(ctx,symbol,6,6,16,'#ffffff');ctx.restore();
 }
-export function markerSize(clustered:boolean,selected:boolean):number {return selected?SELECTED_PIN.width:clustered?32:28;}
+export function markerSize(clustered:boolean,selected:boolean):number {return selected?SELECTED_PIN.width:clustered?34:30;}
 export function poiMetrics(size:number,selected=false):{half:number;tip:number;height:number} {
   return selected ? {half:SELECTED_PIN.width/2,tip:SELECTED_PIN.tipY,height:SELECTED_PIN.height} : {half:size/2,tip:size/2,height:size};
 }

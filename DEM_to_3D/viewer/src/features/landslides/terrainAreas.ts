@@ -9,6 +9,7 @@ import type { RoadSegment } from '../../types/dear';
 import { terrainDrapePoints, terrainSurfaceElevation } from '../../terrain/terrainSurface';
 import { projectedToScene } from '../../terrain/coordinate';
 import { setDrawingLayer } from '../map/mapLayerOrder';
+import { breathe } from '../../terrain/breath';
 import { landslideAreaOf, landslideAreaStyle, roadAreaSection, landslideBoundaryCasing } from './landslideAreas';
 
 type XY = { x: number; y: number };
@@ -24,7 +25,7 @@ export function terrainLandslideAreas(records: GeometryRecord[], metadata: Terra
     const flush = () => {
       if (positions.length >= 6) {
         const geometry = surfaceLineGeometry(positions);
-        const material = stabiliseSurfaceLine(new LineMaterial({ color, linewidth: width, transparent: true, opacity, depthTest: true, depthWrite: false, dashed, dashSize: dash[0], gapSize: dash[1] }));
+        const material = breathe(stabiliseSurfaceLine(new LineMaterial({ color, linewidth: width, transparent: true, opacity, depthTest: true, depthWrite: false, dashed, dashSize: dash[0], gapSize: dash[1] })));
         material.resolution.set(resolution.width, resolution.height);
         const object = new Line2(geometry, material); object.computeLineDistances(); object.userData.recordId = id; setDrawingLayer(object, 'landslides', casing ? .1 : .2); root.add(object);
       }
@@ -71,7 +72,7 @@ export function terrainLandslideAreas(records: GeometryRecord[], metadata: Terra
       // A large footprint keeps its complete outline instead of a truncated, misleading fill.
       if (!exceeded && positions.length) {
         const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
-        const material = new THREE.MeshBasicMaterial({color:style.color,side:THREE.DoubleSide,transparent:true,opacity:style.fillOpacity,depthWrite:false,depthTest:true,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+        const material = breathe(new THREE.MeshBasicMaterial({color:style.color,side:THREE.DoubleSide,transparent:true,opacity:style.fillOpacity,depthWrite:false,depthTest:true,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
         const mesh = new THREE.Mesh(geometry,material); mesh.userData.recordId=record.id; setDrawingLayer(mesh, 'landslides'); root.add(mesh);
       }
     }
