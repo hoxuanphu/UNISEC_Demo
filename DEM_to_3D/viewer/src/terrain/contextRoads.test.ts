@@ -47,6 +47,10 @@ describe('local roads on the main map',()=>{
     expect(visible).toHaveLength(2);
     expect(visible.every(line=>line.userData.context)).toBe(true);
     expect(visible.find(line=>line.userData.id==='closed')!.material.color.getHexString()).toBe(roadColors.blocked.slice(1));
+    const closed=visible.find(line=>line.userData.id==='closed')!;
+    expect(closed.material.linewidth).toBeGreaterThanOrEqual(4);
+    expect(group.userData.warningMaterials).toEqual([closed.material]);
+    expect(group.userData.warningMaterials).not.toContain(visible.find(line=>line.userData.id===road.id)!.material);
     dispose(group);
   });
   it('keeps road risk visible in 3D even before the passability status changes',()=>{

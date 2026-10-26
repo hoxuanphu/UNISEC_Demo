@@ -164,6 +164,7 @@ def run(archive, chrome=None, captures=None, video=None):
     from check_live_devices import run as live_devices
     from check_households import run as households
     from check_coverage_cases import run as coverage_cases
+    from check_warning_emphasis import run as warning_emphasis
     from check_cartographic_evidence import run as evidence
     from check_flyover import run as film
     from check_local_route_film import run as local_film
@@ -255,6 +256,7 @@ def run(archive, chrome=None, captures=None, video=None):
                              ('shared resident location and coordinator inspector', lambda: resident_locations(base, chrome, captures)),
                              ('isolated household panels and rescue focus', lambda: households(base, chrome, captures)),
                              ('unreached and unverified coverage cases', lambda: coverage_cases(base, chrome, captures)),
+                             ('urgent household and road emphasis', lambda: warning_emphasis(base, chrome, captures)),
                              ('compact inspectors and stable map references', lambda: panel_fit(base, chrome, captures)),
                              ('Planet/field photos and failure recovery', lambda: evidence(base, chrome, captures)),
                              ('MP4 encoding and decoded frames', lambda: film(base, chrome, video, lang='en'))]

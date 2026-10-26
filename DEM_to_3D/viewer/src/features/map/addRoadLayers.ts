@@ -21,7 +21,7 @@ export function addRoadLayers({ road, points, layer, selected, inspected, warnin
   const condition = roadCondition(road);
   const color = guided ? guidedRouteStyle(warning).line : warning ? roadColors[condition === 'blocked' ? 'blocked' : 'uncertain']
     : selected ? roadColors.selected : resident ? roadColors.alternative : imagery ? roadColors.networkImagery : roadColors.networkTerrain;
-  const weight = guided ? 5 : selected || inspected ? roadStroke.emphasis : roadStroke.normal;
+  const weight = guided ? 5 : warning ? condition==='blocked'?roadStroke.blocked:roadStroke.caution : selected || inspected ? roadStroke.emphasis : roadStroke.normal;
   const opacity = resident && !selected && !inspected ? (road.status === 'blocked' && warning ? .9 : warning ? .55 : networkOpacity)
     : selected || inspected || warning ? 1 : networkOpacity;
   const casingColor = condition === 'blocked' && warning ? roadColors.neutralCasing : inspected ? roadColors.inspectedCasing : selected && !warning ? roadColors.selectedCasing : roadColors.neutralCasing;
@@ -37,6 +37,7 @@ export function addRoadLayers({ road, points, layer, selected, inspected, warnin
   stroke.getElement()?.setAttribute('data-road-status', road.status);
   stroke.getElement()?.setAttribute('data-road-stroke', sourceId);
   stroke.getElement()?.setAttribute('data-road-condition', condition);
+  if(warning)stroke.getElement()?.classList.add('road-warning-breathe');
   if (context) {
     stroke.setStyle({color:context.color,weight:context.weight,opacity:context.opacity,dashArray:context.dashed?'5 4':undefined});
     stroke.getElement()?.classList.add('map-context-road');

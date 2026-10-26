@@ -20,7 +20,7 @@ export const roadColors = {
 } as const;
 
 /** Screen pixels; wider transparent hit targets are defined independently. */
-export const roadStroke = { normal: 1.8, emphasis: 3, casing: 1.2, inspectedCasing: 1.8 } as const;
+export const roadStroke = { normal: 2.2, emphasis: 3.5, blocked: 4.2, caution: 3.4, casing: 1.2, inspectedCasing: 1.8 } as const;
 /** The suggested route as web maps draw it: one line with a thin rim of its own darker
  * shade. A section to verify keeps that shape in amber, as traffic shows on a route. */
 export const guidedRouteStyle = (caution: boolean) => caution

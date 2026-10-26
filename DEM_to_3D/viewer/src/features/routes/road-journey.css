@@ -358,3 +358,9 @@
 }
 
 @media(min-width:761px) { .map-area[data-profile="true"] .road-journey-panel { bottom:auto; } }
+
+/* Roads to verify or blocked breathe so they read at a glance; geometry never moves. The 3D map
+   uses the same range and period (TerrainViewer). */
+.road-warning-breathe { animation:road-warning-breathe 2.4s ease-in-out infinite; }
+@keyframes road-warning-breathe { 0%,100% { stroke-opacity:.4; } 50% { stroke-opacity:1; } }
+@media(prefers-reduced-motion:reduce) { .road-warning-breathe { animation:none; } }

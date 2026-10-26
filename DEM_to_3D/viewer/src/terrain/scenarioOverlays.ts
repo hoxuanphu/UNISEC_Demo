@@ -139,7 +139,7 @@ export function buildScenarioOverlays(options: ScenarioOverlayOptions): THREE.Gr
       if (hasWarning) lineColor = condition === 'blocked' ? roadColors.blocked : roadColors.uncertain;
       const guided = routeVisible && road.status!=='blocked';
       if (guided) lineColor=guidedRouteStyle(hasWarning).line;
-      const lineWidth = guided ? 5 : routeVisible || isRoadSelected ? roadStroke.emphasis : roadStroke.normal;
+      const lineWidth = guided ? 5 : hasWarning ? condition==='blocked'?roadStroke.blocked:roadStroke.caution : routeVisible || isRoadSelected ? roadStroke.emphasis : roadStroke.normal;
       const context = contextIds.has(sourceId) && !routeVisible ? contextRoadStyle(road,14,!!layers.imagery,!!layers.status,isRoadSelected,appearance.networkOpacity) : null;
       const addLine = (color: THREE.ColorRepresentation, width: number, casing: boolean): void => {
         for (const positions of runs) {
@@ -149,6 +149,10 @@ export function buildScenarioOverlays(options: ScenarioOverlayOptions): THREE.Gr
             linewidth:context ? casing ? context.casingWidth : context.weight : width, depthTest: true, depthWrite: false, transparent: true, opacity:context ? context.opacity * (casing ? .7 : 1) : opacity,
             dashed: !casing && !guided && (context ? context.dashed : hasWarning && condition !== 'blocked'), dashSize: 100, gapSize: 70 }));
           material.resolution.set(options.resolution?.width ?? 1440, options.resolution?.height ?? 900);
+          if(hasWarning&&!casing){
+            const materials:LineMaterial[]=rootGroup.userData.warningMaterials??=[];
+            materials.push(material);
+          }
           const line = new Line2(geometry, material);
           line.computeLineDistances();
           const order = hasWarning ? mapLayerOrder.roadStatus : routeVisible || isRoadSelected ? mapLayerOrder.route : mapLayerOrder.roads;

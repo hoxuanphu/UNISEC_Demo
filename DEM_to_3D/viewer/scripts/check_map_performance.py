@@ -6,7 +6,7 @@ from playwright.sync_api import expect, sync_playwright
 def run(url, chrome=None):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, **({'executable_path': chrome} if chrome else {}))
-        context = browser.new_context(viewport={'width': 1440, 'height': 900})
+        context = browser.new_context(viewport={'width': 1440, 'height': 900}, reduced_motion='reduce')
         context.route('**/*', lambda r: r.continue_() if r.request.url.startswith(url + '/') else r.abort())
         context.add_init_script('''
           Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false});

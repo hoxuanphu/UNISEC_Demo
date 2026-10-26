@@ -1006,6 +1006,15 @@ export function TerrainViewer({
       return Boolean(cameraTransition || moved || controls.autoRotate);
     });
     invalidate = loop.invalidate;
+    // Animate warning ink at 15 fps; camera, labels and layout remain demand-driven.
+    const warningTimer=window.setInterval(()=>{
+      const materials=scenarioOverlayGroup?.userData.warningMaterials as Array<{opacity:number}>|undefined;
+      if(!materials?.length||!scenarioOverlayGroup?.visible||document.hidden||flyoverActive||flyoverController.exporting)return;
+      const opacity=reducedMotion.matches?1:.7-.3*Math.cos(performance.now()*Math.PI*2/2400);
+      if(materials.every(material=>Math.abs(material.opacity-opacity)<.002))return;
+      materials.forEach(material=>{material.opacity=opacity;});invalidate();
+    },66);
+
     const onVisibility = () => {if (!document.hidden) {markerLayoutDirty = true;invalidate();}};
     document.addEventListener('visibilitychange',onVisibility);
     const onReducedMotion = () => {if (reducedMotion.matches) stopOrbit();if (reducedMotion.matches && cameraTransition) {camera.position.copy(cameraTransition.toPosition);controls.target.copy(cameraTransition.toTarget);interruptCameraTransition();invalidate();}};
@@ -1015,7 +1024,7 @@ export function TerrainViewer({
 
     return () => {
       flyoverRef.current = null;
-      flyoverController.dispose();contextLayer?.dispose();endpointLayer?.dispose();devices?.dispose();householdLayer.dispose();stopCoverage();coverageMask?.dispose();window.clearInterval(declutterTimer);
+      flyoverController.dispose();contextLayer?.dispose();endpointLayer?.dispose();devices?.dispose();householdLayer.dispose();stopCoverage();coverageMask?.dispose();window.clearInterval(declutterTimer);window.clearInterval(warningTimer);
       runtimeRef.current = null;
       overlaysRef.current = null;
       optionalOverlays.dispose();
