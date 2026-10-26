@@ -35,6 +35,6 @@
 .incident-household-icon[data-status='unverified'] { background:#c77700; }
 .incident-household-icon[data-status='rescued'] { background:#6b7280; }
 @keyframes household-icon-pulse { 0%,100% { box-shadow:0 0 0 3px rgba(198,40,40,.18); } 50% { box-shadow:0 0 0 9px rgba(198,40,40,.40); } }
-@media (prefers-reduced-motion: reduce) { .incident-household-icon { animation:none; } }
+@media (prefers-reduced-motion: reduce) { .incident-household-icon[data-status='cut-off'] { animation:none; } }
 .incident-households .incident-section-title { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
 .incident-households .incident-section-title small { color:var(--ws-muted); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }

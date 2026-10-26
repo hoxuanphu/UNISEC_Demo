@@ -106,3 +106,9 @@
 .map-object-chooser .map-object-choice > span:first-child { margin-top:1px; }
 /* A symbol that touches a higher-ranked one yields (see symbolDeclutter.ts); its road keeps the condition colour. */
 .is-decluttered {visibility:hidden !important;pointer-events:none !important;}
+
+/* Yellow extents retain their meaning; only recorded response priority changes the emphasis. */
+.leaflet-container path:is(.landslide-area,.map-context-landslide).priority-routine { animation:none; }
+.leaflet-container path:is(.landslide-area,.map-context-landslide).priority-review { animation:area-review-breathe 2.4s ease-in-out infinite; }
+@keyframes area-review-breathe { 0%,100% { opacity:.76; } 50% { opacity:1; } }
+@media(prefers-reduced-motion:reduce) { .leaflet-container path:is(.landslide-area,.map-context-landslide).priority-review { animation:none; } }

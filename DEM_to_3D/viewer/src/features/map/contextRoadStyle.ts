@@ -13,10 +13,10 @@ export function contextRoadStyle(road: RoadSegment, zoom: number, imagery: boole
   return {
     color: warning ? condition === 'blocked' ? roadColors.blocked : roadColors.uncertain : imagery ? roadColors.reference : roadColors.networkTerrain,
     casing: selected && !(warning && condition === 'blocked') ? roadColors.inspectedCasing : roadColors.referenceCasing,
-    weight: warning ? condition==='blocked'?roadStroke.blocked:roadStroke.caution : selected ? 3.5 : 1.4 + detail,
+    weight: warning ? condition==='blocked'?roadStroke.blocked:roadStroke.caution : selected ? 3.5 : 1.6 + detail * 1.2,
     opacity: selected || warning ? 1 : Math.min(1, (.5 + detail * .25) * networkOpacity / defaultLayerAppearance.networkOpacity),
     dashed: warning && condition !== 'blocked',
     // Keep the complete graph visible. At overview scale it is a fine context line.
-    casingWidth: warning ? (condition==='blocked'?roadStroke.blocked:roadStroke.caution)+1.2 : selected ? 5 : 2.4 + detail,
+    casingWidth: warning ? (condition==='blocked'?roadStroke.blocked:roadStroke.caution)+1.2 : selected ? 5 : 2.8 + detail * 1.2,
   };
 }

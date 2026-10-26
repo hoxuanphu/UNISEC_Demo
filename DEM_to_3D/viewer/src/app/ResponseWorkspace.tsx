@@ -1,3 +1,4 @@
+import {areaResponsePriority} from '../features/landslides/responsePriority';
 import type { GeometryRecord } from '../geo/vector/types';
 import { latestOperationalReports } from '../features/observations/operationalReports';
 import { routeProposalOf, useResidentGuidance } from '../features/tracking/residentGuidance';
@@ -554,7 +555,11 @@ export function ResponseWorkspace({
     focus:localNetwork.network.roads.flatMap(road=>[road.points[0],road.points[road.points.length-1]]),
   }:undefined,[localNetwork.network,historical,householdViews,deviceFeed,rescueTrail,bases,currentReports,coverageLayers,household,selectedDeviceId,locale]);
   const localJourneyRoadIds=useMemo(()=>localNetwork.network?.roads.map(road=>road.id)??[],[localNetwork.network]);
-  const localContext=useMemo(()=>localNetwork.context?{areas:localNetwork.context.areas.filter(area=>area.kind==='landslide' && layers.landslide!==false),closures:[]}:undefined,[localNetwork.context,layers.landslide]);
+  const localContext=useMemo(()=>{
+    if(!localNetwork.context)return undefined;
+    const urgentAreas=new Set(householdViews.filter(h=>h.status==='cut-off'||h.status==='team').flatMap(h=>h.cutBy.flatMap(c=>c.kind==='area'?[c.id]:[])));
+    return {areas:localNetwork.context.areas.filter(area=>area.kind==='landslide'&&layers.landslide!==false).map(area=>({...area,responsePriority:areaResponsePriority(area.id,localNetwork.network?.roads??[],[],urgentAreas.has(area.id))})),closures:[]};
+  },[localNetwork.context,localNetwork.network,householdViews,layers.landslide]);
   const localArea=localContext?.areas.find(area=>area.id===localAreaId);
   // Whatever is chosen on the map comes into view; on phones its card covers the lower half, so keep it above.
   const focusMapOn=(points:Array<{x:number;y:number}>)=>requestAnimationFrame(()=>viewControlRef.current?.frameProjected?.(points,matchMedia('(max-width: 600px)').matches?{bottom:400}:undefined));

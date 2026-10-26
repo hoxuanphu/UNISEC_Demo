@@ -32,6 +32,7 @@ export function LocalAreaCard({area,photos,locale,onClose,linkToJourney=false}:{
   return <aside ref={panel} className="local-area-card" aria-label={vi?'Vùng sạt lở':'Landslide area'}>
     <header className="floating-panel-handle" {...floating} tabIndex={0} role="group" aria-label={vi?'Vị trí hồ sơ':'Case position'}><div><small>{vi?'Vùng sạt lở':'Landslide extent'}</small><h2>{title}</h2></div><button type="button" className="icon-button" aria-label={vi?'Đóng vùng sạt':'Close landslide area'} onClick={onClose}><UiIcon name="close"/></button></header>
     <div className="local-area-body">
+      {area.responsePriority&&area.responsePriority!=='routine'&&<p className="local-area-priority">{area.responsePriority==='urgent'?(vi?'Ưu tiên tiếp cận':'Priority access'):(vi?'Cần xác minh':'Needs verification')}</p>}
       {photo && <figure><button type="button" className="local-area-photo" disabled={!image} aria-label={vi?'Xem ảnh minh họa':'View illustrative photo'} onClick={()=>setZoomed(true)}>
         {image?<><img src={image} alt={vi?'Ảnh khảo sát Chế Tạo':'Chế Tạo survey photo'}/><span><UiIcon name="expand" size={18}/></span></>:<span className="local-area-photo-loading">{failed?vi?'Chưa tải được ảnh':'Photo unavailable':vi?'Đang tải ảnh':'Loading photo'}</span>}
       </button><figcaption>{caption}</figcaption></figure>}

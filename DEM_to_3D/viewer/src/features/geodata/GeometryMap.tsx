@@ -1,3 +1,4 @@
+import {areaResponsePriority} from '../landslides/responsePriority';
 import {addInternetDetail} from '../map/internetDetail';
 import {BasemapToneFilters} from '../imagery/BasemapToneFilters';
 import {supportsBasemapTone} from '../imagery/basemapTone';
@@ -418,7 +419,7 @@ export function GeometryMap(props: Props): JSX.Element {
           style: (feature) =>
             feature?.geometry.type === 'Point'
               ? pointStyle
-              : mappedArea ? { ...landslideAreaStyle(mappedArea, selected, fillOpacity), className: 'landslide-area is-' + mappedArea.state, interactive: !props.editor.active && !props.onPickPoint } : {
+              : mappedArea ? { ...landslideAreaStyle(mappedArea, selected, fillOpacity), className: 'landslide-area is-' + mappedArea.state+' priority-'+areaResponsePriority(record.id,props.scenario?.roads??[],mappedArea.networkVersion===props.scenario?.datasetVersion?mappedArea.roadLinks.map(link=>link.roadId):[],false,mappedArea.review==='unreviewed'), interactive: !props.editor.active && !props.onPickPoint } : {
                   color,
                   weight: referenceRoad ? selected ? 3 : 2 : selected ? 3 : 1.5,
                   fillOpacity: owner

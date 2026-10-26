@@ -1,3 +1,4 @@
+import {areaResponsePriority} from './responsePriority';
 import * as THREE from 'three';
 import proj4 from 'proj4';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
@@ -25,7 +26,7 @@ export function terrainLandslideAreas(records: GeometryRecord[], metadata: Terra
     const flush = () => {
       if (positions.length >= 6) {
         const geometry = surfaceLineGeometry(positions);
-        const material = breathe(stabiliseSurfaceLine(new LineMaterial({ color, linewidth: width, transparent: true, opacity, depthTest: true, depthWrite: false, dashed, dashSize: dash[0], gapSize: dash[1] })));
+        const material = breathe(stabiliseSurfaceLine(new LineMaterial({ color, linewidth: width, transparent: true, opacity, depthTest: true, depthWrite: false, dashed, dashSize: dash[0], gapSize: dash[1] })),priorities.get(id));
         material.resolution.set(resolution.width, resolution.height);
         const object = new Line2(geometry, material); object.computeLineDistances(); object.userData.recordId = id; setDrawingLayer(object, 'landslides', casing ? .1 : .2); root.add(object);
       }
@@ -37,6 +38,7 @@ export function terrainLandslideAreas(records: GeometryRecord[], metadata: Terra
     }
     flush();
   };
+  const priorities=new Map(records.map(record=>{const value=landslideAreaOf(record);return [record.id,value?areaResponsePriority(record.id,roads,value.networkVersion===networkVersion?value.roadLinks.map(link=>link.roadId):[],false,value.review==='unreviewed'):'routine' as const];}));
   for (const record of records) {
     const value = record.visible && landslideAreaOf(record);
     if (!value || (record.feature.geometry.type !== 'Polygon' && record.feature.geometry.type !== 'MultiPolygon')) continue;
@@ -72,7 +74,7 @@ export function terrainLandslideAreas(records: GeometryRecord[], metadata: Terra
       // A large footprint keeps its complete outline instead of a truncated, misleading fill.
       if (!exceeded && positions.length) {
         const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
-        const material = breathe(new THREE.MeshBasicMaterial({color:style.color,side:THREE.DoubleSide,transparent:true,opacity:style.fillOpacity,depthWrite:false,depthTest:true,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
+        const material = breathe(new THREE.MeshBasicMaterial({color:style.color,side:THREE.DoubleSide,transparent:true,opacity:style.fillOpacity,depthWrite:false,depthTest:true,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),priorities.get(record.id));
         const mesh = new THREE.Mesh(geometry,material); mesh.userData.recordId=record.id; setDrawingLayer(mesh, 'landslides'); root.add(mesh);
       }
     }
