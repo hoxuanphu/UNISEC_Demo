@@ -322,8 +322,8 @@ body .modal-overlay .response-work-dialog .response-work-list li:has(> [aria-pre
 .workspace-shell .map-area .journey-profile { border-radius: 8px; }
 
 /* Location and layer panels: same floating sheet as the other map tools. */
-.workspace-shell .map-area :is(.map-location-panel, .layers-panel) { height: auto; border: 1px solid var(--card-line); border-radius: 12px; background: var(--sheet-bg); box-shadow: var(--shadow-overlay); }
-.workspace-shell .map-area :is(.map-location-heading, .layers-heading) { padding: 12px 10px 10px 16px; border-bottom: 0; background: var(--sheet-bg); }
+.workspace-shell .map-area :is(.map-location-panel, .layers-panel) { height: auto; border: 1px solid var(--card-line); border-radius: var(--radius-float); background: var(--ws-surface); box-shadow: var(--shadow-overlay); }
+.workspace-shell .map-area :is(.map-location-heading, .layers-heading) { padding: 12px 10px 10px 16px; border-bottom: 1px solid var(--card-line); background: var(--ws-surface); }
 .workspace-shell .map-area :is(.map-location-heading, .layers-heading) :is(h2, strong, span:first-child) { font-size: 15px; font-weight: 600; }
 .workspace-shell .map-area :is(.map-location-heading, .layers-heading) .icon-button { width: 30px; height: 30px; min-height: 30px; border: 0; border-radius: 6px; background: none; color: var(--ws-muted); }
 .workspace-shell .map-area :is(.map-location-heading, .layers-heading) .icon-button:hover { background: var(--hover); color: var(--ws-text); }

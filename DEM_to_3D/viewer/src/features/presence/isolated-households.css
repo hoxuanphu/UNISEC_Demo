@@ -41,11 +41,11 @@
 
 /* Card: what is known, from whom, and the way out that is cut. */
 .household-card { position: absolute; z-index: 30; left: 16px; bottom: 16px; width: min(360px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto;
-  border: 1px solid var(--card-line); border-radius: 12px; background: var(--card); color: var(--ws-text); box-shadow: 0 6px 24px rgba(0, 0, 0, .18); }
+  border: 1px solid var(--card-line); border-radius: var(--radius-float); background: var(--card); color: var(--ws-text); box-shadow: var(--shadow-overlay); }
 .household-card header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 14px 10px 16px; }
-.household-card header small { display: inline-flex; align-items: center; gap: 6px; color: #b3261e; font-size: 12px; font-weight: 700; }
-.household-card header small::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #c62828; }
-.household-card header small[data-status='unverified'] { color: #8a5300; }
+.household-card header small { display: inline-flex; align-items: center; gap: 6px; color: var(--critical-ink); font-size: 12px; font-weight: 700; }
+.household-card header small::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--critical); }
+.household-card header small[data-status='unverified'] { color: var(--warning-ink); }
 .household-card header small[data-status='unverified']::before { background: #c77700; }
 .household-card header small[data-status='rescued'] { color: var(--ws-muted); }
 .household-card header small[data-status='rescued']::before { background: #6b7280; }

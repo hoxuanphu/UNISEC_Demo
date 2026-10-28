@@ -7,9 +7,9 @@ Quy tắc thiết kế dùng chung. Giá trị màu, font, kích thước và br
 | Nội dung | Quy tắc |
 |---|---|
 | Bố cục | Panel và bản đồ liền nhau, không bo góc ngoài. Panel đổi độ rộng; mobile tách Thông tin/Bản đồ |
-| Màu | Tối dùng than chì trung tính, sáng dùng trắng/xám ấm. Accent xanh lam nhạt ở tối và xanh lục ở sáng; màu trạng thái bản đồ độc lập với theme. Trạng thái có cả chữ hoặc ký hiệu, không chỉ dựa vào màu |
+| Màu | Tối dùng than chì trung tính, sáng dùng trắng/xám trung tính. Accent xanh rừng ở cả hai theme; màu trạng thái bản đồ độc lập với theme. Trạng thái có cả chữ hoặc ký hiệu, không chỉ dựa vào màu |
 | Chữ | Phân biệt tiêu đề, nội dung và metadata. Số đo/giờ dùng chữ số đều độ rộng. Tránh số lớn khi không giúp đọc quyết định |
-| Đường nét | Viền mảnh, góc nhỏ, bóng nhẹ trên lớp nổi. Không gradient trang trí, viền phát sáng hoặc nhiều thẻ lồng nhau |
+| Đường nét | Viền mảnh, điều khiển bo 8px, panel nổi bo 12px; khung workspace vẫn vuông. Bóng nhẹ chỉ tách lớp nổi khỏi map. Không gradient trang trí, viền phát sáng hoặc nhiều thẻ lồng nhau |
 | Bản đồ | Nền làm bối cảnh, dữ liệu tình huống nổi bật. Ký hiệu và nhãn theo [cartography](cartography.md) |
 | Câu chữ | Theo [thuật ngữ](terminology.md). Tách nhận định, nguồn, thời gian và dữ liệu thiếu; không lặp cùng thông tin ở nhiều khối. Dùng nhãn/giá trị và khoảng cách để chia metadata, không ghép bằng chấm giữa, mũi tên hoặc gạch dài |
 
@@ -49,3 +49,21 @@ Chỉ sửa tài liệu này khi đổi nguyên tắc hoặc hành vi dùng chun
 | Kết thúc phép đo thế nào? | Nhấp đúp, Enter hoặc nút Kết thúc. Kéo bản đồ không kết thúc phép đo | [ArcGIS Map Viewer](https://doc.arcgis.com/en/arcgis-online/get-started/measure-mv.htm) dùng click để thêm đỉnh, nhấp đúp để kết thúc và vẫn cho pan |
 | Có cần ghi mọi giới hạn trên bản đồ? | Chỉ hiện cảnh báo ảnh hưởng trực tiếp tới thao tác/kết luận. CRS, cách tính và nguồn ở thông tin công cụ/lớp | Quyết định thiết kế của DEAR. Không xóa nguồn hoặc giới hạn khỏi metadata/bản xuất |
 | Có cần bản đồ nhỏ? | Có trên 2D desktop, thu gọn mặc định. Giúp định hướng khi xem gần, hiển thị đúng khung nhìn, ẩn khi mở công cụ | [ArcGIS Overview map](https://developers.arcgis.com/javascript/latest/sample-code/overview-map/) là mẫu tham khảo. Đây là lựa chọn thiết kế, không phải yêu cầu bắt buộc của GIS |
+
+## Áp dụng Clear Field
+
+Tham khảo bản `references/common/UI/dear-design-system`: lấy nền trung tính, phân cấp bề mặt, nhịp 4px và góc bo theo vai trò. Giữ font đã chọn, màu xanh rừng, ký hiệu bản đồ và ý nghĩa cảnh báo hiện tại. Nhóm cứu hộ luôn đứng đầu bảng lớp và mở sẵn. Hover, lựa chọn và focus có cách thể hiện riêng.
+
+Có thể dùng cùng cách tổ chức cho eo-platform, qua token và component sẵn có; không cần đưa thêm thư viện UI vào hai app:
+
+| DEAR | eo-platform (`packages/ui/src/foundations/tokens.css`) | Vai trò |
+|---|---|---|
+| `--ws-surface` | `--surface` | Panel và nội dung |
+| `--sheet-bg`, `--ws-raised` | `--canvas`, `--chrome` | Nền phụ, nhóm điều khiển |
+| `--ws-line`, `--control-border` | `--line`, `--edge` | Viền phân nhóm và viền điều khiển |
+| `--primary`, `--on-primary` | `--accent`, `--on-accent` | Hành động chính |
+| `--radius-control`, `--radius-float` | `--radius`, `--radius-panel` | Hình dạng theo vai trò |
+
+Chỉ chia sẻ vai trò token và quy tắc tương tác. Bảng màu dữ liệu EO và ký hiệu ứng phó có ý nghĩa riêng. Chưa thay giao diện eo-platform trong đợt thử này.
+
+Tham chiếu hành vi: [Material color roles](https://m3.material.io/styles/color/roles), [Google Maps controls](https://developers.google.com/maps/documentation/javascript/controls), [Vercel Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines/blob/main/command.md).

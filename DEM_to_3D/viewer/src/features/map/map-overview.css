@@ -1,4 +1,4 @@
-.map-overview { position: absolute; left:auto; right: 16px; bottom: 48px; z-index: 14; max-width:calc(100% - 32px); overflow: hidden; border: 1px solid var(--map-control-line); border-radius: var(--radius-control); background: var(--ws-raised); color: var(--ws-text); box-shadow: var(--shadow-float); }
+.map-overview { position: absolute; left:auto; right: 16px; bottom: 48px; z-index: 14; max-width:calc(100% - 32px); overflow: hidden; border: 1px solid var(--map-control-line); border-radius: var(--radius-control); background: var(--ws-surface); color: var(--ws-text); box-shadow: var(--shadow-float); }
 .overview-toggle { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 30px; padding: 6px 10px; border: 0; background: none; color: inherit; font-size: 12px; font-weight: 400; line-height: 1.4; text-align: left; }
 .overview-toggle > span { flex: 1; }
 .overview-toggle:hover { background: var(--hover); }

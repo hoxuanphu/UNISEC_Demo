@@ -15,7 +15,7 @@
   padding: 5px 10px 8px;
   border: 1px solid var(--map-chrome-line);
   border-radius: var(--radius-control);
-  background: var(--ws-raised);
+  background: var(--ws-surface);
   box-shadow: var(--shadow-float);
   overflow-y: auto;
 }

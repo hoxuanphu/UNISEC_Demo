@@ -20,7 +20,7 @@
   min-height: 0;
   overflow: hidden;
   border: 1px solid var(--ws-line);
-  border-radius: 3px;
+  border-radius: var(--radius-float);
   background: var(--ws-surface);
   box-shadow: var(--shadow-overlay);
   color: var(--ws-text);
